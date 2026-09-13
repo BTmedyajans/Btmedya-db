@@ -138,6 +138,94 @@ async function contactApi(request, env, url, ctx){
   return null;
 }
 
+/* ---------------------------------------------------------------------
+   SOSYAL İÇERİK AKIŞI
+   social_posts tablosu migrations/0003_social_posts.sql ile oluşturulmuş
+   ama hiçbir uca bağlanmamıştı; tablo vardı, API ve panel yoktu. Şema
+   olduğu gibi kullanılıyor. Durum akışı şemadaki CHECK kısıtıyla aynı:
+   fikir -> hazirlaniyor -> onayda -> planlandi -> yayinlandi
+   --------------------------------------------------------------------- */
+const SOSYAL_DURUM = ['fikir','hazirlaniyor','onayda','planlandi','yayinlandi'];
+const SOSYAL_FORMAT = ['9:16','4:5','1:1','16:9'];
+
+async function socialApi(request, env, url){
+  if(!url.pathname.startsWith('/api/admin/social')) return null;
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD)))
+    return json({ok:false,error:'Yetkisiz'},401);
+  if(!env.DB) return json({ok:false,error:'D1 yapılandırılmadı'},503);
+
+  /* Liste — istege bagli durum filtresi */
+  if(url.pathname==='/api/admin/social' && request.method==='GET'){
+    const durum = url.searchParams.get('status');
+    let sql = 'SELECT * FROM social_posts';
+    const args = [];
+    if(durum && SOSYAL_DURUM.includes(durum)){ sql += ' WHERE status=?'; args.push(durum); }
+    sql += ' ORDER BY COALESCE(scheduled_at, updated_at) DESC LIMIT 300';
+    const rows = args.length
+      ? await env.DB.prepare(sql).bind(...args).all()
+      : await env.DB.prepare(sql).all();
+    return json({ok:true,items:rows.results});
+  }
+
+  /* Ekle veya guncelle — id gonderilirse guncelleme, gonderilmezse yeni kayit */
+  if(url.pathname==='/api/admin/social' && request.method==='POST'){
+    const b = await request.json().catch(()=>({}));
+    const baslik = String(b.title||'').trim();
+    if(!baslik) return json({ok:false,error:'Başlık zorunlu'},400);
+    if(baslik.length>200) return json({ok:false,error:'Başlık çok uzun'},400);
+
+    const durum = SOSYAL_DURUM.includes(b.status) ? b.status : 'fikir';
+    const format = SOSYAL_FORMAT.includes(b.format) ? b.format : '9:16';
+    /* Platformlar metin olarak saklaniyor (sema TEXT); diziyi normalize edip
+       JSON olarak yaziyoruz ki okurken her zaman ayni bicimde gelsin. */
+    const platformlar = JSON.stringify(
+      Array.isArray(b.platforms) ? b.platforms.map(x=>String(x).slice(0,40)).slice(0,10) : []
+    );
+    const simdi = new Date().toISOString();
+    const govde = String(b.body||'').slice(0,5000);
+    const medya = String(b.media_key||'').slice(0,300);
+    const kaynak = String(b.source_slug||'').slice(0,200);
+    const planlanan = b.scheduled_at ? String(b.scheduled_at).slice(0,40) : null;
+
+    if(b.id){
+      const mevcut = await env.DB.prepare('SELECT id FROM social_posts WHERE id=?').bind(String(b.id)).first();
+      if(!mevcut) return json({ok:false,error:'Kayıt bulunamadı'},404);
+      await env.DB.prepare(
+        `UPDATE social_posts SET title=?,body=?,platforms=?,format=?,media_key=?,
+         source_slug=?,status=?,scheduled_at=?,updated_at=? WHERE id=?`
+      ).bind(baslik,govde,platformlar,format,medya,kaynak,durum,planlanan,simdi,String(b.id)).run();
+      return json({ok:true,id:String(b.id),updated:true});
+    }
+
+    const id = crypto.randomUUID();
+    await env.DB.prepare(
+      `INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,
+       status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)`
+    ).bind(id,baslik,govde,platformlar,format,medya,kaynak,durum,planlanan,simdi,simdi).run();
+    return json({ok:true,id,created:true});
+  }
+
+  const tekil = url.pathname.match(/^\/api\/admin\/social\/([A-Za-z0-9-]{1,64})$/);
+
+  /* Yalnizca durum degistir — akis panosundaki hizli gecisler icin */
+  if(tekil && request.method==='PATCH'){
+    const b = await request.json().catch(()=>({}));
+    if(!SOSYAL_DURUM.includes(b.status)) return json({ok:false,error:'Geçersiz durum'},400);
+    const r = await env.DB.prepare('UPDATE social_posts SET status=?,updated_at=? WHERE id=?')
+      .bind(b.status,new Date().toISOString(),tekil[1]).run();
+    if(!r.meta || r.meta.changes===0) return json({ok:false,error:'Kayıt bulunamadı'},404);
+    return json({ok:true});
+  }
+
+  if(tekil && request.method==='DELETE'){
+    const r = await env.DB.prepare('DELETE FROM social_posts WHERE id=?').bind(tekil[1]).run();
+    if(!r.meta || r.meta.changes===0) return json({ok:false,error:'Kayıt bulunamadı'},404);
+    return json({ok:true});
+  }
+
+  return null;
+}
+
 /* ---------- Medya Kasası API ---------- */
 async function mediaApi(request, env){
   const u=new URL(request.url); const path=u.pathname;
@@ -448,6 +536,8 @@ export default { async fetch(request, env, ctx){
     if(env.DB){
       const rc = await contactApi(request, env, url, ctx);
       if(rc) return rc;
+      const rs = await socialApi(request, env, url);
+      if(rs) return rs;
     }
     if(env.DB && env.MEDIA){
       const r2 = await mediaApi(request, env);

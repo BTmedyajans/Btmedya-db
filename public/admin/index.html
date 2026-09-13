@@ -77,6 +77,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <button class="tab" data-tab="media">Medya Kasası</button>
     <button class="tab" data-tab="news">Haberler</button>
     <button class="tab" data-tab="videos">Videolar</button>
+    <button class="tab" data-tab="social">Sosyal İçerik</button>
     <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button>
   </div>
   <button class="btn" id="logoutBtn" style="display:none">Çıkış</button>
@@ -234,6 +235,81 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     </div>
   </div>
 
+  <div class="tab-content" id="tab-social">
+    <div class="panel">
+      <div class="row" style="margin-bottom:10px">
+        <h2 style="margin:0;flex:1" id="socialFormTitle">Yeni sosyal içerik</h2>
+        <button class="btn sm" id="socialReset" style="display:none">Vazgeç</button>
+      </div>
+      <p class="muted" style="margin-top:0">Akış: fikir → hazırlanıyor → onayda → planlandı → yayınlandı. Kayıtlar haber arşiviyle ilişkilendirilebilir.</p>
+
+      <label>Başlık</label>
+      <input id="soTitle" placeholder="Örn. Kalaycı İlyas Baykal — 40 sn dikey kesit" maxlength="200">
+
+      <label>Metin / senaryo</label>
+      <textarea id="soBody" rows="4" placeholder="Açılış cümlesi, görüntü notu, alt yazı, kapanış CTA…"></textarea>
+
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:150px">
+          <label>Format</label>
+          <select id="soFormat">
+            <option value="9:16">9:16 — Reels / Shorts / TikTok</option>
+            <option value="4:5">4:5 — Instagram akış</option>
+            <option value="1:1">1:1 — Kare</option>
+            <option value="16:9">16:9 — YouTube</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:150px">
+          <label>Durum</label>
+          <select id="soStatus">
+            <option value="fikir">Fikir</option>
+            <option value="hazirlaniyor">Hazırlanıyor</option>
+            <option value="onayda">Onayda</option>
+            <option value="planlandi">Planlandı</option>
+            <option value="yayinlandi">Yayınlandı</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:150px">
+          <label>Planlanan tarih</label>
+          <input id="soSched" type="date">
+        </div>
+      </div>
+
+      <label>Platformlar</label>
+      <div id="soPlatforms" class="row" style="gap:14px;flex-wrap:wrap;margin-bottom:12px">
+        <label style="font-weight:400"><input type="checkbox" value="Instagram" style="width:auto;margin-right:6px">Instagram</label>
+        <label style="font-weight:400"><input type="checkbox" value="YouTube" style="width:auto;margin-right:6px">YouTube</label>
+        <label style="font-weight:400"><input type="checkbox" value="TikTok" style="width:auto;margin-right:6px">TikTok</label>
+        <label style="font-weight:400"><input type="checkbox" value="Facebook" style="width:auto;margin-right:6px">Facebook</label>
+        <label style="font-weight:400"><input type="checkbox" value="LinkedIn" style="width:auto;margin-right:6px">LinkedIn</label>
+      </div>
+
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:180px">
+          <label>Kaynak haber (slug, isteğe bağlı)</label>
+          <input id="soSource" placeholder="balikesir-in-son-kalaycisi-ilyas-baykal">
+        </div>
+        <div style="flex:1;min-width:180px">
+          <label>Medya anahtarı (isteğe bağlı)</label>
+          <input id="soMedia" placeholder="Medya Kasası'ndaki dosya anahtarı">
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="soSave">Kaydet</button>
+        <span class="muted" id="soMsg" style="margin-left:10px"></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="row" style="margin-bottom:10px">
+        <h2 style="margin:0;flex:1">İçerik akışı</h2>
+        <button class="btn sm" id="soRefresh">Yenile</button>
+      </div>
+      <div id="soList"><p class="muted">Yükleniyor…</p></div>
+    </div>
+  </div>
+
 </div><!-- /appSection -->
 </div><!-- /wrap -->
 
@@ -287,6 +363,7 @@ function showTab(name){
   if(name==='durum'){loadSlots()}
   if(name==='news'){loadNewsList()}
   if(name==='videos'){loadVideos()}
+  if(name==='social'){loadSocial()}
   if(name==='messages'){loadMessages()}
 }
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
@@ -662,6 +739,93 @@ async function markRead(id){
 $('#msgRefresh').onclick=loadMessages;
 
 init();
+
+/* ---- Sosyal İçerik ----
+   social_posts tablosu tabloda vardı ama hiçbir uca bağlı değildi.
+   Durumlar şemadaki CHECK kısıtıyla birebir aynı tutuluyor. */
+const SO_DURUM = {fikir:'Fikir',hazirlaniyor:'Hazırlanıyor',onayda:'Onayda',planlandi:'Planlandı',yayinlandi:'Yayınlandı'};
+let soEditId = null;
+
+function soPlatformlar(){
+  return [...document.querySelectorAll('#soPlatforms input:checked')].map(c=>c.value);
+}
+function soFormTemizle(){
+  soEditId=null;
+  $('#soTitle').value='';$('#soBody').value='';$('#soSource').value='';$('#soMedia').value='';
+  $('#soSched').value='';$('#soFormat').value='9:16';$('#soStatus').value='fikir';
+  document.querySelectorAll('#soPlatforms input').forEach(c=>c.checked=false);
+  $('#socialFormTitle').textContent='Yeni sosyal içerik';
+  $('#socialReset').style.display='none';
+}
+$('#socialReset').onclick=soFormTemizle;
+
+$('#soSave').onclick=async()=>{
+  const baslik=$('#soTitle').value.trim();
+  if(!baslik){$('#soMsg').textContent='Başlık zorunlu.';return}
+  $('#soSave').disabled=true;$('#soMsg').textContent='Kaydediliyor…';
+  try{
+    const govde={title:baslik,body:$('#soBody').value,platforms:soPlatformlar(),
+      format:$('#soFormat').value,status:$('#soStatus').value,
+      scheduled_at:$('#soSched').value||null,source_slug:$('#soSource').value.trim(),
+      media_key:$('#soMedia').value.trim()};
+    if(soEditId) govde.id=soEditId;
+    const d=await req('/api/admin/social',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(govde)});
+    if(d.ok){$('#soMsg').textContent=soEditId?'Güncellendi.':'Eklendi.';soFormTemizle();loadSocial()}
+    else $('#soMsg').textContent=d.error||'Kaydedilemedi.';
+  }catch(e){$('#soMsg').textContent='Kaydedilemedi.'}
+  $('#soSave').disabled=false;
+};
+$('#soRefresh').onclick=()=>loadSocial();
+
+async function loadSocial(){
+  const d=await req('/api/admin/social');
+  const list=$('#soList');
+  if(!d.items?.length){list.innerHTML='<p class="muted">Henüz içerik yok. Yukarıdaki formdan ilkini ekleyin.</p>';return}
+  const gruplar=Object.keys(SO_DURUM).map(k=>[k,d.items.filter(i=>i.status===k)]);
+  list.innerHTML=gruplar.map(([k,items])=>`
+    <div style="margin-bottom:18px">
+      <div class="row" style="margin-bottom:6px">
+        <b style="flex:1">${SO_DURUM[k]}</b><span class="muted">${items.length}</span>
+      </div>
+      ${items.length?items.map(i=>{
+        let plat=[];try{plat=JSON.parse(i.platforms||'[]')}catch(e){}
+        return `<div class="news-row" style="align-items:flex-start">
+          <div class="news-row-info" style="flex:1">
+            <b>${escStr(i.title)}</b>
+            <small class="muted">${i.format||''}${plat.length?' · '+plat.map(escStr).join(', '):''}${i.scheduled_at?' · '+fmtDateShort(i.scheduled_at):''}${i.source_slug?' · kaynak: '+escStr(i.source_slug):''}</small>
+          </div>
+          <select onchange="soDurumDegistir('${i.id}',this.value)" style="width:auto;margin:0 6px 0 0">
+            ${Object.keys(SO_DURUM).map(x=>`<option value="${x}"${x===i.status?' selected':''}>${SO_DURUM[x]}</option>`).join('')}
+          </select>
+          <button class="btn sm" onclick='soDuzenle(${JSON.stringify(JSON.stringify(i))})'>Düzenle</button>
+          <button class="btn sm" onclick="soSil('${i.id}')">Sil</button>
+        </div>`}).join(''):'<p class="muted" style="margin:0 0 4px">—</p>'}
+    </div>`).join('');
+}
+
+async function soDurumDegistir(id,durum){
+  const d=await req('/api/admin/social/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({status:durum})});
+  if(d.ok) loadSocial();
+}
+function soDuzenle(ham){
+  const i=JSON.parse(ham);
+  soEditId=i.id;
+  $('#soTitle').value=i.title||'';$('#soBody').value=i.body||'';
+  $('#soFormat').value=i.format||'9:16';$('#soStatus').value=i.status||'fikir';
+  $('#soSched').value=(i.scheduled_at||'').slice(0,10);
+  $('#soSource').value=i.source_slug||'';$('#soMedia').value=i.media_key||'';
+  let plat=[];try{plat=JSON.parse(i.platforms||'[]')}catch(e){}
+  document.querySelectorAll('#soPlatforms input').forEach(c=>c.checked=plat.includes(c.value));
+  $('#socialFormTitle').textContent='İçeriği düzenle';
+  $('#socialReset').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function soSil(id){
+  if(!confirm('Bu içerik silinsin mi?'))return;
+  const d=await req('/api/admin/social/'+id,{method:'DELETE'});
+  if(d.ok) loadSocial();
+}
+
 </script>
 </body>
 </html>
