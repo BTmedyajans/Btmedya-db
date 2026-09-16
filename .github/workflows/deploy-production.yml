@@ -30,6 +30,16 @@ jobs:
           grep -q 'main = "src/worker.js"' wrangler.toml
           test -d public
 
+      - name: Verify Cloudflare credentials are configured
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -eu
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Missing GitHub Actions secret: CLOUDFLARE_API_TOKEN"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "::error::Missing GitHub Actions secret: CLOUDFLARE_ACCOUNT_ID"; exit 1; }
+
       - name: Cloudflare dry-run validation
         run: npx --yes wrangler@latest deploy --dry-run --config wrangler.toml
         env:
@@ -47,7 +57,7 @@ jobs:
           set -eu
           curl -fsS --max-time 30 https://btmedya.com.tr/api/health
           echo
-          curl -fsS --max-time 30 https://btmedya.com.tr/api/news?limit=1
+          curl -fsS --max-time 30 "https://btmedya.com.tr/api/news?limit=1"
           echo
           status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://btmedya.com.tr/api/admin/news)
           test "$status" = "401"
