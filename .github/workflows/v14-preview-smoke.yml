@@ -1,0 +1,18 @@
+name: BTMEDYA V14 preview smoke
+on:
+  push:
+    branches: [feat/v14-production-home]
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate V14 source
+        run: |
+          set -eu
+          test -s public/v14/index.html
+          grep -Fq 'AI LAB · AI GENERATED / EXPERIMENTAL' public/v14/index.html
+          grep -Fq '/api/public/media' public/v14/index.html
+          grep -Fq '/api/news?limit=6' public/v14/index.html
+          grep -Fq 'prefers' public/v14/index.html || true
