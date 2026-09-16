@@ -1,4 +1,4 @@
-name: BTMEDYA production deploy
+name: BTMEDYA production validation
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,27 +30,10 @@ jobs:
           grep -q 'main = "src/worker.js"' wrangler.toml
           test -d public
 
-      - name: Verify Cloudflare credentials are configured
-        shell: bash
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Cloudflare deployment handoff
         run: |
-          set -eu
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Missing GitHub Actions secret: CLOUDFLARE_API_TOKEN"; exit 1; }
-          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "::error::Missing GitHub Actions secret: CLOUDFLARE_ACCOUNT_ID"; exit 1; }
-
-      - name: Cloudflare dry-run validation
-        run: npx --yes wrangler@latest deploy --dry-run --config wrangler.toml
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
-      - name: Deploy Worker + Assets
-        run: npx --yes wrangler@latest deploy --config wrangler.toml
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          echo "Cloudflare Workers Builds is the production deployment authority."
+          echo "GitHub main is validated here; Cloudflare deploys the connected Worker from main."
 
       - name: Production smoke test
         run: |
