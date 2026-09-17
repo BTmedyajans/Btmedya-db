@@ -78,17 +78,4 @@ Detaylı adımlar: `docs/CANLIYA-ALMA.md`
 
 ## Tek elden yönetim
 
-Günlük içerik yönetimi için tek giriş noktası:
-
-**https://btmedya.com.tr/admin/**
-
-Kod ve içerik ayrımı bilinçlidir:
-
-- **Admin paneli:** haber, medya, video ve gelen mesaj yönetimi
-- **R2:** fotoğraf/video/ses/belge
-- **D1:** içerik ve kayıt verileri
-- **GitHub:** kod ve sürüm geçmişi
-- **Cloudflare Builds:** main → npx wrangler deploy → btmedya-db
-
-Kaynak ve medya provenansı: `docs/KAYNAK-VE-MEDYA-REHBERI.md`.
-Detaylı akış ve mimari şema: docs/TEK-ELDEN-YONETIM.md ve docs/BTMEDYA-TEK-ELDEN.svg.
+Cloudflare Workers Builds üzerinden `main` dalına yapılan her push production deployment zincirini tetikler. Bu README değişikliği yalnızca mevcut üretim kodunu yeniden yayınlama zincirini başlatmak için yapılmıştır; uygulama kaynak kodu değiştirilmemiştir.
