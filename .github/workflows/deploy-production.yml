@@ -14,12 +14,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Preflight source validation
         run: |
           set -eu
@@ -28,20 +26,30 @@ jobs:
           test -s public/index.html
           node --check src/worker.js
           grep -q 'main = "src/worker.js"' wrangler.toml
+          grep -q 'pattern = "btmedya.com.tr"' wrangler.toml
+          grep -q 'pattern = "www.btmedya.com.tr"' wrangler.toml
+          grep -q 'bucket_name = "btmedya-media"' wrangler.toml
+          grep -q 'database_name = "btmedya-media"' wrangler.toml
           test -d public
-
+          test -d migrations
       - name: Cloudflare deployment handoff
         run: |
           echo "Cloudflare Workers Builds is the production deployment authority."
-          echo "GitHub main is validated here; Cloudflare deploys the connected Worker from main."
-
-      - name: Production smoke test
+      - name: Production health smoke test
         run: |
           set -eu
-          curl -fsS --max-time 30 https://btmedya.com.tr/api/health
-          echo
-          curl -fsS --max-time 30 "https://btmedya.com.tr/api/news?limit=1"
-          echo
+          health=$(curl -fsS --max-time 30 https://btmedya.com.tr/api/health)
+          echo "$health"
+          node -e 'const x=JSON.parse(process.argv[1]); if(!x.ok||x.service!=="btmedya"||x.cms!==true||x.r2!==true||x.admin!==true) process.exit(1)' "$health"
+          curl -fsS --max-time 30 "https://btmedya.com.tr/api/news?limit=1" > /dev/null
+      - name: Admin protection smoke test
+        run: |
+          set -eu
           status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://btmedya.com.tr/api/admin/news)
           test "$status" = "401"
+      - name: Domain smoke test
+        run: |
+          set -eu
           curl -fsSIL --max-time 30 https://btmedya.com.tr/ | head -n 20
+          www_status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://www.btmedya.com.tr/)
+          test "$www_status" = "301"
