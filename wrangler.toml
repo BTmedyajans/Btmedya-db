@@ -32,6 +32,10 @@ custom_domain = true
 binding = "MEDIA"
 bucket_name = "btmedya-media"
 
+# Workers KV: production kodu şu anda KV binding kullanmıyor.
+# Eski/placeholder KV ID'si eklenmeyecek. KV ancak kod gerçekten ihtiyaç
+# duyduğunda gerçek namespace ID ile bağlanacaktır.
+
 [[d1_databases]]
 binding = "DB"
 database_name = "btmedya-media"
