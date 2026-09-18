@@ -81,6 +81,10 @@ jobs:
             exit 1
           fi
           echo "Zone: ${zone_id} / status: ${zone_status}"
+          if [ "${zone_status}" != "active" ]; then
+            echo "btmedya.com.tr Cloudflare zone aktif değil; deploy durduruluyor."
+            exit 1
+          fi
 
           # Worker Custom Domain kullanıldığından yalnızca bilinen placeholder/
           # eski R2 kaydı gibi güvenli çakışmaları kaldır. MX/TXT/SPF/DMARC'e dokunma.
@@ -90,7 +94,7 @@ jobs:
             | select(
                 (.name=="btmedya.com.tr" and .type=="AAAA" and .content=="100::")
                 or (.name=="chatgpt.btmedya.com.tr" and .type=="A" and .content=="192.0.2.1")
-                or (.name=="www.btmedya.com.tr" and .type=="CNAME" and .content=="public.r2.dev")
+                or ((.name=="btmedya.com.tr" or .name=="www.btmedya.com.tr") and .type=="CNAME")
               )
             | [.id,.type,.name,.content] | @tsv
           ' | while IFS=$'\t' read -r id type name content; do
