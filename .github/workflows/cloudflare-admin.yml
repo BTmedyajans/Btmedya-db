@@ -1,6 +1,14 @@
 name: Cloudflare administration
 
 on:
+  push:
+    branches: ["main"]
+    paths:
+      - "wrangler.toml"
+      - "src/**"
+      - "public/**"
+      - "migrations/**"
+      - ".github/workflows/cloudflare-admin.yml"
   workflow_dispatch:
     inputs:
       action:
@@ -8,6 +16,7 @@ on:
         required: true
         type: choice
         options:
+          - repair-and-deploy
           - verify
           - worker-deploy
       worker_name:
@@ -33,8 +42,18 @@ jobs:
       - name: Install Wrangler
         run: npm install --global wrangler@latest
 
+      - name: Verify required secrets
+        if: github.event_name == 'push' || inputs.action != 'verify'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -eu
+          test -n "${CLOUDFLARE_API_TOKEN}" || { echo "CLOUDFLARE_API_TOKEN eksik."; exit 1; }
+          test -n "${CLOUDFLARE_ACCOUNT_ID}" || { echo "CLOUDFLARE_ACCOUNT_ID eksik."; exit 1; }
+
       - name: Verify Cloudflare credentials
-        if: inputs.action == 'verify'
+        if: github.event_name == 'workflow_dispatch' && inputs.action == 'verify'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -44,11 +63,67 @@ jobs:
           test -n "${CLOUDFLARE_ACCOUNT_ID}"
           npx wrangler whoami
 
+      - name: Inspect and repair safe DNS conflicts
+        if: github.event_name == 'push' || inputs.action == 'repair-and-deploy'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4"
+          auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
+
+          zones_json="$(curl -fsS "${api}/zones?name=btmedya.com.tr&per_page=50" "${auth[@]}")"
+          zone_id="$(printf '%s' "${zones_json}" | jq -r '.result[] | select(.name=="btmedya.com.tr") | .id' | head -n1)"
+          zone_status="$(printf '%s' "${zones_json}" | jq -r '.result[] | select(.name=="btmedya.com.tr") | .status' | head -n1)"
+          if [ -z "${zone_id}" ] || [ "${zone_id}" = "null" ]; then
+            echo "Cloudflare hesabında btmedya.com.tr zone bulunamadı."
+            exit 1
+          fi
+          echo "Zone: ${zone_id} / status: ${zone_status}"
+
+          # Worker Custom Domain kullanıldığından yalnızca bilinen placeholder/
+          # eski R2 kaydı gibi güvenli çakışmaları kaldır. MX/TXT/SPF/DMARC'e dokunma.
+          records="$(curl -fsS "${api}/zones/${zone_id}/dns_records?per_page=5000" "${auth[@]}")"
+          printf '%s' "${records}" | jq -r '
+            .result[]
+            | select(
+                (.name=="btmedya.com.tr" and .type=="AAAA" and .content=="100::")
+                or (.name=="chatgpt.btmedya.com.tr" and .type=="A" and .content=="192.0.2.1")
+                or (.name=="www.btmedya.com.tr" and .type=="CNAME" and .content=="public.r2.dev")
+              )
+            | [.id,.type,.name,.content] | @tsv
+          ' | while IFS=$'\t' read -r id type name content; do
+            [ -z "${id}" ] && continue
+            echo "Siliniyor: ${type} ${name} -> ${content}"
+            curl -fsS -X DELETE "${api}/zones/${zone_id}/dns_records/${id}" "${auth[@]}" >/dev/null
+          done
+
+          echo "Kalan web DNS kayıtları:"
+          curl -fsS "${api}/zones/${zone_id}/dns_records?per_page=5000" "${auth[@]}"             | jq -r '.result[] | select(.name=="btmedya.com.tr" or .name=="www.btmedya.com.tr" or .name=="chatgpt.btmedya.com.tr") | [.type,.name,.content,.proxied] | @tsv'             || true
+
+          echo "Cloudflare zone nameservers:"
+          printf '%s' "${zones_json}" | jq -r '.result[] | select(.name=="btmedya.com.tr") | .name_servers[]'
+          
+          echo "DNS repair tamamlandı. Custom Domain'i Wrangler deploy oluşturacak."
+
       - name: Deploy btmedya-db
-        if: inputs.action == 'worker-deploy'
+        if: github.event_name == 'push' || inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -eu
           npx wrangler deploy --config wrangler.toml
+
+      - name: Production smoke test
+        if: github.event_name == 'push' || inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
+        run: |
+          set -eu
+          echo "btmedya.com.tr:"
+          curl -fsSI --max-time 20 https://btmedya.com.tr/ | sed -n '1,20p'
+          echo "www.btmedya.com.tr:"
+          curl -fsSI --max-time 20 https://www.btmedya.com.tr/ | sed -n '1,20p'
+          echo "health:"
+          curl -fsS --max-time 20 https://btmedya.com.tr/api/health
+          echo
