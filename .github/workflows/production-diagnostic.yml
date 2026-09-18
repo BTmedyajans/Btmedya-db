@@ -1,0 +1,83 @@
+name: BTMedya production diagnostic
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_safe_repair:
+        description: "Known safe DNS cleanup before diagnostics"
+        required: true
+        default: false
+        type: boolean
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Wrangler
+        run: npm install --global wrangler@latest
+
+      - name: Verify Cloudflare secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -eu
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN eksik."; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID eksik."; exit 1; }
+
+      - name: Optional safe DNS repair
+        if: github.event_name == 'workflow_dispatch' && inputs.run_safe_repair == true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4"
+          auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
+          zones_json="$(curl -fsS "${api}/zones?name=btmedya.com.tr&per_page=50" "${auth[@]}")"
+          zone_id="$(jq -r '.result[] | select(.name=="btmedya.com.tr") | .id' <<<"$zones_json" | head -n1)"
+          status="$(jq -r '.result[] | select(.name=="btmedya.com.tr") | .status' <<<"$zones_json" | head -n1)"
+          test -n "$zone_id" && test "$zone_id" != "null"
+          test "$status" = "active"
+          records="$(curl -fsS "${api}/zones/${zone_id}/dns_records?per_page=5000" "${auth[@]}")"
+          jq -r '.result[] | select(
+            (.name=="btmedya.com.tr" and .type=="AAAA" and .content=="100::")
+            or (.name=="chatgpt.btmedya.com.tr" and .type=="A" and .content=="192.0.2.1")
+            or (.name=="www.btmedya.com.tr" and .type=="CNAME" and .content=="public.r2.dev")
+          ) | [.id,.type,.name,.content] | @tsv' <<<"$records" |
+          while IFS=$'\t' read -r id type name content; do
+            [ -z "$id" ] && continue
+            echo "SAFE DELETE: $type $name -> $content"
+            curl -fsS -X DELETE "${api}/zones/${zone_id}/dns_records/${id}" "${auth[@]}" >/dev/null
+          done
+
+      - name: Run diagnostic
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          chmod +x control-plane/diagnose.sh
+          ./control-plane/diagnose.sh
+
+      - name: Upload diagnostic report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btmedya-production-diagnostic-${{ github.run_id }}
+          path: btmedya-production-report.txt
+          if-no-files-found: warn
+          retention-days: 14
