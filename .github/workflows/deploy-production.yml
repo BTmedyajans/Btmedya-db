@@ -24,6 +24,8 @@ jobs:
           test -s src/worker.js
           test -s wrangler.toml
           test -s public/index.html
+          test -s public/robots.txt
+          test -s public/sitemap.xml
           node --check src/worker.js
           grep -q 'main = "src/worker.js"' wrangler.toml
           grep -q 'pattern = "btmedya.com.tr"' wrangler.toml
@@ -33,14 +35,24 @@ jobs:
           test -d public
           test -d migrations
       - name: Cloudflare deployment handoff
-        run: |
-          echo "Cloudflare Workers Builds is the production deployment authority."
+        run: echo "Cloudflare Workers Builds is the production deployment authority."
       - name: Production health smoke test
         run: |
           set -eu
-          health=$(curl -fsS --max-time 30 https://btmedya.com.tr/api/health)
-          echo "$health"
-          node -e 'const x=JSON.parse(process.argv[1]); if(!x.ok||x.service!=="btmedya"||x.cms!==true||x.r2!==true||x.admin!==true) process.exit(1)' "$health"
+          headers=/tmp/health.headers
+          body=/tmp/health.json
+          code="$(curl -sS -D "$headers" -o "$body" -w '%{http_code}' --max-time 30 https://btmedya.com.tr/api/health || true)"
+          if [ "$code" != "200" ]; then
+            echo "Production /api/health returned HTTP $code"
+            cat "$headers" || true
+            sed -n '1,40p' "$body" || true
+            if [ "$code" = "401" ] || [ "$code" = "403" ]; then
+              echo "Likely pre-Worker Cloudflare Access/WAF/SAML protection. Worker code cannot remove a block applied before the request reaches the Worker."
+            fi
+            exit 1
+          fi
+          cat "$body"
+          node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/health.json","utf8")); if(!x.ok||x.service!=="btmedya"||x.cms!==true||x.r2!==true||x.admin!==true) process.exit(1)'
           curl -fsS --max-time 30 "https://btmedya.com.tr/api/news?limit=1" > /dev/null
       - name: Admin protection smoke test
         run: |
@@ -53,3 +65,8 @@ jobs:
           curl -fsSIL --max-time 30 https://btmedya.com.tr/ | head -n 20
           www_status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://www.btmedya.com.tr/)
           test "$www_status" = "301"
+      - name: Google crawl files smoke test
+        run: |
+          set -eu
+          curl -fsS --max-time 30 https://btmedya.com.tr/robots.txt | grep -Fq 'Sitemap: https://btmedya.com.tr/sitemap.xml'
+          curl -fsS --max-time 30 https://btmedya.com.tr/sitemap.xml | grep -Fq '<urlset'
