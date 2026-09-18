@@ -103,9 +103,23 @@ jobs:
           curl -fsS "${api}/zones/${zone_id}/dns_records?per_page=5000" "${auth[@]}"             | jq -r '.result[] | select(.name=="btmedya.com.tr" or .name=="www.btmedya.com.tr" or .name=="chatgpt.btmedya.com.tr") | [.type,.name,.content,.proxied] | @tsv'             || true
 
           echo "Cloudflare zone nameservers:"
-          printf '%s' "${zones_json}" | jq -r '.result[] | select(.name=="btmedya.com.tr") | .name_servers[]'
-          
-          echo "DNS repair tamamlandı. Custom Domain'i Wrangler deploy oluşturacak."
+          required_ns="$(printf '%s' "${zones_json}" | jq -r '.result[] | select(.name=="btmedya.com.tr") | .name_servers[]' | sort -u)"
+          printf '%s\n' "${required_ns}"
+
+          echo "Yetkili DNS delegasyonu kontrol ediliyor:"
+          actual_ns="$(dig +short NS btmedya.com.tr @1.1.1.1 | sed 's/\\.$//' | sort -u || true)"
+          printf '%s\n' "${actual_ns}"
+          if [ -z "${actual_ns}" ]; then
+            echo "btmedya.com.tr için dış DNS çözümlemesi NS döndürmüyor. Güzel Hosting tarafındaki nameserver delegasyonu kontrol edilmeli."
+            exit 1
+          fi
+          if ! diff -u <(printf '%s\n' "${required_ns}") <(printf '%s\n' "${actual_ns}"); then
+            echo "Cloudflare nameserver'ları ile registrar'daki aktif delegasyon eşleşmiyor."
+            echo "Gerekli nameserver'lar yukarıdaki 'Cloudflare zone nameservers' bölümünde listelendi."
+            exit 1
+          fi
+
+          echo "DNS repair + nameserver delegasyonu tamamlandı. Custom Domain'i Wrangler deploy oluşturacak."
 
       - name: Deploy btmedya-db
         if: github.event_name == 'push' || inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
