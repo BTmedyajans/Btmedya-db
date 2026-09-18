@@ -94,7 +94,7 @@ jobs:
             | select(
                 (.name=="btmedya.com.tr" and .type=="AAAA" and .content=="100::")
                 or (.name=="chatgpt.btmedya.com.tr" and .type=="A" and .content=="192.0.2.1")
-                or ((.name=="btmedya.com.tr" or .name=="www.btmedya.com.tr") and .type=="CNAME")
+                or (.name=="www.btmedya.com.tr" and .type=="CNAME" and .content=="public.r2.dev")
               )
             | [.id,.type,.name,.content] | @tsv
           ' | while IFS=$'\t' read -r id type name content; do
