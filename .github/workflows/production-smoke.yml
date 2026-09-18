@@ -83,7 +83,7 @@ jobs:
       - name: Check WWW canonical redirect
         run: |
           set -euo pipefail
-          status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 https://www.btmedya.com.tr/"
+          status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 https://www.btmedya.com.tr/)"
           location="$(curl -sSI --max-time 20 https://www.btmedya.com.tr/ | awk 'BEGIN{IGNORECASE=1} /^location:/ {print $2}' | tr -d '\r')"
           test "$status" = "301"
           test "$location" = "https://btmedya.com.tr/"
