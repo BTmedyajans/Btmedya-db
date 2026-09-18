@@ -27,6 +27,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: btmedya-cloudflare-admin
+  cancel-in-progress: false
+
 jobs:
   cloudflare:
     runs-on: ubuntu-latest
