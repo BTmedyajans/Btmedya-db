@@ -2,3 +2,7 @@ node_modules/
 .wrangler/
 .dryrun/
 *.log
+
+# Yerel test gizli degiskenleri — asla depoya girmez
+.dev.vars
+.dev.vars.*
