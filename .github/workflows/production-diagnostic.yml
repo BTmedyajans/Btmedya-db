@@ -1,6 +1,15 @@
 name: BTMedya production diagnostic
 
 on:
+  push:
+    branches: ["main"]
+    paths:
+      - "wrangler.toml"
+      - "src/**"
+      - "public/**"
+      - "migrations/**"
+      - "control-plane/**"
+      - ".github/workflows/production-diagnostic.yml"
   workflow_dispatch:
     inputs:
       run_safe_repair:
