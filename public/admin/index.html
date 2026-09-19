@@ -76,6 +76,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <button class="tab active" data-tab="durum">Site Durumu</button>
     <button class="tab" data-tab="media">Medya Kasası</button>
     <button class="tab" data-tab="news">Haberler</button>
+    <button class="tab" data-tab="social">Sosyal İçerik</button>
     <button class="tab" data-tab="videos">Videolar</button>
     <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button>
   </div>
@@ -215,6 +216,35 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   </div>
 
   <!-- TAB: GELEN MESAJLAR -->
+  <div class="tab-content" id="tab-social">
+    <div class="panel">
+      <h2>Sosyal İçerik Akışı</h2>
+      <div class="form-2col">
+        <div><label>BAŞLIK *</label><input id="sTitle" style="width:100%" placeholder="Örn. Balıkesir'den saha hikâyesi"></div>
+        <div><label>FORMAT</label><select id="sFormat" style="width:100%"><option value="9:16">9:16</option><option value="4:5">4:5</option><option value="1:1">1:1</option><option value="16:9">16:9</option></select></div>
+      </div>
+      <label>METİN / SENARYO</label>
+      <textarea id="sBody" style="width:100%;min-height:130px" placeholder="Sosyal medya metni veya kısa video senaryosu"></textarea>
+      <div class="form-2col">
+        <div><label>PLATFORMLAR</label><input id="sPlatforms" style="width:100%" placeholder="Instagram, TikTok, YouTube"></div>
+        <div><label>DURUM</label><select id="sStatus" style="width:100%"><option value="fikir">Fikir</option><option value="hazirlaniyor">Hazırlanıyor</option><option value="onayda">Onayda</option><option value="planlandi">Planlandı</option><option value="yayinlandi">Yayınlandı</option></select></div>
+      </div>
+      <div class="form-2col">
+        <div><label>KAYNAK HABER SLUG</label><input id="sSource" style="width:100%" placeholder="haber-basligi"></div>
+        <div><label>MEDYA ANAHTARI</label><input id="sMedia" style="width:100%" placeholder="haber/… veya portfoy/…"></div>
+      </div>
+      <label>PLANLANAN TARİH</label><input id="sScheduled" type="datetime-local" style="width:100%">
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="sSaveBtn">Sosyal içeriği kaydet</button>
+        <button class="btn" id="sRefreshBtn">Yenile</button>
+      </div>
+      <p id="sStatusMsg" class="status"></p>
+    </div>
+    <div class="panel">
+      <div id="socialList"><p class="muted">Yükleniyor…</p></div>
+    </div>
+  </div>
+
   <div class="tab-content" id="tab-videos">
     <div class="panel">
       <h2>Video kütüphanesi</h2>
@@ -286,6 +316,7 @@ function showTab(name){
   document.querySelector(`.tab[data-tab="${name}"]`).classList.add('active');
   if(name==='durum'){loadSlots()}
   if(name==='news'){loadNewsList()}
+  if(name==='social'){loadSocial()}
   if(name==='videos'){loadVideos()}
   if(name==='messages'){loadMessages()}
 }
@@ -662,6 +693,44 @@ async function markRead(id){
 $('#msgRefresh').onclick=loadMessages;
 
 init();
+/* ---- Sosyal İçerik ---- */
+async function loadSocial(){
+  const box=$('#socialList');
+  try{
+    const r=await req('/api/admin/social');
+    const items=r.items||[];
+    if(!items.length){box.innerHTML='<p class="muted">Henüz sosyal içerik yok.</p>';return;}
+    box.innerHTML='<div class="news-list">'+items.map(x=>{
+      const plats=(x.platforms||[]).join(' · ');
+      return '<div class="news-row" style="margin-bottom:6px"><div class="news-row-info"><b>'+escStr(x.title)+'</b><small>'+escStr(x.status)+' · '+escStr(x.format)+' · '+escStr(plats||'platform seçilmedi')+'</small></div><div class="row"><select data-social-status="'+escStr(x.id)+'" class="btn sm"><option value="fikir" '+(x.status==='fikir'?'selected':'')+'>Fikir</option><option value="hazirlaniyor" '+(x.status==='hazirlaniyor'?'selected':'')+'>Hazırlanıyor</option><option value="onayda" '+(x.status==='onayda'?'selected':'')+'>Onayda</option><option value="planlandi" '+(x.status==='planlandi'?'selected':'')+'>Planlandı</option><option value="yayinlandi" '+(x.status==='yayinlandi'?'selected':'')+'>Yayınlandı</option></select><button class="btn sm danger" data-social-delete="'+escStr(x.id)+'">Sil</button></div></div>';
+    }).join('')+'</div>';
+    box.querySelectorAll('[data-social-status]').forEach(el=>el.onchange=async()=>{
+      const id=el.dataset.socialStatus;
+      await req('/api/admin/social/'+encodeURIComponent(id),{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({status:el.value})});
+      loadSocial();
+    });
+    box.querySelectorAll('[data-social-delete]').forEach(el=>el.onclick=async()=>{
+      if(!confirm('Bu sosyal içeriği silmek istiyor musunuz?')) return;
+      await req('/api/admin/social/'+encodeURIComponent(el.dataset.socialDelete),{method:'DELETE'});
+      loadSocial();
+    });
+  }catch(e){box.innerHTML='<p class="muted">Sosyal içerik akışı yüklenemedi.</p>';}
+}
+$('#sSaveBtn').onclick=async()=>{
+  $('#sStatusMsg').textContent='';
+  const title=$('#sTitle').value.trim();
+  if(!title){$('#sStatusMsg').textContent='Başlık zorunludur.';return;}
+  const platforms=$('#sPlatforms').value.split(',').map(x=>x.trim()).filter(Boolean);
+  const scheduled=$('#sScheduled').value?new Date($('#sScheduled').value).toISOString():null;
+  const r=await req('/api/admin/social',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
+    title,body:$('#sBody').value,format:$('#sFormat').value,status:$('#sStatus').value,
+    platforms,source_slug:$('#sSource').value.trim(),media_key:$('#sMedia').value.trim(),scheduled_at:scheduled
+  })});
+  $('#sStatusMsg').textContent=r.ok?'Kaydedildi.':'Kayıt başarısız.';
+  if(r.ok){$('#sTitle').value='';$('#sBody').value='';loadSocial();}
+};
+$('#sRefreshBtn').onclick=loadSocial;
+
 </script>
 </body>
 </html>
