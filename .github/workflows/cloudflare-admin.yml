@@ -245,6 +245,45 @@ jobs:
 
           echo "DNS repair + nameserver delegasyonu tamamlandı. Custom Domain'i Wrangler deploy oluşturacak."
 
+      - name: Validate production media assets
+        if: github.event_name == 'push' || inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
+        run: |
+          set -eu
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          root = Path("public")
+          refs = set()
+          for src in [Path("public/index.html"), Path("public/anasayfa.js"), Path("public/anasayfa.css")]:
+              if not src.exists():
+                  continue
+              text = src.read_text(errors="ignore")
+              refs.update(re.findall(r'(?:src|href)=[\"\']?(/[^\"\'\s?#]+)', text))
+
+          missing = sorted(
+              ref for ref in refs
+              if ref.startswith("/assets/") and not (root / ref.lstrip("/")).exists()
+          )
+          if missing:
+              print("Eksik local production assetleri:")
+              print("\n".join(missing))
+              raise SystemExit(1)
+
+          required = [
+              Path("public/assets/hero-scrub.mp4"),
+              Path("public/assets/hero-ending.jpg"),
+              Path("public/assets/media/web/showreel-action.mp4"),
+          ]
+          missing_required = [str(p) for p in required if not p.exists()]
+          if missing_required:
+              print("Eksik zorunlu production medyası:")
+              print("\n".join(missing_required))
+              raise SystemExit(1)
+
+          print("Production media asset kontrolü OK")
+          PY
+
       - name: Deploy btmedya-db
         if: github.event_name == 'push' || inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
         env:
