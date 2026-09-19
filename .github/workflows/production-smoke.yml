@@ -51,6 +51,12 @@ jobs:
           grep -Fq 'AI LAB' /tmp/home.html
           grep -Fq 'WhatsApp' /tmp/home.html
 
+      - name: Check public media API
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 20 https://btmedya.com.tr/api/public/media > /tmp/media.json
+          node -e 'const x=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); if(!Array.isArray(x.items)) process.exit(1)' /tmp/media.json
+
       - name: Check production API health
         run: |
           set -euo pipefail
