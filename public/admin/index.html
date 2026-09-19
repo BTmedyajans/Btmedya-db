@@ -1,43 +1,667 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BTMedya Media Vault</title><style>
-body{font-family:Inter,system-ui,sans-serif;margin:0;background:#090909;color:#eee}header{padding:20px 24px;border-bottom:1px solid #292929;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#090909;z-index:3}.wrap{max-width:1300px;margin:auto;padding:24px}.panel{border:1px solid #292929;border-radius:16px;padding:18px;margin-bottom:20px;background:#111}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}.card{border:1px solid #292929;border-radius:14px;overflow:hidden;background:#0f0f0f}.thumb{width:100%;aspect-ratio:16/10;object-fit:cover;background:#050505}.meta{padding:12px}.row{display:flex;gap:10px;flex-wrap:wrap}.btn,input,select,textarea{background:#151515;color:#eee;border:1px solid #383838;border-radius:10px;padding:10px}.btn{cursor:pointer}.primary{background:#eee;color:#111}.drop{border:2px dashed #444;padding:34px;text-align:center;border-radius:14px}.hidden{display:none}.muted{color:#999;font-size:13px}label{display:block;margin:8px 0 4px;color:#aaa}.login{max-width:420px;margin:12vh auto}.status{font-size:13px;color:#9f9}</style></head><body>
-<header><strong>BTMEDYA / MEDIA VAULT</strong><button class="btn" id="logout">Çıkış</button></header><main class="wrap"><section id="login" class="panel login"><h2>Arşiv Yönetimi</h2><p class="muted">BTMedya medya kitaplığına giriş.</p><input id="pw" type="password" placeholder="Yönetici şifresi" style="width:100%;box-sizing:border-box"><button class="btn primary" id="loginBtn" style="margin-top:10px">Giriş yap</button><p id="loginMsg"></p></section>
-<section id="app" class="hidden"><div class="panel"><h2>Toplu medya yükle</h2><div class="drop" id="drop">Dosyaları buraya bırak veya <input id="files" type="file" multiple accept="image/*,video/*,audio/*,.pdf"></div><div class="row" style="margin-top:12px"><select id="category"><option value="arsiv">Arşiv</option><option value="haber">Haber</option><option value="siyah-oda">Siyah Oda</option><option value="ai-lab">AI LAB</option><option value="portre">Portre</option><option value="web">Web Sitesi</option><option value="sosyal">Sosyal Medya</option></select><button class="btn primary" id="uploadBtn">Yüklemeyi başlat</button></div><p id="uploadStatus" class="status"></p></div>
-<div class="panel"><h2>Haber yayınla</h2><p class="muted">Statik arşive ek olarak, D1 üzerinden canlı haber yayınlar (isteğe bağlı — data/haberler.json statik arşivi etkilemez).</p>
-<label>Başlık</label><input id="nTitle" style="width:100%;box-sizing:border-box" placeholder="Haber başlığı">
-<label>Slug (URL)</label><input id="nSlug" style="width:100%;box-sizing:border-box" placeholder="orn-haber-basligi">
-<label>Kategori</label><input id="nCategory" style="width:100%;box-sizing:border-box" placeholder="Yerel / Ekonomi / ...">
-<label>Özet</label><textarea id="nExcerpt" style="width:100%;box-sizing:border-box"></textarea>
-<label>Gövde</label><textarea id="nBody" style="width:100%;box-sizing:border-box;min-height:140px"></textarea>
-<div class="row" style="margin-top:10px"><button class="btn" id="nDraft">Taslak kaydet</button><button class="btn primary" id="nPublish">Yayınla</button></div>
-<p id="nStatus" class="status"></p></div>
-<div class="panel"><div class="row"><input id="q" placeholder="Arşivde ara…" style="flex:1"><select id="filter"><option value="">Tüm kategoriler</option><option value="haber">Haber</option><option value="siyah-oda">Siyah Oda</option><option value="ai-lab">AI LAB</option><option value="portre">Portre</option><option value="web">Web Sitesi</option><option value="sosyal">Sosyal</option></select><button class="btn" id="refresh">Yenile</button><a class="btn" href="/api/export">AI JSON dışa aktar</a></div></div><div id="grid" class="grid"></div></section></main>
-<script>
-const $=s=>document.querySelector(s);let selected=[];
-async function req(url,opt){const r=await fetch(url,opt);if(r.status===401){showLogin();throw Error('auth')}return r.json()}
-function showLogin(){ $('#login').classList.remove('hidden');$('#app').classList.add('hidden');}
-async function init(){try{await req('/api/media');$('#login').classList.add('hidden');$('#app').classList.remove('hidden');load()}catch(e){}}
-$('#loginBtn').onclick=async()=>{let r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:$('#pw').value})});if(r.ok)init();else $('#loginMsg').textContent='Şifre hatalı';};
-$('#logout').onclick=()=>{fetch('/api/logout').then(()=>location.reload())};
-$('#files').onchange=e=>selected=[...e.target.files];$('#drop').ondragover=e=>e.preventDefault();$('#drop').ondrop=e=>{e.preventDefault();selected=[...e.dataTransfer.files];$('#drop').firstChild.textContent=`${selected.length} dosya seçildi`};
-$('#uploadBtn').onclick=async()=>{if(!selected.length)return;let cat=$('#category').value;for(let i=0;i<selected.length;i++){let f=selected[i];$('#uploadStatus').textContent=`${i+1}/${selected.length}: ${f.name}`;let meta=await req('/api/media',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({original_name:f.name,mime:f.type||'application/octet-stream',size:f.size,category:cat})});let part=10*1024*1024,parts=[];for(let off=0,n=1;off<f.size;off+=part,n++){let blob=f.slice(off,Math.min(off+part,f.size));let p=await fetch(`/api/upload/${encodeURIComponent(meta.key)}/part?uploadId=${encodeURIComponent(meta.uploadId)}&partNumber=${n}`,{method:'PUT',body:blob});if(!p.ok)throw Error(await p.text());parts.push(await p.json())}await req(`/api/upload/${encodeURIComponent(meta.key)}/complete?uploadId=${encodeURIComponent(meta.uploadId)}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({parts})})}selected=[];$('#uploadStatus').textContent='Tamamlandı';load()};
-async function load(){let qs=new URLSearchParams();if($('#q').value)qs.set('q',$('#q').value);if($('#filter').value)qs.set('category',$('#filter').value);let d=await req('/api/media?'+qs);$('#grid').innerHTML=d.items.map(x=>`<article class="card"><${x.mime.startsWith('video/')?'video controls':'img'} class="thumb" src="${x.url}" ${x.mime.startsWith('video/')?'':'alt="'+(x.alt_text||x.original_name)+'"'}></${x.mime.startsWith('video/')?'video':'img'}><div class="meta"><b>${x.title||x.original_name}</b><div class="muted">${x.category} · ${(x.size/1024/1024).toFixed(1)} MB</div><div class="row" style="margin-top:8px"><button class="btn" onclick="togglePub('${x.id}',${x.published})">${x.published?'Yayından çıkar':'Siteye ekle'}</button><button class="btn" onclick="editMedia('${x.id}',${JSON.stringify(x).replace(/"/g,'&quot;')})">Düzenle</button><button class="btn" onclick="del('${x.id}')">Sil</button></div></div></article>`).join('')}
-async function togglePub(id,p){await req('/api/media/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({published:!p})});load()}
-async function editMedia(id,x){let title=prompt('Başlık',x.title||'');if(title===null)return;let slot=prompt('Site alanı (hero, haber-kapak, siyah-oda, ai-lab, galeri...)',x.slot||'');if(slot===null)return;let tags=prompt('Etiketler (virgülle)',(x.tags||[]).join(', '));if(tags===null)return;let alt=prompt('Alt metin',x.alt_text||'');if(alt===null)return;await req('/api/media/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({title,slot,alt_text:alt,tags:tags.split(',').map(v=>v.trim()).filter(Boolean),category:x.category,published:!!x.published,sort_order:x.sort_order||0,description:x.description||''})});load()}async function del(id){if(confirm('Bu medya kalıcı silinsin mi?')){await req('/api/media/'+id,{method:'DELETE'});load()}}$('#refresh').onclick=load;$('#q').oninput=()=>load();$('#filter').onchange=load;init();
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BTMedya Admin</title><style>
+*{box-sizing:border-box}
+body{font-family:Inter,system-ui,sans-serif;margin:0;background:#090909;color:#eee;font-size:14px}
+a{color:#7dd}
+header{padding:14px 20px;border-bottom:1px solid #222;display:flex;align-items:center;gap:14px;position:sticky;top:0;background:#090909;z-index:10;flex-wrap:wrap}
+header strong{font-size:15px;letter-spacing:.04em;color:#fff;margin-right:auto}
+.tabs{display:flex;gap:4px}
+.tab{background:none;border:1px solid #333;color:#999;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;position:relative}
+.tab.active{background:#eee;color:#111;border-color:#eee}
+.badge{display:inline-flex;align-items:center;justify-content:center;background:#e55;color:#fff;border-radius:20px;font-size:10px;font-weight:700;min-width:16px;height:16px;padding:0 4px;margin-left:5px}
+.badge.hidden{display:none}
+.wrap{max-width:1200px;margin:auto;padding:20px}
+.panel{border:1px solid #222;border-radius:14px;padding:18px;margin-bottom:18px;background:#0f0f0f}
+.panel h2{margin:0 0 14px;font-size:16px;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.card{border:1px solid #222;border-radius:12px;overflow:hidden;background:#111}
+.thumb{width:100%;aspect-ratio:16/10;object-fit:cover;background:#060606;display:block}
+.meta{padding:10px 12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:#1a1a1a;color:#ddd;border:1px solid #333;border-radius:8px;padding:7px 14px;cursor:pointer;font-size:13px;white-space:nowrap}
+.btn:hover{background:#252525}
+.btn.primary{background:#eee;color:#111;border-color:#eee}
+.btn.primary:hover{background:#ddd}
+.btn.danger{border-color:#633;color:#f88}
+.btn.danger:hover{background:#2a1010}
+.btn.sm{padding:4px 10px;font-size:12px}
+input,select,textarea{background:#141414;color:#eee;border:1px solid #303030;border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#555}
+textarea{resize:vertical}
+label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;letter-spacing:.05em}
+.drop{border:2px dashed #333;padding:28px;text-align:center;border-radius:12px;cursor:pointer}
+.muted{color:#666;font-size:12px}
+.status{font-size:12px;color:#6c6;min-height:18px;margin-top:6px}
+.tab-content{display:none}
+.tab-content.active{display:block}
+/* Login */
+.login-box{max-width:380px;margin:10vh auto}
+/* News list */
+.news-list{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.news-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid #222;border-radius:10px;background:#111}
+.news-row:hover{border-color:#333}
+.news-thumb{width:64px;height:40px;object-fit:cover;border-radius:6px;background:#181818;flex-shrink:0}
+.news-thumb-ph{width:64px;height:40px;border-radius:6px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:10px;color:#556;flex-shrink:0}
+.news-row-info{flex:1;min-width:0}
+.news-row-info b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+.news-row-info small{color:#666;font-size:11px}
+.pill{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;background:#222;color:#888;text-transform:uppercase}
+.pill.pub{background:#152215;color:#6c6}
+/* Messages */
+.msg-list{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.msg-row{border:1px solid #222;border-radius:10px;background:#111;overflow:hidden}
+.msg-row.unread{border-color:#334}
+.msg-header{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer}
+.msg-header:hover{background:#141414}
+.msg-dot{width:8px;height:8px;border-radius:50%;background:#446;flex-shrink:0}
+.msg-dot.unread{background:#77f}
+.msg-from{flex:1;min-width:0}
+.msg-from b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg-from small{color:#666;font-size:11px}
+.msg-date{color:#555;font-size:11px;white-space:nowrap}
+.msg-body{display:none;padding:14px;border-top:1px solid #1a1a1a;background:#0c0c0c}
+.msg-body.open{display:block}
+.msg-body p{margin:0 0 8px;color:#ccc;white-space:pre-wrap;font-size:13px}
+.msg-body .msg-detail{display:grid;grid-template-columns:80px 1fr;gap:4px 10px;margin-bottom:12px;font-size:12px}
+.msg-body .msg-detail span:nth-child(odd){color:#666}
+/* Cover preview */
+.cover-preview{width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-top:8px;display:none}
+/* Form grid */
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+@media(max-width:640px){.form-2col{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header>
+  <strong>BTMEDYA / ADMIN</strong>
+  <div class="tabs" id="tabBar" style="display:none">
+    <button class="tab active" data-tab="durum">Site Durumu</button>
+    <button class="tab" data-tab="media">Medya Kasası</button>
+    <button class="tab" data-tab="news">Haberler</button>
+    <button class="tab" data-tab="videos">Videolar</button>
+    <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button>
+  </div>
+  <button class="btn" id="logoutBtn" style="display:none">Çıkış</button>
+</header>
 
+<div class="wrap">
+
+<!-- LOGIN -->
+<div id="loginSection" class="panel login-box">
+  <h2>Yönetici Girişi</h2>
+  <p class="muted" style="margin-bottom:14px">BTMedya yönetim paneline giriş yapın.</p>
+  <input id="pw" type="password" placeholder="Şifre" style="width:100%;margin-bottom:10px">
+  <button class="btn primary" id="loginBtn" style="width:100%">Giriş yap</button>
+  <p id="loginMsg" class="status" style="color:#f88"></p>
+</div>
+
+<!-- APP -->
+<div id="appSection" style="display:none">
+
+  <!-- TAB: MEDYA KASASI -->
+  <div class="tab-content active" id="tab-durum">
+    <div class="panel">
+      <h2>Sitede ne eksik</h2>
+      <p class="status" id="durumOzet">Yükleniyor…</p>
+      <p class="status">Her satır sitedeki bir yeri gösterir. Eksik olanı doldurmak için dosyayı Medya Kasası'na yükleyip aşağıdan o yuvaya bağlayın.</p>
+    </div>
+    <div class="panel"><div id="slotList"></div></div>
+  </div>
+
+  <div class="tab-content" id="tab-media">
+    <div class="panel">
+      <h2>Toplu medya yükle</h2>
+      <div class="drop" id="drop">Dosyaları buraya bırak ya da seç — <input id="files" type="file" multiple accept="image/*,video/*,audio/*,.pdf"></div>
+      <div class="row" style="margin-top:12px">
+        <select id="category">
+          <option value="arsiv">Arşiv</option>
+          <option value="haber">Haber</option>
+          <option value="siyah-oda">Siyah Oda</option>
+          <option value="ai-lab">AI LAB</option>
+          <option value="portre">Portre</option>
+          <option value="web">Web Sitesi</option>
+          <option value="sosyal">Sosyal Medya</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:#9fb2c2">
+          <input type="checkbox" id="aiFlag"> Yapay zekâ ile üretildi
+        </label>
+        <button class="btn primary" id="uploadBtn">Yüklemeyi başlat</button>
+      </div>
+      <p class="status" style="margin-top:6px">Dosyanın en-boy oranı ve süresi yüklenirken ölçülür; hangi platforma uygun olduğu buna göre önerilir.</p>
+      <p id="uploadStatus" class="status"></p>
+    </div>
+    <div class="panel">
+      <div class="row" style="margin-bottom:14px">
+        <input id="q" placeholder="Arşivde ara…" style="flex:1">
+        <select id="filter">
+          <option value="">Tüm kategoriler</option>
+          <option value="haber">Haber</option>
+          <option value="siyah-oda">Siyah Oda</option>
+          <option value="ai-lab">AI LAB</option>
+          <option value="portre">Portre</option>
+          <option value="web">Web</option>
+          <option value="sosyal">Sosyal</option>
+        </select>
+        <button class="btn" id="refresh">Yenile</button>
+        <a class="btn" href="/api/export">AI JSON ↗</a>
+      </div>
+      <div id="mediaGrid" class="grid"></div>
+    </div>
+  </div>
+
+  <!-- TAB: HABERLER -->
+  <div class="tab-content" id="tab-news">
+    <div class="panel">
+      <div class="row" style="margin-bottom:10px">
+        <h2 style="margin:0;flex:1" id="newsFormTitle">Yeni haber ekle</h2>
+        <button class="btn sm" id="newNewsBtn">+ Yeni haber</button>
+      </div>
+      <div id="newsForm">
+        <div class="form-2col">
+          <div>
+            <label>BAŞLIK *</label>
+            <input id="nTitle" style="width:100%" placeholder="Haber başlığı">
+          </div>
+          <div>
+            <label>SLUG (URL) *</label>
+            <input id="nSlug" style="width:100%" placeholder="haber-basligi-url">
+          </div>
+        </div>
+        <div class="form-2col">
+          <div>
+            <label>KATEGORİ</label>
+            <input id="nCategory" style="width:100%" placeholder="Yerel / Ekonomi / Spor...">
+          </div>
+          <div>
+            <label>YAZAR</label>
+            <input id="nAuthor" style="width:100%" placeholder="Buse Tuncay">
+          </div>
+        </div>
+        <label>KAPAK GÖRSELI URL'si</label>
+        <input id="nCoverUrl" style="width:100%" placeholder="https://... veya /assets/...">
+        <img id="coverPreview" class="cover-preview" alt="Kapak önizleme">
+        <label>VIDEO URL</label>
+        <input id="nVideoUrl" style="width:100%" placeholder="YouTube bağlantısı yapıştırın (watch, youtu.be, shorts)">
+        <label>ÖZET</label>
+        <textarea id="nExcerpt" style="width:100%;min-height:70px" placeholder="Kısa özet (anasayfada görünür)"></textarea>
+        <label>İÇERİK</label>
+        <textarea id="nBody" style="width:100%;min-height:180px" placeholder="Haberin tam içeriği..."></textarea>
+        <div class="form-2col">
+          <div>
+            <label>YAYINLANMA TARİHİ</label>
+            <input id="nDate" type="datetime-local" style="width:100%">
+          </div>
+          <div>
+            <label>DURUM</label>
+            <select id="nStatus" style="width:100%">
+              <option value="published">Yayında</option>
+              <option value="draft">Taslak</option>
+            </select>
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn primary" id="nSaveBtn">Kaydet & Yayınla</button>
+          <button class="btn" id="nDraftBtn">Taslak kaydet</button>
+          <button class="btn danger" id="nCancelBtn" style="display:none">İptal</button>
+        </div>
+        <p id="nStatus2" class="status"></p>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="row" style="margin-bottom:10px">
+        <h2 style="margin:0;flex:1">Haberler</h2>
+        <button class="btn sm" id="newsListRefresh">Yenile</button>
+      </div>
+      <div id="newsList"><p class="muted">Yükleniyor…</p></div>
+    </div>
+  </div>
+
+  <!-- TAB: GELEN MESAJLAR -->
+  <div class="tab-content" id="tab-videos">
+    <div class="panel">
+      <h2>Video kütüphanesi</h2>
+      <p class="status" id="vidOzet">Yükleniyor…</p>
+      <p class="status">Videolar şimdilik kaynak kanalda yayında. Kendi kanalınıza yeniden yüklediğinizde buraya kendi bağlantınızı yapıştırın; site o andan itibaren her yerde sizin kanalınıza yönlenir. Haberlere ayrıca dokunmanız gerekmez.</p>
+    </div>
+    <div class="panel"><div id="videoList"></div></div>
+  </div>
+
+  <div class="tab-content" id="tab-messages">
+    <div class="panel">
+      <div class="row" style="margin-bottom:10px">
+        <h2 style="margin:0;flex:1">Gelen Mesajlar</h2>
+        <button class="btn sm" id="msgRefresh">Yenile</button>
+      </div>
+      <div id="msgList"><p class="muted">Yükleniyor…</p></div>
+    </div>
+  </div>
+
+</div><!-- /appSection -->
+</div><!-- /wrap -->
+
+<script>
+const $=s=>document.querySelector(s);
+let selectedFiles=[];
+let editingNewsId=null;
+
+/* ---- Util ---- */
+function escStr(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function fmtDate(d){if(!d)return'—';try{return new Date(d).toLocaleString('tr-TR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}catch{return d}}
+function fmtDateShort(d){if(!d)return'—';try{return new Date(d).toLocaleString('tr-TR',{day:'numeric',month:'short',year:'numeric'})}catch{return d}}
+async function req(url,opt){
+  const r=await fetch(url,opt);
+  if(r.status===401){showLogin();throw Error('auth')}
+  return r.json()
+}
+
+/* ---- Auth ---- */
+function showLogin(){
+  $('#loginSection').style.display='block';
+  $('#appSection').style.display='none';
+  $('#tabBar').style.display='none';
+  $('#logoutBtn').style.display='none';
+}
+function showApp(){
+  $('#loginSection').style.display='none';
+  $('#appSection').style.display='block';
+  $('#tabBar').style.display='flex';
+  $('#logoutBtn').style.display='block';
+  loadSlots();   // giriste once "sitede ne eksik" gorunur
+  loadMedia();
+}
+async function init(){
+  try{await req('/api/media');showApp()}catch(e){}
+}
+$('#loginBtn').onclick=async()=>{
+  $('#loginMsg').textContent='';
+  const r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:$('#pw').value})});
+  if(r.ok){showApp()}else{$('#loginMsg').textContent='Şifre hatalı.'}
+};
+$('#pw').onkeydown=e=>{if(e.key==='Enter')$('#loginBtn').click()};
+$('#logoutBtn').onclick=()=>fetch('/api/logout').then(()=>location.reload());
+
+/* ---- Tabs ---- */
+function showTab(name){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  $('#tab-'+name).classList.add('active');
+  document.querySelector(`.tab[data-tab="${name}"]`).classList.add('active');
+  if(name==='durum'){loadSlots()}
+  if(name==='news'){loadNewsList()}
+  if(name==='videos'){loadVideos()}
+  if(name==='messages'){loadMessages()}
+}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
+
+/* ---- Medya Kasası ---- */
+$('#files').onchange=e=>{selectedFiles=[...e.target.files];$('#drop').querySelector('input').after(document.createTextNode(` (${selectedFiles.length} dosya seçildi)`))};
+$('#drop').ondragover=e=>e.preventDefault();
+$('#drop').ondrop=e=>{e.preventDefault();selectedFiles=[...e.dataTransfer.files];$('#uploadStatus').textContent=`${selectedFiles.length} dosya seçildi`};
+/* Dosyanin en-boy orani ve suresi tarayicida okunur: Worker'da ffmpeg yok.
+   Ses tespiti tarayiciya gore degisir, bu yuzden kesin degil, yalnizca ipucu. */
+function readMeta(file){
+  return new Promise(resolve=>{
+    const url=URL.createObjectURL(file);
+    const done=m=>{URL.revokeObjectURL(url);resolve(m)};
+    if((file.type||'').startsWith('video/')){
+      const v=document.createElement('video');
+      v.preload='metadata'; v.muted=true;
+      v.onloadedmetadata=()=>done({
+        width:v.videoWidth,height:v.videoHeight,
+        duration_s:isFinite(v.duration)?+v.duration.toFixed(2):0,
+        has_audio:(v.mozHasAudio||!!v.webkitAudioDecodedByteCount||!!(v.audioTracks&&v.audioTracks.length))?1:0
+      });
+      v.onerror=()=>done({});
+      v.src=url;
+    }else if((file.type||'').startsWith('image/')){
+      const i=new Image();
+      i.onload=()=>done({width:i.naturalWidth,height:i.naturalHeight});
+      i.onerror=()=>done({});
+      i.src=url;
+    }else done({});
+  });
+}
+const PLAT_LABEL={'instagram-reel':'IG Reels','instagram-story':'IG Hikaye','instagram-post':'IG Gonderi',
+  'tiktok':'TikTok','youtube-short':'YT Shorts','youtube':'YouTube','facebook-reel':'FB Reels',
+  'site-showreel':'Site showreel','site-gorsel':'Site gorsel'};
+
+$('#uploadBtn').onclick=async()=>{
+  if(!selectedFiles.length)return;
+  const cat=$('#category').value;
+  const ai=$('#aiFlag').checked?1:0;
+  for(let i=0;i<selectedFiles.length;i++){
+    const f=selectedFiles[i];
+    $('#uploadStatus').textContent=`${i+1}/${selectedFiles.length}: ${f.name} — ölçülüyor…`;
+    const mm=await readMeta(f);
+    $('#uploadStatus').textContent=`${i+1}/${selectedFiles.length}: ${f.name}`;
+    const meta=await req('/api/media',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({original_name:f.name,mime:f.type||'application/octet-stream',size:f.size,category:cat,ai_generated:ai,...mm})});
+    if(meta.plan&&meta.plan.siteUyarisi) $('#uploadStatus').textContent=`${f.name} — ${meta.plan.siteUyarisi}`;
+    const part=10*1024*1024,parts=[];
+    for(let off=0,n=1;off<f.size;off+=part,n++){
+      const blob=f.slice(off,Math.min(off+part,f.size));
+      const p=await fetch(`/api/upload/${encodeURIComponent(meta.key)}/part?uploadId=${encodeURIComponent(meta.uploadId)}&partNumber=${n}`,{method:'PUT',body:blob});
+      parts.push(await p.json())
+    }
+    await req(`/api/upload/${encodeURIComponent(meta.key)}/complete?uploadId=${encodeURIComponent(meta.uploadId)}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({parts})});
+  }
+  selectedFiles=[];
+  $('#uploadStatus').textContent='Yükleme tamamlandı ✓';
+  loadMedia();
+};
+async function loadMedia(){
+  const qs=new URLSearchParams();
+  if($('#q').value)qs.set('q',$('#q').value);
+  if($('#filter').value)qs.set('category',$('#filter').value);
+  const d=await req('/api/media?'+qs);
+  vaultPlan=await req('/api/vault/plan').catch(()=>({items:[]}));
+  const planOf=id=>(vaultPlan.items||[]).find(i=>i.id===id)||{};
+  $('#mediaGrid').innerHTML=d.items.map(x=>{
+    const pl=planOf(x.id);
+    const sec=new Set(pl.secilen&&pl.secilen.length?pl.secilen:(pl.onerilen||[]));
+    const hedefler=[...new Set([...(pl.onerilen||[]),...(pl.secilen||[])])];
+    const sure=pl.saniye?`${Math.floor(pl.saniye/60)}:${String(Math.round(pl.saniye%60)).padStart(2,'0')}`:'';
+    const olcu=[pl.olcu,pl.enBoy,sure].filter(Boolean).join(' · ');
+    const gonderilmis=new Set((pl.gonderildi||[]).map(g=>g.platform));
+    return `
+    <article class="card">
+      ${x.mime.startsWith('video/')
+        ?`<video class="thumb" src="${escStr(x.url)}" controls preload="metadata"></video>`
+        :`<img class="thumb" src="${escStr(x.url)}" alt="${escStr(x.alt_text||x.original_name)}">`}
+      <div class="meta">
+        <b style="font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escStr(x.title||x.original_name)}</b>
+        <div class="muted">${escStr(x.category)} · ${(x.size/1024/1024).toFixed(1)} MB${olcu?' · '+escStr(olcu):''}${pl.yapayZeka?' · YZ':''}</div>
+        ${pl.siteUyarisi?`<div style="margin-top:7px;font-size:11px;line-height:1.45;color:#e0a45c;border-left:2px solid #e0a45c;padding-left:8px">${escStr(pl.siteUyarisi)}</div>`:''}
+        ${hedefler.length?`<div style="margin-top:9px">
+          <div class="muted" style="font-size:10px;letter-spacing:.1em;margin-bottom:5px">NEREYE GİDECEK</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            ${hedefler.map(t=>`<button class="btn sm" style="padding:3px 8px;font-size:10px;${sec.has(t)?'border-color:#d6a84a;color:#e8c06a':'opacity:.5'}"
+               onclick="toggleTarget('${escStr(x.id)}','${escStr(t)}')">${gonderilmis.has(t)?'✓ ':''}${escStr(PLAT_LABEL[t]||t)}</button>`).join('')}
+          </div>
+        </div>`:''}
+        ${(pl.uygunsuz&&pl.uygunsuz.length)?`<details style="margin-top:7px"><summary class="muted" style="font-size:10px;cursor:pointer">uymayan ${pl.uygunsuz.length} platform</summary>
+          <div class="muted" style="font-size:10.5px;line-height:1.5;margin-top:4px">${pl.uygunsuz.map(u=>escStr((PLAT_LABEL[u.slug]||u.slug)+': '+u.neden)).join('<br>')}</div></details>`:''}
+        <div class="row" style="margin-top:9px">
+          <button class="btn sm" onclick="togglePub('${escStr(x.id)}',${x.published})">${x.published?'Yayından çıkar':'Siteye ekle'}</button>
+          <button class="btn sm" onclick='editMedia("${escStr(x.id)}",${JSON.stringify(x).replace(/"/g,"&quot;")})'>Düzenle</button>
+          <button class="btn sm danger" onclick="delMedia('${escStr(x.id)}')">Sil</button>
+        </div>
+        ${pl.publicUrl?`<button class="btn sm" style="margin-top:6px;width:100%" onclick="copyPub('${escStr(pl.publicUrl)}')">Paylaşım bağlantısını kopyala</button>`:''}
+        <button class="btn sm" style="margin-top:6px;width:100%" onclick="useAsCover('${escStr(x.url)}')">Habere kapak yap</button>
+      </div>
+    </article>`}).join('');
+}
+let vaultPlan={items:[]};
+/* ---- Video kütüphanesi: kanal anahtarı ---- */
+async function loadVideos(){
+  const d=await req('/api/videos');
+  $('#vidOzet').innerHTML=`<b>${d.ozet.toplam}</b> video · <b style="color:#5fba8c">${d.ozet.kendiKanalda}</b> tanesi kendi kanalınızda · <b style="color:#e0a45c">${d.ozet.haberliOlmayan}</b> tanesinin haber metni yok.`;
+  $('#videoList').innerHTML=d.items.map(v=>`
+    <div style="display:grid;grid-template-columns:150px 1fr 300px;gap:14px;padding:15px 0;border-bottom:1px solid rgba(255,255,255,.08);align-items:start">
+      <a href="${escStr(v.izle)}" target="_blank"><img src="${escStr(v.kapak)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border:1px solid rgba(255,255,255,.1)"></a>
+      <div>
+        <b style="font-size:14px;display:block">${escStr(v.title)}</b>
+        <div style="margin-top:6px;display:flex;gap:7px;flex-wrap:wrap;align-items:center">
+          <span style="font-size:9.5px;letter-spacing:.1em;padding:2px 7px;border:1px solid ${v.kendiKanalda?'rgba(95,186,140,.5)':'rgba(224,164,92,.5)'};color:${v.kendiKanalda?'#5fba8c':'#e0a45c'}">${v.kendiKanalda?'KENDİ KANALINIZDA':escStr(v.source_channel||'KAYNAK KANAL')}</span>
+          ${v.news_slug
+            ?`<a href="/haberler/${escStr(v.news_slug)}" target="_blank" class="muted" style="font-size:11px;color:#e8c06a">bağlı haber ↗</a>`
+            :'<span class="muted" style="font-size:11px">haber metni yok</span>'}
+        </div>
+        ${v.note?`<div class="muted" style="font-size:11.5px;margin-top:5px">${escStr(v.note)}</div>`:''}
+        <div class="muted" style="font-size:10.5px;margin-top:5px;font-family:ui-monospace,monospace">kaynak ${escStr(v.youtube_id)}${v.own_youtube_id?' → kendi '+escStr(v.own_youtube_id):''}</div>
+      </div>
+      <div>
+        <input id="own-${escStr(v.id)}" style="width:100%;margin-bottom:6px" placeholder="Kendi kanalınızdaki bağlantı" value="${escStr(v.own_youtube_id||'')}">
+        <button class="btn sm" style="width:100%" onclick="setOwnVideo('${escStr(v.id)}')">Kendi kanalıma yönlendir</button>
+        ${v.own_youtube_id?`<button class="btn sm" style="width:100%;margin-top:5px" onclick="clearOwnVideo('${escStr(v.id)}')">Kaynak kanala geri dön</button>`:''}
+      </div>
+    </div>`).join('');
+}
+async function setOwnVideo(id){
+  const val=$('#own-'+id).value.trim();
+  if(!val){alert('Kendi kanalınızdaki bağlantıyı yapıştırın');return}
+  const r=await fetch('/api/videos/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({own_youtube_id:val})});
+  const d=await r.json();
+  if(!r.ok||d.error){alert(d.error||'Kaydedilemedi');return}
+  loadVideos();
+}
+async function clearOwnVideo(id){
+  await req('/api/videos/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({own_youtube_id:''})});
+  loadVideos();
+}
+/* ---- Site Durumu: yuvalari ve eksikleri gosterir ---- */
+async function loadSlots(){
+  const d=await req('/api/site/slots');
+  $('#durumOzet').innerHTML=`<b>${d.ozet.toplam}</b> yer var, <b style="color:#5fba8c">${d.ozet.dolu}</b> dolu, <b style="color:#e0a45c">${d.ozet.eksik}</b> eksik.`;
+  const all=await req('/api/media?').catch(()=>({items:[]}));
+  const secenek=(all.items||[]).map(m=>`<option value="${escStr(m.id)}">${escStr((m.title||m.original_name).slice(0,54))}</option>`).join('');
+  $('#slotList').innerHTML=d.yuvalar.map(y=>`
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;padding:15px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+      <div>
+        <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+          <b style="font-size:14px">${escStr(y.bolum)}</b>
+          <span style="font-size:9.5px;letter-spacing:.1em;padding:2px 7px;border:1px solid ${y.dolu?'rgba(95,186,140,.5)':'rgba(224,164,92,.5)'};color:${y.dolu?'#5fba8c':'#e0a45c'}">${y.dolu?'DOLU':'EKSİK'}</span>
+          ${y.dosya&&y.dosya.yapayZeka?'<span style="font-size:9.5px;letter-spacing:.1em;padding:2px 7px;border:1px solid rgba(63,201,232,.45);color:#3fc9e8">YAPAY ZEKÂ</span>':''}
+        </div>
+        <div class="muted" style="margin-top:5px;font-size:12px">${escStr(y.not)}</div>
+        <div class="muted" style="margin-top:4px;font-size:11px;font-family:ui-monospace,monospace">
+          ${escStr(y.tur==='video'?'video':'görsel')} · ${escStr(y.oran)} · önerilen ${escStr(y.onerilenOlcu)}
+          ${y.dosya&&y.dosya.olcu?` · yüklenen ${escStr(y.dosya.olcu)}`:''}
+        </div>
+      </div>
+      <div>
+        <select id="sel-${escStr(y.slug)}" style="width:100%;margin-bottom:6px"><option value="">— dosya seç —</option>${secenek}</select>
+        <button class="btn sm" style="width:100%" onclick="assignSlot('${escStr(y.slug)}')">Bu yere bağla</button>
+        ${y.dolu?`<button class="btn sm" style="width:100%;margin-top:5px" onclick="clearSlot('${escStr(y.dosya.id)}')">Bağlantıyı kaldır</button>`:''}
+      </div>
+    </div>`).join('');
+}
+async function assignSlot(slug){
+  const id=$('#sel-'+slug).value; if(!id){alert('Önce bir dosya seçin');return}
+  await req('/api/media/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({slot:slug,published:1})});
+  loadSlots();
+}
+async function clearSlot(id){
+  await req('/api/media/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({slot:''})});
+  loadSlots();
+}
+/* Hedef secimi: kullanici oneriyi degistirebilir, secim kaydedilir. */
+async function toggleTarget(id,slug){
+  const it=(vaultPlan.items||[]).find(i=>i.id===id); if(!it)return;
+  const cur=new Set(it.secilen&&it.secilen.length?it.secilen:(it.onerilen||[]));
+  cur.has(slug)?cur.delete(slug):cur.add(slug);
+  await req('/api/media/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({routed:[...cur]})});
+  loadMedia();
+}
+async function copyPub(url){
+  try{await navigator.clipboard.writeText(url);alert('Bağlantı kopyalandı:\n'+url)}
+  catch{prompt('Bağlantı:',url)}
+}
+async function togglePub(id,p){await req('/api/media/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({published:!p})});loadMedia()}
+async function editMedia(id,x){
+  const title=prompt('Başlık',x.title||'');if(title===null)return;
+  const slot=prompt('Site alanı (hero, haber-kapak, siyah-oda, ai-lab, galeri...)',x.slot||'');if(slot===null)return;
+  const tags=prompt('Etiketler (virgülle)',(x.tags||[]).join(', '));if(tags===null)return;
+  const alt=prompt('Alt metin',x.alt_text||'');if(alt===null)return;
+  await req('/api/media/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({title,slot,alt_text:alt,tags:tags.split(',').map(v=>v.trim()).filter(Boolean),category:x.category,published:!!x.published,sort_order:x.sort_order||0,description:x.description||''})});
+  loadMedia()
+}
+async function delMedia(id){if(confirm('Bu medya kalıcı silinsin mi?')){await req('/api/media/'+id,{method:'DELETE'});loadMedia()}}
+$('#refresh').onclick=loadMedia;
+$('#q').oninput=loadMedia;
+$('#filter').onchange=loadMedia;
+
+/* "Habere kapak yap" butonu: Media tab'dan seçilen görseli news formuna taşı */
+function useAsCover(url){
+  showTab('news');
+  $('#nCoverUrl').value=url;
+  updateCoverPreview();
+}
+
+/* ---- Haberler ---- */
 function slugify(s){return s.toLowerCase().replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ç/g,'c').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')}
 $('#nTitle').addEventListener('input',()=>{if(!$('#nSlug').dataset.touched)$('#nSlug').value=slugify($('#nTitle').value)});
 $('#nSlug').addEventListener('input',()=>{$('#nSlug').dataset.touched='1'});
-async function saveNews(status){
-  const b={title:$('#nTitle').value.trim(),slug:$('#nSlug').value.trim(),category:$('#nCategory').value.trim(),excerpt:$('#nExcerpt').value.trim(),body:$('#nBody').value.trim(),status};
-  if(!b.title||!b.slug){$('#nStatus').textContent='Başlık ve slug zorunlu';return}
-  $('#nStatus').textContent='Kaydediliyor…';
-  try{
-    const r=await fetch('/api/admin/news',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)});
-    const d=await r.json();
-    if(!r.ok||!d.ok){$('#nStatus').textContent='Hata: '+(d.error||r.status);return}
-    $('#nStatus').textContent=status==='published'?'Yayınlandı ✓':'Taslak kaydedildi ✓';
-  }catch(e){$('#nStatus').textContent='Hata: '+e.message}
+
+function updateCoverPreview(){
+  const url=$('#nCoverUrl').value.trim();
+  const img=$('#coverPreview');
+  if(url){img.src=url;img.style.display='block'}
+  else{img.style.display='none'}
 }
-$('#nDraft').onclick=()=>saveNews('draft');
-$('#nPublish').onclick=()=>saveNews('published');
-</script></body></html>
+$('#nCoverUrl').addEventListener('input',updateCoverPreview);
+
+function clearNewsForm(){
+  editingNewsId=null;
+  $('#newsFormTitle').textContent='Yeni haber ekle';
+  $('#nTitle').value='';delete $('#nSlug').dataset.touched;$('#nSlug').value='';
+  $('#nCategory').value='';$('#nAuthor').value='';$('#nCoverUrl').value='';$('#nVideoUrl').value='';
+  $('#nExcerpt').value='';$('#nBody').value='';$('#nDate').value='';$('#nStatus').value='published';
+  $('#coverPreview').style.display='none';
+  $('#nCancelBtn').style.display='none';
+  $('#nStatus2').textContent='';
+}
+$('#newNewsBtn').onclick=clearNewsForm;
+$('#nCancelBtn').onclick=clearNewsForm;
+
+async function saveNews(forceStatus){
+  const status=forceStatus||$('#nStatus').value;
+  const b={
+    title:$('#nTitle').value.trim(),
+    slug:$('#nSlug').value.trim(),
+    category:$('#nCategory').value.trim(),
+    author:$('#nAuthor').value.trim(),
+    cover_url:$('#nCoverUrl').value.trim(),
+    video_url:$('#nVideoUrl').value.trim(),
+    excerpt:$('#nExcerpt').value.trim(),
+    body:$('#nBody').value.trim(),
+    status,
+    published_at:$('#nDate').value ? new Date($('#nDate').value).toISOString() : null
+  };
+  if(!b.title||!b.slug){$('#nStatus2').textContent='Başlık ve slug zorunlu';return}
+  $('#nStatus2').textContent='Kaydediliyor…';
+  try{
+    let r,d;
+    if(editingNewsId){
+      r=await fetch('/api/admin/news/'+editingNewsId,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify(b)});
+      d=await r.json();
+    } else {
+      r=await fetch('/api/admin/news',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)});
+      d=await r.json();
+    }
+    if(!r.ok||!d.ok){$('#nStatus2').textContent='Hata: '+(d.error||r.status);return}
+    // Haber artik kendi adresinde yayinda; dogrudan acilabilsin.
+    if(b.status==='published'){
+      $('#nStatus2').innerHTML='Yayınlandı ✓ <a href="/haberler/'+encodeURIComponent(b.slug)+'" target="_blank" style="color:#e8c06a">haberi aç ↗</a>';
+    }
+    $('#nStatus2').textContent=status==='published'?'Yayınlandı ✓':'Taslak kaydedildi ✓';
+    loadNewsList();
+  }catch(e){$('#nStatus2').textContent='Hata: '+e.message}
+}
+$('#nSaveBtn').onclick=()=>saveNews('published');
+$('#nDraftBtn').onclick=()=>saveNews('draft');
+
+async function loadNewsList(){
+  const d=await req('/api/admin/news');
+  const list=$('#newsList');
+  if(!d.items?.length){list.innerHTML='<p class="muted">Henüz haber yok.</p>';return}
+  list.innerHTML='<div class="news-list">'+d.items.map(n=>`
+    <div class="news-row">
+      ${n.cover_url
+        ?`<img class="news-thumb" src="${escStr(n.cover_url)}" alt="" onerror="this.style.display='none'">`
+        :`<div class="news-thumb-ph">BT</div>`}
+      <div class="news-row-info">
+        <b>${escStr(n.title)}</b>
+        <small>${escStr(n.category||'—')} · ${escStr(n.author||'—')} · <span class="pill ${n.status==='published'?'pub':''}">${n.status==='published'?'Yayında':'Taslak'}</span> · ${fmtDateShort(n.published_at)}</small>
+      </div>
+      <div class="row">
+        <button class="btn sm" onclick="loadNewsEdit(${n.id})">Düzenle</button>
+        <button class="btn sm danger" onclick="deleteNews(${n.id},'${escStr(n.title).replace(/'/g,"\\'")}')">Sil</button>
+      </div>
+    </div>`).join('')+'</div>';
+}
+async function loadNewsEdit(id){
+  const d=await req('/api/admin/news/'+id);
+  if(!d.ok||!d.item){return}
+  const n=d.item;
+  editingNewsId=id;
+  $('#newsFormTitle').textContent='Haberi düzenle';
+  $('#nTitle').value=n.title||'';
+  $('#nSlug').dataset.touched='1';
+  $('#nSlug').value=n.slug||'';
+  $('#nCategory').value=n.category||'';
+  $('#nAuthor').value=n.author||'';
+  $('#nCoverUrl').value=n.cover_url||'';
+  $('#nVideoUrl').value=n.video_url||'';
+  $('#nExcerpt').value=n.excerpt||'';
+  $('#nBody').value=n.body||'';
+  $('#nStatus').value=n.status||'draft';
+  if(n.published_at){
+    const d2=new Date(n.published_at);
+    $('#nDate').value=d2.toISOString().slice(0,16);
+  } else {
+    $('#nDate').value='';
+  }
+  updateCoverPreview();
+  $('#nCancelBtn').style.display='';
+  $('#nStatus2').textContent='';
+  $('#newsFormTitle').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+async function deleteNews(id,title){
+  if(!confirm(`"${title}" silinsin mi? Bu işlem geri alınamaz.`))return;
+  const r=await fetch('/api/admin/news/'+id,{method:'DELETE'});
+  const d=await r.json();
+  if(d.ok){loadNewsList();if(editingNewsId===id)clearNewsForm()}
+  else alert('Hata: '+(d.error||r.status));
+}
+$('#newsListRefresh').onclick=loadNewsList;
+
+/* ---- Gelen Mesajlar ---- */
+let expandedMsgId=null;
+async function loadMessages(){
+  const d=await req('/api/admin/contact');
+  const list=$('#msgList');
+  if(!d.items?.length){list.innerHTML='<p class="muted">Henüz mesaj yok.</p>';$('#unreadBadge').classList.add('hidden');return}
+  const unread=d.items.filter(m=>!m.read).length;
+  const badge=$('#unreadBadge');
+  if(unread>0){badge.textContent=unread;badge.classList.remove('hidden')}else{badge.classList.add('hidden')}
+  list.innerHTML='<div class="msg-list">'+d.items.map(m=>`
+    <div class="msg-row ${m.read?'':'unread'}" id="msg-${m.id}">
+      <div class="msg-header" onclick="toggleMsg(${m.id},${m.read})">
+        <div class="msg-dot ${m.read?'':'unread'}"></div>
+        <div class="msg-from">
+          <b>${escStr(m.name)} ${m.read?'':' <span style="font-size:10px;color:#77f">YENİ</span>'}</b>
+          <small>${escStr(m.email)}${m.subject?' · '+escStr(m.subject):''}</small>
+        </div>
+        <div class="msg-date">${fmtDate(m.created_at)}</div>
+      </div>
+      <div class="msg-body" id="msgbody-${m.id}">
+        <div class="msg-detail">
+          <span>Ad Soyad</span><span>${escStr(m.name)}</span>
+          <span>E-posta</span><span><a href="mailto:${escStr(m.email)}">${escStr(m.email)}</a></span>
+          ${m.phone?`<span>Telefon</span><span><a href="tel:${escStr(m.phone)}">${escStr(m.phone)}</a></span>`:''}
+          ${m.subject?`<span>Konu</span><span>${escStr(m.subject)}</span>`:''}
+        </div>
+        <p>${escStr(m.message)}</p>
+        ${!m.read?`<button class="btn sm" onclick="markRead(${m.id})">Okundu işaretle</button>`:`<span class="muted">Okundu</span>`}
+      </div>
+    </div>`).join('')+'</div>';
+}
+function toggleMsg(id,read){
+  const body=$('#msgbody-'+id);
+  body.classList.toggle('open');
+  if(!read && body.classList.contains('open'))markRead(id);
+}
+async function markRead(id){
+  await req('/api/admin/contact/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({read:true})});
+  const row=$('#msg-'+id);
+  if(row){row.classList.remove('unread');row.querySelector('.msg-dot').classList.remove('unread');}
+  const btn=document.querySelector(`#msgbody-${id} button`);
+  if(btn)btn.replaceWith(Object.assign(document.createElement('span'),{className:'muted',textContent:'Okundu'}));
+  const badge=$('#unreadBadge');
+  const cur=parseInt(badge.textContent)||0;
+  if(cur<=1)badge.classList.add('hidden');else badge.textContent=cur-1;
+}
+$('#msgRefresh').onclick=loadMessages;
+
+init();
+</script>
+</body>
+</html>

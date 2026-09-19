@@ -63,20 +63,140 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   }
 
-  // HERO ARKA PLAN VIDEOSU: ayni kapidan gecer, poster her kosulda ayakta kalir.
-  const heroBg=document.querySelector('.hero-bg-video');
-  function applyHeroBgGate(){
-    if(!heroBg) return;
-    if(heavyMediaBlocked()){ heroBg.pause(); return; }
-    loadVideo(heroBg);
-    heroBg.play().catch(()=>{});
-  }
-  if(heroBg){
-    heroBg.addEventListener('error',()=>{heroBg.style.display='none';},{once:true});
-    HEAVY_MEDIA_GATES.map(q=>window.matchMedia(q))
-      .forEach(m=>m.addEventListener('change',applyHeroBgGate));
-    applyHeroBgGate();
-  }
+  // HERO HIKAYE VIDEOSU -------------------------------------------------
+  // Tek cekim, kesmesiz 9.4 saniyelik film. Masaustunde kaydirma ile kare
+  // kare surulur; mobilde normal oynatilir. Her iki durumda da bolum metni
+  // videonun zamanina baglidir, slogan videonun uzerinde durur.
+  // Video hic inmezse poster ve 01 bolumu oldugu gibi kalir.
+  (function(){
+    const v=document.getElementById('heroStoryVideo');
+    const heroSec=document.querySelector('.hero-scroll');
+    const sticky=document.querySelector('.hero-sticky');
+    if(!v||!heroSec||!sticky) return;
+
+    const idxEl=document.querySelector('.hero-chapter-idx');
+    const textEl=document.querySelector('.hero-chapter-text');
+
+    // Bolumler, kurgudaki gercek anlara denk gelir (bkz. hero master kurgusu).
+    const CH=[
+      [0.00,'01','Her şey sahadaki bir insanla başlar.'],
+      [1.15,'02','Hikâye gücünü oradan alır.'],
+      [3.35,'03','Prodüksiyon ona biçim verir.'],
+      [5.25,'04','Yapay zekâ ölçeğini büyütür.'],
+      [6.90,'05','Ve hikâye yayına çıkar.']
+    ];
+
+    const mqReduce=window.matchMedia('(prefers-reduced-motion: reduce)');
+    const isSmall=()=>window.innerWidth<=900;
+
+    // Sayaci olcuye vurulmus baglanti: veri tasarrufu ve yavas sebekede inmez.
+    function connectionPoor(){
+      const c=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+      if(!c) return false;
+      if(c.saveData) return true;
+      return /^(slow-2g|2g|3g)$/.test(c.effectiveType||'');
+    }
+    const lowMemory=()=>(navigator.deviceMemory||8)<4;
+    const allowed=()=>!mqReduce.matches && !connectionPoor() && !lowMemory();
+
+    let started=false, raf=0, current=0, last=0, seeking=false, chapter=0;
+
+    // Delta kapisi: bolum degismediyse DOM'a hic yazilmaz.
+    function paintChapter(t){
+      let i=0;
+      for(let k=0;k<CH.length;k++) if(t>=CH[k][0]) i=k;
+      if(i===chapter) return;
+      chapter=i;
+      if(idxEl) idxEl.textContent=CH[i][1];
+      if(!textEl) return;
+      textEl.classList.remove('in');
+      textEl.textContent=CH[i][2];
+      void textEl.offsetWidth;
+      textEl.classList.add('in');
+    }
+
+    function progress(){
+      const span=heroSec.offsetHeight-sticky.offsetHeight;
+      if(span<=0) return 0;
+      const top=heroSec.getBoundingClientRect().top;
+      return Math.min(1,Math.max(0,-top/span));
+    }
+
+    function tick(now){
+      raf=0;
+      const dur=v.duration;
+      if(!dur||!isFinite(dur)){ last=0; return; }
+      const dt=last?Math.min(0.1,(now-last)/1000):1/60;
+      last=now;
+      const target=progress()*dur;
+      current+=(target-current)*(1-Math.pow(0.0001,dt)); // dt ile normalize edilmis yumusatma
+      paintChapter(current);
+      // Aramayi kapila: yalnizca yarim kareden buyuk fark varsa ve onceki arama bittiyse.
+      if(!seeking && Math.abs(current-v.currentTime)>1/48){
+        seeking=true;
+        try{ v.currentTime=current; }catch(e){ seeking=false; }
+      }
+      if(Math.abs(target-current)>0.003) schedule(); else last=0;
+    }
+    function schedule(){ if(!raf) raf=requestAnimationFrame(tick); }
+
+    v.addEventListener('seeked',()=>{seeking=false;});
+    v.addEventListener('error',()=>{heroSec.classList.remove('hero-story-on');},{once:true});
+
+    function begin(){
+      if(started||!allowed()) return;
+      started=true;
+      const small=isSmall();
+      const src=(small&&v.dataset.srcMobile)?v.dataset.srcMobile:v.dataset.src;
+      // preload="none" mirasi kalirsa load() veri cozmez ve loadeddata hic gelmez.
+      const attach=url=>{ v.preload='auto'; v.src=url; v.dataset.loaded='1'; v.load(); };
+
+      if(small){
+        // Mobilde suruklemek guvenilir degil: video normal oynar, metin zamana bakar.
+        v.loop=true;
+        v.addEventListener('loadeddata',()=>{
+          heroSec.classList.add('hero-story-on');
+          v.play().catch(()=>{});
+        },{once:true});
+        v.addEventListener('timeupdate',()=>paintChapter(v.currentTime));
+        attach(src);
+        return;
+      }
+
+      // Masaustunde Blob olarak indirilir; boylece her arama agi beklemez.
+      v.addEventListener('loadeddata',()=>{
+        heroSec.classList.add('hero-story-on');
+        current=0; last=0;
+        try{ v.currentTime=0.001; }catch(e){}
+        schedule();
+      },{once:true});
+      fetch(src,{credentials:'same-origin'})
+        .then(r=>r.ok?r.blob():Promise.reject(r.status))
+        .then(b=>attach(URL.createObjectURL(b)))
+        .catch(()=>attach(src));
+
+      window.addEventListener('scroll',schedule,{passive:true});
+      window.addEventListener('resize',()=>{last=0;schedule();},{passive:true});
+    }
+
+    // Karakter gorseli ve sahne fotograflari yalnizca video devreye girmezse
+    // gorunur. Video acikken hepsi gizli oldugu icin bosuna indirilmesinler.
+    const fallbackArt=[document.getElementById('characterVideo'),
+                       ...document.querySelectorAll('.scene-img')].filter(Boolean);
+    function loadFallbackArt(){
+      fallbackArt.forEach(el=>{ if(!el.src && el.dataset.src) el.src=el.dataset.src; });
+    }
+    v.addEventListener('error',loadFallbackArt,{once:true});
+
+    function applyGate(){
+      if(allowed()){ begin(); }
+      else{ heroSec.classList.remove('hero-story-on'); loadFallbackArt(); }
+    }
+    mqReduce.addEventListener('change',applyGate);
+    applyGate();
+    // Video makul surede acilmadiysa eski sahne kurulumuna don.
+    setTimeout(()=>{ if(!heroSec.classList.contains('hero-story-on')) loadFallbackArt(); },4000);
+  })();
 
   // ALT BOLUM VIDEOLARI: gorunur olunca iner ve oynar, ekrandan cikinca durur.
   const lazyVideos=[...document.querySelectorAll('video.lazy-video')];
@@ -125,7 +245,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 
   const menu=document.querySelector('.menu-toggle');
-  const nav=document.querySelector('.topbar nav');
+  const nav=document.querySelector('.site-menu');
   if(menu&&nav){
     menu.addEventListener('click',()=>{
       const open=nav.classList.toggle('open');
@@ -204,7 +324,8 @@ document.addEventListener('DOMContentLoaded',()=>{
           if(sceneStart) gsap.set(sceneStart,{opacity:Math.max(0,1-p*1.7)});
           if(sceneEnd) gsap.set(sceneEnd,{opacity:Math.max(0,(p-.45)*1.9)});
           gsap.set('.character-wrap',{y:p*-90,scale:1+p*.1});
-          gsap.set('.hero-copy',{y:p*-80,opacity:1-Math.min(1,p*1.8)});
+          // Slogan video boyunca ustte durur, yalnizca son %18'de cekilir.
+          gsap.set('.hero-copy',{y:p*-46,opacity:1-Math.min(1,Math.max(0,(p-.82)/.18))});
           gsap.set('.focus-ring',{rotation:p*180,scale:1+p*.5});
           if(line) line.style.width=(p*100)+'%';
           if(label) label.textContent=p<.33?'01 / GİRİŞ':p<.66?'02 / ODAK':'03 / ÇIKIŞ';
@@ -243,7 +364,7 @@ document.addEventListener('DOMContentLoaded',()=>{
             <h3>${escapeHtml(n.title||'Başlıksız haber')}</h3>
             <p>${escapeHtml(n.excerpt||'').substring(0,120)}${(n.excerpt||'').length>120?'…':''}</p>
             <span class="news-card-date">${escapeHtml(n.author||'')}${n.author&&n.published_at?' · ':''}${formatDate(n.published_at)}</span>
-            <a class="section-link" href="/haberler/${encodeURIComponent(n.slug)}.html">HABERİ AÇ ↗</a>
+            <a class="section-link" href="/haberler/${encodeURIComponent(n.slug)}">HABERİ AÇ ↗</a>
           </div>
         </article>`).join('');
     }).catch(()=>{
@@ -255,7 +376,7 @@ document.addEventListener('DOMContentLoaded',()=>{
               <small>${escapeHtml((n.category||'HABER').toUpperCase())}</small>
               <h3>${escapeHtml(n.title||'Başlıksız haber')}</h3>
               <p>${escapeHtml(n.excerpt||'').substring(0,120)}</p>
-              <a class="section-link" href="/haberler/${encodeURIComponent(n.slug)}.html">HABERİ AÇ ↗</a>
+              <a class="section-link" href="/haberler/${encodeURIComponent(n.slug)}">HABERİ AÇ ↗</a>
             </div>
           </article>`).join('');
       }).catch(()=>{});
@@ -283,5 +404,242 @@ document.addEventListener('DOMContentLoaded',()=>{
     try{window.dispatchEvent(new CustomEvent('btmedya:whatsapp_intent',{detail:{category:active}}));}catch(e){}
   }));
 
+  // ETKILESIMLI AN: basili tut, hikaye canlansin.
+  // Ilerleme basili tutarken artar, birakinca geri soner, aniden sifirlanmaz.
+  // Tamamlaninca alttaki icerik acilir. Azaltilmis harekette beklemeden
+  // dogrudan son hal gosterilir.
+  (function(){
+    const sec=document.getElementById('canlandir');
+    if(!sec) return;
+    const stage=sec.querySelector('.revive-stage');
+    const head=sec.querySelector('.revive-headline');
+    const btn=sec.querySelector('.revive-btn');
+    const label=sec.querySelector('.revive-label');
+    const text=sec.querySelector('.revive-sr').textContent.trim();
+    const reducedQ=window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    // Tohumlu rastgelelik: dagilma her acilista ayni, yani tasarim tekrarlanabilir.
+    let seed=20260911>>>0;
+    const rnd=()=>(seed=(seed*1664525+1013904223)>>>0)/4294967296;
+
+    // Harfler kelime kutularinin icine giriyor, yoksa satir sonu kelimeyi ortadan boler.
+    head.innerHTML='';
+    const words=text.split(' ');
+    let idx=0;
+    const total=text.length;
+    words.forEach((word,wi)=>{
+      const w=document.createElement('span');
+      w.className='w';
+      [...word].forEach(ch=>{
+        const sp=document.createElement('span');
+        sp.className='c';
+        sp.textContent=ch;
+        sp.style.setProperty('--th', (idx/total*0.55 + rnd()*0.12).toFixed(3));
+        sp.style.setProperty('--jx', ((rnd()-0.5)*140).toFixed(1)+'px');
+        sp.style.setProperty('--jy', ((rnd()-0.5)*90).toFixed(1)+'px');
+        sp.style.setProperty('--jr', ((rnd()-0.5)*44).toFixed(1)+'deg');
+        w.appendChild(sp);
+        idx++;
+      });
+      head.appendChild(w);
+      if(wi<words.length-1){ head.appendChild(document.createTextNode(' ')); idx++; }
+    });
+    const spans=[...head.querySelectorAll('.c')];
+
+    let p=0, target=0, raf=null, last=0, done=false;
+    const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+
+    function paint(){
+      stage.style.setProperty('--p', p.toFixed(4));
+      spans.forEach(sp=>{
+        const th=parseFloat(sp.style.getPropertyValue('--th'))||0;
+        sp.style.setProperty('--kc', clamp((p-th)*2.6,0,1).toFixed(3));
+      });
+      stage.style.setProperty('--after', clamp((p-0.82)*5.5,0,1).toFixed(3));
+      if(p>=1 && !done){
+        done=true;
+        sec.classList.add('done');
+        label.textContent='CANLANDI';
+      }else if(p<1 && done){
+        done=false;
+        sec.classList.remove('done');
+        label.textContent='BASILI TUTUN';
+      }
+    }
+
+    function tick(now){
+      const dt=Math.min(100, now-(last||now));
+      last=now;
+      // Dolus yaklasik 1,6 saniye, geri sonme biraz daha yavas.
+      const rate = target>p ? dt/1600 : -dt/2200;
+      p=clamp(p+rate,0,1);
+      paint();
+      if((target>p && p<1)||(target<p && p>0)){
+        raf=requestAnimationFrame(tick);
+      }else{
+        raf=null; last=0;
+      }
+    }
+    function drive(t){
+      target=t;
+      if(raf===null){ last=0; raf=requestAnimationFrame(tick); }
+    }
+
+    const hold=e=>{ if(e && e.cancelable) e.preventDefault(); drive(1); };
+    const release=()=>drive(0);
+
+    btn.addEventListener('mousedown',hold);
+    btn.addEventListener('touchstart',hold,{passive:false});
+    addEventListener('mouseup',release);
+    addEventListener('touchend',release);
+    addEventListener('touchcancel',release);
+    btn.addEventListener('mouseleave',release);
+    btn.addEventListener('blur',release);
+    btn.addEventListener('keydown',e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); hold(); }});
+    btn.addEventListener('keyup',e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); release(); }});
+
+    function applyReduced(){
+      if(reducedQ.matches){
+        if(raf!==null){ cancelAnimationFrame(raf); raf=null; }
+        p=1; paint();
+        btn.setAttribute('disabled','');
+        btn.style.display='none';
+      }else{
+        btn.removeAttribute('disabled');
+        btn.style.display='';
+      }
+    }
+    reducedQ.addEventListener('change',applyReduced);
+    applyReduced();
+    if(!reducedQ.matches) paint();
+  })();
+
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+
+  // SEKME GIZLIYKEN DURAKLAT.
+  // main dalindan gelen surum video[autoplay] seciyordu; bu dalda hicbir video
+  // artik autoplay tasimiyor (hepsi kapiya ve gorunurluge bagli indiriliyor),
+  // yani secim bos donuyor ve body.paused hic kurulmuyordu. Ekran disinda
+  // duraklatmayi zaten yukaridaki lazy gozlemcisi yapiyor, burada yalnizca
+  // sekme gizlenince duraklatma kaliyor. body.paused sinifi CSS tarafinda
+  // butun animasyonlari (::before ve ::after dahil) donduruyor.
+  (function(){
+    const inView=el=>{
+      const r=el.getBoundingClientRect();
+      return r.bottom>0 && r.top<innerHeight && r.right>0 && r.left<innerWidth;
+    };
+    const playable=()=>[...document.querySelectorAll('video')]
+      .filter(v=>v.dataset.loaded && !v.closest('.intro-overlay'));
+    document.addEventListener('visibilitychange',()=>{
+      const hidden=document.hidden;
+      document.body.classList.toggle('paused',hidden);
+      playable().forEach(v=>{
+        if(hidden){ v.pause(); return; }
+        // Kaydirma ile surulen hero videosu kendi zamanina bagli: oynatilmaz.
+        if(v.dataset.scrub){
+          if(v.loop && !matchMedia('(prefers-reduced-motion: reduce)').matches) v.play().catch(()=>{});
+          return;
+        }
+        if(inView(v) && !matchMedia('(prefers-reduced-motion: reduce)').matches) v.play().catch(()=>{});
+      });
+    });
+  })();
 });
+
+/* =====================================================================
+   SİNEMATİK KATMAN
+   Tam ekran menünün gövde kilidi, başlık açılışları ve bölüm parallax'ı.
+   Mevcut menü kodu .open sınıfını ve aria durumunu zaten yönetiyor; bu
+   blok yalnızca onun bıraktığı yerden devam eder, ikinci bir aç/kapa
+   mantığı kurmaz.
+   ===================================================================== */
+(function(){
+  var azHareket = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  /* --- Menü: gövde kaydırma kilidi ve Escape --- */
+  var dugme = document.querySelector('.menu-toggle');
+  var menu  = document.querySelector('.site-menu');
+  if(dugme && menu){
+    var esitle = function(){
+      document.body.classList.toggle('menu-acik', menu.classList.contains('open'));
+    };
+    /* Tıklama dinleyicisiyle senkron olmak dinleyici kayıt sırasına bağlı
+       kalırdı: mevcut menü kodu DOMContentLoaded içinde kaydoluyor, bu blok
+       ise hemen çalışıyor, yani bizimki önce tetiklenip .open'ı eski haliyle
+       okuyordu. Sınıfın kendisi izleniyor; sıra artık önemsiz. */
+    new MutationObserver(esitle).observe(menu, { attributes:true, attributeFilter:['class'] });
+    esitle();
+    menu.addEventListener('click', function(ev){
+      if(ev.target.tagName === 'A') { menu.classList.remove('open'); esitle(); }
+    });
+    document.addEventListener('keydown', function(ev){
+      if(ev.key === 'Escape' && menu.classList.contains('open')){
+        menu.classList.remove('open');
+        dugme.setAttribute('aria-expanded','false');
+        dugme.setAttribute('aria-label','Menüyü aç');
+        esitle();
+        dugme.focus();
+      }
+    });
+  }
+
+  if(azHareket.matches || !('IntersectionObserver' in window)) return;
+
+  /* --- Başlık açılışları ---
+     Öğeler görünür halde duruyor; sınıf ancak JS çalışıyorsa ekleniyor.
+     Böylece script hiç yüklenmezse içerik yine okunur kalır. */
+  var hedefler = [];
+  document.querySelectorAll('.section-head, .bh, .cta, .about-copy').forEach(function(blok){
+    var bas = blok.querySelector('h2, h1');
+    var ust = blok.querySelector('.eyebrow, .mono');
+    var alt = blok.querySelector('p:not(.eyebrow)');
+    if(ust) hedefler.push([ust, '']);
+    if(bas) hedefler.push([bas, 'cine-gecik-1']);
+    if(alt) hedefler.push([alt, 'cine-gecik-2']);
+  });
+  hedefler.forEach(function(c){ c[0].classList.add('cine-hazir'); if(c[1]) c[0].classList.add(c[1]); });
+
+  var gozcu = new IntersectionObserver(function(girisler){
+    girisler.forEach(function(g){
+      if(g.isIntersecting){
+        g.target.classList.remove('cine-hazir');
+        g.target.classList.add('cine-ac');
+        gozcu.unobserve(g.target);
+      }
+    });
+  }, { rootMargin: '0px 0px -12% 0px', threshold: 0.15 });
+  hedefler.forEach(function(c){ gozcu.observe(c[0]); });
+
+  /* Güvenlik ağı: gözcü herhangi bir nedenle tetiklenmezse 2.5 sn sonra
+     hepsi açılır. Gizli kalmış içerik bırakmayalım. */
+  setTimeout(function(){
+    document.querySelectorAll('.cine-hazir').forEach(function(e){
+      e.classList.remove('cine-hazir'); e.classList.add('cine-ac');
+    });
+  }, 2500);
+
+  /* --- Parallax ---
+     Yalnızca görünür alandaki öğeler hesaplanır; transform ile yapılır,
+     düzen tetiklenmez. */
+  var katmanlar = [];
+  document.querySelectorAll('.portfolio-card img, .category-cover img, .archive-card img').forEach(function(img){
+    img.classList.add('par-katman');
+    katmanlar.push(img);
+  });
+  if(!katmanlar.length) return;
+
+  var raf = null, pencereY = window.innerHeight;
+  function ciz(){
+    raf = null;
+    for(var i=0;i<katmanlar.length;i++){
+      var e = katmanlar[i], r = e.getBoundingClientRect();
+      if(r.bottom < -80 || r.top > pencereY + 80) continue;
+      var oran = (r.top + r.height/2 - pencereY/2) / pencereY;  /* -1 … 1 */
+      e.style.transform = 'translate3d(0,' + (oran * -14).toFixed(2) + 'px,0) scale(1.06)';
+    }
+  }
+  function plan(){ if(raf === null) raf = requestAnimationFrame(ciz); }
+  window.addEventListener('scroll', plan, { passive:true });
+  window.addEventListener('resize', function(){ pencereY = window.innerHeight; plan(); }, { passive:true });
+  ciz();
+})();

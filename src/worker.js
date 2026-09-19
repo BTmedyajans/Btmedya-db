@@ -1,6 +1,8 @@
+import { renderNewsPage } from "./news-page.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
  * 2) Medya Kasası (D1 tablo: media, R2) — /api/media*, /api/public/media, /api/export, /media/*, /api/login, /api/logout
+ * 3) İletişim    (D1 tablo: contact_messages) — /api/contact, /api/admin/contact
  * Statik dosyalar env.ASSETS üzerinden servis edilir.
  */
 
@@ -26,51 +28,119 @@ function safeKey(name){ return name.normalize('NFKD').replace(/[^\w.\-]+/g,'-').
 function extFromMime(mime){ const map={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/webm':'webm','audio/mpeg':'mp3','audio/wav':'wav','audio/mp4':'m4a','application/pdf':'pdf'}; return map[mime]||'bin'; }
 const ALLOWED_MIME = new Set(['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','audio/mpeg','audio/wav','audio/mp4','application/pdf']);
 
+/* ---------- E-posta bildirimi (Resend) ---------- */
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+async function sendContactEmail(env, msg){
+  if(!env.RESEND_API_KEY) return;
+  const to=env.RESEND_TO||'busetuncay1029@gmail.com';
+  const from=env.RESEND_FROM||'BTMEDYA <noreply@btmedya.com.tr>';
+  const subject=`[BTMEDYA] Yeni mesaj: ${msg.subject||'İletişim Formu'}`;
+  const html=`<div style="font-family:sans-serif;max-width:600px;margin:auto"><h2 style="color:#111;border-bottom:2px solid #eee;padding-bottom:8px">Yeni İletişim Formu Mesajı</h2><table style="border-collapse:collapse;width:100%"><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px;width:110px">Ad Soyad</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.name)}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">E-posta</th><td style="padding:8px 12px;border-bottom:1px solid #eee"><a href="mailto:${esc(msg.email)}">${esc(msg.email)}</a></td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">Telefon</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.phone||'—')}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">Konu</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.subject||'—')}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px;vertical-align:top">Mesaj</th><td style="padding:8px 12px;white-space:pre-wrap">${esc(msg.message)}</td></tr></table><p style="margin-top:24px;font-size:12px;color:#999">btmedya.com.tr iletişim formu · ${new Date().toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'})}</p></div>`;
+  try{
+    await fetch('https://api.resend.com/emails',{method:'POST',headers:{'Authorization':`Bearer ${env.RESEND_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({from,to:[to],subject,html})});
+  }catch(e){}
+}
+
 /* ---------- Haber CMS API ---------- */
 async function newsApi(request, env, url){
-  if(url.pathname==='/api/health') return json({ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA});
+  if(url.pathname==='/api/health') return json({ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,admin:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,mail:!!env.RESEND_API_KEY});
+
+  /* Public: haber listesi */
   if(url.pathname==='/api/news' && request.method==='GET'){
     if(!env.DB) return json({ok:true,source:'static',items:[]});
     const limit=Math.min(Number(url.searchParams.get('limit'))||100,100);
     const rows=await env.DB.prepare("SELECT id,slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,updated_at FROM news WHERE status='published' ORDER BY published_at DESC LIMIT ?").bind(limit).all();
     return json({ok:true,items:rows.results});
   }
-  if(url.pathname==='/api/admin/news' && request.method==='POST'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD))) return json({ok:false,error:'Yetkisiz'},401);
+
+  /* Admin: haber listesi */
+  if(url.pathname==='/api/admin/news' && request.method==='GET'){
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
-    const b=await request.json();
+    const status=url.searchParams.get('status');
+    let sql='SELECT id,slug,title,excerpt,category,author,cover_url,status,published_at,updated_at FROM news';
+    const args=[];
+    if(status){sql+=' WHERE status=?';args.push(status);}
+    sql+=' ORDER BY updated_at DESC LIMIT 200';
+    const rows=args.length ? await env.DB.prepare(sql).bind(...args).all() : await env.DB.prepare(sql).all();
+    return json({ok:true,items:rows.results});
+  }
+
+  /* Admin: haber ekle / güncelle (slug ile upsert) */
+  if(url.pathname==='/api/admin/news' && request.method==='POST'){
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
+    const b=await request.json().catch(()=>null);
+    if(!b || typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
     if(!b.title || !b.slug) return json({ok:false,error:'title and slug required'},400);
+    const title=String(b.title).trim().slice(0,240);
+    const slug=String(b.slug).trim().replace(/[^a-z0-9-]/gi,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,180);
+    if(!title || !slug) return json({ok:false,error:'Geçersiz başlık veya slug'},400);
     const status=b.status==='published'?'published':'draft';
     const now=new Date().toISOString();
     await env.DB.prepare(`INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,updated_at)
       VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(slug) DO UPDATE SET title=excluded.title,excerpt=excluded.excerpt,body=excluded.body,category=excluded.category,author=excluded.author,cover_url=excluded.cover_url,video_url=excluded.video_url,status=excluded.status,published_at=excluded.published_at,updated_at=excluded.updated_at`)
-      .bind(b.slug,b.title,b.excerpt||'',b.body||'',b.category||'',b.author||'',b.cover_url||'',b.video_url||'',status,status==='published'?(b.published_at||now):null,now).run();
-    return json({ok:true,slug:b.slug,status});
+      .bind(slug,title,String(b.excerpt||'').slice(0,1000),String(b.body||'').slice(0,200000),String(b.category||'').slice(0,100),String(b.author||'').slice(0,160),String(b.cover_url||'').slice(0,2000),String(b.video_url||'').slice(0,2000),status,status==='published'?(b.published_at||now):null,now).run();
+    return json({ok:true,slug,status});
   }
+
+  /* Admin: haber güncelle / sil (ID ile) */
+  const newsById=url.pathname.match(/^\/api\/admin\/news\/(\d+)$/);
+  if(newsById){
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
+    const id=Number(newsById[1]);
+    if(request.method==='GET'){
+      const row=await env.DB.prepare('SELECT * FROM news WHERE id=?').bind(id).first();
+      if(!row) return json({ok:false,error:'Bulunamadı'},404);
+      return json({ok:true,item:row});
+    }
+    if(request.method==='PATCH'){
+      const b=await request.json();
+      const now=new Date().toISOString();
+      const status=b.status==='published'?'published':'draft';
+      await env.DB.prepare('UPDATE news SET title=?,excerpt=?,body=?,category=?,author=?,cover_url=?,video_url=?,status=?,published_at=?,updated_at=? WHERE id=?')
+        .bind(b.title||'',b.excerpt||'',b.body||'',b.category||'',b.author||'',b.cover_url||'',b.video_url||'',status,status==='published'?(b.published_at||now):null,now,id).run();
+      return json({ok:true});
+    }
+    if(request.method==='DELETE'){
+      await env.DB.prepare('DELETE FROM news WHERE id=?').bind(id).run();
+      return json({ok:true});
+    }
+  }
+
   return null;
 }
 
 /* ---------- İletişim Formu API ---------- */
-async function contactApi(request, env, url){
+async function contactApi(request, env, url, ctx){
   if(url.pathname==='/api/contact' && request.method==='POST'){
     if(!env.DB) return json({ok:false,error:'Veritabanı yapılandırılmadı'},503);
     const b=await request.json().catch(()=>({}));
     if(!b.name||!b.email||!b.message) return json({ok:false,error:'Ad, e-posta ve mesaj zorunludur'},400);
-    if(b.message.length>5000) return json({ok:false,error:'Mesaj çok uzun'},400);
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(b.email)) return json({ok:false,error:'Geçersiz e-posta adresi'},400);
+    if(String(b.message).length>5000) return json({ok:false,error:'Mesaj çok uzun'},400);
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(b.email))) return json({ok:false,error:'Geçersiz e-posta adresi'},400);
     if(b._honey) return json({ok:true});
+    const name=String(b.name).trim().slice(0,160);
+    const email=String(b.email).trim().slice(0,320);
+    const phone=String(b.phone||'').trim().slice(0,60);
+    const subject=String(b.subject||'').trim().slice(0,200);
+    const message=String(b.message).trim().slice(0,5000);
     await env.DB.prepare('INSERT INTO contact_messages(name,email,phone,subject,message) VALUES(?,?,?,?,?)')
-      .bind(b.name,b.email,b.phone||'',b.subject||'',b.message).run();
+      .bind(name,email,phone,subject,message).run();
+    const emailData={name,email,phone,subject,message};
+    if(ctx) ctx.waitUntil(sendContactEmail(env,emailData));
+    else sendContactEmail(env,emailData);
     return json({ok:true,message:'Mesajınız alındı, teşekkürler!'});
   }
   if(url.pathname==='/api/admin/contact' && request.method==='GET'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     const rows=await env.DB.prepare('SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 200').all();
     return json({ok:true,items:rows.results});
   }
   const markRead=url.pathname.match(/^\/api\/admin\/contact\/(\d+)$/);
   if(markRead && request.method==='PATCH'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     await env.DB.prepare('UPDATE contact_messages SET read=1 WHERE id=?').bind(Number(markRead[1])).run();
     return json({ok:true});
   }
@@ -84,8 +154,8 @@ async function mediaApi(request, env){
 
   if(path==='/api/login' && request.method==='POST'){
     const body=await request.json().catch(()=>({}));
-    if(!env.ADMIN_PASSWORD || body.password!==env.ADMIN_PASSWORD) return json({error:'Geçersiz şifre'},401);
-    const token=await sessionToken(env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD);
+    if(!env.ADMIN_PASSWORD || !env.ADMIN_SESSION_SECRET || body.password!==env.ADMIN_PASSWORD) return json({error:'Geçersiz kimlik bilgisi'},401);
+    const token=await sessionToken(env.ADMIN_SESSION_SECRET);
     return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`});
   }
   if(path==='/api/logout') return new Response(null,{status:204,headers:{'set-cookie':'bt_admin=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict'}});
@@ -99,15 +169,97 @@ async function mediaApi(request, env){
     if(cat){sql+=' AND category=?'; args.push(cat);}
     sql+=' ORDER BY created_at DESC LIMIT 200';
     const r=await env.DB.prepare(sql).bind(...args).all();
-    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD,Number(env.MEDIA_PUBLIC_TTL||3600))})));
+    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET,Number(env.MEDIA_PUBLIC_TTL||3600))})));
     return json({brand:'BTMedya',generated_at:new Date().toISOString(),items},200,cors);
   }
 
   const aiToken=env.AI_READ_TOKEN;
   const bearer=(request.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
   const aiRead=(aiToken && bearer===aiToken);
-  const auth=aiRead || await validSession(request,env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD);
+  const auth=aiRead || await validSession(request,env.ADMIN_SESSION_SECRET);
   if(!auth) return json({error:'Yetkisiz'},401);
+
+  /* DEPO PLANI — her dosyanin teknik ozelligi, onerilen hedefler, secilen
+     hedefler ve kalici public baglantisi tek listede. Sohbetten okunup
+     Metricool'a gonderim buradan planlanir. */
+  /* SITE DURUMU — hangi yuva dolu, hangisi bos, ne yuklenmeli. */
+  if(path==='/api/site/slots' && request.method==='GET'){
+    const origin=new URL(request.url).origin;
+    const r=await env.DB.prepare("SELECT * FROM media WHERE slot!='' ").all();
+    const bySlot={}; for(const x of (r.results||[])) bySlot[x.slot]=x;
+    const yuvalar=SITE_SLOTS.map(([slug,bolum,tur,oran,olcu,not])=>{
+      const m=bySlot[slug];
+      return {slug,bolum,tur,oran,onerilenOlcu:olcu,not,
+        dolu:!!m,
+        dosya:m?{id:m.id,ad:m.title||m.original_name,olcu:(m.width&&m.height)?`${m.width}x${m.height}`:'',
+                 enBoy:m.aspect,saniye:m.duration_s,yapayZeka:!!m.ai_generated,
+                 url:m.published?`${origin}/pub/${encodeURIComponent(m.key)}`:null}:null};
+    });
+    const eksik=yuvalar.filter(y=>!y.dolu);
+    return json({ozet:{toplam:yuvalar.length,dolu:yuvalar.length-eksik.length,eksik:eksik.length},yuvalar});
+  }
+
+  /* VIDEO KUTUPHANESI — tek anahtar noktasi.
+     own_youtube_id doldugu anda site o video icin kendi kanalimiza yonlenir;
+     haber kayitlarina dokunmaya gerek kalmaz. */
+  if(path==='/api/videos' && request.method==='GET'){
+    const r=await env.DB.prepare('SELECT * FROM video_library ORDER BY news_slug!="" DESC, title').all();
+    const items=(r.results||[]).map(v=>({
+      ...v,
+      etkinKimlik: v.own_youtube_id || v.youtube_id,
+      etkinKanal:  v.own_youtube_id ? 'BTMEDYA' : (v.source_channel||''),
+      kendiKanalda: !!v.own_youtube_id,
+      izle: `https://www.youtube.com/watch?v=${v.own_youtube_id||v.youtube_id}`,
+      kapak: `https://i.ytimg.com/vi/${v.own_youtube_id||v.youtube_id}/hqdefault.jpg`
+    }));
+    return json({ozet:{toplam:items.length,kendiKanalda:items.filter(i=>i.kendiKanalda).length,
+                       haberliOlmayan:items.filter(i=>!i.news_slug).length},items});
+  }
+  const vput=path.match(/^\/api\/videos\/([^/]+)$/);
+  if(vput && request.method==='PATCH'){
+    if(aiRead) return json({error:'AI token salt okunur'},403);
+    const id=vput[1], b=await request.json(), now=new Date().toISOString();
+    const cur=await env.DB.prepare('SELECT * FROM video_library WHERE id=?').bind(id).first();
+    if(!cur) return json({error:'Bulunamadı'},404);
+    // Kendi kanal baglantisi her bicimde girilebilir; kimlik cozumlenir.
+    let own=String(b.own_youtube_id ?? cur.own_youtube_id ?? '').trim();
+    if(own){
+      const m=own.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{11})|^([A-Za-z0-9_-]{11})$/);
+      if(!m) return json({error:'Geçerli bir YouTube bağlantısı değil'},400);
+      own=m[1]||m[2];
+    }
+    const pick=(k,d)=>b[k]===undefined?d:b[k];
+    await env.DB.prepare('UPDATE video_library SET own_youtube_id=?,title=?,news_slug=?,note=?,updated_at=? WHERE id=?')
+      .bind(own,pick('title',cur.title),pick('news_slug',cur.news_slug),pick('note',cur.note),now,id).run();
+    return json({ok:true,etkinKimlik:own||cur.youtube_id,etkinKanal:own?'BTMEDYA':cur.source_channel});
+  }
+
+  if(path==='/api/vault/plan' && request.method==='GET'){
+    const origin=new URL(request.url).origin;
+    const r=await env.DB.prepare('SELECT * FROM media ORDER BY created_at DESC LIMIT 300').all();
+    const items=(r.results||[]).map(x=>{
+      const plan=routePlan(x);
+      const routed=JSON.parse(x.routed||'[]');
+      return {
+        id:x.id, ad:x.title||x.original_name, tur:x.mime, mb:+(x.size/1048576).toFixed(2),
+        olcu:(x.width&&x.height)?`${x.width}x${x.height}`:'', enBoy:x.aspect||plan.aspect,
+        saniye:x.duration_s||0, sesVar:!!x.has_audio, yapayZeka:!!x.ai_generated,
+        kategori:x.category, yayinda:!!x.published, youtube:x.youtube_id||'',
+        onerilen:JSON.parse(x.suggested||'[]'),
+        secilen:routed,
+        hedef:routed.length?routed:JSON.parse(x.suggested||'[]'),
+        uygunsuz:plan.uygunsuz, siteUyarisi:plan.siteUyarisi,
+        gonderildi:JSON.parse(x.posted||'[]'),
+        publicUrl:x.published?`${origin}/pub/${encodeURIComponent(x.key)}`:null
+      };
+    });
+    const bekleyen=items.filter(i=>!i.gonderildi.length && i.hedef.length);
+    return json({
+      kurallar:PLATFORM_RULES.map(([slug,label,kind,aspects,maxS])=>({slug,label,tur:kind,enBoy:aspects,maxSaniye:maxS})),
+      ozet:{toplam:items.length,yayinda:items.filter(i=>i.yayinda).length,gonderimBekleyen:bekleyen.length},
+      items
+    });
+  }
 
   if(path==='/api/media' && request.method==='GET'){
     const q=u.searchParams.get('q')||''; const cat=u.searchParams.get('category')||''; const pub=u.searchParams.get('published');
@@ -115,7 +267,7 @@ async function mediaApi(request, env){
     if(q){sql+=' AND (original_name LIKE ? OR title LIKE ? OR description LIKE ? OR tags LIKE ?)'; const x=`%${q}%`; args.push(x,x,x,x);}
     if(cat){sql+=' AND category=?';args.push(cat);} if(pub!==null){sql+=' AND published=?';args.push(pub==='1'?1:0);} sql+=' ORDER BY created_at DESC LIMIT 500';
     const r=await env.DB.prepare(sql).bind(...args).all();
-    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD,Number(env.MEDIA_PUBLIC_TTL||86400))})));
+    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET,Number(env.MEDIA_PUBLIC_TTL||86400))})));
     return json({items});
   }
   if(path==='/api/media' && request.method==='POST'){
@@ -124,9 +276,14 @@ async function mediaApi(request, env){
     const mime = ALLOWED_MIME.has(body.mime) ? body.mime : 'application/octet-stream';
     const id=crypto.randomUUID(); const now=new Date().toISOString();
     const key=`${body.category||'arsiv'}/${id}-${safeKey(body.original_name||('media.'+extFromMime(mime)))}`;
-    await env.DB.prepare('INSERT INTO media (id,key,original_name,mime,size,category,tags,title,description,alt_text,published,slot,sort_order,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,key,body.original_name||key,mime,Number(body.size||0),body.category||'arsiv',JSON.stringify(body.tags||[]),body.title||'',body.description||'',body.alt_text||'',body.published?1:0,body.slot||'',Number(body.sort_order||0),now,now).run();
+    // Olculer tarayicida okundu; yonlendirme onerisi burada hesaplanir.
+    const plan=routePlan({mime,width:body.width,height:body.height,duration_s:body.duration_s,has_audio:body.has_audio});
+    await env.DB.prepare('INSERT INTO media (id,key,original_name,mime,size,category,tags,title,description,alt_text,published,slot,sort_order,created_at,updated_at,width,height,duration_s,has_audio,aspect,suggested,routed,posted,youtube_id,ai_generated) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(id,key,body.original_name||key,mime,Number(body.size||0),body.category||'arsiv',JSON.stringify(body.tags||[]),body.title||'',body.description||'',body.alt_text||'',body.published?1:0,body.slot||'',Number(body.sort_order||0),now,now,
+            Number(body.width||0),Number(body.height||0),Number(body.duration_s||0),body.has_audio?1:0,
+            plan.aspect,JSON.stringify(plan.uygun),JSON.stringify(body.routed||[]),'[]',String(body.youtube_id||''),body.ai_generated?1:0).run();
     const m=await env.MEDIA.createMultipartUpload(key,{httpMetadata:{contentType:mime}});
-    return json({id,key,uploadId:m.uploadId});
+    return json({id,key,uploadId:m.uploadId,plan});
   }
   const mp=path.match(/^\/api\/upload\/([^/]+)\/part$/);
   if(mp && request.method==='PUT'){
@@ -148,18 +305,113 @@ async function mediaApi(request, env){
   if(upd && request.method==='PATCH'){
     if(aiRead) return json({error:'AI token salt okunur'},403);
     const id=upd[1], body=await request.json(), now=new Date().toISOString();
-    await env.DB.prepare('UPDATE media SET title=?,description=?,alt_text=?,category=?,tags=?,published=?,slot=?,sort_order=?,updated_at=? WHERE id=?').bind(body.title||'',body.description||'',body.alt_text||'',body.category||'arsiv',JSON.stringify(body.tags||[]),body.published?1:0,body.slot||'',Number(body.sort_order||0),now,id).run(); return json({ok:true});
+    const cur=await env.DB.prepare('SELECT * FROM media WHERE id=?').bind(id).first();
+    if(!cur) return json({error:'Bulunamadı'},404);
+    // Gonderilmeyen alan mevcut degerini korur: kismi guncelleme guvenli olsun.
+    const pick=(k,d)=>body[k]===undefined?d:body[k];
+    await env.DB.prepare('UPDATE media SET title=?,description=?,alt_text=?,category=?,tags=?,published=?,slot=?,sort_order=?,routed=?,posted=?,youtube_id=?,ai_generated=?,updated_at=? WHERE id=?')
+      .bind(pick('title',cur.title),pick('description',cur.description),pick('alt_text',cur.alt_text),
+            pick('category',cur.category),JSON.stringify(pick('tags',JSON.parse(cur.tags||'[]'))),
+            pick('published',cur.published)?1:0,pick('slot',cur.slot),Number(pick('sort_order',cur.sort_order)||0),
+            JSON.stringify(pick('routed',JSON.parse(cur.routed||'[]'))),
+            JSON.stringify(pick('posted',JSON.parse(cur.posted||'[]'))),
+            String(pick('youtube_id',cur.youtube_id)||''),pick('ai_generated',cur.ai_generated)?1:0,
+            now,id).run();
+    return json({ok:true});
   }
   if(path==='/api/export'){
     const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'};
     const r=await env.DB.prepare('SELECT * FROM media WHERE published=1 ORDER BY created_at DESC').all();
-    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD,Number(env.MEDIA_PUBLIC_TTL||86400))})));
+    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET,Number(env.MEDIA_PUBLIC_TTL||86400))})));
     return json({generated_at:new Date().toISOString(),brand:'BTMedya',items},200,cors);
   }
   return null;
 }
 
-export default { async fetch(request, env){
+
+/* ===================== AKILLI DEPO: YONLENDIRME =====================
+ * Yuklenen dosyanin olculeri tarayicida okunur, buraya gonderilir.
+ * Asagidaki kural tablosu platformlarin yayinlanmis sinirlarina dayanir.
+ * SINIRLAR DEGISIR: platform kuralini degistirdiginde yalnizca bu tabloyu
+ * guncelle, gerisi kendiliginden uyum saglar.
+ */
+/* ===================== SITE YUVALARI =====================
+ * Sitedeki her medya yerinin tek dogruluk kaynagi: ne oldugu, hangi oranda
+ * ve hangi olcude olmasi gerektigi, su an neyle dolu oldugu.
+ * Panel bu listeyi okuyup eksikleri kendisi gosterir; elle takip gerekmez.
+ * Yeni bir yuva acilacaksa yalnizca buraya eklenir.
+ */
+const SITE_SLOTS=[
+  // slug              bolum                       tur     oran    onerilen      notu
+  ['hero-video',      'Giriş filmi',              'video','16:9','1920x1080','En fazla 30 sn. Sayfanın ilk gördüğü şey.'],
+  ['hero-poster',     'Giriş kapak karesi',       'image','16:9','1920x1080','Video inmeden önce görünen kare.'],
+  ['portre-buse',     'Buse Tuncay portresi',     'image','4:5', '1200x1500','Gerçek fotoğraf. Şu anki görsel yapay zekâ üretimi.'],
+  ['saha-buse',       'Sahada çalışırken kare',   'image','16:9','1600x900', 'Mikrofonlu, iş başında. Muhabir kimliğini taşır.'],
+  ['hizmet-haber',    'Haber & Röportaj kartı',   'image','16:9','1600x900', 'Çekim sırasından kare.'],
+  ['hizmet-belgesel', 'Belgesel & Kısa Film',     'image','16:9','1600x900', 'Set ya da kamera arkası.'],
+  ['hizmet-tanitim',  'Tanıtım Filmi kartı',      'image','16:9','1600x900', 'Yayınlanmış bir işten kare.'],
+  ['hizmet-dugun',    'Düğün & Özel Gün kartı',   'image','16:9','1600x900', 'İzin alınmış bir çekimden.'],
+  ['siyah-oda',       'Siyah Oda kapağı',         'image','16:9','1600x900', 'Gerçek stüdyo. Şu anki görsel yapay zekâ konsepti.'],
+  ['kategori-haber',  'Kategori: Haber',          'video','9:16','1080x1920','Saha görüntüsü. Şu an yapay zekâ videosu var.'],
+  ['kategori-medya',  'Kategori: Medya',          'video','9:16','1080x1920','Sosyal içerik üretiminden.'],
+  ['kategori-prod',   'Kategori: Prodüksiyon',    'video','9:16','1080x1920','Kamera, kurgu, set.'],
+  ['og-image',        'Sosyal paylaşım görseli',  'image','16:9','1200x630', 'WhatsApp ve X paylaşımında görünen kapak.'],
+];
+
+const PLATFORM_RULES=[
+  // slug              etiket                 kind    en-boy        max sn   ses
+  ['instagram-reel',  'Instagram Reels',     'video', ['9:16'],      180,  true ],
+  ['instagram-story', 'Instagram Hikaye',    'both',  ['9:16'],       60,  false],
+  ['instagram-post',  'Instagram Gonderi',   'both',  ['1:1','4:5'],  60,  false],
+  ['tiktok',          'TikTok',              'video', ['9:16'],      600,  true ],
+  ['youtube-short',   'YouTube Shorts',      'video', ['9:16'],      180,  true ],
+  ['youtube',         'YouTube video',       'video', ['16:9','9:16',
+                                                       '1:1','4:5',
+                                                       'diger'],   86400,  true ],
+  ['facebook-reel',   'Facebook Reels',      'video', ['9:16'],       90,  true ],
+  ['site-showreel',   'Site / showreel',     'video', ['16:9'],       30,  false],
+  ['site-gorsel',     'Site / gorsel',       'image', ['16:9','1:1',
+                                                       '4:5','diger'],  0,  false],
+];
+
+function aspectOf(w,h){
+  if(!w||!h) return 'diger';
+  const r=w/h;
+  if(Math.abs(r-9/16) < 0.06) return '9:16';
+  if(Math.abs(r-16/9) < 0.10) return '16:9';
+  if(Math.abs(r-1)    < 0.05) return '1:1';
+  if(Math.abs(r-4/5)  < 0.05) return '4:5';
+  return 'diger';
+}
+
+/* Dosyanin gidebilecegi platformlari ve gidemedigi platformun nedenini dondurur. */
+function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
+  const isVideo=String(mime).startsWith('video/');
+  const isImage=String(mime).startsWith('image/');
+  const aspect=aspectOf(Number(width),Number(height));
+  const dur=Number(duration_s)||0;
+  const uygun=[], uygunsuz=[];
+  for(const [slug,label,kind,aspects,maxS] of PLATFORM_RULES){
+    if(kind==='video' && !isVideo){ continue; }
+    if(kind==='image' && !isImage){ continue; }
+    if(kind==='both'  && !isVideo && !isImage){ continue; }
+    // Instagram gonderisi sabit oran degil, bir bant kabul eder (4:5 ile 1.91:1).
+    // Gercek fotograf makinesi kareleri (3:2, 4:3) bu banda girer; sabit oran
+    // listesiyle elenmeleri yanlis olurdu.
+    const oran=(Number(width)&&Number(height))?Number(width)/Number(height):0;
+    const bantta = slug==='instagram-post' && isImage && oran>=0.8 && oran<=1.91;
+    if(!bantta && !aspects.includes(aspect)){ uygunsuz.push({slug,label,neden:`en-boy ${aspect||'bilinmiyor'} uymuyor`}); continue; }
+    if(isVideo && maxS>0 && dur>maxS){ uygunsuz.push({slug,label,neden:`${Math.round(dur)} sn > ${maxS} sn sinir`}); continue; }
+    uygun.push(slug);
+  }
+  // Siteye agir video koymamak icin acik kural.
+  const siteUyarisi = (isVideo && dur>180)
+    ? 'Uzun video: siteye yukleme. YouTube\'a yukle, sitede yalnizca kapak + baglanti goster.'
+    : (isVideo && dur>30 ? 'Site icin uzun sayilir; showreel yerine gomulu baglanti tercih et.' : '');
+  return {aspect,uygun,uygunsuz,siteUyarisi};
+}
+
+export default { async fetch(request, env, ctx){
   const url = new URL(request.url);
 
   if(url.hostname.startsWith('www.')){
@@ -173,9 +425,26 @@ export default { async fetch(request, env){
     return Response.redirect(`${url.origin}/haberler/${slug}.html${url.search}`, 301);
   }
 
+  /* KALICI PUBLIC BAGLANTI — yalnizca "Siteye ekle" isaretli dosyalar.
+     Metricool gibi disaridan cagiran servisler imzali/suresi dolan baglantiyi
+     kullanamaz; yayindaki dosya icin sabit adres gerekir. Yayindan cikarilan
+     dosya aninda 404'e doner. */
+  if(url.pathname.startsWith('/pub/')){
+    const key=decodeURIComponent(url.pathname.slice('/pub/'.length));
+    if(!env.DB||!env.MEDIA) return text('Medya deposu yapılandırılmadı',503);
+    const row=await env.DB.prepare('SELECT key FROM media WHERE key=? AND published=1').bind(key).first();
+    if(!row) return text('Bu dosya yayında değil',404);
+    const obj=await env.MEDIA.get(key); if(!obj) return text('Medya bulunamadı',404);
+    return new Response(obj.body,{headers:{
+      'content-type':obj.httpMetadata?.contentType||'application/octet-stream',
+      'cache-control':'public, max-age=3600',
+      'access-control-allow-origin':'*'
+    }});
+  }
+
   if(url.pathname.startsWith('/media/')){
     const key=decodeURIComponent(url.pathname.slice('/media/'.length));
-    const ok=await validMediaSig(key,url.searchParams.get('exp'),url.searchParams.get('sig'),env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD);
+    const ok=await validMediaSig(key,url.searchParams.get('exp'),url.searchParams.get('sig'),env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET);
     if(!ok) return text('Geçersiz veya süresi dolmuş medya bağlantısı',403);
     if(!env.MEDIA) return text('Medya deposu yapılandırılmadı',503);
     const obj=await env.MEDIA.get(key); if(!obj)return text('Medya bulunamadı',404);
@@ -186,7 +455,7 @@ export default { async fetch(request, env){
     const r1 = await newsApi(request, env, url);
     if(r1) return r1;
     if(env.DB){
-      const rc = await contactApi(request, env, url);
+      const rc = await contactApi(request, env, url, ctx);
       if(rc) return rc;
     }
     if(env.DB && env.MEDIA){
@@ -196,5 +465,135 @@ export default { async fetch(request, env){
     return json({ok:false,error:'Not found'},404);
   }
 
-  return env.ASSETS.fetch(request);
+  /* HABER SAYFASI — once statik dosya, yoksa D1'den uretim.
+     Depodaki 27 haber oldugu gibi kalir; panelden girilen yeni haberler
+     dosya olusturmadan kendi adresinde yayina girer. */
+  if(url.pathname.startsWith('/haberler/') && url.pathname !== '/haberler/'){
+    // Once veritabani, sonra statik dosya. Boylece panelden yapilan duzenleme
+    // ve video kutuphanesi anahtari 27 eski haberde de gecerli olur; D1'e
+    // ulasilamazsa depodaki statik surum yedek olarak devreye girer.
+    if(env.DB){
+      const slug = decodeURIComponent(url.pathname.slice('/haberler/'.length).replace(/\.html$/,'').replace(/\/$/,''));
+      if(slug){
+        const n = await env.DB.prepare(
+          "SELECT * FROM news WHERE slug=? AND status='published'"
+        ).bind(slug).first();
+        if(n){
+          // Video kutuphanesi kaydi: kendi kanalimiza tasinmissa oraya yonlenir.
+          let vlib=null;
+          const vsrc=String(n.video_url||'');
+          if(vsrc){
+            const m=vsrc.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{11})|^([A-Za-z0-9_-]{11})$/);
+            const yid=m?(m[1]||m[2]):'';
+            if(yid) vlib=await env.DB.prepare('SELECT * FROM video_library WHERE youtube_id=?').bind(yid).first();
+          }
+          if(!vlib) vlib=await env.DB.prepare('SELECT * FROM video_library WHERE news_slug=?').bind(slug).first();
+          return new Response(renderNewsPage(n, url.origin, vlib), {
+            headers:{...guvenlikBasliklari(url.pathname),
+                     'content-type':'text/html; charset=utf-8',
+                     'cache-control':'public, max-age=300, s-maxage=600'}
+          });
+        }
+      }
+    }
+    return servisEt(request, env);
+  }
+
+  return servisEt(request, env);
 } };
+
+/* ---------- Statik servis: güvenlik başlıkları ve özel 404 ---------- */
+
+/* Sitenin ihtiyacı olan kaynaklar dışında hiçbir şeye izin verilmez.
+   Google Fonts stil ve font dosyaları, kendi medya alan adımız ve
+   WhatsApp bağlantıları açık; başka her şey kapalı. */
+/* Politika yola göre kurulur, çünkü sitenin iki ayrı ihtiyacı var.
+
+   Kamuya açık sayfalar satır içi script kullanmıyor, bu yüzden orada
+   script-src 'self' kalıyor. Yönetici paneli ise satır içi script ve
+   on* öznitelikleriyle yazılmış; ona aynı kuralı uygularsak panel
+   sessizce çalışmaz hale gelir, o yüzden yalnızca /admin/ altında
+   'unsafe-inline' açılıyor.
+
+   i.ytimg.com haber sayfalarındaki video kapak görselleri için,
+   youtube-nocookie.com ise tıklayınca oluşturulan gömülü oynatıcı için
+   gerekli. İkisi de src/news-page.js içinde kullanılıyor. */
+/* İstek başına rastgele nonce.
+   Gerekçe: Cloudflare, bot algılama betiğini sayfaya SATIR İÇİ olarak
+   enjekte ediyor (window.__CF$cv$params). script-src 'self' bunu engelliyor,
+   sonuç her ziyaretçinin konsolunda CSP ihlali ve çalışmayan bir Cloudflare
+   betiği. Cloudflare'in çözümü belgelenmiş: CSP başlığında nonce varsa onu
+   ayrıştırıp kendi enjekte ettiği betiğe basıyor. 'unsafe-inline' eklemek de
+   işe yarardı ama politikanın değerini bitirirdi; belge de ona karşı uyarıyor.
+   Kaynak: developers.cloudflare.com/cloudflare-challenges/challenge-types/javascript-detections/
+   /admin/ nonce ALMAZ: tarayıcılar nonce ile 'unsafe-inline'ı bir arada
+   görünce 'unsafe-inline'ı yok sayar, panel de satır içi betikle yazılmış.
+
+   HTML kısa süre önbelleğe girdiği için aynı nonce o pencerede paylaşılabilir.
+   Burada sakıncası yok: bu sayfalarda kullanıcı üretimi satır içi betik yok,
+   nonce yalnızca Cloudflare'in kendi betiğini geçirmek için var. */
+function nonceUret() {
+  const b = new Uint8Array(16);
+  crypto.getRandomValues(b);
+  return btoa(String.fromCharCode(...b)).replace(/=+$/, '');
+}
+
+function cspKur(pathname, nonce) {
+  const panel = pathname.startsWith('/admin');
+  return [
+    "default-src 'self'",
+    panel ? "script-src 'self' 'unsafe-inline'"
+          : `script-src 'self' 'nonce-${nonce}'`,
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
+    "img-src 'self' data: blob: https://i.ytimg.com",
+    "media-src 'self' blob:",
+    "frame-src https://www.youtube-nocookie.com",
+    "connect-src 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "upgrade-insecure-requests"
+  ].join('; ');
+}
+
+function guvenlikBasliklari(pathname, nonce) {
+  return {
+    'content-security-policy': cspKur(pathname, nonce || nonceUret()),
+    'x-content-type-options': 'nosniff',
+    'referrer-policy': 'strict-origin-when-cross-origin',
+    'permissions-policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains',
+    'cross-origin-opener-policy': 'same-origin'
+  };
+}
+
+/* Uzun ömürlü varlıklar uzun önbelleğe, HTML kısa önbelleğe.
+   HTML kısa tutulur ki içerik güncellemesi hemen görünsün. */
+function onbellek(pathname) {
+  if (/\.(?:mp4|webm|jpg|jpeg|png|webp|gif|svg|woff2?|ico)$/i.test(pathname))
+    return 'public, max-age=31536000, immutable';
+  if (/\.(?:css|js)$/i.test(pathname))
+    return 'public, max-age=3600, must-revalidate';
+  return 'public, max-age=300, must-revalidate';
+}
+
+async function servisEt(request, env) {
+  const url = new URL(request.url);
+  let res = await env.ASSETS.fetch(request);
+
+  /* Bilinmeyen adres: kendi 404 sayfamızı, doğru durum koduyla ver */
+  if (res.status === 404 && request.method === 'GET' &&
+      (request.headers.get('accept') || '').includes('text/html')) {
+    const ozel = await env.ASSETS.fetch(new Request(new URL('/404.html', url), request));
+    if (ozel.ok) res = new Response(ozel.body, { status: 404, headers: ozel.headers });
+  }
+
+  const h = new Headers(res.headers);
+  for (const [k, v] of Object.entries(guvenlikBasliklari(url.pathname))) h.set(k, v);
+  if (!h.has('cache-control') || res.status === 404) h.set('cache-control', onbellek(url.pathname));
+  else h.set('cache-control', onbellek(url.pathname));
+
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
+}

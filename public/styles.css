@@ -1,10 +1,12 @@
-:root{--bg:#02070d;--bg2:#07111c;--ink:#eaf2f8;--muted:#8da0b2;--line:rgba(255,255,255,.13);--cyan:#35d6ff;--blue:#2a7fff;--gold:#d6a84a;--gold-dark:#b8860b;--champagne:#f2d27a}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,Inter,Arial,sans-serif;overflow-x:hidden;cursor:none}a{color:inherit}h1,h2,h3,.brand-word,.eyebrow,.wordmark{font-family:'Space Grotesk',Inter,Arial,sans-serif}@media(max-width:900px),(hover:none){body{cursor:auto}}
+:root{--bg:#070C12;--bg2:#0E1620;--ink:#EDF3F7;--muted:#92A3B2;--line:rgba(255,255,255,.13);--cyan:#35d6ff;--blue:#2a7fff;--gold:#35D6FF;--gold-dark:#2A7FFF;--champagne:#f2d27a;--tshadow:0 1px 2px rgba(2,7,13,.95),0 3px 12px rgba(2,7,13,.78),0 10px 44px rgba(2,7,13,.8)}*{box-sizing:border-box}html{scroll-behavior:smooth;overflow-x:hidden;overflow-x:clip}body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,Inter,Arial,sans-serif;overflow-x:hidden;overflow-x:clip;cursor:none}a{color:inherit}h1,h2,h3,.brand-word,.wordmark{font-family:'Bricolage Grotesque','Space Grotesk',Inter,Arial,sans-serif}
+/* Ust etiketler anasayfadaki gibi tek aralikli yuzle. */
+.eyebrow{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}@media(max-width:900px),(hover:none){body{cursor:auto}}
 /* CURSOR LOGO — mouse ile gezinen BT amblemi */
 .cursor-logo{position:fixed;z-index:999;top:0;left:0;width:38px;height:38px;border-radius:50%;border:1px solid rgba(53,214,255,.55);background:rgba(4,11,18,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:10px;letter-spacing:.04em;color:var(--cyan);pointer-events:none;transform:translate(-50%,-50%);transition:width .35s,height .35s,background .35s,border-color .35s,opacity .35s;opacity:0}
 .cursor-logo.show{opacity:1}
 .cursor-logo.magnet{width:64px;height:64px;background:rgba(53,214,255,.12);border-color:var(--gold)}
 @media(max-width:900px),(hover:none){.cursor-logo{display:none}}
-.topbar{position:fixed;z-index:50;top:0;left:0;right:0;height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 4vw;background:rgba(2,7,13,.42);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.08)}.brand{display:flex;align-items:center;gap:10px;text-decoration:none}.brand-emblem{width:30px;height:30px;object-fit:contain}.brand-mark{font-weight:900;letter-spacing:.08em}.brand-word{font-weight:700;letter-spacing:.18em;color:#a9bac8}.topbar nav{display:flex;gap:24px}.topbar nav a{font-size:10px;text-transform:uppercase;letter-spacing:.13em;text-decoration:none;color:#cbd6df}.menu-toggle{display:none;background:none;border:1px solid rgba(255,255,255,.15);color:#fff;font-size:18px;padding:7px 10px;cursor:pointer}.quote{font-size:10px;letter-spacing:.12em;text-decoration:none;border:1px solid rgba(87,232,255,.45);padding:11px 14px;color:#fff}.hero-scroll{height:620vh;position:relative}.hero-sticky{position:sticky;top:0;height:100vh;min-height:650px;overflow:hidden;background:#02070d}.ambient{position:absolute;inset:-20%;background:radial-gradient(circle at 50% 45%,rgba(47,161,255,.18),transparent 30%),radial-gradient(circle at 80% 20%,rgba(87,232,255,.1),transparent 28%);filter:blur(20px)}.scene-still{position:absolute;inset:0;overflow:hidden}.scene-still img{width:100%;height:100%;object-fit:cover;opacity:.35;filter:saturate(.55) contrast(1.1);transform:scale(1.06)}.scene-still-end{opacity:0}.scene-still-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(2,7,13,.94),rgba(2,7,13,.32) 58%,rgba(2,7,13,.9))}.beam{position:absolute;left:50%;top:-20%;width:1px;height:150%;background:linear-gradient(transparent,rgba(87,232,255,.45),transparent);box-shadow:0 0 80px 20px rgba(87,232,255,.06);transform:rotate(18deg)}.grid-floor{position:absolute;left:-10%;right:-10%;bottom:-18%;height:55%;background:linear-gradient(rgba(87,232,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(87,232,255,.08) 1px,transparent 1px);background-size:70px 70px;transform:perspective(500px) rotateX(63deg);transform-origin:center bottom;mask-image:linear-gradient(to top,black,transparent)}.fog{position:absolute;border-radius:50%;filter:blur(55px);opacity:.22}.fog-a{width:40vw;height:25vw;left:8%;bottom:4%;background:#1a86ff}.fog-b{width:32vw;height:22vw;right:8%;top:12%;background:#24d7d7}.logo-gate{position:absolute;inset:16% 18%;display:flex;gap:1px;opacity:.35}.gate{width:50%;border:1px solid rgba(87,232,255,.22)}.gate-left{border-right:0}.gate-right{border-left:0}.wordmark{position:absolute;left:5vw;bottom:14vh;font-size:clamp(70px,15vw,220px);font-weight:900;letter-spacing:-.08em;line-height:.75;opacity:.035}.wordmark span+span{font-size:.43em;letter-spacing:.06em;margin-left:.04em}.hero-copy{position:absolute;z-index:4;left:7vw;top:25%;max-width:720px}.eyebrow{font-size:10px;letter-spacing:.18em;color:var(--cyan);font-weight:800}.hero-copy h1{font-size:clamp(48px,7vw,105px);line-height:.91;letter-spacing:-.055em;margin:20px 0}.hero-copy h1 strong{color:#fff}.hero-sub{max-width:580px;color:#a9b9c7;font-size:16px;line-height:1.7}.character-wrap{position:absolute;z-index:3;inset:12% 8% 0 47%;display:flex;align-items:flex-end;justify-content:center;pointer-events:none}.character-video{height:86%;max-width:100%;object-fit:contain;filter:contrast(1.05) saturate(.85);mix-blend-mode:screen}.character-glow{position:absolute;width:40%;height:35%;bottom:16%;background:radial-gradient(circle,rgba(87,232,255,.22),transparent 65%);filter:blur(25px)}.character-vignette{position:absolute;inset:0;background:radial-gradient(circle at 55% 48%,transparent 15%,rgba(2,7,13,.7) 70%)}.character-scan{position:absolute;left:20%;right:20%;top:48%;height:1px;background:rgba(87,232,255,.22);box-shadow:0 0 20px rgba(87,232,255,.2)}.focus-ring{position:absolute;z-index:4;right:20%;top:42%;width:110px;height:110px;border:1px solid rgba(87,232,255,.18);border-radius:50%}.focus-ring span{position:absolute;width:12px;height:1px;background:var(--cyan);top:50%;left:-6px}.focus-ring span:nth-child(2){left:auto;right:-6px}.focus-ring span:nth-child(3){width:1px;height:12px;top:-6px;left:50%}.focus-ring span:nth-child(4){width:1px;height:12px;top:auto;bottom:-6px;left:50%}.hero-cards{position:absolute;z-index:5;left:7vw;bottom:12vh;display:flex;gap:10px}.hero-card{background:rgba(4,11,18,.62);border:1px solid rgba(255,255,255,.12);color:#fff;padding:13px 16px;display:flex;gap:12px;align-items:center;text-align:left;cursor:pointer;backdrop-filter:blur(12px);transition:.25s}.hero-card.active,.hero-card:hover{border-color:rgba(87,232,255,.55);transform:translateY(-3px)}.hero-card .icon{color:var(--cyan);font-size:18px}.hero-card b{display:block;font-size:10px;letter-spacing:.12em}.hero-card small{display:block;color:#8396a8;font-size:9px;margin-top:4px}.scene-progress{position:absolute;z-index:5;right:5vw;bottom:8vh;width:150px}.scene-meta{display:flex;justify-content:space-between;font-size:9px;color:#9eafbd;letter-spacing:.12em}.scene-line{height:1px;background:rgba(255,255,255,.15);margin-top:9px}.scene-line i{display:block;width:0;height:100%;background:var(--cyan)}.scroll-hint{position:absolute;z-index:5;right:5vw;bottom:3vh;color:#8295a7;font-size:9px;letter-spacing:.2em}.scroll-hint i{display:inline-block;width:1px;height:20px;background:var(--cyan);vertical-align:middle;margin-left:10px}.hero-exit{height:120px;background:linear-gradient(#02070d,#07111c);display:grid;place-items:center}.hero-exit span{display:block;width:1px;height:20px;background:var(--cyan);opacity:.35}.services-pin{height:260vh;background:#07111c}.services-stage{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center}.services-intro{width:42vw;min-width:420px;padding-left:7vw;position:relative;z-index:2}.services-intro h2{font-size:clamp(42px,5.8vw,82px);line-height:.95;letter-spacing:-.05em;margin:20px 0}.services-intro h2 span{color:var(--cyan)}.services-intro>p:last-child{color:#8295a7;font-size:13px}.service-rail{display:flex;gap:18px;will-change:transform}.service-card{width:280px;min-width:280px;height:360px;padding:28px;background:linear-gradient(160deg,rgba(20,38,56,.9),rgba(4,11,18,.96));border:1px solid rgba(255,255,255,.11);position:relative}.service-card em{color:var(--cyan);font-size:11px;font-style:normal}.service-card h3{font-size:26px;margin-top:110px}.service-card p{color:#8da0b2;line-height:1.6;font-size:13px}.service-card>span{position:absolute;right:24px;bottom:22px;color:var(--cyan);font-size:24px}.about{min-height:80vh;padding:130px 7vw;display:grid;grid-template-columns:160px 1fr 220px;gap:7vw;align-items:center;background:#02070d}.about-index{font-size:10px;color:#657788;letter-spacing:.18em}.about-copy h2{font-size:clamp(42px,5.8vw,80px);line-height:.96;letter-spacing:-.05em;margin:20px 0}.about-copy h2 span{color:var(--cyan)}.about-data{border-left:1px solid var(--line);padding-left:28px}.about-data div{padding:18px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;color:#90a3b4;font-size:12px}.about-data b{color:var(--cyan)}.cta{min-height:75vh;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;background:#050d15}.cta-glow{position:absolute;width:55vw;height:30vw;border-radius:50%;background:radial-gradient(circle,rgba(42,127,255,.2),transparent 65%);filter:blur(30px)}.cta>p,.cta>h2,.cta-row{position:relative}.cta>p:first-of-type{font-size:10px;letter-spacing:.22em;color:var(--cyan)}.cta h2{font-size:clamp(54px,8vw,110px);letter-spacing:-.06em;line-height:.9;margin:18px 0}.cta h2 span{color:var(--cyan)}.cta-sub{max-width:620px;color:#8fa2b3;line-height:1.7}.cta-row{display:flex;gap:10px;margin-top:25px}.cta-row a{padding:14px 18px;text-decoration:none;font-size:10px;letter-spacing:.12em}.primary{background:var(--cyan);color:#001017}.secondary{border:1px solid var(--line)}.final-footer{padding:30px 5vw;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:30px;align-items:center;border-top:1px solid var(--line);background:#02060a}.footer-brand{display:flex;gap:12px;align-items:center}.footer-brand img{width:30px;height:30px;object-fit:contain}.footer-brand strong{display:block}.footer-brand span,.footer-contact a,.footer-social a{display:block;color:#7d91a2;font-size:10px;text-decoration:none;margin-top:4px}.footer-social{display:flex;gap:16px}.footer-legal{grid-column:1/-1;color:#586b7b;font-size:9px}.floating-whatsapp{position:fixed;z-index:60;right:20px;bottom:20px;background:#25d366;color:#06100a;padding:11px 14px;text-decoration:none;font-size:10px;font-weight:800;border-radius:999px;box-shadow:0 8px 35px rgba(0,0,0,.35)}@media(max-width:900px){.topbar{height:62px}.topbar nav{display:none;position:absolute;top:62px;left:0;right:0;padding:16px 6vw;background:rgba(2,7,13,.96);border-bottom:1px solid rgba(255,255,255,.08);flex-direction:column;gap:16px}.topbar nav.open{display:flex}.menu-toggle{display:block}.quote{padding:9px}.hero-copy{top:18%;left:6vw;right:6vw}.character-wrap{inset:33% 3% 0 20%;opacity:.78}.hero-cards{left:6vw;right:6vw;bottom:9vh;overflow:auto}.hero-card{min-width:190px}.scene-progress{display:none}.services-pin{height:auto}.services-stage{position:relative;height:auto;min-height:100vh;display:block;padding:100px 0 80px}.services-intro{width:auto;min-width:0;padding:0 6vw 50px}.service-rail{overflow-x:auto;padding:0 6vw 20px}.service-card{min-width:260px}.about{grid-template-columns:1fr;padding:90px 6vw}.about-index{display:none}.about-data{border-left:0;padding-left:0}.final-footer{grid-template-columns:1fr}.footer-social{flex-wrap:wrap}.footer-legal{grid-column:auto}}@media(max-width:560px){.hero-copy h1{font-size:52px}.hero-sub{font-size:14px}.character-wrap{inset:38% -8% 0 12%}.hero-card small{display:none}.cta{padding:80px 6vw}.cta-row{flex-direction:column;width:min(340px,90vw)}.cta-row a{text-align:center}}
+.topbar{position:fixed;z-index:50;top:0;left:0;right:0;height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 4vw;background:rgba(2,7,13,.42);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.08)}.brand{display:flex;align-items:center;gap:10px;text-decoration:none}.brand-emblem{width:30px;height:30px;object-fit:contain}.brand-mark{font-weight:900;letter-spacing:.08em}.brand-word{font-weight:700;letter-spacing:.18em;color:#a9bac8}.menu-toggle{display:none;background:none;border:1px solid rgba(255,255,255,.15);color:#fff;font-size:18px;padding:7px 10px;cursor:pointer}.quote{font-size:10px;letter-spacing:.12em;text-decoration:none;border:1px solid rgba(87,232,255,.45);padding:11px 14px;color:#fff}.hero-scroll{height:620vh;position:relative}.hero-sticky{position:sticky;top:0;height:100vh;min-height:650px;overflow:hidden;background:#02070d}.ambient{position:absolute;inset:-20%;background:radial-gradient(circle at 50% 45%,rgba(47,161,255,.18),transparent 30%),radial-gradient(circle at 80% 20%,rgba(87,232,255,.1),transparent 28%);filter:blur(20px)}.scene-still{position:absolute;inset:0;overflow:hidden}.scene-still img{width:100%;height:100%;object-fit:cover;opacity:.35;filter:saturate(.55) contrast(1.1);transform:scale(1.06)}.scene-still-end{opacity:0}.scene-still-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(2,7,13,.94),rgba(2,7,13,.32) 58%,rgba(2,7,13,.9))}.beam{position:absolute;left:50%;top:-20%;width:1px;height:150%;background:linear-gradient(transparent,rgba(87,232,255,.45),transparent);box-shadow:0 0 80px 20px rgba(87,232,255,.06);transform:rotate(18deg)}.grid-floor{position:absolute;left:-10%;right:-10%;bottom:-18%;height:55%;background:linear-gradient(rgba(87,232,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(87,232,255,.08) 1px,transparent 1px);background-size:70px 70px;transform:perspective(500px) rotateX(63deg);transform-origin:center bottom;mask-image:linear-gradient(to top,black,transparent)}.fog{position:absolute;border-radius:50%;filter:blur(55px);opacity:.22}.fog-a{width:40vw;height:25vw;left:8%;bottom:4%;background:#1a86ff}.fog-b{width:32vw;height:22vw;right:8%;top:12%;background:#24d7d7}.logo-gate{position:absolute;inset:16% 18%;display:flex;gap:1px;opacity:.35}.gate{width:50%;border:1px solid rgba(87,232,255,.22)}.gate-left{border-right:0}.gate-right{border-left:0}.wordmark{position:absolute;left:5vw;bottom:14vh;font-size:clamp(70px,15vw,220px);font-weight:900;letter-spacing:-.08em;line-height:.75;opacity:.035}.wordmark span+span{font-size:.43em;letter-spacing:.06em;margin-left:.04em}.hero-copy{position:absolute;z-index:4;left:7vw;top:25%;max-width:720px}.eyebrow{font-size:10px;letter-spacing:.18em;color:var(--cyan);font-weight:800}.hero-copy h1{font-size:clamp(48px,7vw,105px);line-height:.91;letter-spacing:-.055em;margin:20px 0}.hero-copy h1 strong{color:#fff}.hero-sub{max-width:580px;color:#a9b9c7;font-size:16px;line-height:1.7}.character-wrap{position:absolute;z-index:3;inset:12% 8% 0 47%;display:flex;align-items:flex-end;justify-content:center;pointer-events:none}.character-video{height:86%;max-width:100%;object-fit:contain;filter:contrast(1.05) saturate(.85);mix-blend-mode:screen}.character-glow{position:absolute;width:40%;height:35%;bottom:16%;background:radial-gradient(circle,rgba(87,232,255,.22),transparent 65%);filter:blur(25px)}.character-vignette{position:absolute;inset:0;background:radial-gradient(circle at 55% 48%,transparent 15%,rgba(2,7,13,.7) 70%)}.character-scan{position:absolute;left:20%;right:20%;top:48%;height:1px;background:rgba(87,232,255,.22);box-shadow:0 0 20px rgba(87,232,255,.2)}.focus-ring{position:absolute;z-index:4;right:20%;top:42%;width:110px;height:110px;border:1px solid rgba(87,232,255,.18);border-radius:50%}.focus-ring span{position:absolute;width:12px;height:1px;background:var(--cyan);top:50%;left:-6px}.focus-ring span:nth-child(2){left:auto;right:-6px}.focus-ring span:nth-child(3){width:1px;height:12px;top:-6px;left:50%}.focus-ring span:nth-child(4){width:1px;height:12px;top:auto;bottom:-6px;left:50%}.hero-cards{position:absolute;z-index:5;left:7vw;bottom:12vh;display:flex;gap:10px}.hero-card{background:rgba(4,11,18,.62);border:1px solid rgba(255,255,255,.12);color:#fff;padding:13px 16px;display:flex;gap:12px;align-items:center;text-align:left;cursor:pointer;backdrop-filter:blur(12px);transition:.25s}.hero-card.active,.hero-card:hover{border-color:rgba(87,232,255,.55);transform:translateY(-3px)}.hero-card .icon{color:var(--cyan);font-size:18px}.hero-card b{display:block;font-size:10px;letter-spacing:.12em}.hero-card small{display:block;color:#8396a8;font-size:9px;margin-top:4px}.scene-progress{position:absolute;z-index:5;right:5vw;bottom:8vh;width:150px}.scene-meta{display:flex;justify-content:space-between;font-size:9px;color:#9eafbd;letter-spacing:.12em}.scene-line{height:1px;background:rgba(255,255,255,.15);margin-top:9px}.scene-line i{display:block;width:0;height:100%;background:var(--cyan)}.scroll-hint{position:absolute;z-index:5;right:5vw;bottom:3vh;color:#8295a7;font-size:9px;letter-spacing:.2em}.scroll-hint i{display:inline-block;width:1px;height:20px;background:var(--cyan);vertical-align:middle;margin-left:10px}.hero-exit{height:120px;background:linear-gradient(#02070d,#07111c);display:grid;place-items:center}.hero-exit span{display:block;width:1px;height:20px;background:var(--cyan);opacity:.35}.services-pin{height:430vh;background:#07111c}.services-stage{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center}.services-intro{width:42vw;min-width:420px;padding-left:7vw;position:relative;z-index:2}.services-intro h2{font-size:clamp(42px,5.8vw,82px);line-height:.95;letter-spacing:-.05em;margin:20px 0}.services-intro h2 span{color:var(--cyan)}.services-intro>p:last-child{color:#8295a7;font-size:13px}.service-rail{display:flex;gap:18px;will-change:transform}.service-card{width:300px;min-width:300px;height:392px;padding:26px 26px 60px;background:linear-gradient(160deg,rgba(20,38,56,.9),rgba(4,11,18,.96));border:1px solid rgba(255,255,255,.11);position:relative;display:flex;flex-direction:column;text-decoration:none;color:inherit;transition:border-color .25s,transform .25s}.service-card:hover,.service-card:focus-visible{border-color:rgba(53,214,255,.5);transform:translateY(-4px)}.service-card em{color:var(--accent-text);font-size:10px;font-style:normal;letter-spacing:.16em;font-weight:800}.service-card h3{font-size:21px;line-height:1.15;letter-spacing:-.02em;margin:18px 0 12px}.service-card p{color:#8da0b2;line-height:1.6;font-size:12.5px;margin:0}.service-card .svc-note{margin-top:10px;color:#6FE4FF;font-size:11.5px;line-height:1.5;border-left:2px solid rgba(53,214,255,.45);padding-left:9px}.service-card .svc-code{margin-top:auto;padding-top:14px;color:#5f7286;font-size:10px;letter-spacing:.14em;font-weight:700}.service-card>span{position:absolute;right:24px;bottom:22px;color:var(--accent-text);font-size:24px}.about{min-height:80vh;padding:130px 7vw;display:grid;grid-template-columns:160px 1fr 220px;gap:7vw;align-items:center;background:#02070d}.about-index{font-size:10px;color:#657788;letter-spacing:.18em}.about-copy h2{font-size:clamp(42px,5.8vw,80px);line-height:.96;letter-spacing:-.05em;margin:20px 0}.about-copy h2 span{color:var(--cyan)}.about-data{border-left:1px solid var(--line);padding-left:28px}.about-data div{padding:18px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;color:#90a3b4;font-size:12px}.about-data b{color:var(--cyan)}.cta{min-height:75vh;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;background:#050d15}.cta-glow{position:absolute;width:55vw;height:30vw;border-radius:50%;background:radial-gradient(circle,rgba(42,127,255,.2),transparent 65%);filter:blur(30px)}.cta>p,.cta>h2,.cta-row{position:relative}.cta>p:first-of-type{font-size:10px;letter-spacing:.22em;color:var(--cyan)}.cta h2{font-size:clamp(54px,8vw,110px);letter-spacing:-.06em;line-height:.9;margin:18px 0}.cta h2 span{color:var(--cyan)}.cta-sub{max-width:620px;color:#8fa2b3;line-height:1.7}.cta-row{display:flex;gap:10px;margin-top:25px}.cta-row a{padding:14px 18px;text-decoration:none;font-size:10px;letter-spacing:.12em}.primary{background:var(--cyan);color:#001017}.secondary{border:1px solid var(--line)}.final-footer{padding:30px 5vw;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:30px;align-items:center;border-top:1px solid var(--line);background:#02060a}.footer-brand{display:flex;gap:12px;align-items:center}.footer-brand img{width:30px;height:30px;object-fit:contain}.footer-brand strong{display:block}.footer-brand span,.footer-contact a,.footer-social a{display:block;color:#7d91a2;font-size:10px;text-decoration:none;margin-top:4px}.footer-social{display:flex;gap:16px}.footer-legal{grid-column:1/-1;color:#586b7b;font-size:9px}.floating-whatsapp{position:fixed;z-index:60;right:20px;bottom:20px;background:#25d366;color:#06100a;padding:11px 14px;text-decoration:none;font-size:10px;font-weight:800;border-radius:999px;box-shadow:0 8px 35px rgba(0,0,0,.35)}@media(max-width:900px){.topbar{height:62px}.quote{padding:9px}.hero-copy{top:18%;left:6vw;right:6vw}.character-wrap{inset:33% 3% 0 20%;opacity:.78}.hero-cards{left:6vw;right:6vw;bottom:9vh;overflow:auto}.hero-card{min-width:190px}.scene-progress{display:none}.services-pin{height:auto}.services-stage{position:relative;height:auto;min-height:100vh;display:block;padding:100px 0 80px}.services-intro{width:auto;min-width:0;padding:0 6vw 50px}.service-rail{overflow-x:auto;padding:0 6vw 20px}.service-card{min-width:272px;width:272px}.about{grid-template-columns:1fr;padding:90px 6vw}.about-index{display:none}.about-data{border-left:0;padding-left:0}.final-footer{grid-template-columns:1fr}.footer-social{flex-wrap:wrap}.footer-legal{grid-column:auto}}@media(max-width:560px){.hero-copy h1{font-size:52px}.hero-sub{font-size:14px}.character-wrap{inset:38% -8% 0 12%}.hero-card small{display:none}.cta{padding:80px 6vw}.cta-row{flex-direction:column;width:min(340px,90vw)}.cta-row a{text-align:center}}
 
 /* ===== V10.2 content layers ===== */
 .v10-section{padding:120px 7vw;background:#06101a;border-top:1px solid rgba(255,255,255,.06)}
@@ -27,6 +29,15 @@
 .portfolio-card:hover img{transform:scale(1.04);opacity:.9}
 .portfolio-card>div{position:absolute;left:22px;right:22px;bottom:20px;padding-top:50px;background:linear-gradient(transparent,rgba(2,7,13,.94))}
 .portfolio-card h3{margin:7px 0 0;font-size:28px}
+/* VIDEO KARTI — izgaranin tamamini kaplar, kendi en-boy oranini korur.
+   Ozgulluk bilerek iki sinif: dar ekran medya sorgusundaki .portfolio-card
+   min-height kurali kaynak sirasindan bagimsiz olarak ezilmeli, aksi halde
+   video 280px'e zorlanip kirpilirdi. Kunye mutlak konumdan cikarilir;
+   videonun ustune binerse oynatma kontrollerini kapatir. */
+.portfolio-grid .portfolio-video{grid-column:1/-1;min-height:0;display:flex;flex-direction:column;background:#02070d}
+.portfolio-grid .portfolio-video video{display:block;width:100%;height:auto;max-height:76vh;min-height:0;background:#02070d}
+.portfolio-grid .portfolio-video .pv-kunye{position:static;left:auto;right:auto;bottom:auto;padding:15px 22px 18px;background:none}
+.portfolio-grid .portfolio-video h3{font-size:22px}
 .ai-lab{background:#07111c}
 .ai-panel{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
 .ai-panel h2{font-size:clamp(48px,6vw,88px);line-height:.92;letter-spacing:-.05em;margin:16px 0}
@@ -105,8 +116,64 @@
 
 /* HERO VIDEO ARKA PLAN */
 .hero-bg-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55;filter:saturate(.7) contrast(1.08)}
+
+/* ---- HERO HIKAYE VIDEOSU ----------------------------------------------
+   Video kaynakta zaten derecelendirildi; burada ek filtre uygulanmaz.
+   Yalnizca gercekten yuklendiginde .hero-story-on acilir, boylece video
+   engellendiginde ya da hata verdiginde eski sahne kurulumu ayakta kalir. */
+.hero-story-video{opacity:0;filter:none;transition:opacity .9s ease}
+.hero-story-on .hero-story-video{opacity:.95}
+.hero-story-scrim{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .9s ease;
+  background:
+    linear-gradient(90deg,rgba(2,7,13,.94) 0%,rgba(2,7,13,.74) 34%,rgba(2,7,13,.18) 62%,rgba(2,7,13,.5) 100%),
+    linear-gradient(to top,rgba(2,7,13,.92) 0%,rgba(2,7,13,.25) 26%,transparent 46%),
+    radial-gradient(125% 95% at 52% 42%,transparent 34%,rgba(2,7,13,.62) 100%)}
+.hero-story-on .hero-story-scrim{opacity:1}
+/* Video devredeyken rakip katmanlar cekilir: hikayenin kendisi karakterdir.
+   Robot gorseli, kapi cercevesi, isin ve odak halkasi video uzerinde ikinci
+   bir figur/cizim gibi okundugu icin tamamen kaldirilir; yalnizca derinlik
+   veren yumusak katmanlar kisilarak kalir. */
+.hero-story-on .scene-still{opacity:0!important}
+.hero-story-on .character-wrap,
+.hero-story-on .logo-gate,
+.hero-story-on .focus-ring,
+.hero-story-on .beam{opacity:0;transition:opacity .9s ease;pointer-events:none}
+.hero-story-on .fog{opacity:.06}
+.hero-story-on .grid-floor{opacity:.22}
+.hero-story-on .ambient{opacity:.45}
+
+.hero-chapter{margin-top:28px;display:flex;align-items:center;gap:14px;min-height:30px}
+.hero-chapter-idx{flex:0 0 auto;font-size:9px;letter-spacing:.2em;font-weight:800;color:var(--accent-text);
+  border:1px solid rgba(53,214,255,.45);padding:5px 8px;line-height:1}
+.hero-chapter-text{font-size:13.5px;letter-spacing:.03em;color:#cddae5;opacity:0;transform:translateY(9px);
+  transition:opacity .5s ease,transform .5s ease}
+.hero-chapter-text.in{opacity:1;transform:none}
+
+.hero-ai-credit{position:absolute;z-index:5;left:7vw;bottom:5.5vh;margin:0;
+  font-size:9px;letter-spacing:.14em;color:#7c90a1;text-transform:uppercase}
+.hero-ai-credit b{color:var(--accent-text);font-weight:800}
+
+@media (max-width:900px){
+  .hero-chapter{margin-top:20px;gap:11px}
+  .hero-chapter-text{font-size:12.5px}
+  .hero-ai-credit{left:6vw;right:6vw;bottom:3vh;font-size:8px;letter-spacing:.12em}
+  /* Metin blogu ustte durdugu icin perde ust yariyi agir kapatir; video orta
+     bantta acik kalir. Patlama gibi parlak karelerde slogan okunur kalsin. */
+  .hero-story-scrim{background:
+    linear-gradient(to bottom,rgba(2,7,13,.92) 0%,rgba(2,7,13,.86) 40%,rgba(2,7,13,.42) 60%,rgba(2,7,13,.58) 82%,rgba(2,7,13,.94) 100%),
+    radial-gradient(145% 85% at 50% 40%,transparent 26%,rgba(2,7,13,.5) 100%)}
+}
+@media (max-width:560px){
+  .hero-ai-credit span{display:none}
+}
+/* Hareket azaltilmisken video hic inmez; bolum metni sabit ve okunur kalir. */
+@media (prefers-reduced-motion: reduce){
+  .hero-chapter-text{opacity:1;transform:none;transition:none}
+  .hero-story-video{display:none}
+  .hero-story-scrim{display:none}
+}
 .intro-overlay{position:fixed;inset:0;z-index:200;background:#02070d;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:opacity .8s ease,visibility .8s}
-.intro-overlay video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.75}
+.intro-overlay video,.intro-overlay img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.75}
 .intro-overlay .intro-mark{position:relative;z-index:2;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:clamp(30px,6vw,58px);letter-spacing:.02em;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.6)}
 .intro-overlay.done{opacity:0;visibility:hidden;pointer-events:none}
 
@@ -215,6 +282,41 @@
 .about-team-card p{color:#8da0b2;font-size:12px;line-height:1.6;margin:10px 0 0}
 @media(max-width:700px){.about-story{grid-template-columns:1fr}.about-values{grid-template-columns:1fr}.about-page{padding-top:110px}}
 
+/* =====================================================================
+   SİNEMATİK KALİTE TABANI — canlı footage üstünde okunabilirlik,
+   erişilebilirlik zemini ve hareket disiplini. (10k-websites standartları)
+   ===================================================================== */
+
+/* 1) OKUNABİLİRLİK — hero metni canlı video üstünde durur.
+   Global taban scrim + 3 katmanlı text-shadow ile hiçbir kare metnin
+   arkasında ham kalmaz. Köşeler canlı kalsın diye radial %100'de biter. */
+.hero-sticky::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 130% 95% at 32% 42%,rgba(2,7,13,0) 32%,rgba(2,7,13,.58) 100%)}
+.hero-copy h1,.hero-copy .hero-sub,.hero-copy .eyebrow,.hero-chapter-text,.hero-ai-credit{text-shadow:var(--tshadow)}
+.hero-copy .primary,.hero-copy .secondary,.hero-cards .hero-card{text-shadow:none}
+
+/* 2) ERİŞİLEBİLİRLİK ZEMİNİ */
+.skip-link{position:absolute;left:-9999px;top:0;z-index:300;background:var(--cyan);color:#001017;padding:12px 18px;font-size:12px;font-weight:800;letter-spacing:.08em;text-decoration:none}
+.skip-link:focus{left:10px;top:10px}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:2px}
+main:focus{outline:none}
+
+/* 3) DOKUNMA HEDEFLERİ — coarse pointer altında en az 44px, hizayı bozmadan */
+@media(pointer:coarse){
+  .site-menu a{min-height:44px;display:inline-flex;align-items:center}
+  .hero-card{min-height:44px}
+  .quote,.cta-row a,.package-summary .primary,.contact-form button,.floating-whatsapp{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+}
+
+/* 4) HAREKET DİSİPLİNİ — sekme gizliyken tüm animasyonlar duraklar (pil + kaynak) */
+body.paused *,body.paused *::before,body.paused *::after{animation-play-state:paused!important}
+
+/* 5) REDUCED MOTION BÜTÜNLÜĞÜ — ::before/::after dahil, süreleri sıfırla.
+   Yapısal transform'lar üstteki mevcut blokta zaten korunuyor. */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  .hero-sticky::after{background:radial-gradient(ellipse 130% 95% at 32% 42%,rgba(2,7,13,0) 32%,rgba(2,7,13,.58) 100%)}
+}
+
 
 /* HIZMETLER RAYI: baslik sutunu ile kayan kartlarin cakismasini onler.
    Sutun esnek kutuda kuculmez, kartlar basligin arkasindan koyu bir
@@ -230,25 +332,6 @@
     pointer-events:none;
     background:linear-gradient(90deg,#07111c 0%,#07111c 74%,rgba(7,17,28,.92) 90%,rgba(7,17,28,0) 100%);
   }
-}
-
-
-/* ERISILEBILIRLIK: klavye odagi, icerige atla baglantisi ve dokunma hedefleri. */
-.skip-link{
-  position:absolute;left:-9999px;top:0;z-index:100;
-  background:var(--cyan);color:#001017;
-  padding:12px 18px;font-size:12px;font-weight:800;letter-spacing:.08em;
-  text-decoration:none;
-}
-.skip-link:focus{left:8px;top:8px}
-:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:2px}
-main:focus{outline:none}
-@media (pointer:coarse){
-  .quote,.cta-row a,.floating-whatsapp{
-    min-height:44px;display:inline-flex;align-items:center;justify-content:center;
-  }
-  .hero-card{min-height:44px}
-  .topbar nav a{padding:6px 0;display:inline-block}
 }
 
 
@@ -289,3 +372,633 @@ main:focus{outline:none}
    Genis ekranda dugmenin soluna alinir, dar ekranda gizlenir. */
 .scroll-hint{right:calc(5vw + 118px)}
 @media (max-width:900px){.scroll-hint{display:none}}
+
+
+/* SSS: yerli <details> kullanir, yani klavye ve ekran okuyucu destegi
+   tarayicidan gelir, ek JavaScript yok. */
+.faq-list{display:flex;flex-direction:column;gap:10px;max-width:860px}
+.faq-item{
+  background:linear-gradient(150deg,rgba(11,27,42,.9),rgba(4,11,18,.96));
+  border:1px solid rgba(255,255,255,.09);
+  transition:border-color .3s ease;
+}
+.faq-item:hover,.faq-item[open]{border-color:rgba(53,214,255,.32)}
+.faq-item summary{
+  list-style:none;cursor:pointer;
+  padding:20px 56px 20px 22px;position:relative;
+  font-family:'Space Grotesk',sans-serif;font-weight:500;
+  font-size:clamp(15px,1.6vw,18px);line-height:1.4;color:var(--ink);
+}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{
+  content:"";position:absolute;right:24px;top:50%;
+  width:9px;height:9px;margin-top:-6px;
+  border-right:1.5px solid var(--cyan);border-bottom:1.5px solid var(--cyan);
+  transform:rotate(45deg);transform-origin:center;
+  transition:transform .3s ease;
+}
+.faq-item[open] summary::after{transform:rotate(-135deg);margin-top:-2px}
+.faq-item summary:focus-visible{outline:2px solid var(--cyan);outline-offset:-2px}
+
+.faq-body{padding:0 22px 22px}
+.faq-body p{color:#8da0b2;font-size:14px;line-height:1.75;margin:0 0 14px;max-width:64ch}
+.faq-body .section-link{font-size:10px;letter-spacing:.12em}
+
+@media (prefers-reduced-motion:reduce){
+  .faq-item,.faq-item summary::after{transition:none}
+}
+
+/* Acilis animasyonu ilerleyici zenginlestirme olarak eklenir. Destekleyen
+   tarayici yumusak acar, desteklemeyen aninda acar; ikisi de dogru calisir.
+   Azaltilmis harekette animasyon zaten devrede degil. */
+@supports selector(details::details-content){
+  .faq-item::details-content{
+    block-size:0;overflow:hidden;opacity:0;
+    transition:block-size .32s ease,content-visibility .32s allow-discrete,opacity .28s ease;
+  }
+  .faq-item[open]::details-content{block-size:auto;opacity:1}
+  @media (prefers-reduced-motion:reduce){
+    .faq-item::details-content{transition:none;opacity:1}
+  }
+}
+
+
+/* =====================================================================
+   MARKA RENK YONU: ALTIN AJANSIN, CAMGOBEGI MAKINENIN.
+
+   Gerekce: basili katalog, wordmark, amblem ve uygulama simgesi altin.
+   Site ise camgobegi agirlikliydi ve camgobegi 62 ayri kuralda geciyordu,
+   yani aksan olmaktan cikmisti. Artik marka mobilyasi (etiket, bag, CTA,
+   odak, kenarlik, baslik vurgusu) altin; camgobegi yalnizca yapay zeka
+   vurgusunda ve hero'nun atmosfer katmanlarinda kaliyor. Boylece iki renk
+   de bir ise yariyor ve site basili islerle ayni dili konusuyor.
+
+   Kontrast olculdu: #35D6FF zeminde 9.20:1, kartta 7.94:1;
+   kucuk etiketler icin #6FE4FF zeminde 11.72:1. Hepsi 4.5:1 esiginin
+   cok uzerinde.
+   ===================================================================== */
+/* Vurgu anasayfayla birlestirildi: birincil camgobegi, altin ikincil.
+   Karar sayfa sahibinin; iki ayri tasarim dili tek dile cekildi. */
+:root{--accent:#35D6FF;--accent-text:#6FE4FF;--accent-ink:#00131A;
+      --altin:#E0A257;--altin-text:#EFC08A}
+
+/* Kucuk etiketler, ust basliklar ve baglar */
+.eyebrow,.section-link,.hero-card .icon,.service-card em,.service-card>span,
+.about-data b,.about-value b,.about-team-card small,.news-card small,
+.portfolio-card small,.archive-card small,.category-cover .cc-copy small,
+.showreel-card .sr-tag,.article-back,.article-eyebrow,.article-source a,
+.contact-info-card h3,.contact-info-card a:hover,.package-summary strong,
+.cta>p:first-of-type,.admin-card h2{color:var(--accent-text)}
+
+/* Baslik vurgulari: markanin kendi sesi */
+.services-intro h2 span,.about-copy h2 span,.cta h2 span,.section-head h2 span,
+.archive-page h1 span,.contact-page h1 span,.about-page h1 span,
+.about-story-text h2 span,.about-team h2 span{color:var(--accent-text)}
+
+/* Dolgular ve odak */
+.primary,.contact-form button,.admin-card button{background:var(--accent);color:var(--accent-ink)}
+.skip-link{background:var(--accent);color:var(--accent-ink)}
+:focus-visible,.faq-item summary:focus-visible{outline-color:var(--accent)}
+.page-progress i,.preloader-line i,.scene-line i,.scroll-hint i,
+.hero-exit span{background:var(--accent)}
+
+/* Kenarliklar ve durumlar */
+.quote{border-color:rgba(53,214,255,.55)}
+.hero-card.active,.hero-card:hover{border-color:rgba(53,214,255,.6)}
+.news-card:hover,.archive-card:hover{border-color:rgba(53,214,255,.38)}
+.package-summary{border-color:rgba(53,214,255,.24)}
+.contact-form input:focus,.contact-form textarea:focus{border-color:rgba(53,214,255,.55)}
+.faq-item:hover,.faq-item[open]{border-color:rgba(53,214,255,.34)}
+.faq-item summary::after{border-right-color:var(--accent-text);border-bottom-color:var(--accent-text)}
+.cursor-logo{border-color:rgba(53,214,255,.55);color:var(--accent-text)}
+.cursor-logo.magnet{background:rgba(53,214,255,.12);border-color:var(--accent)}
+.about-team-card .avatar{color:var(--accent-text);background:linear-gradient(135deg,rgba(53,214,255,.2),rgba(42,127,255,.18))}
+
+/* CAMGOBEGI BURADA KALIYOR: yapay zeka vurgusu.
+   .ai-panel ve .ai-grid dokunulmadi, hero'nun atmosfer katmanlari
+   (.ambient, .beam, .grid-floor, .gate, .character-glow, .character-scan,
+   .focus-ring) da dokunulmadi. Sicak marka, soguk makine. */
+
+
+/* =====================================================================
+   SABIT ORTAM KATMANI
+   Sayfanin arkasinda tek bir yavas dunya. Kaydirmak, ust uste dizilmis
+   bolumlerin yanindan gecmek yerine bir mekanin icinde ilerlemek gibi
+   hissettirir. Uc leke, hepsi 70 saniye ve uzeri, negatif gecikmeyle
+   basliyor, yani ilk boyamada hepsi dongunun ortasinda.
+   ===================================================================== */
+.env{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.env i{position:absolute;display:block;border-radius:50%;filter:blur(90px);opacity:.16}
+.env-a{width:60vw;height:45vw;left:-12vw;top:-10vw;background:#1a86ff;animation:env-drift-a 84s ease-in-out infinite;animation-delay:-31s}
+.env-b{width:46vw;height:38vw;right:-10vw;top:28vh;background:#24d7d7;animation:env-drift-b 96s ease-in-out infinite;animation-delay:-47s}
+.env-c{width:34vw;height:30vw;left:22vw;bottom:-12vw;background:#35D6FF;opacity:.07;animation:env-drift-c 110s ease-in-out infinite;animation-delay:-19s}
+@keyframes env-drift-a{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(6vw,4vh,0) scale(1.12)}}
+@keyframes env-drift-b{0%,100%{transform:translate3d(0,0,0) scale(1.08)}50%{transform:translate3d(-5vw,-6vh,0) scale(1)}}
+@keyframes env-drift-c{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(4vw,-5vh,0) scale(1.18)}}
+/* .env sabit arka plan katmani (z-index:0) uzerinde kalmalari icin diger body
+   cocuklari yukseltilir. ANCAK kendi konumlandirmasi olan sabit katmanlar bu
+   kuralin disinda tutulmalidir: aksi halde position:fixed ezilir, ust bar
+   yapiskanligini kaybeder ve kapanmis perdeler akista yer kaplamaya devam
+   ederek sayfanin tepesinde ~210px gorunmez bos alan birakir. */
+body>*:not(.env):not(.topbar):not(.site-menu):not(.preloader):not(.intro-overlay):not(.page-progress):not(.floating-whatsapp):not(.skip-link){position:relative;z-index:1}
+
+/* =====================================================================
+   ETKILESIMLI AN
+   "Hikayeleri yasatiyoruz" cumlesini ziyaretci kendi eliyle yapiyor.
+   Basili tutar, dagilmis harfler toplanir ve hikaye canlanir. Birakirsa
+   geri soner, aniden sifirlanmaz. Tamamlaninca altindaki icerik acilir.
+   Butun hareket transform ve opacity uzerinde.
+   ===================================================================== */
+.revive-stage{position:relative;max-width:760px;margin:0 auto;text-align:center;padding:10px 0 0}
+.revive-line{display:block;width:100%;height:2px;margin:0 auto 42px;overflow:visible}
+.revive-line line{
+  stroke:var(--accent);stroke-width:2;
+  stroke-dasharray:600;
+  stroke-dashoffset:calc(600 - 600 * var(--p,0));
+  opacity:calc(.25 + .75 * var(--p,0));
+}
+.revive-headline{
+  font-family:'Space Grotesk',sans-serif;font-weight:700;
+  font-size:clamp(26px,4.4vw,46px);line-height:1.15;letter-spacing:-.02em;
+  margin:0 0 26px;min-height:2.3em;color:var(--ink);
+}
+.revive-headline .w{display:inline-block;white-space:nowrap}
+.revive-headline .c{
+  display:inline-block;
+  opacity:var(--kc,0);
+  transform:translate(calc((1 - var(--kc,0)) * var(--jx,0px)),calc((1 - var(--kc,0)) * var(--jy,0px)))
+            rotate(calc((1 - var(--kc,0)) * var(--jr,0deg)));
+}
+.revive-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.revive-after{
+  opacity:var(--after,0);
+  transform:translateY(calc((1 - var(--after,0)) * 14px));
+  transition:opacity .5s ease,transform .5s ease;
+}
+.revive-after p{color:#8da0b2;font-size:14px;line-height:1.7;margin:0 0 12px}
+
+.revive-btn{
+  position:relative;margin:34px auto 0;display:block;
+  min-width:230px;padding:16px 28px;
+  background:transparent;color:var(--ink);
+  border:1px solid rgba(53,214,255,.45);
+  font:inherit;font-size:11px;letter-spacing:.16em;font-weight:700;
+  cursor:pointer;overflow:hidden;
+  transition:border-color .3s ease;
+}
+.revive-btn:hover{border-color:rgba(53,214,255,.8)}
+.revive-fill{
+  position:absolute;inset:0;transform-origin:left center;
+  transform:scaleX(var(--p,0));
+  background:linear-gradient(90deg,rgba(53,214,255,.22),rgba(53,214,255,.38));
+}
+.revive-label{position:relative}
+.revive-hint{color:#7d91a2;font-size:11px;line-height:1.6;margin:16px auto 0;max-width:44ch}
+.revive.done .revive-btn{border-color:rgba(53,214,255,.8)}
+
+@media (prefers-reduced-motion:reduce){
+  .env i{animation:none}
+  .revive-after{transition:none}
+}
+
+/* ---- SAHADAN: yayinlanmis, dogrulanabilir is --------------------------
+   Kapaklar gercek videolarin kareleri; YouTube gomulu oynaticisi yerine
+   disa baglanti kullanilir, boylece ucuncu taraf betigi yuklenmez. */
+.saha-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding:0 7vw}
+.saha-card{background:linear-gradient(160deg,rgba(20,38,56,.75),rgba(4,11,18,.95));
+  border:1px solid var(--line);display:flex;flex-direction:column}
+.saha-thumb{position:relative;display:block;aspect-ratio:16/9;overflow:hidden;background:#050d15}
+.saha-thumb img{width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform .5s ease,filter .5s ease;filter:saturate(.92)}
+.saha-thumb:hover img,.saha-thumb:focus-visible img{transform:scale(1.045);filter:saturate(1.05)}
+.saha-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:54px;height:54px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(2,7,13,.72);border:1px solid rgba(53,214,255,.6);color:var(--accent-text);
+  font-size:17px;padding-left:3px;backdrop-filter:blur(4px);transition:background .25s,transform .25s}
+.saha-thumb:hover .saha-play{background:rgba(53,214,255,.92);color:#00131A;transform:translate(-50%,-50%) scale(1.08)}
+.saha-copy{padding:20px 20px 22px;display:flex;flex-direction:column;flex:1}
+.saha-copy small{color:var(--accent-text);font-size:9.5px;letter-spacing:.15em;font-weight:800}
+.saha-copy h4{font-family:'Space Grotesk',Inter,Arial,sans-serif;font-size:17px;line-height:1.25;
+  letter-spacing:-.02em;margin:10px 0 8px}
+.saha-meta{color:#7e92a3;font-size:11.5px;margin:0 0 14px}
+.saha-links{margin:auto 0 0;display:flex;gap:16px;flex-wrap:wrap}
+.saha-links a{font-size:10px;letter-spacing:.12em;font-weight:700;text-decoration:none;color:var(--accent-text)}
+.saha-links a+a{color:#8da0b2}
+.saha-links a:hover{text-decoration:underline}
+.saha-foot{padding:26px 7vw 0;color:#8da0b2;font-size:13px;display:flex;gap:18px;
+  align-items:center;flex-wrap:wrap}
+.saha-foot b{color:var(--ink)}
+@media (max-width:900px){
+  .saha-grid{grid-template-columns:1fr;padding:0 6vw;gap:18px}
+  .saha-foot{padding:22px 6vw 0;font-size:12.5px}
+}
+.ps-note{color:#7e92a3;font-size:11px;line-height:1.5;border-left:2px solid rgba(53,214,255,.4);padding-left:9px;margin:14px 0 18px}
+
+/* ---- HABER SAYFASI: HAFIF YOUTUBE VE KAPAK ---------------------------
+   Gomulu oynatici yaklasik 900 KB betik yukler. Burada yalnizca kapak
+   karesi durur (~15-40 KB); ziyaretci tiklayinca gercek oynatici gelir. */
+.yt-lite{position:relative;display:block;width:100%;aspect-ratio:16/9;margin:26px 0;
+  background:#050d15;border:1px solid var(--line);overflow:hidden;cursor:pointer}
+.yt-lite img{width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform .5s ease,filter .4s ease;filter:saturate(.94)}
+.yt-lite:hover img{transform:scale(1.03);filter:saturate(1.04)}
+.yt-lite iframe{width:100%;height:100%;border:0;display:block}
+.yt-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:64px;height:64px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(2,7,13,.74);border:1px solid rgba(53,214,255,.6);color:var(--accent-text);
+  font-size:20px;padding-left:4px;cursor:pointer;backdrop-filter:blur(4px);
+  transition:background .25s,transform .25s,color .25s}
+.yt-lite:hover .yt-play{background:rgba(53,214,255,.94);color:#00131A;
+  transform:translate(-50%,-50%) scale(1.08)}
+.yt-lite noscript a{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);
+  color:var(--accent-text);font-size:12px}
+.article-cover{width:100%;height:auto;display:block;margin:26px 0;
+  border:1px solid var(--line);background:#050d15}
+@media (max-width:600px){ .yt-play{width:52px;height:52px;font-size:17px} }
+.video-credit{margin:10px 0 22px;font-size:11.5px;color:#7e92a3;letter-spacing:.02em}
+.video-credit a{color:var(--accent-text)}
+
+/* =====================================================================
+   SİNEMATİK KATMAN — tam ekran hamburger menü, mobil hero düzeltmeleri,
+   başlık açılışları ve parallax. Dosyanın sonunda duruyor ki yukarıdaki
+   kuralları kaynak sırasıyla ezebilsin; ek özgüllük hilesine gerek kalmasın.
+   ===================================================================== */
+
+/* --- HAMBURGER: artık her genişlikte. 9 maddelik yatay menü geniş
+   ekranda da sıkışıyordu; tam ekran menü hem nefes aldırıyor hem de
+   istenen sinematik his. Bağlantılar DOM'da kalmaya devam ettiği için
+   taranabilirlik değişmiyor. --- */
+.topbar .menu-toggle{
+  display:block; position:relative; width:44px; height:44px; padding:0;
+  font-size:0; color:#fff; background:none; border:1px solid rgba(255,255,255,.15);
+  cursor:pointer; z-index:120;
+}
+.topbar .menu-toggle::before,
+.topbar .menu-toggle::after{
+  content:""; position:absolute; left:12px; right:12px; height:1.5px;
+  background:currentColor; transition:top .22s ease, transform .32s cubic-bezier(.2,.8,.2,1);
+}
+.topbar .menu-toggle::before{top:17px}
+.topbar .menu-toggle::after{top:25px}
+.topbar .menu-toggle[aria-expanded="true"]::before{top:21px; transform:rotate(45deg)}
+.topbar .menu-toggle[aria-expanded="true"]::after{top:21px; transform:rotate(-45deg)}
+
+.site-menu{
+  display:none; position:fixed; inset:0; z-index:110;
+  flex-direction:column; justify-content:center; align-items:flex-start;
+  gap:0; padding:96px 7vw 40px; overflow-y:auto;
+  background:linear-gradient(160deg,#02070d 0%,#061320 55%,#02070d 100%);
+  counter-reset:menusira;
+}
+.site-menu.open{display:flex}
+.site-menu a{
+  counter-increment:menusira;
+  display:flex; align-items:baseline; gap:16px;
+  width:100%; max-width:760px; padding:13px 0;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  font-size:clamp(24px,5.2vw,44px); font-weight:700; letter-spacing:-.03em;
+  line-height:1.1; text-transform:none; color:#fff;
+  transition:color .2s ease, padding-left .28s cubic-bezier(.2,.8,.2,1);
+}
+.site-menu a::before{
+  content:counter(menusira,decimal-leading-zero);
+  flex:0 0 auto; font-size:11px; font-weight:600; letter-spacing:.16em;
+  color:var(--accent-text,#35D6FF); transform:translateY(-.35em);
+}
+.site-menu a:hover,.site-menu a:focus-visible{color:var(--accent-text,#35D6FF); padding-left:10px}
+
+/* Menü açılışı: maddeler sırayla gelir. Görünür durumdan başlar —
+   animasyon çalışmasa da menü okunur kalır. */
+@media (prefers-reduced-motion:no-preference){
+  @keyframes menuGir{from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:none}}
+  .site-menu.open a{animation:menuGir .5s cubic-bezier(.2,.8,.2,1) both}
+  .site-menu.open a:nth-child(1){animation-delay:.04s}
+  .site-menu.open a:nth-child(2){animation-delay:.08s}
+  .site-menu.open a:nth-child(3){animation-delay:.12s}
+  .site-menu.open a:nth-child(4){animation-delay:.16s}
+  .site-menu.open a:nth-child(5){animation-delay:.20s}
+  .site-menu.open a:nth-child(6){animation-delay:.24s}
+  .site-menu.open a:nth-child(7){animation-delay:.28s}
+  .site-menu.open a:nth-child(8){animation-delay:.32s}
+  .site-menu.open a:nth-child(9){animation-delay:.36s}
+}
+body.menu-acik{overflow:hidden}
+
+/* --- MOBİL HERO ÇAKIŞMASI ---
+   Ölçüldü (390x844): .hero-copy 152→423, .character-wrap 321→844 —
+   figür metnin 102px içine giriyordu (360px'te 147px). Figür aşağı
+   alınıyor ve metnin arkasına kontrast perdesi konuyor. Perde
+   .hero-copy'nin kendi yığınında durduğu için figürün üstünde,
+   yazının altında kalır. --- */
+@media (max-width:900px){
+  .hero-copy::before{
+    content:""; position:absolute; inset:-26px -7vw -44px; z-index:-1;
+    background:linear-gradient(180deg,rgba(2,7,13,.94),rgba(2,7,13,.74) 62%,rgba(2,7,13,0));
+    pointer-events:none;
+  }
+  .character-wrap{inset:54% -6% 0 8%; opacity:.72}
+  /* Kartlar 590px içerikle 343px'e sığmıyordu; yatay kaydırma yerine
+     üçü de ekrana sığacak şekilde daraltılıyor. */
+  .hero-cards{overflow:visible; gap:8px; bottom:15vh}
+  .hero-card{min-width:0; flex:1 1 0; padding:11px 9px; gap:8px}
+  .hero-card b{font-size:9.5px; letter-spacing:.08em}
+  /* WhatsApp düğmesi kartlara 3px kalıyordu; alt güvenli alan eklendi. */
+  .floating-whatsapp{bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+}
+@media (max-width:560px){
+  .character-wrap{inset:58% -10% 0 4%}
+  .hero-cards{bottom:17vh}
+}
+
+/* --- SİNEMATİK BAŞLIK AÇILIŞI ---
+   Dinlenme durumu görünür: animasyon hiç çalışmazsa da içerik okunur.
+   Sınıf JS tarafından eklenir, bu yüzden opacity:0 ile park etmiyoruz. --- */
+@media (prefers-reduced-motion:no-preference){
+  .cine-hazir{opacity:0; transform:translateY(26px); filter:blur(6px)}
+  .cine-ac{
+    opacity:1; transform:none; filter:blur(0);
+    transition:opacity .85s cubic-bezier(.2,.8,.2,1),
+               transform .85s cubic-bezier(.2,.8,.2,1),
+               filter .85s cubic-bezier(.2,.8,.2,1);
+  }
+  .cine-gecik-1{transition-delay:.09s} .cine-gecik-2{transition-delay:.18s}
+}
+
+/* --- PARALLAX --- Bölüm görselleri kaydırmaya göre hafifçe kayar.
+   translate3d kullanılıyor; layout tetiklemez. */
+.par-katman{will-change:transform}
+
+/* --- DOKUNMA HEDEFLERİ --- Mobilde 33 öğe 40px'in altındaydı. */
+@media (pointer:coarse){
+  .site-menu a{min-height:52px}
+  .footer-contact a,.footer-social a,.final-footer a{min-height:44px; display:inline-flex; align-items:center}
+}
+
+/* Menü açıkken üst bar menünün ÜSTÜNE çıkar; aksi halde kapatma düğmesi
+   menünün altında kalıyor ve menü yalnızca Escape ile kapanabiliyordu.
+   Zemin saydamlaşır ki tam ekran menünün sürekliliği bozulmasın. */
+body.menu-acik .topbar{z-index:130; background:transparent; backdrop-filter:none; border-bottom-color:transparent}
+body.menu-acik .topbar .quote{opacity:0; pointer-events:none}
+
+/* Menü alt bilgisi — geniş ekranda menünün sağ tarafı boş kalıyordu;
+   iletişim bilgisi hem boşluğu dolduruyor hem de menüyü işlevsel yapıyor. */
+.site-menu-alt{
+  display:flex; flex-wrap:wrap; gap:10px 26px; align-items:center;
+  width:100%; max-width:760px; margin-top:30px;
+  font-family:inherit; font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+  color:#8ea1b2;
+}
+.site-menu-alt a{
+  display:inline-flex; align-items:center; min-height:44px;
+  font-size:12px; letter-spacing:.1em; color:#cbd6df; border-bottom:1px solid transparent;
+}
+.site-menu-alt a:hover{color:var(--accent-text,#35D6FF); border-bottom-color:currentColor}
+@media (prefers-reduced-motion:no-preference){
+  .site-menu.open .site-menu-alt{animation:menuGir .5s cubic-bezier(.2,.8,.2,1) .42s both}
+}
+
+/* Dokunma hedefleri — denetimde mobilde .section-link 18 kez, marka ve
+   birincil CTA birer kez 44px'in altında çıktı. Metin içi bağlantılar
+   kapsam dışı: cümle içinde geçen bağlantıların 44px olması gerekmiyor. */
+@media (pointer:coarse){
+  .section-link{display:inline-flex; align-items:center; min-height:44px}
+  .topbar .brand{min-height:44px; align-items:center}
+  .cta-row a,.primary,.secondary{min-height:44px; display:inline-flex; align-items:center; justify-content:center}
+}
+
+/* =====================================================================
+   PERDE GÜVENLİK AĞI
+   .preloader ve .intro-overlay yalnızca JS'in eklediği .done sınıfıyla
+   kalkıyordu. script.js yüklenemezse (ağ kesintisi, eklenti, kurumsal
+   proxy) ikisi de opacity:1 ve z-index 300/200 ile ekranda kalıcı olarak
+   takılı kalıyor ve site tamamen kullanılamaz hale geliyordu — ölçüldü.
+
+   Çözüm CSS tarafında: gecikmeli bir animasyon perdeleri kendiliğinden
+   kaldırır. `both` dolgusu sayesinde animasyon bittiğinde öğe gizli
+   KALIR. JS çalışıyorsa perde zaten ~0,7 sn'de kalkıyor, yani normal
+   durumda görünen hiçbir şey değişmez; bu yalnızca yedek.
+   ===================================================================== */
+@keyframes perdeKalk{to{opacity:0; visibility:hidden}}
+.preloader{animation:perdeKalk .6s ease 3s both}
+.intro-overlay{animation:perdeKalk .8s ease 3.6s both}
+
+/* Azaltılmış hareket tercihinde perde beklemeden, animasyonsuz kalkar. */
+@media (prefers-reduced-motion:reduce){
+  .preloader{animation:perdeKalk 1ms linear 1.2s both}
+  .intro-overlay{animation:perdeKalk 1ms linear 1.4s both}
+}
+
+/* =====================================================================
+   BTMEDYA MOBILE STABILIZATOR v1
+   Ana hedef: 360-430px telefonlarda yatay taşma, hero çakışması,
+   viewport yüksekliği, sabit menü ve yatay kartların kullanılabilirliği.
+   ===================================================================== */
+html,body{width:100%;max-width:100%;overflow-x:clip}
+*,*::before,*::after{max-width:100%}
+img,video,svg,canvas,iframe{max-width:100%}
+button,a{touch-action:manipulation}
+
+@media (max-width:900px){
+  :root{--mobile-gutter:clamp(16px,6vw,26px)}
+  body{overflow-x:clip}
+
+  .topbar{
+    height:64px;
+    padding:0 var(--mobile-gutter);
+    gap:10px;
+  }
+  .topbar .brand{min-width:0;flex:1}
+  .topbar .brand-mark,.topbar .brand-word{
+    white-space:nowrap;
+  }
+  .topbar .menu-toggle{
+    flex:0 0 44px;
+    width:44px;height:44px;
+  }
+  .topbar .quote{
+    flex:0 0 auto;
+    max-width:34vw;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .site-menu{
+    padding:84px var(--mobile-gutter) 32px;
+    justify-content:flex-start;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .site-menu a{
+    max-width:none;
+    font-size:clamp(22px,7vw,34px);
+    padding:14px 0;
+  }
+  .site-menu-alt{max-width:none}
+
+  .hero-scroll{height:auto}
+  .hero-sticky{
+    position:relative;
+    top:auto;
+    height:100svh;
+    min-height:620px;
+    max-height:none;
+  }
+  .hero-copy{
+    top:78px;
+    left:var(--mobile-gutter);
+    right:var(--mobile-gutter);
+    max-width:none;
+  }
+  .hero-copy h1{
+    font-size:clamp(40px,12vw,56px);
+    line-height:.94;
+    margin:16px 0;
+    max-width:9.5ch;
+  }
+  .hero-sub{
+    max-width:36ch;
+    font-size:14px;
+    line-height:1.55;
+  }
+  .hero-copy::before{
+    inset:-16px -10px -22px;
+  }
+  .character-wrap{
+    inset:auto 0 9% 0;
+    height:44%;
+    max-height:360px;
+    opacity:.64;
+  }
+  .character-video{height:100%;width:100%;object-fit:contain}
+  .focus-ring,.character-scan,.character-glow{display:none}
+
+  .hero-cards{
+    left:var(--mobile-gutter);
+    right:var(--mobile-gutter);
+    bottom:calc(18px + env(safe-area-inset-bottom,0px));
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    padding:2px 0 4px;
+    gap:8px;
+  }
+  .hero-cards::-webkit-scrollbar{display:none}
+  .hero-card{
+    flex:0 0 min(72vw,230px);
+    min-width:min(72vw,230px);
+    min-height:52px;
+    padding:11px 12px;
+  }
+
+  .services-stage{
+    min-height:0;
+    padding:82px 0 64px;
+  }
+  .services-intro{
+    padding:0 var(--mobile-gutter) 30px;
+  }
+  .services-intro h2{
+    font-size:clamp(40px,11vw,58px);
+  }
+  .service-rail{
+    width:100%;
+    max-width:100%;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding:0 var(--mobile-gutter) 12px;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .service-rail::-webkit-scrollbar{display:none}
+  .service-card{
+    flex:0 0 min(82vw,310px);
+    min-width:min(82vw,310px);
+    width:min(82vw,310px);
+    height:auto;
+    min-height:360px;
+  }
+
+  .v10-section,
+  .archive-page,
+  .article-page,
+  .admin-page{
+    padding-left:var(--mobile-gutter);
+    padding-right:var(--mobile-gutter);
+  }
+  .section-head h2,
+  .archive-page h1,
+  .article-page h1{
+    overflow-wrap:anywhere;
+  }
+  .news-grid,
+  .portfolio-grid,
+  .ai-panel,
+  .package-layout,
+  .about-story,
+  .about-values{
+    width:100%;
+  }
+  .news-card h3,.portfolio-card h3{overflow-wrap:anywhere}
+  .portfolio-card,
+  .portfolio-card img{
+    min-height:0;
+  }
+  .portfolio-card>div{
+    left:14px;right:14px;bottom:14px;
+  }
+  .portfolio-grid .portfolio-video video{
+    width:100%;height:auto;max-height:none;
+  }
+
+  .final-footer{
+    padding-left:var(--mobile-gutter);
+    padding-right:var(--mobile-gutter);
+    gap:18px;
+  }
+  .floating-whatsapp{
+    right:14px;
+    bottom:calc(14px + env(safe-area-inset-bottom,0px));
+    max-width:calc(100vw - 28px);
+  }
+}
+
+@media (max-width:560px){
+  .topbar .brand-word{letter-spacing:.1em}
+  .topbar .quote{font-size:9px;padding:9px 10px;max-width:31vw}
+  .hero-sticky{min-height:580px}
+  .hero-copy{top:76px}
+  .hero-sub{max-width:31ch}
+  .character-wrap{
+    height:39%;
+    bottom:13%;
+  }
+  .hero-card{
+    flex-basis:min(78vw,250px);
+    min-width:min(78vw,250px);
+  }
+}
+
+@media (max-width:380px){
+  .topbar .brand-word{display:none}
+  .topbar .quote{max-width:29vw}
+  .hero-copy h1{font-size:40px}
+  .character-wrap{height:36%;bottom:14%}
+  .hero-cards{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+  .hero-card{flex-basis:82vw;min-width:82vw}
+}
+
+/* Dokunmatik cihazlarda hover dönüşümleri mobilde layout zıplatmasın. */
+@media (hover:none){
+  .hero-card:hover,
+  .service-card:hover,
+  .news-card:hover,
+  .archive-card:hover,
+  .portfolio-card:hover img,
+  .saha-thumb:hover img,
+  .yt-lite:hover img{
+    transform:none;
+  }
+}
+

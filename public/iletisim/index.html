@@ -41,8 +41,11 @@
     <img src="/assets/btmedya-emblem-derived.png" alt="BTMEDYA" class="brand-emblem">
     <span class="brand-mark">BT</span><span class="brand-word">MEDYA</span>
   </a>
-  <button class="menu-toggle" type="button" aria-label="Menüyü aç" aria-expanded="false">☰</button>
-  <nav>
+  <button class="menu-toggle" aria-controls="anaMenu" type="button" aria-label="Menüyü aç" aria-expanded="false">☰</button>
+  <a class="quote" href="https://wa.me/905416401029?text=Merhaba%20BTMEDYA%2C%20bir%20proje%20i%C3%A7in%20teklif%20almak%20istiyorum." target="_blank" rel="noopener">TEKLİF AL ↗</a>
+</header>
+
+  <nav id="anaMenu" class="site-menu" aria-label="Ana menü">
     <a href="/#hero">Ana Sayfa</a>
     <a href="/#services">Hizmetler</a>
     <a href="/#portfolio">Portföy</a>
@@ -51,9 +54,14 @@
     <a href="/haberler/">Haberler</a>
     <a href="/hakkimizda/">Hakkımızda</a>
     <a href="/iletisim/">İletişim</a>
+      <div class="site-menu-alt">
+      <a href="tel:+905416401029">+90 541 640 10 29</a>
+      <a href="https://wa.me/905416401029?text=Merhaba%20BTMEDYA%2C%20bir%20proje%20i%C3%A7in%20teklif%20almak%20istiyorum." target="_blank" rel="noopener">WhatsApp</a>
+      <a href="https://www.instagram.com/btmedya10/" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube</a>
+      <span>Balıkesir · Türkiye</span>
+    </div>
   </nav>
-  <a class="quote" href="https://wa.me/905416401029?text=Merhaba%20BTMEDYA%2C%20bir%20proje%20i%C3%A7in%20teklif%20almak%20istiyorum." target="_blank" rel="noopener">TEKLİF AL ↗</a>
-</header>
 <main>
 <div class="contact-page">
   <p class="eyebrow">BTMEDYA / İLETİŞİM</p>
@@ -126,7 +134,7 @@
 <footer class="final-footer">
   <div class="footer-brand">
     <img src="/assets/btmedya-emblem-derived.png" alt="BTMEDYA">
-    <div><strong>BTMEDYA</strong><span>Dijitalde Fikir Sizden, Gerisi Bizden.</span></div>
+    <div><strong>BTMEDYA</strong><span>Hikâyeleri yaşatıyoruz.</span></div>
   </div>
   <div class="footer-contact">
     <a href="tel:+905416401029">+90 541 640 10 29</a>
@@ -144,45 +152,6 @@
   <span>WhatsApp</span><b>↗</b>
 </a>
 <script src="/script.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded',()=>{
-  const form=document.getElementById('contactForm');
-  const msg=document.getElementById('cf-msg');
-  const btn=document.getElementById('cf-submit');
-  if(!form) return;
-  form.addEventListener('submit',async(e)=>{
-    e.preventDefault();
-    btn.disabled=true;
-    btn.textContent='GÖNDERİLİYOR...';
-    msg.className='form-msg';
-    msg.textContent='';
-    const data={
-      name:form.name.value.trim(),
-      email:form.email.value.trim(),
-      phone:form.phone.value.trim(),
-      subject:form.subject.value,
-      message:form.message.value.trim(),
-      _honey:form._honey.value
-    };
-    try{
-      const r=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-      const j=await r.json();
-      if(j.ok){
-        msg.className='form-msg ok';
-        msg.textContent='Mesajınız başarıyla gönderildi. En kısa sürede dönüş yapacağız!';
-        form.reset();
-      }else{
-        msg.className='form-msg err';
-        msg.textContent=j.error||'Bir hata oluştu.';
-      }
-    }catch(err){
-      msg.className='form-msg err';
-      msg.textContent='Bağlantı hatası. Lütfen tekrar deneyin.';
-    }
-    btn.disabled=false;
-    btn.textContent='MESAJ GÖNDER';
-  });
-});
-</script>
+<script src="iletisim.js"></script>
 </body>
 </html>

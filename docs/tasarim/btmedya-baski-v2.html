@@ -1,0 +1,472 @@
+<title>BTMEDYA Baskı</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300..500;1,6..72,400&display=swap">
+<style>
+  :root{
+    --ground:#0B0B0A; --ground-2:#131310; --ground-3:#1A1916;
+    --ink:#EDEBE3; --ink-2:#8B877B; --ink-3:#605C52;
+    --rule:#26241F; --rule-2:#35322B;
+    --gold:#D6A84A; --gold-deep:#A87F24; --flag:#E2513F;
+    --f-d:'Archivo','Helvetica Neue',Arial,sans-serif;
+    --f-b:'Newsreader','Iowan Old Style',Georgia,serif;
+    --f-m:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+    --gut:clamp(18px,4vw,54px);
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --ground:#F2F1EA; --ground-2:#E9E7DD; --ground-3:#E0DDD1;
+      --ink:#15140E; --ink-2:#5C5850; --ink-3:#847F74;
+      --rule:#D4D0C2; --rule-2:#C2BDAC;
+      --gold:#8F6410; --gold-deep:#6E4C08; --flag:#A8291B;
+    }
+  }
+  :root[data-theme="light"]{
+    --ground:#F2F1EA; --ground-2:#E9E7DD; --ground-3:#E0DDD1;
+    --ink:#15140E; --ink-2:#5C5850; --ink-3:#847F74;
+    --rule:#D4D0C2; --rule-2:#C2BDAC;
+    --gold:#8F6410; --gold-deep:#6E4C08; --flag:#A8291B;
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--ground); color:var(--ink); font-family:var(--f-b); font-size:17px; line-height:1.62; -webkit-font-smoothing:antialiased}
+  a{color:inherit; text-decoration:none}
+  p{margin:0}
+  h1,h2,h3,h4{font-family:var(--f-d); margin:0; text-wrap:balance}
+  :focus-visible{outline:2px solid var(--gold); outline-offset:3px}
+  .w{max-width:1280px; margin:0 auto; padding-inline:var(--gut)}
+  .reg{border-bottom:1px solid var(--rule)}
+
+  /* tek aileyi kendine karsi geren tipografi: genislik ekseni */
+  .kond{font-family:var(--f-d); font-variation-settings:'wdth' 68,'wght' 800; letter-spacing:.01em}
+  .expd{font-family:var(--f-d); font-variation-settings:'wdth' 118,'wght' 900; letter-spacing:-.035em}
+
+  .mono{font-family:var(--f-m); font-size:11px; font-weight:500; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-2)}
+  .mono b{color:var(--gold); font-weight:600}
+
+  /* ---- RAY ---- */
+  .ray{position:sticky; top:0; z-index:40; background:color-mix(in srgb,var(--ground) 88%,transparent); backdrop-filter:blur(12px); border-bottom:1px solid var(--rule)}
+  .ray .w{display:flex; align-items:center; gap:14px 26px; padding-block:13px; flex-wrap:wrap}
+  .wm{font-family:var(--f-d); font-variation-settings:'wdth' 112,'wght' 900; font-size:19px; letter-spacing:-.03em}
+  .wm em{font-style:normal; color:var(--gold)}
+  .ray nav{display:flex; gap:4px 22px; margin-left:auto; flex-wrap:wrap}
+  .ray nav a{font-family:var(--f-m); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-2); padding-bottom:2px; border-bottom:1px solid transparent}
+  .ray nav a:hover{color:var(--ink); border-bottom-color:var(--gold)}
+  .ray .wa{font-family:var(--f-m); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ground); background:var(--gold); padding:8px 13px}
+  .ray .wa:hover{background:var(--ink)}
+
+  /* ---- HERO ---- */
+  .hero{padding-block:clamp(40px,6vw,74px) clamp(34px,5vw,58px)}
+  .hero .kicker{display:flex; flex-wrap:wrap; gap:6px 18px; margin-bottom:clamp(26px,4vw,44px)}
+  /* Olcek kontrasti: dar ve kucuk ust satir, cok genis ve buyuk ana kelime,
+     orta agirlikta kapanis. Hero ilk ekrani asmamali. */
+  .hero h1{font-size:clamp(52px,11vw,146px); line-height:.84; margin:0}
+  .hero h1 .l1{display:block; font-size:.26em; font-variation-settings:'wdth' 62,'wght' 700; letter-spacing:.14em; color:var(--ink-2); margin-bottom:.24em}
+  .hero h1 .l2{display:block; font-variation-settings:'wdth' 125,'wght' 900; letter-spacing:-.045em}
+  .hero h1 .l3{display:block; font-size:.44em; font-variation-settings:'wdth' 88,'wght' 500; letter-spacing:-.022em; font-style:normal; margin-top:.16em}
+  .hero h1 .l3 em{font-style:normal; color:var(--gold)}
+  .hero-alt{display:grid; grid-template-columns:1.15fr 1fr; gap:clamp(24px,5vw,70px); margin-top:clamp(30px,5vw,54px); align-items:end}
+  .hero-alt p.lede{font-size:clamp(18px,2vw,22px); line-height:1.55; max-width:46ch; color:var(--ink)}
+  .say{display:grid; grid-template-columns:repeat(3,1fr); gap:0; border-top:1px solid var(--rule-2)}
+  .say div{padding:16px 14px 4px 0}
+  .say b{display:block; font-family:var(--f-d); font-variation-settings:'wdth' 112,'wght' 900; font-size:clamp(28px,3.4vw,42px); letter-spacing:-.03em; line-height:1; font-variant-numeric:tabular-nums}
+  .say span{display:block; font-family:var(--f-m); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-2); margin-top:7px}
+
+  /* ---- BOLUM BASI ---- */
+  .bh{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 20px; padding-block:clamp(38px,5vw,64px) 20px}
+  .bh h2{font-size:clamp(28px,4.4vw,54px); font-variation-settings:'wdth' 108,'wght' 900; letter-spacing:-.035em; line-height:1}
+  .bh .no{margin-left:auto}
+
+  /* ---- HIZMET REGISTRESI ---- */
+  .hiz{border-top:1px solid var(--rule)}
+  .hiz-s{display:grid; grid-template-columns:56px 1fr 1.25fr; gap:clamp(14px,3vw,40px); padding-block:clamp(22px,3vw,32px); border-bottom:1px solid var(--rule); align-items:start}
+  .hiz-s:hover{background:var(--ground-2)}
+  .hiz-s .n{font-family:var(--f-m); font-size:11px; color:var(--gold); letter-spacing:.1em; padding-top:6px}
+  .hiz-s h3{font-size:clamp(21px,2.6vw,31px); font-variation-settings:'wdth' 104,'wght' 800; letter-spacing:-.028em; line-height:1.08}
+  .hiz-s p{color:var(--ink-2); font-size:16.5px; line-height:1.6; max-width:52ch}
+  .hiz-s .etk{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px}
+  .hiz-s .etk span{font-family:var(--f-m); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); border:1px solid var(--rule-2); padding:3px 7px}
+
+  /* ---- ARSIV ---- */
+  .lead-k{display:grid; grid-template-columns:1.6fr 1fr; gap:clamp(22px,4vw,56px); padding-bottom:clamp(30px,4vw,48px); border-bottom:1px solid var(--rule)}
+  .flag{display:inline-block; font-family:var(--f-m); font-size:10.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--flag); border-top:2px solid var(--flag); padding-top:7px}
+  .lead-k h3{font-size:clamp(30px,4.6vw,58px); font-variation-settings:'wdth' 106,'wght' 900; letter-spacing:-.04em; line-height:.98; margin:14px 0 0}
+  .lead-k .oz{font-size:18px; line-height:1.6; margin-top:15px; color:var(--ink); max-width:56ch}
+  .lead-k .kn{margin-top:15px}
+  .oku{display:inline-block; margin-top:20px; font-family:var(--f-m); font-size:11.5px; font-weight:600; letter-spacing:.11em; text-transform:uppercase; color:var(--gold); border-bottom:2px solid var(--gold); padding-bottom:4px}
+  .yan{padding:15px 0; border-bottom:1px solid var(--rule)}
+  .yan:first-child{padding-top:0}
+  .yan:last-child{border-bottom:0}
+  .yan h4{font-size:17.5px; font-variation-settings:'wdth' 100,'wght' 700; letter-spacing:-.018em; line-height:1.22; margin:7px 0 0}
+  .yan a:hover h4{color:var(--gold)}
+
+  .idx a{display:grid; grid-template-columns:88px 158px 1fr 20px; gap:16px; align-items:baseline; padding:12px 8px; margin-inline:-8px; border-bottom:1px solid var(--rule); transition:background .12s,color .12s}
+  .idx a:hover{background:var(--ink); color:var(--ground)}
+  .idx .d{font-family:var(--f-m); font-size:11.5px; color:var(--ink-2); font-variant-numeric:tabular-nums}
+  .idx .k{font-family:var(--f-m); font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--gold)}
+  .idx .t{font-family:var(--f-d); font-variation-settings:'wdth' 96,'wght' 700; font-size:17px; letter-spacing:-.015em; line-height:1.3}
+  .idx .o{font-family:var(--f-m); text-align:right; opacity:0; color:var(--ink-2)}
+  .idx a:hover .d,.idx a:hover .k,.idx a:hover .o{color:var(--ground); opacity:1}
+  .vid{font-family:var(--f-m); font-size:9px; font-weight:600; letter-spacing:.1em; color:var(--flag); border:1px solid var(--flag); padding:1px 5px; margin-left:8px; vertical-align:2px}
+  .idx a:hover .vid{color:var(--ground); border-color:var(--ground)}
+
+  /* ---- ILKE ---- */
+  .ilke{background:var(--ground-2); border-block:1px solid var(--rule)}
+  .ilke .w{padding-block:clamp(42px,6vw,76px)}
+  .ilke-g{display:grid; grid-template-columns:1fr 1fr; gap:clamp(24px,5vw,64px); align-items:start}
+  .ilke h2{font-size:clamp(27px,4vw,48px); font-variation-settings:'wdth' 106,'wght' 900; letter-spacing:-.035em; line-height:1.02; max-width:16ch}
+  .ilke p{color:var(--ink-2); font-size:17px; line-height:1.65; max-width:52ch}
+  .ilke p + p{margin-top:14px}
+  .ilke .yasa{margin-top:22px; border-left:2px solid var(--gold); padding:2px 0 2px 16px}
+  .ilke .yasa p{color:var(--ink); font-size:15.5px}
+  .ilke .yasa .kyn{font-family:var(--f-m); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); margin-top:9px}
+
+  /* ---- SEKTOR ---- */
+  .sek{display:grid; grid-template-columns:repeat(2,1fr); gap:0; border-top:1px solid var(--rule)}
+  .sek > div{padding:clamp(22px,3vw,34px) clamp(20px,3vw,36px) clamp(26px,3vw,38px) 0; border-right:1px solid var(--rule); border-bottom:1px solid var(--rule)}
+  .sek > div:nth-child(2n){border-right:0; padding-left:clamp(20px,3vw,36px); padding-right:0}
+  .sek h3{font-size:20px; font-variation-settings:'wdth' 102,'wght' 800; letter-spacing:-.02em; margin:9px 0 8px}
+  .sek p{color:var(--ink-2); font-size:16px; line-height:1.6; max-width:44ch}
+
+  /* ---- BRIEF ---- */
+  .brief-g{display:grid; grid-template-columns:1fr 1.15fr; gap:clamp(26px,5vw,66px); padding-bottom:clamp(36px,5vw,60px)}
+  .brief-g h2{font-size:clamp(30px,4.6vw,56px); font-variation-settings:'wdth' 108,'wght' 900; letter-spacing:-.04em; line-height:1; max-width:13ch}
+  .brief-g .alt-not{color:var(--ink-2); font-size:16.5px; line-height:1.62; margin-top:16px; max-width:42ch}
+  form{display:grid; gap:15px}
+  .cift{display:grid; grid-template-columns:1fr 1fr; gap:15px}
+  label{display:block; font-family:var(--f-m); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-2); margin-bottom:7px}
+  input,select,textarea{width:100%; background:var(--ground-2); color:var(--ink); border:1px solid var(--rule-2); border-radius:0; padding:12px 13px; font-family:var(--f-b); font-size:16px; line-height:1.4}
+  input:focus,select:focus,textarea:focus{border-color:var(--gold); outline:none}
+  textarea{min-height:104px; resize:vertical}
+  .gonder{font-family:var(--f-m); font-size:12px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; background:var(--gold); color:var(--ground); border:0; padding:15px 22px; cursor:pointer; justify-self:start}
+  .gonder:hover{background:var(--ink)}
+  .kvkk{border:1px solid var(--rule-2); padding:14px 16px}
+  .kvkk .bas{font-family:var(--f-m); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--flag); margin-bottom:8px}
+  .kvkk ul{margin:0; padding-left:17px; color:var(--ink-2); font-size:14.5px; line-height:1.55}
+
+  /* ---- KUNYE ---- */
+  .kunye{background:var(--ground-2); border-top:1px solid var(--rule)}
+  .kunye .w{display:grid; grid-template-columns:1.6fr 1fr 1fr; gap:clamp(22px,4vw,44px); padding-block:clamp(34px,4vw,52px) 22px}
+  .kunye .kb{font-family:var(--f-m); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3); margin-bottom:12px}
+  .kunye ul{margin:0; padding:0; list-style:none}
+  .kunye li{padding:6px 0; border-bottom:1px solid var(--rule); font-size:15.5px; color:var(--ink-2)}
+  .kunye li a:hover{color:var(--gold)}
+  .kolofon{border-top:1px solid var(--rule)}
+  .kolofon .w{display:flex; flex-wrap:wrap; gap:6px 22px; padding-block:14px 26px}
+  .kolofon .sag{margin-left:auto}
+  .taslak{background:var(--flag); color:#fff; font-family:var(--f-m); font-size:10.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; padding:2px 8px}
+
+  @media (max-width:940px){
+    .hero-alt,.lead-k,.ilke-g,.brief-g,.kunye .w{grid-template-columns:1fr}
+    .sek{grid-template-columns:1fr}
+    .sek > div,.sek > div:nth-child(2n){border-right:0; padding-inline:0}
+    .hiz-s{grid-template-columns:38px 1fr; }
+    .hiz-s p{grid-column:2}
+  }
+  @media (max-width:620px){
+    body{font-size:16px}
+    .ray nav{margin-left:0; gap:4px 16px; order:3; width:100%}
+    .say{grid-template-columns:1fr 1fr}
+    .cift{grid-template-columns:1fr}
+    .idx a{grid-template-columns:1fr; gap:5px; padding:13px 8px}
+    .idx .o{display:none}
+    .idx .t{font-size:17.5px; order:3}
+    .idx .d{order:1} .idx .k{order:2}
+  }
+  @media (prefers-reduced-motion:no-preference){
+    @keyframes ac{from{font-variation-settings:'wdth' 62,'wght' 900}to{font-variation-settings:'wdth' 125,'wght' 900}}
+    .hero h1 .l2{animation:ac 1.15s cubic-bezier(.16,.84,.3,1) both}
+  }
+  @media (prefers-reduced-motion:reduce){ *{transition:none!important; animation:none!important} }
+</style>
+
+<div class="ray"><div class="w">
+  <a class="wm" href="#">BT<em>MEDYA</em></a>
+  <nav>
+    <a href="#hizmet">Hizmetler</a>
+    <a href="#saha">Saha</a>
+    <a href="#ilke">Yapay zekâ</a>
+    <a href="#sektor">Sektörler</a>
+    <a href="#brief">Brief</a>
+  </nav>
+  <a class="wa" href="#brief">Brief gönder</a>
+</div></div>
+
+<section class="hero reg"><div class="w">
+  <div class="kicker">
+    <span class="mono">Balıkesir</span>
+    <span class="mono"><b>27</b> doğrulanmış saha haberi</span>
+    <span class="mono">Haber · Prodüksiyon · Yapay zekâ</span>
+  </div>
+  <h1>
+    <span class="l1">BALIKESİR'DE</span>
+    <span class="l2">SAHADA</span>
+    <span class="l3">çalışan bir <em>medya ajansı</em>.</span>
+  </h1>
+  <div class="hero-alt">
+    <p class="lede">Haberi pazarda, tezgâhta, atölyede çekiyoruz; kurgusunu, sesini ve yayınını aynı ekipte bitiriyoruz. Yapay zekâyı üretimi hızlandırmak için kullanıyoruz — haberin yerine değil.</p>
+    <div class="say">
+      <div><b>27</b><span>Yayımlanmış haber</span></div>
+      <div><b>2024</b><span>Arşiv yılı</span></div>
+      <div><b>5</b><span>Hizmet hattı</span></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="hizmet"><div class="w">
+  <div class="bh"><h2>Ne yapıyoruz</h2><span class="mono no">Bölüm 01</span></div>
+  <div class="hiz">
+    <div class="hiz-s">
+      <span class="n">01</span>
+      <h3>Haber ve saha röportajı</h3>
+      <div><p>Pazar esnafı, usta, üretici, sporcu. Her haber kaynağıyla konuşularak hazırlanır; tarihi ve yazarı kayda geçer. Doğrulanmayan iddia yayımlanmaz.</p>
+      <div class="etk"><span>Saha çekimi</span><span>Röportaj</span><span>Arşivleme</span></div></div>
+    </div>
+    <div class="hiz-s">
+      <span class="n">02</span>
+      <h3>Prodüksiyon</h3>
+      <div><p>Tanıtım filmi, etkinlik ve röportaj çekimi. Kurgu, renk ve ses dahil; kısa sosyal kesitten uzun forma kadar tek ekipte toplanır.</p>
+      <div class="etk"><span>Video</span><span>Fotoğraf</span><span>Kurgu &amp; renk</span><span>Ses</span></div></div>
+    </div>
+    <div class="hiz-s">
+      <span class="n">03</span>
+      <h3>Sosyal medya yönetimi</h3>
+      <div><p>Instagram, Facebook ve LinkedIn için içerik planı, üretim ve yayın takvimi. Ölçüm ve raporlama dahil.</p>
+      <div class="etk"><span>İçerik planı</span><span>Yayın takvimi</span><span>Raporlama</span></div></div>
+    </div>
+    <div class="hiz-s">
+      <span class="n">04</span>
+      <h3>Tasarım</h3>
+      <div><p>Logo ve kurumsal kimlik, carousel, reels kapakları, baskı ve dijital görseller.</p>
+      <div class="etk"><span>Kimlik</span><span>Carousel</span><span>Reels</span><span>Baskı</span></div></div>
+    </div>
+    <div class="hiz-s">
+      <span class="n">05</span>
+      <h3>Yapay zekâ ve otomasyon</h3>
+      <div><p>WhatsApp karşılama akışları, etiketleme ve yönlendirme; görsel ve kurgu üretiminde yapay zekâ desteği. Hassas konular otomasyondan çıkarılıp insana devredilir.</p>
+      <div class="etk"><span>WhatsApp akışı</span><span>Chatbot</span><span>AI görsel</span><span>İnsan devri</span></div></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="saha"><div class="w">
+  <div class="bh"><h2>Sahadan</h2><span class="mono no">Bölüm 02 · Arşiv</span></div>
+  <div class="lead-k">
+    <article>
+      <span class="flag">Kültür / Zanaat</span>
+      <h3>Balıkesir’in Son Kalaycısı: İlyas Baykal</h3>
+      <p class="oz">Balıkesir Bakırcılar Çarşısı’nda yarım asrı aşan süredir çalışan İlyas Baykal, kentte kalaycılığı sürdüren son ustalardan biri olarak 7 Ağustos 2024 tarihli habere konu oldu.</p>
+      <p class="mono kn">07.08.2024 &nbsp;·&nbsp; Buse Tuncay &nbsp;·&nbsp; Saha röportajı</p>
+      <a class="oku" href="https://btmedya.com.tr/haberler/balikesir-in-son-kalaycisi-ilyas-baykal">Haberi oku</a>
+    </article>
+    <div><article class="yan"><a href="https://btmedya.com.tr/haberler/kadin-firincidan-30-yillik-basari-oykusu"><p class="mono">12.07.2024 &middot; İnsan Hikâyesi</p><h4>Kadın Fırıncıdan 30 Yıllık Başarı Öyküsü</h4></a></article>
+        <article class="yan"><a href="https://btmedya.com.tr/haberler/balikesir-muay-thai-de-dunya-arenasinda"><p class="mono">16.07.2024 &middot; Spor</p><h4>Balıkesir Muay Thai&#x27;de Dünya Arenasında</h4></a></article>
+        <article class="yan"><a href="https://btmedya.com.tr/haberler/sogan-tarlada-5-pazarda-15tl"><p class="mono">28.05.2024 &middot; Tarım / Ekonomi</p><h4>Soğan Tarlada 5 Pazarda 15TL</h4></a></article></div>
+  </div>
+  <div class="bh"><h2 style="font-size:clamp(20px,2.4vw,27px)">Arşiv dizini</h2><span class="mono no">27 haber · Balıkesir · 2024</span></div>
+  <div class="idx">
+    <a href="https://btmedya.com.tr/haberler/balikesir-in-en-kalabalik-pazari"><span class="d">04.10.2024</span><span class="k">Yerel / Pazar</span><span class="t">Balıkesir&#x27;in En Kalabalık Pazarı</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-de-berber-ve-kuafor-fiyatlari-el-yakiyor"><span class="d">02.10.2024</span><span class="k">Ekonomi / Yaşam</span><span class="t">Balıkesir’de Berber ve Kuaför Fiyatları El Yakıyor!</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/okul-doneminde-ayakkabicilar-carsisi-na-yogun-ilgi"><span class="d">01.10.2024</span><span class="k">Yerel / Alışveriş</span><span class="t">Okul Döneminde Ayakkabıcılar Çarşısı&#x27;na Yoğun İlgi</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/acikogretim-lisesi-ikinci-bir-sans-mi-yeni-zorluklar-mi"><span class="d">13.09.2024</span><span class="k">Eğitim</span><span class="t">Açıköğretim Lisesi: İkinci Bir Şans mı, Yeni Zorluklar mı?</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-ali-suuri-pazari-nda-fiyatlar-ne-durumda"><span class="d">29.08.2024</span><span class="k">Yerel / Pazar</span><span class="t">Balıkesir Ali Şuuri Pazarı&#x27;nda Fiyatlar Ne Durumda?</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-in-gururu-memleketinde-sov-yapacak"><span class="d">26.08.2024</span><span class="k">Spor</span><span class="t">Balıkesir&#x27;in Gururu Memleketinde Şov Yapacak!</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/gayrimenkul-uzmani-uyardi"><span class="d">26.08.2024</span><span class="k">Ekonomi / Emlak</span><span class="t">Gayrimenkul Uzmanı Uyardı!</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/el-emegi-yorganlar-artik-isitmiyor"><span class="d">19.08.2024</span><span class="k">Kültür / Zanaat</span><span class="t">El Emeği Yorganlar Artık Isıtmıyor!</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/igneli-epilasyonun-bilinmeyen-riskleri"><span class="d">15.08.2024</span><span class="k">Sağlık / Bakım</span><span class="t">İğneli Epilasyonun Bilinmeyen Riskleri</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/mangalin-yeni-gozdesi-istiridye-mantari"><span class="d">15.08.2024</span><span class="k">Gastronomi / Sağlık</span><span class="t">Mangalın Yeni Gözdesi: İstiridye Mantarı</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-meyhaneler-bogazi-nda-pide-fiyatlari-ne-kadar"><span class="d">08.08.2024</span><span class="k">Gastronomi</span><span class="t">Balıkesir Meyhaneler Boğazı’nda Pide Fiyatları Ne Kadar?</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-de-genclik-asisi-estetik-dunyasini-buyuluyor"><span class="d">07.08.2024</span><span class="k">Sağlık / Estetik</span><span class="t">Balıkesir&#x27;de Gençlik Aşısı Estetik Dünyasını Büyülüyor</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/gunes-koruyucu-seciminde-cilt-tipine-ozel-tavsiyeler"><span class="d">07.08.2024</span><span class="k">Sağlık / Bakım</span><span class="t">Güneş Koruyucu Seçiminde Cilt Tipine Özel Tavsiyeler</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-de-dugunlerin-vazgecilmez-dans-sarkilari"><span class="d">05.08.2024</span><span class="k">Yaşam / Düğün</span><span class="t">Balıkesir&#x27;de Düğünlerin Vazgeçilmez Dans Şarkıları</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-esnafi-eleman-bulmakta-zorlaniyor"><span class="d">01.08.2024</span><span class="k">Ekonomi / Esnaf</span><span class="t">Balıkesir Esnafı Eleman Bulmakta Zorlanıyor</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-de-kira-fiyatlarinda-30-artis-bekleniyor"><span class="d">—.08.2024</span><span class="k">Ekonomi / Emlak</span><span class="t">Balıkesir&#x27;de Kira Fiyatlarında %30 Artış Bekleniyor</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-de-yaz-sicaklariyla-vantilator-satislari-patladi"><span class="d">30.07.2024</span><span class="k">Ekonomi / Yaşam</span><span class="t">Balıkesir&#x27;de Yaz Sıcaklarıyla Vantilatör Satışları Patladı</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/kiralik-evlerde-yeni-donem-basliyor"><span class="d">17.07.2024</span><span class="k">Ekonomi / Emlak</span><span class="t">Kiralık Evlerde Yeni Dönem Başlıyor</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-in-gelin-ayakkabilari-ve-kina-terlikleri-modasi"><span class="d">17.07.2024</span><span class="k">Moda / Düğün</span><span class="t">Balıkesir&#x27;in Gelin Ayakkabıları ve Kına Terlikleri Modası</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/diyetisyen-den-yaz-aylarinda-saglikli-beslenme-ve-hizli-zayiflama-sirlari"><span class="d">22.06.2024</span><span class="k">Sağlık / Beslenme</span><span class="t">Diyetisyen&#x27;den Yaz Aylarında Sağlıklı Beslenme ve Hızlı Zayıflama Sırları</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/uzmanlardan-kilo-alma-ve-verme-stratejileri"><span class="d">29.05.2024</span><span class="k">Spor / Beslenme</span><span class="t">Uzmanlardan Kilo Alma ve Verme Stratejileri</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-pazarinda-canli-helva-sovu"><span class="d">02.05.2024</span><span class="k">Gastronomi</span><span class="t">Balıkesir Pazarında Canlı Helva Şovu <span class="vid" title="Görüntülü haber">VİDEO</span></span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/beydonoglu-yaprak-satarken-festival-yonetiyor"><span class="d">02.05.2024</span><span class="k">Tarım / Etkinlik</span><span class="t">Beydonoğlu Yaprak Satarken Festival Yönetiyor <span class="vid" title="Görüntülü haber">VİDEO</span></span><span class="o" aria-hidden="true">→</span></a>
+  </div>
+</div></section>
+
+<section class="ilke" id="ilke"><div class="w"><div class="ilke-g">
+  <h2>Yapay zekâ üretimi hızlandırır, haberin yerini almaz.</h2>
+  <div>
+    <p>Görsel ve kurgu aşamasında yapay zekâ kullanıyoruz. Üretilen her kare sayfada açıkça işaretlenir; gerçek çekimle karıştırılacak biçimde sunulmaz.</p>
+    <p>Haber metninde yapay zekâ, doğrulanmış bilginin yerine geçmez. Kaynağıyla konuşulmamış hiçbir iddia haber olarak yayımlanmaz.</p>
+    <div class="yasa">
+      <p>Ticari Reklam ve Haksız Ticari Uygulamalar Yönetmeliği'nde 1 Temmuz 2026 tarihli, 33297 sayılı Resmî Gazete ile yapılan değişiklik 1 Ağustos 2026'da yürürlüğe girdi: reklamlarda yapay zekâ kullanımının açıkça belirtilmesi zorunlu tutuldu.</p>
+      <p class="kyn">Birincil kaynaktan teyit edilmeli — hukuki görüş değildir</p>
+    </div>
+  </div>
+</div></div></section>
+
+<section id="sektor"><div class="w">
+  <div class="bh"><h2>Hassas sektörlerde çalışma biçimi</h2><span class="mono no">Bölüm 03</span></div>
+  <div class="sek">
+    <div>
+      <span class="mono">Hukuk</span>
+      <h3>Otomasyon burada durur</h3>
+      <p>Dava, ceza, tazminat veya sözleşme konusu geçen her mesaj otomatik yanıttan çıkarılır ve insan temsilciye devredilir. Kişiye özel hukuki görüş üretilmez, dava sonucu veya tazminat garantisi verilmez.</p>
+    </div>
+    <div>
+      <span class="mono">Sağlık</span>
+      <h3>Tanı ve tedavi konuşulmaz</h3>
+      <p>Tanı, ilaç, tedavi veya hasta bilgisi geçen mesajlar yine insana devredilir. Otomasyon tıbbi tanı koymaz, tedavi önermez, randevu ve klinik bilgisi dışında yönlendirme yapmaz.</p>
+    </div>
+    <div>
+      <span class="mono">Veri</span>
+      <h3>Toplamadığımız bilgiler</h3>
+      <p>T.C. kimlik numarası, kimlik belgesi, sağlık raporu, tahlil, dava dosyası, banka ve ödeme bilgisi otomasyon üzerinden hiçbir koşulda istenmez. Yanlışlıkla gönderilirse akış durdurulur ve kayıt insan incelemesine alınır.</p>
+    </div>
+    <div>
+      <span class="mono">Şikâyet</span>
+      <h3>Doğrudan insana gider</h3>
+      <p>Şikâyet ve güvenlik olayı bildirimleri otomatik yanıt almaz; acil inceleme etiketiyle doğrudan yetkiliye iletilir.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="brief"><div class="w"><div class="bh"><h2>Brief gönderin</h2><span class="mono no">Bölüm 04</span></div>
+<div class="brief-g">
+  <div>
+    <h2 style="font-size:clamp(24px,3.2vw,38px)">Ne yapmak istediğinizi yazın, aynı gün dönelim.</h2>
+    <p class="alt-not">Haber bildirimi, prodüksiyon teklifi veya iş birliği. Saha haberlerinde kaynak gizliliğine uyulur.</p>
+    <div class="kvkk" style="margin-top:22px">
+      <p class="bas">Bu form üzerinden istemiyoruz</p>
+      <ul>
+        <li>T.C. kimlik numarası veya kimlik belgesi</li>
+        <li>Sağlık raporu, tahlil, tanı veya ilaç bilgisi</li>
+        <li>Dava dosyası veya gizli müşteri belgesi</li>
+        <li>Banka ve ödeme bilgileri</li>
+      </ul>
+    </div>
+  </div>
+  <form id="brief-form" novalidate>
+    <div class="cift">
+      <div><label for="bf-ad">Ad soyad</label><input id="bf-ad" name="ad" placeholder="Adınız ve soyadınız" required></div>
+      <div><label for="bf-eposta">E-posta</label><input id="bf-eposta" name="eposta" type="email" placeholder="ornek@mail.com" required></div>
+    </div>
+    <div class="cift">
+      <div><label for="bf-isletme">İşletme adı</label><input id="bf-isletme" name="isletme" placeholder="Örn. Baykal Kalaycılık" required></div>
+      <div><label for="bf-sektor">Sektör</label><input id="bf-sektor" name="sektor" placeholder="Örn. perakende, hukuk, sağlık" required></div>
+    </div>
+    <div><label for="bf-hizmet">İlgilenilen hizmet</label>
+      <select id="bf-hizmet" name="hizmet">
+        <option>Haber ve saha röportajı</option>
+        <option>Prodüksiyon</option>
+        <option>Sosyal medya yönetimi</option>
+        <option>Tasarım</option>
+        <option>Yapay zekâ ve otomasyon</option>
+      </select></div>
+    <div class="cift">
+      <div><label for="bf-platform">Aktif platformlar</label><input id="bf-platform" name="platform" placeholder="Instagram, LinkedIn…"></div>
+      <div><label for="bf-hacim">Tahmini içerik hacmi</label><input id="bf-hacim" name="hacim" placeholder="Örn. ayda 12 gönderi"></div>
+    </div>
+    <div class="cift">
+      <div><label for="bf-tarih">Başlangıç tarihi</label><input id="bf-tarih" name="tarih" type="month"></div>
+      <div><label for="bf-baglanti">Site veya sosyal bağlantı</label><input id="bf-baglanti" name="baglanti" placeholder="site.com / @hesap"></div>
+    </div>
+    <div><label for="bf-mesaj">Kısaca ne yapmak istiyorsunuz</label><textarea id="bf-mesaj" name="mesaj" placeholder="Projenizi birkaç cümleyle anlatın…"></textarea></div>
+    <button class="gonder" type="submit" id="brief-btn">Brief'i gönder</button>
+    <p id="brief-durum" hidden class="mono" aria-live="polite"></p>
+  </form>
+</div></div></section>
+
+<footer class="kunye"><div class="w">
+  <div>
+    <a class="wm" href="#" style="font-size:26px">BT<em>MEDYA</em></a>
+    <p class="alt-not" style="margin-top:12px">Balıkesir merkezli haber, prodüksiyon ve yapay zekâ medya ajansı.</p>
+  </div>
+  <div>
+    <p class="kb">Sayfalar</p>
+    <ul>
+      <li><a href="https://btmedya.com.tr/haberler/">Haber arşivi</a></li>
+      <li><a href="https://btmedya.com.tr/hakkimizda/">Hakkımızda</a></li>
+      <li><a href="https://btmedya.com.tr/iletisim/">İletişim</a></li>
+    </ul>
+  </div>
+  <div>
+    <p class="kb">Künye</p>
+    <ul>
+      <li>Buse Tuncay · muhabir, yapımcı</li>
+      <li>Balıkesir, Türkiye</li>
+      <li>btmedya.com.tr</li>
+    </ul>
+  </div>
+</div>
+<div class="kolofon"><div class="w">
+  <span class="taslak">Taslak</span>
+  <span class="mono">Yayında değil · onay bekliyor</span>
+  <span class="mono">BTMEDYA &copy; 2026</span>
+  <span class="mono sag">Baskı / v2</span>
+</div></div>
+</footer>
+
+<script>
+/* Brief formu sitenin mevcut /api/contact ucuna gider. O uç ad, e-posta ve
+   mesajı zorunlu tutuyor; brief alanları tek bir mesaj gövdesine derlenir,
+   böylece kayıt /admin/ panelinde bütün halinde görünür. */
+(function(){
+  var f = document.getElementById('brief-form');
+  if(!f) return;
+  var btn = document.getElementById('brief-btn');
+  var durum = document.getElementById('brief-durum');
+  function yaz(metin, renk){
+    durum.textContent = metin;
+    durum.style.color = renk;
+    durum.hidden = false;
+  }
+  function v(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+  f.addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var ad = v('bf-ad'), eposta = v('bf-eposta');
+    if(!ad || !eposta){ yaz('Ad soyad ve e-posta zorunlu.', 'var(--flag)'); return; }
+    /* /api/contact yalnızca sitenin kendi kökeninde var. Taslak başka bir
+       adreste açılıyorsa istek baştan yapılmaz; kırık gibi görünmesin. */
+    var h = location.hostname;
+    if(!/(^|\.)btmedya\.com\.tr$/.test(h) && !/\.workers\.dev$/.test(h)){
+      yaz('Taslak önizlemesi — gönderim yalnızca site üzerinde çalışır.', 'var(--ink-2)');
+      return;
+    }
+    var satirlar = [
+      ['İşletme', v('bf-isletme')],
+      ['Sektör', v('bf-sektor')],
+      ['İlgilenilen hizmet', v('bf-hizmet')],
+      ['Aktif platformlar', v('bf-platform')],
+      ['Tahmini hacim', v('bf-hacim')],
+      ['Başlangıç', v('bf-tarih')],
+      ['Bağlantı', v('bf-baglanti')]
+    ].filter(function(s){ return s[1]; }).map(function(s){ return s[0] + ': ' + s[1]; });
+    var aciklama = v('bf-mesaj');
+    if(aciklama){ satirlar.push(''); satirlar.push(aciklama); }
+    btn.disabled = true;
+    yaz('Gönderiliyor…', 'var(--ink-2)');
+    fetch('/api/contact', {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({
+        name: ad,
+        email: eposta,
+        subject: 'Brief — ' + (v('bf-hizmet') || 'genel'),
+        message: satirlar.join('\n') || 'Brief formu gönderildi.'
+      })
+    })
+    .then(function(r){ return r.json().catch(function(){ return {ok:false}; }); })
+    .then(function(d){
+      if(d && d.ok){
+        f.reset();
+        yaz('Brief alındı. En kısa sürede dönüş yapılacak.', 'var(--gold)');
+      } else {
+        yaz((d && d.error) ? d.error : 'Gönderilemedi. Lütfen tekrar deneyin.', 'var(--flag)');
+      }
+    })
+    .catch(function(){ yaz('Bağlantı kurulamadı. Lütfen tekrar deneyin.', 'var(--flag)'); })
+    .then(function(){ btn.disabled = false; });
+  });
+})();
+</script>
+

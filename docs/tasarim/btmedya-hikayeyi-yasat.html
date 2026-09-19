@@ -1,0 +1,628 @@
+<title>Hikâyeyi Yaşat</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600&family=Sora:wght@400;600;700;800&display=swap">
+<style>
+  /* BTMEDYA — tek dunya olarak koyu. Marka kimligi karanlik + altin uzerine
+     kurulu oldugu icin tema degistirilmiyor; her renk acikca boyaniyor,
+     hicbir yuzey host zeminini odunc almiyor. */
+  :root{
+    --void:#07080A; --void-2:#0C0E11; --void-3:#12151A;
+    --ink:#F2EFE6; --ink-2:#9C978B; --ink-3:#6A655C;
+    --gold:#D6A84A; --gold-lit:#F0D492; --gold-deep:#8A6216;
+    --line:rgba(214,168,74,.18); --line-2:rgba(242,239,230,.09);
+    --f-d:'Sora','Helvetica Neue',Arial,sans-serif;
+    --f-b:'Manrope','Helvetica Neue',Arial,sans-serif;
+    --f-m:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+    --gut:clamp(18px,4.2vw,56px);
+  }
+  *{box-sizing:border-box}
+  body{background:var(--void); color:var(--ink); font-family:var(--f-b); font-size:16.5px; line-height:1.65; -webkit-font-smoothing:antialiased}
+  a{color:inherit; text-decoration:none}
+  p{margin:0}
+  h1,h2,h3,h4{font-family:var(--f-d); margin:0; text-wrap:balance; letter-spacing:-.03em}
+  :focus-visible{outline:2px solid var(--gold); outline-offset:3px; border-radius:2px}
+  .w{max-width:1300px; margin:0 auto; padding-inline:var(--gut)}
+  .mono{font-family:var(--f-m); font-size:11px; font-weight:500; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-2)}
+  .gold{color:var(--gold)}
+
+  /* ---------- UST BAR ---------- */
+  .bar{position:sticky; top:0; z-index:50; background:rgba(7,8,10,.82); backdrop-filter:blur(14px); border-bottom:1px solid var(--line-2)}
+  .bar .w{display:flex; align-items:center; gap:12px 24px; padding-block:14px; flex-wrap:wrap}
+  .logo{display:flex; align-items:center; gap:9px; font-family:var(--f-d); font-weight:800; font-size:17px; letter-spacing:.01em}
+  .logo .bt{display:grid; place-items:center; width:28px; height:28px; background:linear-gradient(150deg,var(--gold-lit),var(--gold-deep)); color:#0A0A06; font-size:12px; font-weight:800; letter-spacing:-.02em; border-radius:6px}
+  .logo em{font-style:normal; color:var(--gold)}
+  .bar nav{display:flex; gap:4px 20px; margin-left:auto; flex-wrap:wrap}
+  .bar nav a{font-family:var(--f-m); font-size:11.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-2); padding-bottom:2px; border-bottom:1px solid transparent}
+  .bar nav a:hover{color:var(--gold); border-bottom-color:var(--gold)}
+  .cta-s{font-family:var(--f-m); font-size:11.5px; letter-spacing:.09em; text-transform:uppercase; color:#0A0A06; background:var(--gold); padding:9px 14px; border-radius:3px; font-weight:600}
+  .cta-s:hover{background:var(--gold-lit)}
+
+  /* ---------- HERO / EVREN ---------- */
+  .hero{position:relative; overflow:hidden; border-bottom:1px solid var(--line-2)}
+  #yildiz{position:absolute; inset:0; width:100%; height:100%; display:block}
+  .hero .w{position:relative; z-index:2; display:grid; grid-template-columns:1.08fr .92fr; gap:clamp(24px,4vw,56px); align-items:center; padding-block:clamp(44px,7vw,96px)}
+  .hero .kick{display:flex; flex-wrap:wrap; gap:4px 14px; color:var(--gold); font-family:var(--f-m); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase}
+  .hero h1{font-size:clamp(44px,8.4vw,112px); line-height:.92; font-weight:800; margin:clamp(18px,3vw,30px) 0 0}
+  .hero h1 span{display:block}
+  .hero h1 .b{color:var(--gold)}
+  .hero .alt{font-size:clamp(16px,1.5vw,18.5px); color:var(--ink-2); max-width:44ch; margin-top:clamp(16px,2.4vw,26px); line-height:1.7}
+  .hero .dugme{display:flex; flex-wrap:wrap; gap:11px; margin-top:clamp(22px,3vw,34px)}
+  .b-dolu,.b-cizgi{font-family:var(--f-m); font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; padding:14px 20px; border-radius:3px}
+  .b-dolu{background:var(--gold); color:#0A0A06}
+  .b-dolu:hover{background:var(--gold-lit)}
+  .b-cizgi{border:1px solid var(--line); color:var(--ink)}
+  .b-cizgi:hover{border-color:var(--gold); color:var(--gold)}
+
+  /* kure: saf CSS, deterministik, harici varlik yok */
+  .kure-alan{position:relative; width:100%; aspect-ratio:1; max-width:min(100%,520px); margin-inline:auto; display:grid; place-items:center}
+  .kure{position:relative; width:74%; aspect-ratio:1; border-radius:50%;
+    background:radial-gradient(circle at 34% 30%, var(--gold-lit) 0%, var(--gold) 26%, #9A6E1E 58%, #2A1D06 84%, #0B0A07 100%);
+    box-shadow:0 0 90px 10px rgba(214,168,74,.16), inset -18px -22px 60px rgba(0,0,0,.6)}
+  .kure::after{content:""; position:absolute; left:17%; top:14%; width:19%; aspect-ratio:1; border-radius:50%;
+    background:radial-gradient(circle at 40% 38%, #FFF7E2, #F0D492 62%, rgba(240,212,146,0) 100%)}
+  .yorunge{position:absolute; inset:0; border-radius:50%; border:1px solid transparent; pointer-events:none}
+  .y1{border-top-color:rgba(214,168,74,.42); border-right-color:rgba(214,168,74,.14); transform:rotate(-18deg)}
+  .y2{inset:7%; border-bottom-color:rgba(214,168,74,.34); border-left-color:rgba(214,168,74,.1); transform:rotate(24deg)}
+  .y3{inset:-6%; border-left-color:rgba(214,168,74,.22); transform:rotate(62deg)}
+  @media (prefers-reduced-motion:no-preference){
+    @keyframes don{to{transform:rotate(342deg)}}
+    @keyframes don2{to{transform:rotate(384deg)}}
+    .y1{animation:don 58s linear infinite}
+    .y3{animation:don2 86s linear infinite reverse}
+  }
+
+  /* ---------- BOLUM ORTAK ---------- */
+  section{border-bottom:1px solid var(--line-2)}
+  .bh{padding-block:clamp(46px,6vw,82px) clamp(20px,2.6vw,30px)}
+  .bh .et{color:var(--gold)}
+  .bh h2{font-size:clamp(30px,4.6vw,58px); line-height:1.02; font-weight:800; margin-top:14px; max-width:17ch}
+  .bh .ac{color:var(--ink-2); max-width:52ch; margin-top:15px; font-size:16.5px}
+
+  /* ---------- HIZMETLER ---------- */
+  .hiz{display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--line-2); margin-bottom:clamp(40px,5vw,70px)}
+  .hiz a{padding:clamp(20px,2.4vw,30px) clamp(16px,1.8vw,24px) clamp(26px,3vw,36px); border-right:1px solid var(--line-2); border-bottom:1px solid var(--line-2); display:flex; flex-direction:column; gap:11px; transition:background .16s}
+  .hiz a:nth-child(4n){border-right:0}
+  .hiz a:hover{background:var(--void-2)}
+  .hiz .n{font-family:var(--f-m); font-size:11px; letter-spacing:.14em; color:var(--gold)}
+  .hiz h3{font-size:19px; font-weight:700; line-height:1.2}
+  .hiz p{font-size:14.5px; color:var(--ink-2); line-height:1.55}
+  .hiz .ok{margin-top:auto; padding-top:12px; color:var(--ink-3); font-family:var(--f-m); font-size:13px}
+  .hiz a:hover .ok{color:var(--gold)}
+
+  /* ---------- EKOSISTEM ---------- */
+  .eko{display:grid; gap:0; margin-bottom:clamp(40px,5vw,70px); border-top:1px solid var(--line-2)}
+  .eko article{display:grid; grid-template-columns:.9fr 1.1fr; gap:clamp(20px,4vw,54px); padding-block:clamp(28px,3.4vw,44px); border-bottom:1px solid var(--line-2)}
+  .eko h3{font-size:clamp(24px,3.2vw,38px); font-weight:800; line-height:1.05; max-width:15ch}
+  .eko p{color:var(--ink-2); max-width:50ch}
+  .eko ul{list-style:none; margin:18px 0 0; padding:0}
+  .eko li{padding:9px 0; border-top:1px solid var(--line-2); font-size:15px; color:var(--ink); display:flex; gap:11px}
+  .eko li::before{content:"—"; color:var(--gold)}
+
+  /* ---------- PORTFOY ---------- */
+  .port{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line-2); margin-bottom:clamp(40px,5vw,70px); border-block:1px solid var(--line-2)}
+  .port div{background:var(--void); padding:clamp(20px,2.4vw,30px) clamp(16px,1.8vw,22px) clamp(28px,3vw,40px)}
+  .port .k{color:var(--gold); font-family:var(--f-m); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase}
+  .port h3{font-size:18px; font-weight:700; margin-top:10px; line-height:1.25}
+
+  /* ---------- AI LAB ---------- */
+  .lab{background:var(--void-2)}
+  .lab-g{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line-2); border-block:1px solid var(--line-2); margin-bottom:clamp(28px,3.4vw,44px)}
+  .lab-g div{background:var(--void-2); padding:clamp(20px,2.4vw,28px) clamp(15px,1.8vw,22px) clamp(26px,3vw,34px)}
+  .lab-g .n{font-family:var(--f-m); font-size:11px; letter-spacing:.14em; color:var(--gold)}
+  .lab-g h3{font-size:17.5px; font-weight:700; margin:9px 0 8px}
+  .lab-g p{font-size:14.5px; color:var(--ink-2); line-height:1.55}
+  .etiket-not{border-left:2px solid var(--gold); padding:4px 0 4px 16px; max-width:60ch; margin-bottom:clamp(44px,5vw,72px)}
+  .etiket-not p{font-size:15.5px; color:var(--ink)}
+  .etiket-not .kyn{margin-top:9px}
+
+  /* ---------- ARSIV ---------- */
+  .idx{margin-bottom:clamp(44px,5vw,72px); border-top:1px solid var(--line-2)}
+  .idx a{display:grid; grid-template-columns:92px 168px 1fr 22px; gap:16px; align-items:baseline; padding:13px 10px; margin-inline:-10px; border-bottom:1px solid var(--line-2); transition:background .14s,color .14s}
+  .idx a:hover{background:var(--gold); color:#0A0A06}
+  .idx .d{font-family:var(--f-m); font-size:11.5px; color:var(--ink-2); font-variant-numeric:tabular-nums}
+  .idx .k{font-family:var(--f-m); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold)}
+  .idx .t{font-family:var(--f-d); font-weight:600; font-size:16.5px; line-height:1.32}
+  .idx .o{font-family:var(--f-m); text-align:right; opacity:0; color:var(--ink-2)}
+  .idx a:hover .d,.idx a:hover .k,.idx a:hover .o{color:#0A0A06; opacity:1}
+  .vid{font-family:var(--f-m); font-size:9px; font-weight:600; letter-spacing:.1em; color:var(--gold); border:1px solid var(--gold); padding:1px 5px; margin-left:8px; vertical-align:2px}
+  .idx a:hover .vid{color:#0A0A06; border-color:#0A0A06}
+
+  /* ---------- PAKETLER ---------- */
+  .pak{background:var(--void-2)}
+  .pak-g{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:clamp(22px,2.6vw,30px)}
+  .pak-k{display:flex; gap:13px; align-items:flex-start; text-align:left; width:100%; background:var(--void); border:1px solid var(--line-2); border-radius:4px; padding:17px 18px; cursor:pointer; color:inherit; font:inherit; transition:border-color .14s, background .14s}
+  .pak-k:hover{border-color:var(--line)}
+  .pak-k[aria-pressed="true"]{border-color:var(--gold); background:var(--void-3)}
+  .pak-k .kutu{flex:0 0 auto; width:19px; height:19px; margin-top:3px; border:1px solid var(--line); border-radius:3px; display:grid; place-items:center; color:transparent; font-size:12px; font-weight:700}
+  .pak-k[aria-pressed="true"] .kutu{background:var(--gold); border-color:var(--gold); color:#0A0A06}
+  .pak-k .kutu{margin-right:0}
+  .pak-k b{display:block; font-family:var(--f-d); font-size:16.5px; font-weight:700; letter-spacing:-.01em}
+  .pak-k span{display:block; font-size:14px; color:var(--ink-2); margin-top:4px; line-height:1.5}
+  .sepet{display:flex; flex-wrap:wrap; align-items:center; gap:14px 20px; border:1px solid var(--line); border-radius:4px; padding:18px 20px; margin-bottom:clamp(44px,5vw,72px); background:var(--void)}
+  .sepet .say{font-family:var(--f-d); font-size:34px; font-weight:800; color:var(--gold); line-height:1; font-variant-numeric:tabular-nums}
+  .sepet .ozet{font-size:15px; color:var(--ink-2); flex:1 1 240px}
+  .sepet a{margin-left:auto}
+
+  /* ---------- SEKTOR ---------- */
+  .sek{display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--line-2); border-block:1px solid var(--line-2); margin-bottom:clamp(44px,5vw,72px)}
+  .sek div{background:var(--void); padding:clamp(20px,2.4vw,30px) clamp(18px,2vw,26px) clamp(26px,3vw,34px)}
+  .sek h3{font-size:18px; font-weight:700; margin:10px 0 9px}
+  .sek p{font-size:15px; color:var(--ink-2); max-width:44ch}
+
+  /* ---------- SAYILAR ---------- */
+  .say-g{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line-2); border-block:1px solid var(--line-2); margin-bottom:clamp(44px,5vw,72px)}
+  .say-g div{background:var(--void); padding:clamp(20px,2.4vw,28px) 18px clamp(22px,2.6vw,30px)}
+  .say-g b{display:block; font-family:var(--f-d); font-size:clamp(30px,3.6vw,46px); font-weight:800; color:var(--gold); line-height:1; font-variant-numeric:tabular-nums}
+  .say-g span{display:block; font-size:14.5px; color:var(--ink-2); margin-top:10px; line-height:1.5}
+
+  /* ---------- BRIEF ---------- */
+  .brief-g{display:grid; grid-template-columns:1fr 1.1fr; gap:clamp(26px,4.5vw,64px); margin-bottom:clamp(44px,5vw,72px)}
+  form{display:grid; gap:15px}
+  .cift{display:grid; grid-template-columns:1fr 1fr; gap:15px}
+  label{display:block; font-family:var(--f-m); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-2); margin-bottom:7px}
+  input,select,textarea{width:100%; background:var(--void-2); color:var(--ink); border:1px solid var(--line-2); border-radius:3px; padding:12px 13px; font-family:var(--f-b); font-size:16px}
+  input:focus,select:focus,textarea:focus{border-color:var(--gold); outline:none}
+  textarea{min-height:102px; resize:vertical}
+  .gonder{font-family:var(--f-m); font-size:12px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; background:var(--gold); color:#0A0A06; border:0; border-radius:3px; padding:15px 22px; cursor:pointer; justify-self:start}
+  .gonder:hover{background:var(--gold-lit)}
+  .gonder:disabled{opacity:.55; cursor:default}
+  .kvkk{border:1px solid var(--line-2); border-radius:4px; padding:15px 17px; margin-top:22px}
+  .kvkk ul{margin:0; padding-left:17px; color:var(--ink-2); font-size:14.5px; line-height:1.6}
+
+  /* ---------- ALT ---------- */
+  footer{background:var(--void-2)}
+  footer .w{display:grid; grid-template-columns:1.7fr 1fr 1fr 1fr; gap:clamp(20px,3vw,40px); padding-block:clamp(38px,4.4vw,58px) 24px}
+  footer .kb{margin-bottom:13px}
+  footer ul{list-style:none; margin:0; padding:0}
+  footer li{padding:6px 0; font-size:15px; color:var(--ink-2)}
+  footer li a:hover{color:var(--gold)}
+  .kolofon{border-top:1px solid var(--line-2)}
+  .kolofon .w{display:flex; flex-wrap:wrap; gap:8px 20px; padding-block:15px 28px; grid-template-columns:none}
+  .rozet{background:var(--gold); color:#0A0A06; font-family:var(--f-m); font-size:10.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; padding:2px 9px; border-radius:2px}
+
+  @media (max-width:1000px){
+    .hiz,.port,.lab-g,.say-g{grid-template-columns:repeat(2,1fr)}
+    .hiz a:nth-child(4n){border-right:1px solid var(--line-2)}
+    .hiz a:nth-child(2n){border-right:0}
+    .pak-g{grid-template-columns:repeat(2,1fr)}
+    footer .w{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:860px){
+    .hero .w{grid-template-columns:1fr; padding-block:clamp(34px,6vw,56px)}
+    .kure-alan{max-width:340px; order:-1}
+    .eko article,.brief-g{grid-template-columns:1fr; gap:18px}
+    .sek{grid-template-columns:1fr}
+  }
+  @media (max-width:620px){
+    body{font-size:16px}
+    .bar nav{margin-left:0; order:3; width:100%; gap:4px 15px}
+    .hiz,.port,.lab-g,.say-g,.pak-g,.cift{grid-template-columns:1fr}
+    .hiz a{border-right:0 !important}
+    .idx a{grid-template-columns:1fr; gap:5px; padding:14px 10px}
+    .idx .o{display:none}
+    .idx .t{order:3; font-size:17.5px} .idx .d{order:1} .idx .k{order:2}
+    .sepet a{margin-left:0}
+    footer .w{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){ *{animation:none !important; transition:none !important} }
+</style>
+
+<div class="bar"><div class="w">
+  <a class="logo" href="#"><span class="bt">BT</span>BT<em>MEDYA</em></a>
+  <nav>
+    <a href="#hizmetler">Hizmetler</a>
+    <a href="#ekosistem">Ekosistem</a>
+    <a href="#portfoy">Portföy</a>
+    <a href="#ailab">AI LAB</a>
+    <a href="#arsiv">Arşiv</a>
+    <a href="#paketler">Paketler</a>
+    <a href="#hakkimizda">Hakkımızda</a>
+  </nav>
+  <a class="cta-s" href="#brief">Projeni anlat</a>
+</div></div>
+
+<section class="hero">
+  <canvas id="yildiz" aria-hidden="true"></canvas>
+  <div class="w">
+    <div>
+      <p class="kick"><span>Creative media</span><span>/</span><span>AI</span><span>/</span><span>3D</span><span>/</span><span>Motion</span></p>
+      <h1><span>HİKÂYEYİ</span><span class="b">YAŞAT.</span></h1>
+      <p class="alt">Dijitalde fikir sizden, gerisi bizden. Haberi, prodüksiyonu ve yapay zekâyı tek yaratıcı akışta birleştiren bir ajans — saha çekiminden AI destekli görsel üretime kadar.</p>
+      <div class="dugme">
+        <a class="b-dolu" href="#brief">Projeni anlat →</a>
+        <a class="b-cizgi" href="#ekosistem">Ekosistemi gör</a>
+      </div>
+    </div>
+    <div class="kure-alan">
+      <span class="yorunge y3"></span>
+      <span class="yorunge y1"></span>
+      <span class="yorunge y2"></span>
+      <div class="kure"></div>
+    </div>
+  </div>
+</section>
+
+<section id="hizmetler"><div class="w">
+  <div class="bh">
+    <p class="mono et">Hizmetler</p>
+    <h2>Markanızı güçlendiren sekiz yaratıcı çözüm.</h2>
+    <p class="ac">Her hizmet bağımsız çalışır; birlikte kurgulandığında uçtan uca bir medya operasyonuna dönüşür.</p>
+  </div>
+</div>
+<div class="w"><div class="hiz">
+  <a href="#brief"><span class="n">01</span><h3>Sosyal Medya</h3><p>İçerik üretimi, hesap yönetimi ve kreatif kampanya kurgusu.</p><span class="ok">↗</span></a>
+  <a href="#brief"><span class="n">02</span><h3>Tanıtım Filmi</h3><p>Reklam filmi, marka filmi ve sinematik prodüksiyon.</p><span class="ok">↗</span></a>
+  <a href="#ailab"><span class="n">03</span><h3>Yapay Zekâ</h3><p>İşletmelere özel AI görsel/video üretimi ve otomasyon.</p><span class="ok">↗</span></a>
+  <a href="#brief"><span class="n">04</span><h3>Web Sitesi</h3><p>Modern, hızlı ve dönüşüm odaklı dijital deneyimler.</p><span class="ok">↗</span></a>
+  <a href="#arsiv"><span class="n">05</span><h3>Haber &amp; Röportaj</h3><p>Yerel ve ulusal yayın, saha röportajı, doğrulanmış haber.</p><span class="ok">↗</span></a>
+  <a href="#portfoy"><span class="n">06</span><h3>Özel Gün</h3><p>Düğün, açılış, etkinlik ve anı filmi prodüksiyonu.</p><span class="ok">↗</span></a>
+  <a href="#brief"><span class="n">07</span><h3>Kurumsal Kimlik</h3><p>Logo, renk sistemi ve sosyal medya görsel dili.</p><span class="ok">↗</span></a>
+  <a href="#brief"><span class="n">08</span><h3>Klip</h3><p>Müzik klibi ve sosyal video formatlı içerikler.</p><span class="ok">↗</span></a>
+</div></div></section>
+
+<section id="ekosistem"><div class="w">
+  <div class="bh">
+    <p class="mono et">Ekosistem</p>
+    <h2>Üç ana kategori, tek üretim hattı.</h2>
+  </div>
+  <div class="eko">
+    <article>
+      <div>
+        <p class="mono">Kategori 01 — Haber</p>
+        <h3>Balıkesir'in ve çevresinin sahadan doğrulanmış sesi.</h3>
+      </div>
+      <div>
+        <p>Gündemi takip etmekle kalmıyor, sahaya inip doğruluyoruz. Kaynak güvenilirliği ve bağlam, her haberin omurgası.</p>
+        <ul><li>Saha haberi ve canlı bildirim</li><li>Röportaj ve sokak anketi</li><li>Doğrulama ve kaynak kontrolü</li></ul>
+      </div>
+    </article>
+    <article>
+      <div>
+        <p class="mono">Kategori 02 — Medya</p>
+        <h3>Etkiyi büyüten sosyal içerik ve marka dili.</h3>
+      </div>
+      <div>
+        <p>Platforma özel format, tutarlı görsel dil ve düzenli yayın takvimiyle markanızın dijital sesini inşa ediyoruz.</p>
+        <ul><li>İçerik takvimi ve hesap yönetimi</li><li>Kurumsal kimlik ve görsel sistem</li><li>Kampanya kreatifi</li></ul>
+      </div>
+    </article>
+    <article>
+      <div>
+        <p class="mono">Kategori 03 — Prodüksiyon</p>
+        <h3>Kamera, kurgu, renk — final master'a kadar.</h3>
+      </div>
+      <div>
+        <p>Reklam filminden düğün prodüksiyonuna, her proje aynı sinematik disiplinle çekilir, kurgulanır ve renklendirilir.</p>
+        <ul><li>Senaryo ve çekim planı</li><li>Çoklu kamera prodüksiyon</li><li>Kurgu, renk ve ses master</li></ul>
+      </div>
+    </article>
+  </div>
+</div></section>
+
+<section id="portfoy"><div class="w">
+  <div class="bh">
+    <p class="mono et">Portföy</p>
+    <h2>Fikirden görüntüye — gerçek üretim.</h2>
+    <p class="ac">Düğün, kurumsal tanıtım, sokak röportajı ve podcast prodüksiyonlarından seçili kareler.</p>
+  </div>
+  <div class="port">
+    <div><p class="k">Özel gün</p><h3>Düğün &amp; anı filmi</h3></div>
+    <div><p class="k">Halk röportajı</p><h3>Sokak röportajları</h3></div>
+    <div><p class="k">Kurumsal</p><h3>Firma tanıtım filmi</h3></div>
+    <div><p class="k">Podcast</p><h3>Siyah Oda</h3></div>
+  </div>
+</div></section>
+
+<section class="lab" id="ailab"><div class="w">
+  <div class="bh">
+    <p class="mono et">AI LAB / Showreel</p>
+    <h2>Yapay zekâyı üretim hattına bağlıyoruz.</h2>
+    <p class="ac">Konsept, prompt mühendisliği ve prodüksiyon disipliniyle üretilen AI görsel ve video içerikleri.</p>
+  </div>
+  <div class="lab-g">
+    <div><span class="n">01</span><h3>AI Video</h3><p>Konsept → sahne → kısa video üretimi.</p></div>
+    <div><span class="n">02</span><h3>AI Visual</h3><p>Marka görseli ve kampanya varyasyonları.</p></div>
+    <div><span class="n">03</span><h3>AI Automation</h3><p>İçerik ve teklif akışlarını hızlandırma.</p></div>
+    <div><span class="n">04</span><h3>AI Web</h3><p>Akıllı, dönüşüm odaklı dijital deneyimler.</p></div>
+  </div>
+  <div class="etiket-not">
+    <p>Gerçek çekim ile AI üretimi her zaman ayrı etiketlenir. Reklam işlerinde yapay zekâ kullanımının açıkça belirtilmesi ayrıca mevzuat gereğidir: Ticari Reklam ve Haksız Ticari Uygulamalar Yönetmeliği'nde 1 Temmuz 2026 tarihli 33297 sayılı Resmî Gazete ile yapılan değişiklik 1 Ağustos 2026'da yürürlüğe girdi.</p>
+    <p class="mono kyn">Birincil kaynaktan teyit edilmeli — hukuki görüş değildir</p>
+  </div>
+</div></section>
+
+<section id="arsiv"><div class="w">
+  <div class="bh">
+    <p class="mono et">Saha arşivi</p>
+    <h2>27 doğrulanmış haber.</h2>
+    <p class="ac">Balıkesir ve çevresinden, kaynağıyla konuşularak hazırlanmış ve tarihi kayda geçmiş saha haberleri. Tamamı Buse Tuncay imzalı.</p>
+  </div>
+  <div class="idx">
+    <a href="https://btmedya.com.tr/haberler/balikesir-in-en-kalabalik-pazari"><span class="d">04.10.2024</span><span class="k">Yerel / Pazar</span><span class="t">Balıkesir&#x27;in En Kalabalık Pazarı</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-de-berber-ve-kuafor-fiyatlari-el-yakiyor"><span class="d">02.10.2024</span><span class="k">Ekonomi / Yaşam</span><span class="t">Balıkesir’de Berber ve Kuaför Fiyatları El Yakıyor!</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/okul-doneminde-ayakkabicilar-carsisi-na-yogun-ilgi"><span class="d">01.10.2024</span><span class="k">Yerel / Alışveriş</span><span class="t">Okul Döneminde Ayakkabıcılar Çarşısı&#x27;na Yoğun İlgi</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/acikogretim-lisesi-ikinci-bir-sans-mi-yeni-zorluklar-mi"><span class="d">13.09.2024</span><span class="k">Eğitim</span><span class="t">Açıköğretim Lisesi: İkinci Bir Şans mı, Yeni Zorluklar mı?</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-ali-suuri-pazari-nda-fiyatlar-ne-durumda"><span class="d">29.08.2024</span><span class="k">Yerel / Pazar</span><span class="t">Balıkesir Ali Şuuri Pazarı&#x27;nda Fiyatlar Ne Durumda?</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-in-gururu-memleketinde-sov-yapacak"><span class="d">26.08.2024</span><span class="k">Spor</span><span class="t">Balıkesir&#x27;in Gururu Memleketinde Şov Yapacak!</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/gayrimenkul-uzmani-uyardi"><span class="d">26.08.2024</span><span class="k">Ekonomi / Emlak</span><span class="t">Gayrimenkul Uzmanı Uyardı!</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/el-emegi-yorganlar-artik-isitmiyor"><span class="d">19.08.2024</span><span class="k">Kültür / Zanaat</span><span class="t">El Emeği Yorganlar Artık Isıtmıyor!</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/igneli-epilasyonun-bilinmeyen-riskleri"><span class="d">15.08.2024</span><span class="k">Sağlık / Bakım</span><span class="t">İğneli Epilasyonun Bilinmeyen Riskleri</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/mangalin-yeni-gozdesi-istiridye-mantari"><span class="d">15.08.2024</span><span class="k">Gastronomi / Sağlık</span><span class="t">Mangalın Yeni Gözdesi: İstiridye Mantarı</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-meyhaneler-bogazi-nda-pide-fiyatlari-ne-kadar"><span class="d">08.08.2024</span><span class="k">Gastronomi</span><span class="t">Balıkesir Meyhaneler Boğazı’nda Pide Fiyatları Ne Kadar?</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-in-son-kalaycisi-ilyas-baykal"><span class="d">07.08.2024</span><span class="k">Kültür / Zanaat</span><span class="t">Balıkesir’in Son Kalaycısı: İlyas Baykal</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-de-genclik-asisi-estetik-dunyasini-buyuluyor"><span class="d">07.08.2024</span><span class="k">Sağlık / Estetik</span><span class="t">Balıkesir&#x27;de Gençlik Aşısı Estetik Dünyasını Büyülüyor</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/gunes-koruyucu-seciminde-cilt-tipine-ozel-tavsiyeler"><span class="d">07.08.2024</span><span class="k">Sağlık / Bakım</span><span class="t">Güneş Koruyucu Seçiminde Cilt Tipine Özel Tavsiyeler</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-de-dugunlerin-vazgecilmez-dans-sarkilari"><span class="d">05.08.2024</span><span class="k">Yaşam / Düğün</span><span class="t">Balıkesir&#x27;de Düğünlerin Vazgeçilmez Dans Şarkıları</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-esnafi-eleman-bulmakta-zorlaniyor"><span class="d">01.08.2024</span><span class="k">Ekonomi / Esnaf</span><span class="t">Balıkesir Esnafı Eleman Bulmakta Zorlanıyor</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-de-kira-fiyatlarinda-30-artis-bekleniyor"><span class="d">—.08.2024</span><span class="k">Ekonomi / Emlak</span><span class="t">Balıkesir&#x27;de Kira Fiyatlarında %30 Artış Bekleniyor</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-de-yaz-sicaklariyla-vantilator-satislari-patladi"><span class="d">30.07.2024</span><span class="k">Ekonomi / Yaşam</span><span class="t">Balıkesir&#x27;de Yaz Sıcaklarıyla Vantilatör Satışları Patladı</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/kiralik-evlerde-yeni-donem-basliyor"><span class="d">17.07.2024</span><span class="k">Ekonomi / Emlak</span><span class="t">Kiralık Evlerde Yeni Dönem Başlıyor</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-in-gelin-ayakkabilari-ve-kina-terlikleri-modasi"><span class="d">17.07.2024</span><span class="k">Moda / Düğün</span><span class="t">Balıkesir&#x27;in Gelin Ayakkabıları ve Kına Terlikleri Modası</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-muay-thai-de-dunya-arenasinda"><span class="d">16.07.2024</span><span class="k">Spor</span><span class="t">Balıkesir Muay Thai&#x27;de Dünya Arenasında</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/kadin-firincidan-30-yillik-basari-oykusu"><span class="d">12.07.2024</span><span class="k">İnsan Hikâyesi</span><span class="t">Kadın Fırıncıdan 30 Yıllık Başarı Öyküsü</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/diyetisyen-den-yaz-aylarinda-saglikli-beslenme-ve-hizli-zayiflama-sirlari"><span class="d">22.06.2024</span><span class="k">Sağlık / Beslenme</span><span class="t">Diyetisyen&#x27;den Yaz Aylarında Sağlıklı Beslenme ve Hızlı Zayıflama Sırları</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/uzmanlardan-kilo-alma-ve-verme-stratejileri"><span class="d">29.05.2024</span><span class="k">Spor / Beslenme</span><span class="t">Uzmanlardan Kilo Alma ve Verme Stratejileri</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/sogan-tarlada-5-pazarda-15tl"><span class="d">28.05.2024</span><span class="k">Tarım / Ekonomi</span><span class="t">Soğan Tarlada 5 Pazarda 15TL</span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/balikesir-pazarinda-canli-helva-sovu"><span class="d">02.05.2024</span><span class="k">Gastronomi</span><span class="t">Balıkesir Pazarında Canlı Helva Şovu <span class="vid" title="Görüntülü haber">VİDEO</span></span><span class="o" aria-hidden="true">→</span></a>
+      <a href="https://btmedya.com.tr/haberler/beydonoglu-yaprak-satarken-festival-yonetiyor"><span class="d">02.05.2024</span><span class="k">Tarım / Etkinlik</span><span class="t">Beydonoğlu Yaprak Satarken Festival Yönetiyor <span class="vid" title="Görüntülü haber">VİDEO</span></span><span class="o" aria-hidden="true">→</span></a>
+  </div>
+</div></section>
+
+<section class="pak" id="paketler"><div class="w">
+  <div class="bh">
+    <p class="mono et">Teklif mimarisi</p>
+    <h2>Kendi paketini oluştur.</h2>
+    <p class="ac">İhtiyacını seç, kapsamı gör, WhatsApp üzerinden bağlamlı bir teklif konuşması başlat.</p>
+  </div>
+  <div class="pak-g" id="pak-g">
+    <button class="pak-k" type="button" aria-pressed="false" data-ad="Kreatif Yön"><span class="kutu" aria-hidden="true">✓</span><span><b>Kreatif Yön</b><span>Marka dili, konsept ve sanat yönetimi</span></span></button>
+    <button class="pak-k" type="button" aria-pressed="false" data-ad="Sosyal Akış"><span class="kutu" aria-hidden="true">✓</span><span><b>Sosyal Akış</b><span>Aylık içerik üretimi ve yayın takvimi</span></span></button>
+    <button class="pak-k" type="button" aria-pressed="false" data-ad="Prodüksiyon"><span class="kutu" aria-hidden="true">✓</span><span><b>Prodüksiyon</b><span>Çekim, kurgu, renk ve ses master</span></span></button>
+    <button class="pak-k" type="button" aria-pressed="false" data-ad="AI Sprinti"><span class="kutu" aria-hidden="true">✓</span><span><b>AI Sprinti</b><span>Konseptten kısa video / görsel üretimi</span></span></button>
+    <button class="pak-k" type="button" aria-pressed="false" data-ad="Web Deneyimi"><span class="kutu" aria-hidden="true">✓</span><span><b>Web Deneyimi</b><span>Kurumsal / dönüşüm odaklı web sitesi</span></span></button>
+    <button class="pak-k" type="button" aria-pressed="false" data-ad="Reklam Lansmanı"><span class="kutu" aria-hidden="true">✓</span><span><b>Reklam Lansmanı</b><span>Kampanya kurgusu ve mecra planlama</span></span></button>
+  </div>
+  <div class="sepet">
+    <span class="say" id="pak-say">0</span>
+    <p class="ozet" id="pak-ozet">Henüz seçim yapılmadı.</p>
+    <a class="b-dolu" id="pak-wa" href="https://wa.me/905416401029">WhatsApp'ta teklifi başlat ↗</a>
+  </div>
+</div></section>
+
+<section id="calisma"><div class="w">
+  <div class="bh">
+    <p class="mono et">Çalışma biçimi</p>
+    <h2>Hassas sektörlerde otomasyon durur, insan devralır.</h2>
+    <p class="ac">Hukuk ve sağlık iletişiminde WhatsApp akışlarımız belirli konularda kendini kapatır ve konuşmayı yetkiliye devreder.</p>
+  </div>
+  <div class="sek">
+    <div><p class="mono gold">Hukuk</p><h3>Kişiye özel görüş verilmez</h3><p>Dava, ceza, tazminat veya sözleşme konusu geçen her mesaj otomatik yanıttan çıkarılır. Dava sonucu veya tazminat garantisi verilmez.</p></div>
+    <div><p class="mono gold">Sağlık</p><h3>Tanı ve tedavi konuşulmaz</h3><p>Tanı, ilaç, tedavi veya hasta bilgisi geçen mesajlar insana devredilir. Otomasyon tıbbi tanı koymaz, tedavi önermez.</p></div>
+    <div><p class="mono gold">Veri</p><h3>Toplamadığımız bilgiler</h3><p>T.C. kimlik numarası, kimlik belgesi, sağlık raporu, tahlil, dava dosyası, banka ve ödeme bilgisi otomasyon üzerinden hiçbir koşulda istenmez.</p></div>
+    <div><p class="mono gold">Şikâyet</p><h3>Doğrudan insana gider</h3><p>Şikâyet ve güvenlik olayı bildirimleri otomatik yanıt almaz; acil inceleme etiketiyle doğrudan yetkiliye iletilir.</p></div>
+  </div>
+</div></section>
+
+<section id="hakkimizda"><div class="w">
+  <div class="bh">
+    <p class="mono et">BT / 2026</p>
+    <h2>Haberin hızını, prodüksiyonun gücünü, yapay zekânın geleceğini birleştiriyoruz.</h2>
+    <p class="ac">Balıkesir merkezli haber, medya prodüksiyon ve yapay zekâ ajansı. Doğrulanmış haber üretiminden sinematik video prodüksiyonuna, AI destekli içerik üretiminden dijital medya çözümlerine kadar geniş bir yelpazede hizmet veriyoruz.</p>
+  </div>
+  <div class="say-g">
+    <div><b>08</b><span>Yaratıcı üretim hattı</span></div>
+    <div><b>03</b><span>Ana kategori: haber, medya, prodüksiyon</span></div>
+    <div><b>01</b><span>Şehir odaklı haber ekibi</span></div>
+    <div><b>27</b><span>Yayımlanmış saha haberi</span></div>
+  </div>
+</div></section>
+
+<section id="brief"><div class="w">
+  <div class="bh">
+    <p class="mono et">Fikriniz var mı?</p>
+    <h2>Gerisini BTMEDYA'ya bırakın.</h2>
+    <p class="ac">Projenizi anlatın; hedefinize uygun medya, tasarım ve yapay zekâ çözümünü birlikte kuralım.</p>
+  </div>
+  <div class="brief-g">
+    <div>
+      <p style="color:var(--ink-2)">Doğrudan konuşmayı tercih ederseniz WhatsApp hattı açık. Saha haberlerinde kaynak gizliliğine uyulur.</p>
+      <div class="dugme" style="margin-top:18px">
+        <a class="b-cizgi" href="https://wa.me/905416401029">WhatsApp'tan teklif al →</a>
+      </div>
+      <div class="kvkk">
+        <p class="mono gold" style="margin-bottom:9px">Bu form üzerinden istemiyoruz</p>
+        <ul>
+          <li>T.C. kimlik numarası veya kimlik belgesi</li>
+          <li>Sağlık raporu, tahlil, tanı veya ilaç bilgisi</li>
+          <li>Dava dosyası veya gizli müşteri belgesi</li>
+          <li>Banka ve ödeme bilgileri</li>
+        </ul>
+      </div>
+    </div>
+    <form id="brief-form" novalidate>
+      <div class="cift">
+        <div><label for="bf-ad">Ad soyad</label><input id="bf-ad" name="ad" placeholder="Adınız ve soyadınız" required></div>
+        <div><label for="bf-eposta">E-posta</label><input id="bf-eposta" name="eposta" type="email" placeholder="ornek@mail.com" required></div>
+      </div>
+      <div class="cift">
+        <div><label for="bf-isletme">İşletme adı</label><input id="bf-isletme" name="isletme" placeholder="Örn. Baykal Kalaycılık"></div>
+        <div><label for="bf-sektor">Sektör</label><input id="bf-sektor" name="sektor" placeholder="Örn. perakende, hukuk, sağlık"></div>
+      </div>
+      <div><label for="bf-hizmet">İlgilenilen hizmet</label>
+        <select id="bf-hizmet" name="hizmet">
+          <option>Sosyal Medya</option><option>Tanıtım Filmi</option><option>Yapay Zekâ</option>
+          <option>Web Sitesi</option><option>Haber &amp; Röportaj</option><option>Özel Gün</option>
+          <option>Kurumsal Kimlik</option><option>Klip</option>
+        </select></div>
+      <div class="cift">
+        <div><label for="bf-platform">Aktif platformlar</label><input id="bf-platform" name="platform" placeholder="Instagram, YouTube, TikTok…"></div>
+        <div><label for="bf-hacim">Tahmini içerik hacmi</label><input id="bf-hacim" name="hacim" placeholder="Örn. ayda 12 gönderi"></div>
+      </div>
+      <div class="cift">
+        <div><label for="bf-tarih">Başlangıç</label><input id="bf-tarih" name="tarih" type="month"></div>
+        <div><label for="bf-baglanti">Site veya sosyal bağlantı</label><input id="bf-baglanti" name="baglanti" placeholder="site.com / @hesap"></div>
+      </div>
+      <div><label for="bf-mesaj">Kısaca ne yapmak istiyorsunuz</label><textarea id="bf-mesaj" name="mesaj" placeholder="Projenizi birkaç cümleyle anlatın…"></textarea></div>
+      <button class="gonder" type="submit" id="brief-btn">Brief'i gönder</button>
+      <p id="brief-durum" hidden class="mono" aria-live="polite"></p>
+    </form>
+  </div>
+</div></section>
+
+<footer><div class="w">
+  <div>
+    <a class="logo" href="#"><span class="bt">BT</span>BT<em>MEDYA</em></a>
+    <p style="color:var(--ink-2); margin-top:13px; max-width:38ch">Dijitalde fikir sizden, gerisi bizden. Balıkesir merkezli haber, medya prodüksiyon ve yapay zekâ ajansı.</p>
+  </div>
+  <div>
+    <p class="mono kb">Ajans</p>
+    <ul>
+      <li><a href="#hizmetler">Hizmetler</a></li>
+      <li><a href="#portfoy">Portföy</a></li>
+      <li><a href="#ailab">AI Lab</a></li>
+      <li><a href="#hakkimizda">Hakkımızda</a></li>
+    </ul>
+  </div>
+  <div>
+    <p class="mono kb">Bağlantı</p>
+    <ul>
+      <li><a href="tel:+905416401029">+90 541 640 10 29</a></li>
+      <li><a href="https://btmedya.com.tr">btmedya.com.tr</a></li>
+      <li><a href="https://btmedya.com.tr/iletisim/">İletişim</a></li>
+    </ul>
+  </div>
+  <div>
+    <p class="mono kb">Sosyal</p>
+    <ul>
+      <li><a href="https://www.instagram.com/btmedyaajans/">Instagram</a></li>
+      <li><a href="https://www.youtube.com/channel/UCGxMO257VTNBxbqkwgXrXTA">YouTube</a></li>
+      <li>TikTok</li>
+    </ul>
+  </div>
+</div>
+<div class="kolofon"><div class="w">
+  <span class="rozet">Taslak</span>
+  <span class="mono">Yayında değil · onay bekliyor</span>
+  <span class="mono">© 2026 BTMEDYA · Balıkesir, Türkiye</span>
+</div></div>
+</footer>
+
+<script>
+/* ---- Yildiz alani ----------------------------------------------------
+   Tohumlu üretici kullanılır; her yüklemede aynı gökyüzü çıkar, render
+   deterministik kalır. Yalnızca bir kez çizilir, animasyon yoktur. */
+(function(){
+  var c = document.getElementById('yildiz');
+  if(!c || !c.getContext) return;
+  var ctx = c.getContext('2d');
+  var tohum = 20260911;
+  function rnd(){ tohum = (tohum * 1664525 + 1013904223) % 4294967296; return tohum / 4294967296; }
+  function ciz(){
+    var o = c.parentElement.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var g = Math.max(1, Math.round(o.width)), y = Math.max(1, Math.round(o.height));
+    c.width = g * dpr; c.height = y * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, g, y);
+    tohum = 20260911;
+    var adet = Math.round(g * y / 5200);
+    for(var i = 0; i < adet; i++){
+      var x = rnd() * g, yy = rnd() * y, r = rnd(), c2 = rnd();
+      ctx.globalAlpha = 0.12 + r * 0.42;
+      ctx.fillStyle = c2 > 0.82 ? '#D6A84A' : '#F2EFE6';
+      ctx.beginPath();
+      ctx.arc(x, yy, r * 1.25 + 0.35, 0, 6.2832);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  ciz();
+  var t;
+  window.addEventListener('resize', function(){ clearTimeout(t); t = setTimeout(ciz, 180); });
+})();
+
+/* ---- Paket secici ---------------------------------------------------
+   Secilen hizmetler WhatsApp baglantisina bağlamlı bir mesaj olarak
+   gecer; teklif konusmasi bos baslamaz. */
+(function(){
+  var kap = document.getElementById('pak-g');
+  if(!kap) return;
+  var say = document.getElementById('pak-say');
+  var ozet = document.getElementById('pak-ozet');
+  var wa = document.getElementById('pak-wa');
+  var TEL = '905416401029';
+  function guncelle(){
+    var secili = [].slice.call(kap.querySelectorAll('[aria-pressed="true"]'))
+      .map(function(b){ return b.getAttribute('data-ad'); });
+    say.textContent = secili.length;
+    if(secili.length === 0){
+      ozet.textContent = 'Henüz seçim yapılmadı.';
+      wa.href = 'https://wa.me/' + TEL + '?text=' +
+        encodeURIComponent('Merhaba, BTMEDYA hizmetleri hakkında bilgi almak istiyorum.');
+    } else {
+      ozet.textContent = secili.join(' · ');
+      wa.href = 'https://wa.me/' + TEL + '?text=' + encodeURIComponent(
+        'Merhaba, şu hizmetler için teklif almak istiyorum: ' + secili.join(', ') + '.');
+    }
+  }
+  kap.addEventListener('click', function(ev){
+    var b = ev.target.closest('.pak-k');
+    if(!b) return;
+    b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+    guncelle();
+  });
+  guncelle();
+})();
+
+/* ---- Brief formu ----------------------------------------------------
+   Sitenin mevcut /api/contact ucuna gider; o uç ad, e-posta ve mesajı
+   zorunlu tutar. Brief alanları tek gövdeye derlenir, böylece kayıt
+   /admin/ panelinde bütün halinde görünür. */
+(function(){
+  var f = document.getElementById('brief-form');
+  if(!f) return;
+  var btn = document.getElementById('brief-btn');
+  var durum = document.getElementById('brief-durum');
+  function yaz(metin, renk){ durum.textContent = metin; durum.style.color = renk; durum.hidden = false; }
+  function v(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+  f.addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var ad = v('bf-ad'), eposta = v('bf-eposta');
+    if(!ad || !eposta){ yaz('Ad soyad ve e-posta zorunlu.', 'var(--gold)'); return; }
+    /* /api/contact yalnızca sitenin kendi kökeninde var. Taslak başka bir
+       adreste açılıyorsa istek baştan yapılmaz; kırık gibi görünmesin. */
+    var h = location.hostname;
+    if(!/(^|\.)btmedya\.com\.tr$/.test(h) && !/\.workers\.dev$/.test(h)){
+      yaz('Taslak önizlemesi — gönderim yalnızca site üzerinde çalışır.', 'var(--ink-2)');
+      return;
+    }
+    var satir = [
+      ['İşletme', v('bf-isletme')], ['Sektör', v('bf-sektor')],
+      ['İlgilenilen hizmet', v('bf-hizmet')], ['Aktif platformlar', v('bf-platform')],
+      ['Tahmini hacim', v('bf-hacim')], ['Başlangıç', v('bf-tarih')], ['Bağlantı', v('bf-baglanti')]
+    ].filter(function(s){ return s[1]; }).map(function(s){ return s[0] + ': ' + s[1]; });
+    var ac = v('bf-mesaj');
+    if(ac){ satir.push(''); satir.push(ac); }
+    btn.disabled = true;
+    yaz('Gönderiliyor…', 'var(--ink-2)');
+    fetch('/api/contact', {
+      method: 'POST',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({
+        name: ad, email: eposta,
+        subject: 'Brief — ' + (v('bf-hizmet') || 'genel'),
+        message: satir.join('\n') || 'Brief formu gönderildi.'
+      })
+    })
+    .then(function(r){ return r.json().catch(function(){ return {ok:false}; }); })
+    .then(function(d){
+      if(d && d.ok){ f.reset(); yaz('Brief alındı. En kısa sürede dönüş yapılacak.', 'var(--gold)'); }
+      else { yaz((d && d.error) ? d.error : 'Gönderilemedi. Lütfen tekrar deneyin.', 'var(--gold)'); }
+    })
+    .catch(function(){ yaz('Bağlantı kurulamadı. Lütfen tekrar deneyin.', 'var(--gold)'); })
+    .then(function(){ btn.disabled = false; });
+  });
+})();
+</script>

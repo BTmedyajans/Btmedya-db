@@ -1,0 +1,73 @@
+{
+  "updated": "2026-09-15",
+  "filter": "Buse Tuncay",
+  "policy": "Only verified public sources or user-owned connected media should be promoted to the portfolio. AI-generated work stays explicitly labelled.",
+  "sources": [
+    {
+      "id": "instagram-btmedya10",
+      "platform": "Instagram",
+      "label": "BTMEDYA Instagram",
+      "url": "https://www.instagram.com/btmedya10/",
+      "role": "BTMEDYA yayın ve medya vitrini",
+      "status": "public-source"
+    },
+    {
+      "id": "instagram-btmedyaajans",
+      "platform": "Instagram",
+      "label": "BTMedya Ajans Instagram",
+      "url": "https://www.instagram.com/btmedyaajans/",
+      "role": "BTMedya Ajans içerik arşivi",
+      "status": "public-source"
+    },
+    {
+      "id": "youtube-btmedya",
+      "platform": "YouTube",
+      "label": "BTMEDYA YouTube",
+      "url": "https://www.youtube.com/@BTmedyaAjans",
+      "role": "Video ve yayın arşivi",
+      "status": "public-source"
+    },
+    {
+      "id": "youtube-btmedya-legacy",
+      "platform": "YouTube",
+      "label": "BTMEDYA YouTube arşiv kanalı",
+      "url": "https://www.youtube.com/channel/UCGxMO257VTNBxbqkwgXrXTA",
+      "role": "Eski video arşivi",
+      "status": "public-source"
+    },
+    {
+      "id": "tiktok-btcraft10",
+      "platform": "TikTok",
+      "label": "BTCRAFT",
+      "url": "https://www.tiktok.com/@btcraft10",
+      "role": "AI ve yaratıcı video çalışmaları",
+      "status": "public-source"
+    },
+    {
+      "id": "gazete-merhaba-buse",
+      "platform": "Gazete Merhaba",
+      "label": "Buse Tuncay yayın arşivi",
+      "url": "https://gazetemerhaba.com/etiket/buse-tuncay",
+      "role": "Yayınlanmış haber ve saha portföyü",
+      "status": "verified-public-author-archive"
+    }
+  ],
+  "pending": [
+    {
+      "label": "Facebook",
+      "reason": "Exact Buse Tuncay/BTMEDYA public profile or page should be confirmed before importing media."
+    },
+    {
+      "label": "Medya TV",
+      "reason": "Exact archive URL/channel should be confirmed before attributing media."
+    },
+    {
+      "label": "EminbudanTV",
+      "reason": "Exact public channel URL should be confirmed before attributing media."
+    },
+    {
+      "label": "Google Drive / Dropbox",
+      "reason": "Private media requires an active connector and explicit source ownership before ingestion."
+    }
+  ]
+}

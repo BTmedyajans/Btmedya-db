@@ -37,12 +37,14 @@ Kaynaklar: [Şikayetvar ajans ve medya şikayetleri](https://www.sikayetvar.com/
 
 Üç konsept değerlendirildi, biri öneriliyor.
 
-### A. Işıktan haber akışı (ÖNERİLEN)
+### A. Stüdyoya iniş (ÖNERİLEN, kullanıcının set fotoğrafına göre güncellendi)
 
-Kamera koyu lacivert bir hacmin içinde yavaşça ve düz aşağı iner. Etrafta askıda
-duran ince ışık çizgileri ve sürüklenen ışık parçacıkları var. Kamera indikçe bu
-dağınık alan toplanır ve altta tek bir yatay ışık düzlemine oturur: kurgu zaman
-çizgisi gibi, dümdüz ve sakin. Son kare orada dinlenir.
+Kamera karanlık bir prodüksiyon platosunda yavaşça ve düz aşağı iner. Solda
+camgöbeği bir ışık duvarı, ıslak zeminde uzun bir yansıma, arkada tek bir sıcak
+tungsten lamba, havada pus. Kamera indikçe yansıma uzar ve keskinleşir, yolun
+ortasında yoğun bir pus bandından geçerken lens bir an parlar. Son karede kamera
+zeminin hemen üstünde dinlenir: camgöbeği yansıma alt üçte birde dümdüz uzanır,
+sıcak lamba onun merkezinde küçük bir altın nokta olarak durur.
 
 **Neden bu:** soyut dünya AI'ın en güvenli bölgesi. Kırılacak anatomi yok, tanıdık
 nesne yok, dolayısıyla ilk denemede tutma olasılığı en yüksek konsept bu. Dikey
@@ -99,42 +101,51 @@ Doğrudan kopyalanıp çalıştırılacak hâlleriyle.
 
 ### 4.1 Başlangıç karesi (image, 16:9, 2k)
 
+Kullanıcının gönderdiği set fotoğrafı bu kareyi yeniden yazdırdı. O fotoğrafta
+konseptin tam dili var: soğuk camgöbeği ışık duvarı, tek sıcak tungsten lamba,
+ıslak zemindeki yansıma, havada pus, kenarda dolly rayı. Soyut ışık inişi yerine
+artık BTMEDYA'nın kendi dünyası: bir prodüksiyon platosu. Hem daha özgün, hem de
+ajansın ne yaptığını ilk karede söylüyor.
+
 ```
-A vast dark interior volume of deep navy black, seen from above as the first
-moment of a slow downward descent. Thin suspended lines of cool cyan light and
-small drifting particles of light hang in the depth, receding into soft shadow
-toward the edges of the frame. Cold cyan and electric blue light with a single
-warm gold highlight, rendered as glass, polished metal and glowing filament.
-Faint atmospheric haze catches the light and gives the volume its depth. The
-composition is one continuous space filling the frame edge to edge, with a calm
-region of soft receding shadow across the left third where the descent has not
-yet reached. Cinematic, photorealistic, 16:9. No text, no logos, no lettering
-anywhere.
+A dark film studio stage seen from slightly above, composed as the first moment
+of a slow downward camera move. A tall wall of cool cyan light stands left of
+centre, its glow curving down onto a polished wet floor that reflects it as a
+long vertical streak. A single warm tungsten lamp on a stand burns further back
+on the right, small and golden against the dark. Fine atmospheric haze hangs in
+the air and catches both lights. The right half of the frame recedes into soft
+studio darkness where the walls fall away, one continuous space filling the
+frame edge to edge. Cold cyan key light, one warm gold accent, deep navy black
+shadows, polished floor, brushed metal. Cinematic, photorealistic, 16:9.
+No text, no logos, no lettering anywhere.
 ```
 
-Not: sakin bölge "boşluk" veya "karanlık" diye tarif edilmedi, sahnenin kendi
-parçası olarak yazıldı. "Generous empty darkness" demek modele siyah panel
-çizdirir ve bir yeniden deneme yaktırır.
+Negatif alan yine sahnenin parçası olarak yazıldı: sağ yarı "boşluk" değil,
+duvarların çekildiği yumuşak stüdyo karanlığı. Metin orada yaşayacak.
+Kamera ve dolly rayı bilerek çıkarıldı: yakın plan ekipman anatomisi AI'ın
+hata verdiği yer ve kadrajda gereksiz kalabalık yapıyor.
 
 ### 4.2 Video (image-to-video, 1080p, 6 sn, standart mod, sessiz)
 
 ```
 One continuous shot, no cuts. The camera descends slowly and steadily straight
-down through a dark volume of suspended light, from the scattered high field of
-drifting particles to a single settled horizontal plane of light at the bottom.
-The particles stay alive throughout: they drift, turn slowly and catch the light
-with small natural motion. The scene stays alive: the haze shifts, reflections
-travel along the light lines, the glow breathes. As the camera passes through
-the mid layer of haze there is a physical lens moment: a brief bloom across the
-lens and a beat of soft focus. The shot ends at rest: one long horizontal plane
-of cool cyan light lying level and still across the lower third of the frame, a
-single warm gold point resting at its center, the volume above it calm and open,
-the light no longer moving. No text or lettering anywhere.
+down through the dark studio air, from high above the stage to floor level,
+travelling past the tall wall of cyan light as it falls. The haze stays alive
+throughout: it drifts and curls, and the light shifts across it. The reflection
+on the wet floor stretches and sharpens as the camera comes down. Halfway down
+the camera passes through a denser band of haze and there is a physical lens
+moment: a brief bloom of the cyan light across the lens and a beat of soft
+focus. The shot ends at rest: the camera settled just above the polished floor,
+the cyan light laid out as one long still reflection across the lower third of
+the frame, the single warm tungsten lamp resting as a small golden point near
+its centre, the air above open and calm, nothing moving. No text or lettering
+anywhere.
 ```
 
-Son karede ürün yok, kırpılacak nesne yok. Yani hangi ekran oranında olursa olsun
-metin güvenli: sayfanın sabit başlığı üstteki açık hacmin üzerine oturuyor,
-kenarlardan kırpma bir şeyin tepesini kesmiyor.
+Yolculuk tek eksende ve aşağı doğru, yani kaydırma yönüyle birebir. Son kare
+dinleniyor ve üstte geniş bir açıklık bırakıyor: sitenin sabit başlığı oraya
+oturuyor, "Hikâyeleri yaşatıyoruz." satırı da o açıklıkta kuruluyor. Kırpılacak
+ürün yok, yani her ekran oranında güvenli.
 
 ### 4.3 Denetim listesi (üretimden sonra, kullanıcıya göstermeden önce)
 
@@ -152,17 +163,28 @@ kenarlardan kırpma bir şeyin tepesini kesmiyor.
 Sitede zaten yürürlükte olan tokenlar. Konsept bu paletten türetildi, yani
 görüntü ve sayfa aynı dünyada olacak. Onaylanan görüntüden sonra son ayar yapılır.
 
+Renk yönü kararı: **altın ajansın, camgöbeği makinenin.** Basılı katalog,
+wordmark, amblem ve uygulama simgesi altın olduğu için marka mobilyası
+(etiket, bağ, CTA, odak, kenarlık, başlık vurgusu) altına taşındı.
+Camgöbeği yalnızca yapay zekâ vurgusunda ve hero'nun atmosfer katmanlarında
+kaldı. Böylece iki renk de bir işe yarıyor.
+
 ```css
 :root{
-  --bg:#02070d;        /* zemin, saf siyah değil, görüntünün grade'ine çalıyor */
-  --bg2:#07111c;       /* kartlar ve yükseltilmiş yüzeyler */
-  --cyan:#35d6ff;      /* aksan: CTA, odak halkası, nadir vurgu */
-  --blue:#2a7fff;      /* derinlik ve ışık düzlemi */
-  --gold:#d6a84a;      /* tek sıcak nokta, amblem ve son karedeki vurgu */
-  --ink:#eaf2f8;       /* birincil metin */
-  --muted:#8da0b2;     /* ikincil metin */
+  --bg:#02070d;          /* zemin, saf siyah değil, görüntünün grade'ine çalıyor */
+  --bg2:#07111c;         /* kartlar ve yükseltilmiş yüzeyler */
+  --accent:#d6a84a;      /* marka aksanı: CTA dolgusu, odak, kenarlık */
+  --accent-text:#e8c06a;  /* küçük etiket ve başlık vurgusu, zeminde 11.72:1 */
+  --accent-ink:#120b00;  /* altın dolgu üstündeki koyu metin */
+  --cyan:#35d6ff;        /* YALNIZCA yapay zekâ vurgusu ve hero atmosferi */
+  --blue:#2a7fff;        /* derinlik ve ışık düzlemi */
+  --ink:#eaf2f8;         /* birincil metin */
+  --muted:#8da0b2;       /* ikincil metin */
 }
 ```
+
+Videonun paleti de bu karara uyar: hero'nun soğuk camgöbeği dünyası korunur,
+son karedeki tek sıcak nokta altındır. Makine soğuk, marka sıcak.
 
 ## 6. Tipografi
 
@@ -187,10 +209,10 @@ giriş ve çıkış.
 | 2 | 0.20 - 0.38 | Kamera iniyor, çizgiler yukarı doğru akıyor | "Her hafta gerçek haber." | Drift-down: kelimeler yukarıdan yerine iner |
 | 3 | 0.40 - 0.58 | Pus katmanı, lens parlaması ve bir an odak kaybı | "Çekim bizden. Kurgu bizden." | Blur-to-sharp: yumuşak kopya keskin kopyaya geçer, lens anıyla aynı beat |
 | 4 | 0.60 - 0.78 | Işık çizgileri hizalanmaya başlıyor | "Yapay zekâ süs değil, üretim hattı." | Grid snap-align: karakterler okuma sırasında yerine kayar |
-| 5 | 0.80 - 1.00 | Yatay ışık düzlemi oturur, altın nokta merkezde dinlenir | "Dijitalde Fikir Sizden, Gerisi Bizden." | Word-by-word rise, sonra alt satır, sonra CTA: üç varış, tek bant |
+| 5 | 0.80 - 1.00 | Yatay ışık düzlemi oturur, altın nokta merkezde dinlenir | "Hikâyeleri yaşatıyoruz." | Word-by-word rise, sonra alt satır, sonra CTA: üç varış, tek bant |
 
-**Bant 5 alt satır:** "Haber, prodüksiyon ve yapay zekâyı tek yaratıcı akışta
-buluşturan yeni nesil medya deneyimi."
+**Bant 5 alt satır:** "Dijitalde fikir sizden, gerisi bizden. Haber, prodüksiyon ve
+yapay zekâyı tek ekipte topluyoruz."
 
 **Bant 5 CTA:** "TEKLİF AL" (WhatsApp) ve "İŞLERİMİZ" (portföy çapası).
 
@@ -206,7 +228,7 @@ Telefon, dikey tablet, yan yatan telefon ve azaltılmış hareket tercihinde
 gösterilir. Bu bir mazeret değil, tasarlanmış bir düzen: son karenin poster hâli
 üzerine yerleşmiş metin.
 
-- **Başlık:** "Dijitalde Fikir Sizden, Gerisi Bizden."
+- **Başlık:** "Hikâyeleri yaşatıyoruz."
 - **Alt satır:** "Balıkesir'den yayında. Haber, prodüksiyon ve yapay zekâ, tek ekipten."
 - **CTA:** "TEKLİF AL"
 

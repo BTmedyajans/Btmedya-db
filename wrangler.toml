@@ -1,31 +1,41 @@
-# Cloudflare Workers Builds bu adı yok sayar ve daima bağlı olduğu servise
-# (btmedya-db) deploy eder. Alan adı bu Worker'a taşındığında push'lar doğrudan
-# canlı siteyi günceller.
+# Cloudflare Workers Builds bu Worker'ı otomatik deploy eder.
+# Alan adı bağlantıları da bu dosyada tutulur: GitHub = kaynak gerçek.
+# Production DNS temizliği, cloudflare-admin workflow'undaki güvenli kayıt filtresiyle yapılır.
 name = "btmedya-db"
 main = "src/worker.js"
-compatibility_date = "2026-09-02"
+compatibility_date = "2026-09-19"
 
 [observability]
 enabled = true
 
-# Statik dosyalar public/ altında tutulur. Böylece wrangler.toml, src/ ve
-# migrations/ gibi backend dosyaları hiçbir koşulda herkese açık servis edilmez
-# (.assetsignore'a gerek kalmaz).
 [assets]
 directory = "public"
 binding = "ASSETS"
 
-# ALAN ADI YÖNLENDİRMESİ — routes bloğu bilerek KAPALI.
-# Alan adı panelden Custom Domain olarak eklenir. Routes burada açılırsa
-# wrangler paneldeki alan adı bağlantılarının tek yetkilisi olur ve mevcut
-# ayarları EZER — gereksiz risk.
-#
-# Custom Domain eklemek için:
-# Workers & Pages > btmedya-db > Settings > Domains & Routes > Add > Custom Domain
+# API ve medya istekleri önce Worker'a gitmeli; aksi halde Static Assets
+# katmanı mevcut olmayan /api/* yollarını 404 olarak keser.
+run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/haberler/*", "/hakkimizda*", "/iletisim*"]
+
+not_found_handling = "404-page"
+
+# BTMEDYA ana alan adı ve www sürümü doğrudan bu Worker'a bağlanır.
+# Cloudflare Custom Domain modeli DNS ve SSL bağlantısını Cloudflare tarafında yönetir.
+# www isteği Worker içinde ana domaine 301 yönlendirilir.
+[[routes]]
+pattern = "btmedya.com.tr"
+custom_domain = true
+
+[[routes]]
+pattern = "www.btmedya.com.tr"
+custom_domain = true
 
 [[r2_buckets]]
 binding = "MEDIA"
 bucket_name = "btmedya-media"
+
+# Workers KV: production kodu şu anda KV binding kullanmıyor.
+# Eski/placeholder KV ID'si eklenmeyecek. KV ancak kod gerçekten ihtiyaç
+# duyduğunda gerçek namespace ID ile bağlanacaktır.
 
 [[d1_databases]]
 binding = "DB"
@@ -39,4 +49,7 @@ MEDIA_PUBLIC_TTL = "86400"
 #   ADMIN_PASSWORD        -> /admin/ giriş şifresi
 #   ADMIN_SESSION_SECRET  -> oturum çerezi imzalama anahtarı
 #   MEDIA_SIGNING_SECRET  -> /media/ imzalı bağlantı anahtarı
-#   AI_READ_TOKEN         -> (opsiyonel) salt-okunur AI erişim token'ı
+#   AI_READ_TOKEN         -> (opsiyonel) salt-okur AI erişim token'ı
+#   RESEND_API_KEY        -> (opsiyonel) Resend e-posta bildirimi API anahtarı
+#   RESEND_TO             -> (opsiyonel) bildirim alıcı adresi
+#   RESEND_FROM           -> (opsiyonel) gönderici adresi

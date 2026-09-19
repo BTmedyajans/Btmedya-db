@@ -1,0 +1,267 @@
+name: Cloudflare administration
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "wrangler.toml"
+      - "src/**"
+      - "public/**"
+      - "migrations/**"
+      - ".github/workflows/cloudflare-admin.yml"
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Cloudflare action to run"
+        required: true
+        type: choice
+        options:
+          - repair-and-deploy
+          - verify
+          - worker-deploy
+      worker_name:
+        description: "Worker name"
+        required: false
+        default: "btmedya-db"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: btmedya-cloudflare-admin
+  cancel-in-progress: false
+
+jobs:
+  cloudflare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Wrangler
+        run: npm install --global wrangler@latest
+
+      - name: Verify required secrets
+        if: github.event_name == 'push' || inputs.action != 'verify'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -eu
+          test -n "${CLOUDFLARE_API_TOKEN}" || { echo "CLOUDFLARE_API_TOKEN eksik."; exit 1; }
+          test -n "${CLOUDFLARE_ACCOUNT_ID}" || { echo "CLOUDFLARE_ACCOUNT_ID eksik."; exit 1; }
+
+      - name: Resolve canonical D1 database ID
+        if: github.event_name == 'push' || inputs.action != 'verify'
+        id: d1
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+
+          echo "Cloudflare'daki btmedya-media D1 kaynağı bulunuyor..."
+          npx wrangler d1 list --json > /tmp/d1-list.json
+
+          node <<'NODE'
+          const fs = require("fs");
+          const raw = JSON.parse(fs.readFileSync("/tmp/d1-list.json", "utf8"));
+          const list =
+            Array.isArray(raw) ? raw :
+            Array.isArray(raw.result) ? raw.result :
+            Array.isArray(raw.items) ? raw.items :
+            Array.isArray(raw.data) ? raw.data : [];
+
+          const matches = list.filter(x =>
+            (x.name ?? x.database_name) === "btmedya-media"
+          );
+
+          if (matches.length !== 1) {
+            console.error("btmedya-media için benzersiz bir D1 kaynağı bulunamadı.");
+            console.error(JSON.stringify(matches, null, 2));
+            process.exit(1);
+          }
+
+          const db = matches[0];
+          const id = db.uuid ?? db.id ?? db.database_id;
+          if (!id) {
+            console.error("D1 kaydında UUID/ID alanı bulunamadı.");
+            console.error(JSON.stringify(db, null, 2));
+            process.exit(1);
+          }
+
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, "database_id=" + id + "\n");
+          console.log("Canonical D1 ID:", id);
+          NODE
+
+          configured_id="$(grep -E '^database_id = "' wrangler.toml | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')"
+          actual_id="${{ steps.d1.outputs.database_id }}"
+
+          echo "wrangler.toml ID: ${configured_id:-<yok>}"
+          echo "Cloudflare D1 ID: $actual_id"
+
+          if [ "${configured_id:-}" = "$actual_id" ]; then
+            echo "D1 yapılandırması zaten eşleşiyor."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "D1 ID eşleşmiyor. Kanonik Cloudflare ID wrangler.toml içine yazılıyor."
+            D1_ACTUAL_ID="$actual_id" python3 - <<'PY'
+          from pathlib import Path
+          import os, re
+          p = Path("wrangler.toml")
+          s = p.read_text()
+          actual = os.environ["D1_ACTUAL_ID"]
+          ns, count = re.subn(
+              r'(?m)^database_id\s*=\s*"[^"]*"',
+              f'database_id = "{actual}"',
+              s,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit("wrangler.toml içinde database_id satırı bulunamadı")
+          p.write_text(ns)
+          PY
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit synchronized D1 configuration
+        if: github.event_name == 'push' && steps.d1.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add wrangler.toml
+          git commit -m "fix(cf): synchronize production D1 database ID"
+          git push origin HEAD:main
+
+      - name: Verify D1 production schema
+        if: github.event_name == 'push' || inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          npx wrangler d1 execute btmedya-media --remote --json \
+            --command='SELECT name FROM sqlite_master WHERE type="table" ORDER BY name' \
+            > /tmp/d1-schema.json
+          cat /tmp/d1-schema.json
+          node <<'NODE'
+          const fs = require("fs");
+          const raw = JSON.parse(fs.readFileSync("/tmp/d1-schema.json", "utf8"));
+          const text = JSON.stringify(raw);
+          const required = ["news", "contact_messages", "media", "video_library"];
+          const missing = required.filter(name => !text.includes(name));
+          if (missing.length) {
+            console.error("Beklenen production D1 tabloları eksik:", missing.join(", "));
+            process.exit(1);
+          }
+          NODE
+
+      - name: Verify production R2
+        if: github.event_name == 'push' || inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          npx wrangler r2 bucket list | tee /tmp/r2-list.txt
+          grep -Fq "btmedya-media" /tmp/r2-list.txt
+
+      - name: Verify Cloudflare credentials
+        if: github.event_name == 'workflow_dispatch' && inputs.action == 'verify'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -eu
+          test -n "${CLOUDFLARE_API_TOKEN}"
+          test -n "${CLOUDFLARE_ACCOUNT_ID}"
+          npx wrangler whoami
+
+      - name: Inspect and repair safe DNS conflicts
+        if: github.event_name == 'push' || inputs.action == 'repair-and-deploy'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4"
+          auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
+
+          zones_json="$(curl -fsS "${api}/zones?name=btmedya.com.tr&per_page=50" "${auth[@]}")"
+          zone_id="$(printf '%s' "${zones_json}" | jq -r '.result[] | select(.name=="btmedya.com.tr") | .id' | head -n1)"
+          zone_status="$(printf '%s' "${zones_json}" | jq -r '.result[] | select(.name=="btmedya.com.tr") | .status' | head -n1)"
+          if [ -z "${zone_id}" ] || [ "${zone_id}" = "null" ]; then
+            echo "Cloudflare hesabında btmedya.com.tr zone bulunamadı."
+            exit 1
+          fi
+          echo "Zone: ${zone_id} / status: ${zone_status}"
+          if [ "${zone_status}" != "active" ]; then
+            echo "btmedya.com.tr Cloudflare zone aktif değil; deploy durduruluyor."
+            exit 1
+          fi
+
+          # Worker Custom Domain kullanıldığından yalnızca bilinen placeholder/
+          # eski R2 kaydı gibi güvenli çakışmaları kaldır. MX/TXT/SPF/DMARC'e dokunma.
+          records="$(curl -fsS "${api}/zones/${zone_id}/dns_records?per_page=5000" "${auth[@]}")"
+          printf '%s' "${records}" | jq -r '
+            .result[]
+            | select(
+                (.name=="btmedya.com.tr" and .type=="AAAA" and .content=="100::")
+                or (.name=="chatgpt.btmedya.com.tr" and .type=="A" and .content=="192.0.2.1")
+                or (.name=="www.btmedya.com.tr" and .type=="CNAME" and .content=="public.r2.dev")
+              )
+            | [.id,.type,.name,.content] | @tsv
+          ' | while IFS=$'\t' read -r id type name content; do
+            [ -z "${id}" ] && continue
+            echo "Siliniyor: ${type} ${name} -> ${content}"
+            curl -fsS -X DELETE "${api}/zones/${zone_id}/dns_records/${id}" "${auth[@]}" >/dev/null
+          done
+
+          echo "Kalan web DNS kayıtları:"
+          curl -fsS "${api}/zones/${zone_id}/dns_records?per_page=5000" "${auth[@]}"             | jq -r '.result[] | select(.name=="btmedya.com.tr" or .name=="www.btmedya.com.tr" or .name=="chatgpt.btmedya.com.tr") | [.type,.name,.content,.proxied] | @tsv'             || true
+
+          echo "Cloudflare zone nameservers:"
+          required_ns="$(printf '%s' "${zones_json}" | jq -r '.result[] | select(.name=="btmedya.com.tr") | .name_servers[]' | sort -u)"
+          printf '%s\n' "${required_ns}"
+
+          echo "Yetkili DNS delegasyonu kontrol ediliyor:"
+          actual_ns="$(dig +short NS btmedya.com.tr @1.1.1.1 | sed 's/\\.$//' | sort -u || true)"
+          printf '%s\n' "${actual_ns}"
+          if [ -z "${actual_ns}" ]; then
+            echo "btmedya.com.tr için dış DNS çözümlemesi NS döndürmüyor. Güzel Hosting tarafındaki nameserver delegasyonu kontrol edilmeli."
+            exit 1
+          fi
+          if ! diff -u <(printf '%s\n' "${required_ns}") <(printf '%s\n' "${actual_ns}"); then
+            echo "Cloudflare nameserver'ları ile registrar'daki aktif delegasyon eşleşmiyor."
+            echo "Gerekli nameserver'lar yukarıdaki 'Cloudflare zone nameservers' bölümünde listelendi."
+            exit 1
+          fi
+
+          echo "DNS repair + nameserver delegasyonu tamamlandı. Custom Domain'i Wrangler deploy oluşturacak."
+
+      - name: Deploy btmedya-db
+        if: github.event_name == 'push' || inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -eu
+          npx wrangler deploy --config wrangler.toml
+
+      - name: Production smoke test
+        if: github.event_name == 'push' || inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
+        run: |
+          set -eu
+          echo "btmedya.com.tr:"
+          curl -fsSI --max-time 20 https://btmedya.com.tr/ | sed -n '1,20p'
+          echo "www.btmedya.com.tr:"
+          curl -fsSI --max-time 20 https://www.btmedya.com.tr/ | sed -n '1,20p'
+          echo "health:"
+          curl -fsS --max-time 20 https://btmedya.com.tr/api/health
+          echo
