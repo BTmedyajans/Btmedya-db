@@ -90,7 +90,16 @@ jobs:
             cat "$headers" || true
             sed -n '1,40p' "$body" || true
             if [ "$code" = "401" ] || [ "$code" = "403" ]; then
-              echo "Likely pre-Worker Cloudflare Access/WAF/SAML protection. Worker code cannot remove a block applied before the request reaches the Worker."
+              echo "Pre-Worker protection detected. Worker code cannot remove a block applied before the request reaches the Worker."
+              echo "Cloudflare diagnostic headers:"
+              for h in cf-ray cf-mitigated server content-type; do
+                value="$(awk -v key="$h" 'BEGIN{IGNORECASE=1} $0 ~ "^" key ":" {sub(/^[^:]*:[[:space:]]*/, ""); print; exit}' "$headers" || true)"
+                printf '%s: %s\n' "$h" "${value:-<not-present>}"
+              done
+              if grep -qi '^cf-mitigated:[[:space:]]*challenge' "$headers"; then
+                echo "Cloudflare explicitly identified the response as a Challenge."
+              fi
+              echo "Use the cf-ray value above in Cloudflare Security Events to identify the product/rule that issued the challenge."
             fi
             exit 1
           fi
