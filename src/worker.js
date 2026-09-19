@@ -154,7 +154,7 @@ async function mediaApi(request, env){
 
   if(path==='/api/login' && request.method==='POST'){
     const body=await request.json().catch(()=>({}));
-    if(!env.ADMIN_PASSWORD || body.password!==env.ADMIN_PASSWORD) return json({error:'Geçersiz şifre'},401);
+    if(!env.ADMIN_PASSWORD || !env.ADMIN_SESSION_SECRET || body.password!==env.ADMIN_PASSWORD) return json({error:'Geçersiz kimlik bilgisi'},401);
     const token=await sessionToken(env.ADMIN_SESSION_SECRET);
     return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`});
   }
