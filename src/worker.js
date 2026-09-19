@@ -147,6 +147,79 @@ async function contactApi(request, env, url, ctx){
   return null;
 }
 
+/* ---------- Sosyal İçerik Akışı API ---------- */
+const SOCIAL_STATUS = new Set(['fikir','hazirlaniyor','onayda','planlandi','yayinlandi']);
+const SOCIAL_FORMAT = new Set(['9:16','4:5','1:1','16:9']);
+
+async function socialApi(request, env, url){
+  if(!url.pathname.startsWith('/api/admin/social')) return null;
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
+
+  if(url.pathname==='/api/admin/social' && request.method==='GET'){
+    const status=String(url.searchParams.get('status')||'').trim();
+    if(status && !SOCIAL_STATUS.has(status)) return json({ok:false,error:'Geçersiz durum'},400);
+    let sql='SELECT * FROM social_posts';
+    const args=[];
+    if(status){sql+=' WHERE status=?';args.push(status);}
+    sql+=' ORDER BY CASE status WHEN "onayda" THEN 1 WHEN "planlandi" THEN 2 WHEN "hazirlaniyor" THEN 3 WHEN "fikir" THEN 4 WHEN "yayinlandi" THEN 5 ELSE 9 END, COALESCE(scheduled_at,"9999-12-31T23:59:59.999Z"), updated_at DESC LIMIT 300';
+    const rows=args.length ? await env.DB.prepare(sql).bind(...args).all() : await env.DB.prepare(sql).all();
+    const items=(rows.results||[]).map(x=>({...x,platforms:JSON.parse(x.platforms||'[]')}));
+    return json({ok:true,items});
+  }
+
+  if(url.pathname==='/api/admin/social' && request.method==='POST'){
+    const b=await request.json().catch(()=>null);
+    if(!b || typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
+    const title=String(b.title||'').trim().slice(0,240);
+    if(!title) return json({ok:false,error:'Başlık zorunludur'},400);
+    const body=String(b.body||'').slice(0,20000);
+    const format=SOCIAL_FORMAT.has(String(b.format||'')) ? String(b.format) : '9:16';
+    const status=SOCIAL_STATUS.has(String(b.status||'')) ? String(b.status) : 'fikir';
+    const sourceSlug=String(b.source_slug||'').trim().slice(0,180);
+    const mediaKey=String(b.media_key||'').trim().slice(0,1000);
+    const scheduledAt=b.scheduled_at ? String(b.scheduled_at).slice(0,64) : null;
+    let platforms=b.platforms;
+    if(typeof platforms==='string') {
+      try { platforms=JSON.parse(platforms); } catch { platforms=platforms.split(',').map(x=>x.trim()).filter(Boolean); }
+    }
+    if(!Array.isArray(platforms)) platforms=[];
+    platforms=platforms.map(x=>String(x).trim()).filter(Boolean).slice(0,20);
+    const now=new Date().toISOString();
+    const id=String(b.id||'').trim() || crypto.randomUUID();
+    const exists=b.id ? await env.DB.prepare('SELECT id FROM social_posts WHERE id=?').bind(id).first() : null;
+
+    if(exists){
+      await env.DB.prepare('UPDATE social_posts SET title=?,body=?,platforms=?,format=?,media_key=?,source_slug=?,status=?,scheduled_at=?,updated_at=? WHERE id=?')
+        .bind(title,body,JSON.stringify(platforms),format,mediaKey,sourceSlug,status,scheduledAt,now,id).run();
+    }else{
+      await env.DB.prepare('INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
+        .bind(id,title,body,JSON.stringify(platforms),format,mediaKey,sourceSlug,status,scheduledAt,now,now).run();
+    }
+    return json({ok:true,id,status});
+  }
+
+  const byId=url.pathname.match(/^\/api\/admin\/social\/([^/]+)$/);
+  if(byId && request.method==='PATCH'){
+    const id=decodeURIComponent(byId[1]);
+    const b=await request.json().catch(()=>({}));
+    const status=String(b.status||'');
+    if(!SOCIAL_STATUS.has(status)) return json({ok:false,error:'Geçersiz durum'},400);
+    const r=await env.DB.prepare('UPDATE social_posts SET status=?,updated_at=? WHERE id=?')
+      .bind(status,new Date().toISOString(),id).run();
+    return json({ok:true,changed:(r.meta?.changes||0)>0});
+  }
+  if(byId && request.method==='DELETE'){
+    const id=decodeURIComponent(byId[1]);
+    const r=await env.DB.prepare('DELETE FROM social_posts WHERE id=?').bind(id).run();
+    if(!(r.meta?.changes)) return json({ok:false,error:'Bulunamadı'},404);
+    return json({ok:true});
+  }
+  return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,POST,PATCH,DELETE'});
+}
+
+
+
 /* ---------- Medya Kasası API ---------- */
 async function mediaApi(request, env){
   const u=new URL(request.url); const path=u.pathname;
@@ -457,6 +530,8 @@ export default { async fetch(request, env, ctx){
     if(env.DB){
       const rc = await contactApi(request, env, url, ctx);
       if(rc) return rc;
+    const rs = await socialApi(request, env, url);
+    if(rs) return rs;
     }
     if(env.DB && env.MEDIA){
       const r2 = await mediaApi(request, env);
