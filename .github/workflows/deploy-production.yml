@@ -58,7 +58,7 @@ jobs:
 
           missing = []
           for rel in sorted(refs):
-              if not (root / rel.removeprefix("assets/")).exists():
+              if not (root / rel).exists():
                   missing.append(rel)
 
           if missing:
@@ -71,7 +71,7 @@ jobs:
               "assets/hero-ending.jpg",
               "assets/media/web/showreel-action.mp4",
           ]
-          missing_required = [p for p in required if not (root / p.removeprefix("assets/")).exists()]
+          missing_required = [p for p in required if not (root / p).exists()]
           if missing_required:
               print("Missing required production media:")
               print("\n".join(missing_required))
