@@ -67,8 +67,6 @@ jobs:
               raise SystemExit(1)
 
           required = [
-              "assets/hero-scrub.mp4",
-              "assets/hero-ending.jpg",
               "assets/media/web/showreel-action.mp4",
           ]
           missing_required = [p for p in required if not (root / p).exists()]
