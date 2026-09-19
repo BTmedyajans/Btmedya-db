@@ -43,7 +43,7 @@ async function sendContactEmail(env, msg){
 
 /* ---------- Haber CMS API ---------- */
 async function newsApi(request, env, url){
-  if(url.pathname==='/api/health') return json({ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,admin:!!env.ADMIN_PASSWORD,mail:!!env.RESEND_API_KEY});
+  if(url.pathname==='/api/health') return json({ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,admin:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,mail:!!env.RESEND_API_KEY});
 
   /* Public: haber listesi */
   if(url.pathname==='/api/news' && request.method==='GET'){
@@ -55,7 +55,7 @@ async function newsApi(request, env, url){
 
   /* Admin: haber listesi */
   if(url.pathname==='/api/admin/news' && request.method==='GET'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const status=url.searchParams.get('status');
     let sql='SELECT id,slug,title,excerpt,category,author,cover_url,status,published_at,updated_at FROM news';
@@ -68,22 +68,26 @@ async function newsApi(request, env, url){
 
   /* Admin: haber ekle / güncelle (slug ile upsert) */
   if(url.pathname==='/api/admin/news' && request.method==='POST'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
-    const b=await request.json();
+    const b=await request.json().catch(()=>null);
+    if(!b || typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
     if(!b.title || !b.slug) return json({ok:false,error:'title and slug required'},400);
+    const title=String(b.title).trim().slice(0,240);
+    const slug=String(b.slug).trim().replace(/[^a-z0-9-]/gi,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,180);
+    if(!title || !slug) return json({ok:false,error:'Geçersiz başlık veya slug'},400);
     const status=b.status==='published'?'published':'draft';
     const now=new Date().toISOString();
     await env.DB.prepare(`INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,updated_at)
       VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(slug) DO UPDATE SET title=excluded.title,excerpt=excluded.excerpt,body=excluded.body,category=excluded.category,author=excluded.author,cover_url=excluded.cover_url,video_url=excluded.video_url,status=excluded.status,published_at=excluded.published_at,updated_at=excluded.updated_at`)
-      .bind(b.slug,b.title,b.excerpt||'',b.body||'',b.category||'',b.author||'',b.cover_url||'',b.video_url||'',status,status==='published'?(b.published_at||now):null,now).run();
-    return json({ok:true,slug:b.slug,status});
+      .bind(slug,title,String(b.excerpt||'').slice(0,1000),String(b.body||'').slice(0,200000),String(b.category||'').slice(0,100),String(b.author||'').slice(0,160),String(b.cover_url||'').slice(0,2000),String(b.video_url||'').slice(0,2000),status,status==='published'?(b.published_at||now):null,now).run();
+    return json({ok:true,slug,status});
   }
 
   /* Admin: haber güncelle / sil (ID ile) */
   const newsById=url.pathname.match(/^\/api\/admin\/news\/(\d+)$/);
   if(newsById){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const id=Number(newsById[1]);
     if(request.method==='GET'){
@@ -114,24 +118,29 @@ async function contactApi(request, env, url, ctx){
     if(!env.DB) return json({ok:false,error:'Veritabanı yapılandırılmadı'},503);
     const b=await request.json().catch(()=>({}));
     if(!b.name||!b.email||!b.message) return json({ok:false,error:'Ad, e-posta ve mesaj zorunludur'},400);
-    if(b.message.length>5000) return json({ok:false,error:'Mesaj çok uzun'},400);
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(b.email)) return json({ok:false,error:'Geçersiz e-posta adresi'},400);
+    if(String(b.message).length>5000) return json({ok:false,error:'Mesaj çok uzun'},400);
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(b.email))) return json({ok:false,error:'Geçersiz e-posta adresi'},400);
     if(b._honey) return json({ok:true});
+    const name=String(b.name).trim().slice(0,160);
+    const email=String(b.email).trim().slice(0,320);
+    const phone=String(b.phone||'').trim().slice(0,60);
+    const subject=String(b.subject||'').trim().slice(0,200);
+    const message=String(b.message).trim().slice(0,5000);
     await env.DB.prepare('INSERT INTO contact_messages(name,email,phone,subject,message) VALUES(?,?,?,?,?)')
-      .bind(b.name,b.email,b.phone||'',b.subject||'',b.message).run();
-    const emailData={name:b.name,email:b.email,phone:b.phone||'',subject:b.subject||'',message:b.message};
+      .bind(name,email,phone,subject,message).run();
+    const emailData={name,email,phone,subject,message};
     if(ctx) ctx.waitUntil(sendContactEmail(env,emailData));
     else sendContactEmail(env,emailData);
     return json({ok:true,message:'Mesajınız alındı, teşekkürler!'});
   }
   if(url.pathname==='/api/admin/contact' && request.method==='GET'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     const rows=await env.DB.prepare('SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 200').all();
     return json({ok:true,items:rows.results});
   }
   const markRead=url.pathname.match(/^\/api\/admin\/contact\/(\d+)$/);
   if(markRead && request.method==='PATCH'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     await env.DB.prepare('UPDATE contact_messages SET read=1 WHERE id=?').bind(Number(markRead[1])).run();
     return json({ok:true});
   }
@@ -146,7 +155,7 @@ async function mediaApi(request, env){
   if(path==='/api/login' && request.method==='POST'){
     const body=await request.json().catch(()=>({}));
     if(!env.ADMIN_PASSWORD || body.password!==env.ADMIN_PASSWORD) return json({error:'Geçersiz şifre'},401);
-    const token=await sessionToken(env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD);
+    const token=await sessionToken(env.ADMIN_SESSION_SECRET);
     return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`});
   }
   if(path==='/api/logout') return new Response(null,{status:204,headers:{'set-cookie':'bt_admin=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict'}});
@@ -160,14 +169,14 @@ async function mediaApi(request, env){
     if(cat){sql+=' AND category=?'; args.push(cat);}
     sql+=' ORDER BY created_at DESC LIMIT 200';
     const r=await env.DB.prepare(sql).bind(...args).all();
-    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD,Number(env.MEDIA_PUBLIC_TTL||3600))})));
+    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET,Number(env.MEDIA_PUBLIC_TTL||3600))})));
     return json({brand:'BTMedya',generated_at:new Date().toISOString(),items},200,cors);
   }
 
   const aiToken=env.AI_READ_TOKEN;
   const bearer=(request.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
   const aiRead=(aiToken && bearer===aiToken);
-  const auth=aiRead || await validSession(request,env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD);
+  const auth=aiRead || await validSession(request,env.ADMIN_SESSION_SECRET);
   if(!auth) return json({error:'Yetkisiz'},401);
 
   /* DEPO PLANI — her dosyanin teknik ozelligi, onerilen hedefler, secilen
@@ -258,7 +267,7 @@ async function mediaApi(request, env){
     if(q){sql+=' AND (original_name LIKE ? OR title LIKE ? OR description LIKE ? OR tags LIKE ?)'; const x=`%${q}%`; args.push(x,x,x,x);}
     if(cat){sql+=' AND category=?';args.push(cat);} if(pub!==null){sql+=' AND published=?';args.push(pub==='1'?1:0);} sql+=' ORDER BY created_at DESC LIMIT 500';
     const r=await env.DB.prepare(sql).bind(...args).all();
-    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD,Number(env.MEDIA_PUBLIC_TTL||86400))})));
+    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET,Number(env.MEDIA_PUBLIC_TTL||86400))})));
     return json({items});
   }
   if(path==='/api/media' && request.method==='POST'){
@@ -313,7 +322,7 @@ async function mediaApi(request, env){
   if(path==='/api/export'){
     const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'};
     const r=await env.DB.prepare('SELECT * FROM media WHERE published=1 ORDER BY created_at DESC').all();
-    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD,Number(env.MEDIA_PUBLIC_TTL||86400))})));
+    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET,Number(env.MEDIA_PUBLIC_TTL||86400))})));
     return json({generated_at:new Date().toISOString(),brand:'BTMedya',items},200,cors);
   }
   return null;
@@ -435,7 +444,7 @@ export default { async fetch(request, env, ctx){
 
   if(url.pathname.startsWith('/media/')){
     const key=decodeURIComponent(url.pathname.slice('/media/'.length));
-    const ok=await validMediaSig(key,url.searchParams.get('exp'),url.searchParams.get('sig'),env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET||env.ADMIN_PASSWORD);
+    const ok=await validMediaSig(key,url.searchParams.get('exp'),url.searchParams.get('sig'),env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET);
     if(!ok) return text('Geçersiz veya süresi dolmuş medya bağlantısı',403);
     if(!env.MEDIA) return text('Medya deposu yapılandırılmadı',503);
     const obj=await env.MEDIA.get(key); if(!obj)return text('Medya bulunamadı',404);
