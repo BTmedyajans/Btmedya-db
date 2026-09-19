@@ -3,7 +3,7 @@
 # Production DNS temizliği, cloudflare-admin workflow'undaki güvenli kayıt filtresiyle yapılır.
 name = "btmedya-db"
 main = "src/worker.js"
-compatibility_date = "2026-09-02"
+compatibility_date = "2026-09-19"
 
 [observability]
 enabled = true
