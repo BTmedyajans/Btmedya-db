@@ -45,8 +45,7 @@ jobs:
         run: |
           set -euo pipefail
           curl -fsS --max-time 20 https://btmedya.com.tr/ > /tmp/home.html
-          grep -Fq '/assets/hero-ending.jpg' /tmp/home.html
-          grep -Fq '/assets/media/web/hero-bg.mp4' /tmp/home.html
+          grep -Fq '/assets/media/web/showreel-action.mp4' /tmp/home.html
           grep -Fq 'HABER.' /tmp/home.html
           grep -Fq 'AI LAB' /tmp/home.html
           grep -Fq 'WhatsApp' /tmp/home.html
