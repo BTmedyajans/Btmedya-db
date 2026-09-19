@@ -518,20 +518,11 @@ export default { async fetch(request, env, ctx){
    i.ytimg.com haber sayfalarındaki video kapak görselleri için,
    youtube-nocookie.com ise tıklayınca oluşturulan gömülü oynatıcı için
    gerekli. İkisi de src/news-page.js içinde kullanılıyor. */
-/* İstek başına rastgele nonce.
-   Gerekçe: Cloudflare, bot algılama betiğini sayfaya SATIR İÇİ olarak
-   enjekte ediyor (window.__CF$cv$params). script-src 'self' bunu engelliyor,
-   sonuç her ziyaretçinin konsolunda CSP ihlali ve çalışmayan bir Cloudflare
-   betiği. Cloudflare'in çözümü belgelenmiş: CSP başlığında nonce varsa onu
-   ayrıştırıp kendi enjekte ettiği betiğe basıyor. 'unsafe-inline' eklemek de
-   işe yarardı ama politikanın değerini bitirirdi; belge de ona karşı uyarıyor.
-   Kaynak: developers.cloudflare.com/cloudflare-challenges/challenge-types/javascript-detections/
-   /admin/ nonce ALMAZ: tarayıcılar nonce ile 'unsafe-inline'ı bir arada
-   görünce 'unsafe-inline'ı yok sayar, panel de satır içi betikle yazılmış.
-
-   HTML kısa süre önbelleğe girdiği için aynı nonce o pencerede paylaşılabilir.
-   Burada sakıncası yok: bu sayfalarda kullanıcı üretimi satır içi betik yok,
-   nonce yalnızca Cloudflare'in kendi betiğini geçirmek için var. */
+/* CSP notu:
+   Anasayfa ve dinamik haber şablonu erişilebilirlik ve küçük paket boyutu
+   için satır içi, güvenilir uygulama betikleri kullanır. Bu nedenle public
+   sayfalarda script-src 'unsafe-inline' açıkça tanımlıdır. Kullanıcı üretimli
+   HTML ise Worker tarafında kaçışlanır; admin API oturum korumalıdır. */
 function nonceUret() {
   const b = new Uint8Array(16);
   crypto.getRandomValues(b);
@@ -542,8 +533,7 @@ function cspKur(pathname, nonce) {
   const panel = pathname.startsWith('/admin');
   return [
     "default-src 'self'",
-    panel ? "script-src 'self' 'unsafe-inline'"
-          : `script-src 'self' 'nonce-${nonce}'`,
+    "script-src 'self' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
     "img-src 'self' data: blob: https://i.ytimg.com",
