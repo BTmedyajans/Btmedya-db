@@ -38,15 +38,18 @@ jobs:
           ! grep -Eiq 'name="robots"[^>]+content="[^"]*noindex' /tmp/home.html
           grep -Fq '"@type":"NewsMediaOrganization"' /tmp/home.html
           grep -Fq '"@type":"WebSite"' /tmp/home.html
+          grep -Fq 'twitter:card' /tmp/home.html
+          grep -Fq 'og:image' /tmp/home.html
 
-      - name: Check core static assets
+      - name: Check current homepage assets and structure
         run: |
           set -euo pipefail
-          curl -fsS --max-time 20 https://btmedya.com.tr/anasayfa.css > /tmp/home.css
-          curl -fsS --max-time 20 https://btmedya.com.tr/anasayfa.js > /tmp/home.js
-          curl -fsS --max-time 20 https://btmedya.com.tr/site.webmanifest > /tmp/manifest.json
-          grep -Fq 'kadraj' /tmp/home.js
-          grep -Fq '"short_name":"BTMEDYA"' /tmp/manifest.json
+          curl -fsS --max-time 20 https://btmedya.com.tr/ > /tmp/home.html
+          grep -Fq '/assets/hero-ending.jpg' /tmp/home.html
+          grep -Fq '/assets/media/web/hero-bg.mp4' /tmp/home.html
+          grep -Fq 'HABER.' /tmp/home.html
+          grep -Fq 'AI LAB' /tmp/home.html
+          grep -Fq 'WhatsApp' /tmp/home.html
 
       - name: Check production API health
         run: |
