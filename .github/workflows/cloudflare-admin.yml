@@ -139,6 +139,14 @@ jobs:
           git commit -m "fix(cf): synchronize production D1 database ID"
           git push origin HEAD:main
 
+      - name: Apply pending D1 migrations
+        if: github.event_name == 'push' || inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          npx wrangler d1 migrations apply btmedya-media --remote
       - name: Verify D1 production schema
         if: github.event_name == 'push' || inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
         env:
@@ -154,7 +162,7 @@ jobs:
           const fs = require("fs");
           const raw = JSON.parse(fs.readFileSync("/tmp/d1-schema.json", "utf8"));
           const text = JSON.stringify(raw);
-          const required = ["news", "contact_messages", "media", "video_library"];
+          const required = ["news", "contact_messages", "media", "video_library", "social_posts"];
           const missing = required.filter(name => !text.includes(name));
           if (missing.length) {
             console.error("Beklenen production D1 tabloları eksik:", missing.join(", "));
