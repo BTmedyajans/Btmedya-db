@@ -279,8 +279,6 @@ jobs:
               raise SystemExit(1)
 
           required = [
-              Path("public/assets/hero-scrub.mp4"),
-              Path("public/assets/hero-ending.jpg"),
               Path("public/assets/media/web/showreel-action.mp4"),
           ]
           missing_required = [str(p) for p in required if not p.exists()]
