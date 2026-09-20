@@ -172,7 +172,8 @@ ${n.category?`<p class="article-eyebrow">${esc(n.category)}</p>`:''}
 <h1>${esc(n.title)}</h1>
 <div class="article-byline"><div class="article-meta">  <span>${esc(n.author||'BTMEDYA')}</span>
   ${tarihTr?`<time datetime="${esc(tarihIso)}">${esc(tarihTr)}</time>`:''}
-</div><span class="archive-badge">${arsiv?"ARŞİV · GEÇMİŞ İÇERİK":""}</span></div>
+  <span>${okunma} dk okuma</span>
+</div>${arsiv?`<span class="archive-badge">ARŞİV · GEÇMİŞ İÇERİK</span>`:''}</div>
 ${videoBlok}${kapakBlok}
 <div class="article-tools"><a href="https://wa.me/?text=${encodeURIComponent(n.title+" "+url)}" target="_blank" rel="noopener">WhatsApp ↗</a><a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}" target="_blank" rel="noopener">Facebook ↗</a><a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(n.title)}" target="_blank" rel="noopener">X ↗</a></div>${ozet?`<p class="article-lead">${esc(ozet)}</p>`:""}<div class="article-body">
 ${govde(n.body)}
