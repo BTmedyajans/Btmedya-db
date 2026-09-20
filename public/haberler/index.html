@@ -1,145 +1,76 @@
 <!doctype html>
 <html lang="tr">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta name="theme-color" content="#05070a"/>
-<link rel="canonical" href="https://btmedya.com.tr/haberler/"/>
-<title>BTMEDYA Haber | Balıkesir, Türkiye ve Dünyadan Güncel Haberler</title>
-<meta name="description" content="BTMEDYA Haber: Balıkesir başta olmak üzere Türkiye ve dünyadan güncel haberler, ekonomi, yerel yönetim, ulaşım, yaşam, spor ve teknoloji."/>
-<meta name="robots" content="index,follow,max-image-preview:large"/>
-<meta property="og:title" content="BTMEDYA Haber | Güncel Haberler"/>
-<meta property="og:description" content="Balıkesir, Türkiye ve dünyadan güncel haberler. Yerel habercilik, saha gazeteciliği ve doğrulanabilir kaynaklarla özgün içerik."/>
-<meta property="og:type" content="website"/>
-<meta property="og:url" content="https://btmedya.com.tr/haberler/"/>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05070a">
+<link rel="canonical" href="https://btmedya.com.tr/haberler/">
+<title>BTMEDYA Haber Merkezi | Balıkesir ve Türkiye Gündemi</title>
+<meta name="description" content="BTMEDYA Haber Merkezi: Balıkesir başta olmak üzere Türkiye ve dünyadan güncel haberler, saha haberleri, ekonomi, yaşam, spor ve teknoloji.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website"><meta property="og:title" content="BTMEDYA Haber Merkezi"><meta property="og:description" content="Sahadan, kaynaktan, doğrudan. Balıkesir ve Türkiye gündemi."><meta property="og:url" content="https://btmedya.com.tr/haberler/">
 <link rel="preload" href="/assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/fonts/fonts.css">
-<link rel="icon" href="/assets/favicon.png" type="image/png"/>
-<link rel="manifest" href="/site.webmanifest"/>
-<link rel="stylesheet" href="/styles.css"/>
+<link rel="stylesheet" href="/assets/fonts/fonts.css"><link rel="icon" href="/assets/favicon.png" type="image/png"><link rel="manifest" href="/site.webmanifest"><link rel="stylesheet" href="/styles.css">
 <style>
-.news-shell{max-width:1400px;margin:auto;padding:28px 5vw 90px}
-.news-kicker{display:flex;gap:10px;align-items:center;color:#aeb8c7;font-size:.75rem;letter-spacing:.16em;font-weight:700}
-.news-kicker i{width:8px;height:8px;border-radius:50%;background:#ff3b30;display:inline-block}
-.news-title{font-family:"Space Grotesk",sans-serif;font-size:clamp(3rem,8vw,7.5rem);line-height:.88;letter-spacing:-.07em;margin:18px 0 22px}
-.news-title span{opacity:.42}
-.news-deck{max-width:760px;color:#aeb8c7;font-size:1.08rem;line-height:1.7}
-.news-nav{display:flex;gap:8px;overflow:auto;padding:22px 0;border-top:1px solid #ffffff18;border-bottom:1px solid #ffffff18;margin:30px 0}
-.news-nav a{white-space:nowrap;border:1px solid #ffffff1a;border-radius:999px;padding:10px 16px;color:#dbe2ec;text-decoration:none}
-.news-grid{display:grid;grid-template-columns:1.55fr .8fr .8fr;gap:16px}
-.news-card{min-height:230px;border:1px solid #ffffff14;background:linear-gradient(145deg,#10151d,#080b10);padding:24px;display:flex;flex-direction:column;justify-content:flex-end;text-decoration:none;color:inherit;position:relative;overflow:hidden}
-.news-card.featured{min-height:520px}
-.news-card:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 10%,#ffffff12,transparent 38%);pointer-events:none}
-.news-card>*{position:relative}
-.news-tag{font-size:.68rem;letter-spacing:.13em;color:#9eabba;font-weight:800;margin-bottom:auto}
-.news-card h2,.news-card h3{font-family:"Space Grotesk",sans-serif;letter-spacing:-.035em;margin:30px 0 10px}
-.news-card h2{font-size:clamp(2rem,4vw,4.2rem);line-height:.95}
-.news-card h3{font-size:1.55rem;line-height:1.05}
-.news-card p{color:#aeb8c7;line-height:1.55;margin:0}
-.news-meta{font-size:.72rem;color:#748092;margin-top:16px}
-.section-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin:60px 0 18px}
-.section-head h2{font-family:"Space Grotesk";font-size:2rem;margin:0;letter-spacing:-.04em}
-.section-head p{color:#7f8998;margin:0}
-.latest-list{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.latest-item{border-top:1px solid #ffffff18;padding:18px 0;text-decoration:none;color:inherit}
-.latest-item small{color:#ff6b61;letter-spacing:.12em;font-weight:800}
-.latest-item h3{font-family:"Space Grotesk";font-size:1.35rem;line-height:1.1;margin:9px 0}
-.latest-item p{color:#8f9aa9;line-height:1.5;margin:0}
-.archive-tools{display:flex;justify-content:space-between;gap:14px;align-items:center;margin:20px 0}
-.archive-search{background:#0c1016;border:1px solid #ffffff18;color:#fff;border-radius:10px;padding:13px 15px;min-width:min(420px,100%)}
-.archive-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.archive-card{border-top:1px solid #ffffff18;padding:22px 0;text-decoration:none;color:inherit}
-.archive-card small{color:#8d99a8;font-weight:800;letter-spacing:.08em}
-.archive-card h3{font-family:"Space Grotesk";margin:9px 0;font-size:1.25rem}
-.archive-card p{color:#8792a1;line-height:1.5}
-@media(max-width:900px){.news-grid,.latest-list,.archive-grid{grid-template-columns:1fr}.news-card.featured{min-height:390px}.news-shell{padding-left:20px;padding-right:20px}.archive-tools{align-items:stretch;flex-direction:column}}
+:root{--red:#ff4038;--muted:#8c97a6;--line:#ffffff18;--panel:#0b1017}
+.news-shell{max-width:1440px;margin:auto;padding:22px 4vw 90px}.news-kicker{display:flex;align-items:center;gap:9px;color:#aeb8c7;font-size:.72rem;letter-spacing:.16em;font-weight:800}.news-kicker i{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 16px #ff4038;display:inline-block}.news-title{font-family:"Space Grotesk",sans-serif;font-size:clamp(3.2rem,8vw,8rem);line-height:.86;letter-spacing:-.075em;margin:18px 0}.news-title span{opacity:.35}.news-deck{max-width:780px;color:#aeb8c7;line-height:1.65;font-size:1.05rem}.news-nav{display:flex;gap:8px;overflow:auto;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:28px 0}.news-nav a{white-space:nowrap;text-decoration:none;color:#dce3ec;border:1px solid var(--line);border-radius:999px;padding:9px 15px;font-size:.82rem}.news-nav a:first-child{border-color:#ff403855;color:#fff}.ticker{display:flex;gap:18px;align-items:center;border-bottom:1px solid var(--line);padding:12px 0;margin-bottom:18px;overflow:hidden}.ticker strong{font-size:.68rem;letter-spacing:.14em;color:var(--red);white-space:nowrap}.ticker span{color:#aeb8c7;white-space:nowrap}.news-grid{display:grid;grid-template-columns:1.55fr .8fr .8fr;gap:12px}.news-card{min-height:260px;border:1px solid var(--line);background:linear-gradient(145deg,#101720,#080b10);padding:22px;display:flex;flex-direction:column;justify-content:flex-end;text-decoration:none;color:inherit;position:relative;overflow:hidden}.news-card.featured{min-height:530px}.news-card.video-card{padding:0}.news-card video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.42}.news-card .veil{position:absolute;inset:0;background:linear-gradient(180deg,#05070a22,#05070ae8)}.news-card .inner{position:relative;z-index:2;padding:24px}.news-tag{font-size:.67rem;letter-spacing:.13em;color:#b2bdca;font-weight:800}.news-card h2,.news-card h3{font-family:"Space Grotesk",sans-serif;letter-spacing:-.04em;margin:28px 0 9px;line-height:1}.news-card h2{font-size:clamp(2.2rem,4.5vw,4.8rem)}.news-card h3{font-size:1.55rem}.news-card p{color:#aeb8c7;line-height:1.5;margin:0}.news-meta{font-size:.7rem;color:#768292;margin-top:13px}.source{color:#d9e1ea}.section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin:62px 0 18px}.section-head h2{font-family:"Space Grotesk";font-size:2rem;margin:0;letter-spacing:-.04em}.section-head p{color:#778393;margin:0}.latest-list{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.latest-item{border-top:1px solid var(--line);padding:18px 0;text-decoration:none;color:inherit}.latest-item small{color:#ff756d;letter-spacing:.12em;font-weight:800}.latest-item h3{font-family:"Space Grotesk";font-size:1.4rem;line-height:1.08;margin:9px 0}.latest-item p{color:#8f9aa9;line-height:1.5;margin:0}.archive-tools{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:18px 0}.archive-search{width:min(440px,100%);box-sizing:border-box;background:#0c1016;border:1px solid var(--line);color:#fff;border-radius:10px;padding:13px 15px}.archive-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.archive-card{border-top:1px solid var(--line);padding:20px 0;text-decoration:none;color:inherit}.archive-card small{color:#8d99a8;font-weight:800;letter-spacing:.08em}.archive-card h3{font-family:"Space Grotesk";margin:8px 0;font-size:1.25rem}.archive-card p{color:#8792a1;line-height:1.5}.trust{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);margin-top:50px}.trust div{padding:20px;border-right:1px solid var(--line)}.trust div:last-child{border-right:0}.trust b{display:block;font-family:"Space Grotesk";font-size:1.5rem}.trust span{color:#7f8b9b;font-size:.8rem;line-height:1.4}.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#43d17a;margin-right:5px}.disclaimer{color:#687483;font-size:.72rem;line-height:1.5;margin-top:18px}
+@media(max-width:900px){.news-grid,.latest-list,.archive-grid,.trust{grid-template-columns:1fr}.trust div{border-right:0;border-bottom:1px solid var(--line)}.trust div:last-child{border-bottom:0}.news-card.featured{min-height:400px}.news-shell{padding-left:18px;padding-right:18px}.archive-tools{flex-direction:column;align-items:stretch}}
 </style>
 </head>
 <body>
 <div class="noise" aria-hidden="true"></div>
-<header class="topbar">
-<a class="brand" href="/" aria-label="BTMEDYA ana sayfa"><img src="/assets/btmedya-emblem-derived.png" alt="BTMEDYA" class="brand-emblem"><span class="brand-mark">BT</span><span class="brand-word">MEDYA</span></a>
-<button class="menu-toggle" aria-controls="anaMenu" type="button" aria-label="Menüyü aç" aria-expanded="false">☰</button>
-<a class="quote" href="https://wa.me/905416401029?text=Merhaba%20BTMEDYA%2C%20bir%20proje%20i%C3%A7in%20teklif%20almak%20istiyorum." target="_blank" rel="noopener">TEKLİF AL ↗</a>
-</header>
-<nav id="anaMenu" class="site-menu" aria-label="Ana menü">
-<a href="/">Ana Sayfa</a><a href="/#services">Hizmetler</a><a href="/#portfolio">Portföy</a><a href="/#ai-lab">AI LAB</a><a href="/haberler/" aria-current="page">Haberler</a><a href="/hakkimizda/">Hakkımızda</a><a href="/iletisim/">İletişim</a>
-<div class="site-menu-alt"><a href="tel:+905416401029">+90 541 640 10 29</a><a href="https://www.instagram.com/btmedya10/" target="_blank" rel="noopener">Instagram</a><a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube</a><span>Balıkesir · Türkiye</span></div>
-</nav>
+<header class="topbar"><a class="brand" href="/" aria-label="BTMEDYA ana sayfa"><img src="/assets/btmedya-emblem-derived.png" alt="BTMEDYA" class="brand-emblem"><span class="brand-mark">BT</span><span class="brand-word">MEDYA</span></a><button class="menu-toggle" aria-controls="anaMenu" type="button" aria-label="Menüyü aç" aria-expanded="false">☰</button><a class="quote" href="https://wa.me/905416401029?text=Merhaba%20BTMEDYA%2C%20bir%20proje%20icin%20teklif%20almak%20istiyorum." target="_blank" rel="noopener">TEKLİF AL ↗</a></header>
+<nav id="anaMenu" class="site-menu" aria-label="Ana menü"><a href="/">Ana Sayfa</a><a href="/#services">Hizmetler</a><a href="/#portfolio">Portföy</a><a href="/#ai-lab">AI LAB</a><a href="/haberler/" aria-current="page">Haberler</a><a href="/hakkimizda/">Hakkımızda</a><a href="/iletisim/">İletişim</a><div class="site-menu-alt"><a href="tel:+905416401029">+90 541 640 10 29</a><a href="https://www.instagram.com/btmedya10/" target="_blank" rel="noopener">Instagram</a><a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube</a><span>Balıkesir · Türkiye</span></div></nav>
 
 <main class="news-shell">
-<section aria-labelledby="haber-baslik">
-<div class="news-kicker"><i></i> BTMEDYA HABER MERKEZİ · 20 EYLÜL 2026</div>
-<h1 id="haber-baslik" class="news-title">Haber.<br><span>Sahadan, kaynaktan, doğrudan.</span></h1>
-<p class="news-deck">Balıkesir merkezli; Türkiye ve dünyayı izleyen, yerel haberi saha verisiyle büyüten yeni nesil haber paneli. Güncel gelişmeler ayrı, arşiv içerikleri ayrı etiketlenir. Eski fiyat ve tahminler güncel bilgi gibi sunulmaz.</p>
-<nav class="news-nav" aria-label="Haber kategorileri">
-<a href="#son-dakika">Son Dakika</a><a href="#balikesir">Balıkesir</a><a href="#turkiye">Türkiye</a><a href="#ekonomi">Ekonomi</a><a href="#dunya">Dünya</a><a href="#yasam">Yaşam</a><a href="#spor">Spor</a><a href="#arsiv">Arşiv</a>
-</nav>
+<section>
+<div class="news-kicker"><i></i> BTMEDYA HABER MERKEZİ · EDITORIAL DESK</div>
+<h1 class="news-title">Haber.<br><span>Sahadan, kaynaktan, doğrudan.</span></h1>
+<p class="news-deck">Balıkesir merkezli yeni nesil haber merkezi. Yerel saha haberciliğini Türkiye ve dünya gündemiyle aynı editoryal sistemde buluşturuyoruz. Her içerikte tarih, kaynak ve içerik türü açıkça gösterilir.</p>
+<nav class="news-nav" aria-label="Haber kategorileri"><a href="#son-dakika">Son Dakika</a><a href="#balikesir">Balıkesir</a><a href="#turkiye">Türkiye</a><a href="#ekonomi">Ekonomi</a><a href="#dunya">Dünya</a><a href="#teknoloji">Teknoloji / AI</a><a href="#spor">Spor</a><a href="#arsiv">Arşiv</a></nav>
+<div class="ticker"><strong><span class="live-dot"></span> CANLI AKIŞ</strong><span>Yeni haberler yayınlandıkça bu bant D1 tabanlı haber akışına bağlanacak.</span></div>
 </section>
 
 <section id="son-dakika" class="news-grid" aria-label="Öne çıkan haberler">
-<a class="news-card featured" href="https://www.yenisafak.com/balikesir" target="_blank" rel="noopener">
-<span class="news-tag">BALIKESİR · SON GELİŞMELER</span>
-<h2>Balıkesir'den günün öne çıkan gelişmeleri</h2>
-<p>Ayvalık'taki kaza ve Manyas'taki yangın gibi 20 Eylül 2026 tarihli gelişmeler yerel gündemin ilk başlıkları arasında.</p>
-<div class="news-meta">Kaynak: Yeni Şafak Balıkesir · 20 Eylül 2026</div>
-</a>
-<a class="news-card" href="https://gazetemerhaba.com/populer-haberler/yasam-etkinlik/20-eylul-2026-balikesir-yol-durumu-dursunbey-ivrindi-savastepe-ve-bandirma-yollarinda-calisma-123248" target="_blank" rel="noopener">
-<span class="news-tag">ULAŞIM</span><h3>Balıkesir'de bazı güzergâhlarda trafik düzeni değişti</h3>
-<p>Dursunbey, İvrindi, Savaştepe ve Gönen-Bandırma bağlantılarındaki çalışmalar sürücüleri ilgilendiriyor.</p>
-<div class="news-meta">Kaynak: Gazete Merhaba · 20 Eylül 2026</div>
-</a>
-<a class="news-card" href="https://balikesirulasim.com.tr/" target="_blank" rel="noopener">
-<span class="news-tag">TOPLU TAŞIMA</span><h3>Hat ve sefer değişiklikleri için resmi duyurular</h3>
-<p>Balıkesir Toplu Taşıma AŞ'nin güncel duyuruları ayrı bir veri kaynağı olarak takip edilecek.</p>
-<div class="news-meta">Resmî kaynak · 18 Eylül 2026</div>
-</a>
+<a class="news-card featured video-card" href="/haberler/" aria-label="BTMEDYA video haber akışı"><video autoplay muted loop playsinline preload="metadata"><source src="/assets/media/web/state-haber.mp4" type="video/mp4"></video><div class="veil"></div><div class="inner"><span class="news-tag">BTMEDYA · HABER / VİDEO</span><h2>Sahadan gelen görüntü, haberin kendisidir.</h2><p>Gerçek çekimler, röportajlar ve saha görüntüleri için tasarlanan ana haber alanı.</p><div class="news-meta">Video varlığı: BTMEDYA medya arşivi</div></div></a>
+<a class="news-card" href="#balikesir"><span class="news-tag">BALIKESİR</span><h3>Yerel gündem burada başlayacak</h3><p>İlçe bazlı haberler, belediye kararları, ulaşım, ekonomi, esnaf ve kamu hizmetleri.</p><div class="news-meta">Editoryal alan · Güncel veri ile beslenecek</div></a>
+<a class="news-card" href="#turkiye"><span class="news-tag">TÜRKİYE</span><h3>Ulusal gündem</h3><p>Ajans ve resmî kaynaklardan doğrulanan ulusal gelişmeler için ayrı haber akışı.</p><div class="news-meta">Kaynak + zaman damgası</div></a>
 </section>
 
-<section id="balikesir">
-<div class="section-head"><div><h2>Balıkesir gündemi</h2><p>Yerel kaynak + resmî kurum doğrulaması</p></div></div>
+<section id="balikesir"><div class="section-head"><div><h2>Balıkesir gündemi</h2><p>Yerel kaynak + resmî kurum + saha doğrulaması</p></div></div>
 <div class="latest-list">
-<a class="latest-item" href="https://www.iha.com.tr/balikesir-haberleri/ayvalikta-rahvan-at-yarislarinda-100-at-piste-cikti-488335213" target="_blank" rel="noopener"><small>AYVALIK</small><h3>Rahvan at yarışlarında 100 at piste çıktı</h3><p>Ayvalık'ın kurtuluş yıl dönümü etkinlikleri kapsamında düzenlenen organizasyon.</p></a>
-<a class="latest-item" href="https://www.haberege.com.tr/balikesirde-dursunbeyde-ulasim-konforunu-artiriyor-1788868946-3741040" target="_blank" rel="noopener"><small>DURSUNBEY</small><h3>6,1 kilometrelik güzergâhta yol çalışması</h3><p>Davutlar-Göbül bağlantısında sathi kaplama çalışması yapıldı.</p></a>
-<a class="latest-item" href="https://balikesirulasim.com.tr/" target="_blank" rel="noopener"><small>RESMÎ DUYURU</small><h3>Toplu taşımada yeni sefer ve güzergâh bilgileri</h3><p>101-102 sefer saatleri ve 43 numaralı hattın güzergâh duyuruları yayımlandı.</p></a>
-</div>
-</section>
+<a class="latest-item" href="https://www.iha.com.tr/balikesir-haberleri/ayvalikta-rahvan-at-yarislarinda-100-at-piste-cikti-488335213" target="_blank" rel="noopener"><small>AYVALIK</small><h3>Rahvan at yarışlarında 100 at piste çıktı</h3><p>20 Eylül 2026 tarihli güncel kaynak bağlantısı.</p><div class="news-meta"><span class="source">Kaynak: İHA</span></div></a>
+<a class="latest-item" href="https://www.haberege.com.tr/balikesirde-dursunbeyde-ulasim-konforunu-artiriyor-1788868946-3741040" target="_blank" rel="noopener"><small>DURSUNBEY</small><h3>Yol çalışmaları ve ulaşım gündemi</h3><p>Dursunbey'deki güzergâh çalışmasına ilişkin haber.</p><div class="news-meta"><span class="source">Kaynak: Haber Ege</span></div></a>
+<a class="latest-item" href="https://balikesirulasim.com.tr/" target="_blank" rel="noopener"><small>RESMÎ DUYURU</small><h3>Toplu taşıma duyuruları</h3><p>Sefer, hat ve güzergâh değişiklikleri için doğrudan kurum kaynağı.</p><div class="news-meta"><span class="source">Kaynak: Balıkesir Ulaşım</span></div></a>
+</div></section>
 
-<section id="turkiye">
-<div class="section-head"><div><h2>Türkiye</h2><p>Ulusal gündem için doğrulanabilir kaynak akışı</p></div></div>
-<div class="latest-list">
-<a class="latest-item" href="https://www.trthaber.com/son-dakika-haberleri" target="_blank" rel="noopener"><small>GÜNDEM</small><h3>Türkiye'den son dakika gelişmeleri</h3><p>Ulusal gündem başlıkları zaman damgası ve kaynak bilgisiyle izlenecek.</p></a>
-<a class="latest-item" href="https://www.trthaber.com/" target="_blank" rel="noopener"><small>EKONOMİ</small><h3>Ekonomi ve piyasa gündemi</h3><p>Kur, yatırım, üretim ve tüketici başlıklarında veri temelli haber akışı.</p></a>
-<a class="latest-item" href="https://www.trthaber.com/" target="_blank" rel="noopener"><small>BİLİM / TEKNOLOJİ</small><h3>Yapay zekâ ve teknoloji</h3><p>BTMEDYA'nın uzmanlık alanıyla uyumlu, kaynaklı teknoloji haberleri.</p></a>
-</div>
-</section>
+<section id="turkiye"><div class="section-head"><div><h2>Türkiye</h2><p>Ulusal kaynak akışı için taslak alan</p></div></div><div class="latest-list">
+<a class="latest-item" href="https://www.trthaber.com/son-dakika-haberleri" target="_blank" rel="noopener"><small>SON DAKİKA</small><h3>Türkiye gündemi</h3><p>Güncel gelişmeler zaman damgası ve kaynak bilgisiyle gösterilecek.</p></a>
+<a class="latest-item" href="https://www.trthaber.com/" target="_blank" rel="noopener"><small>EKONOMİ</small><h3>Ekonomi ve piyasalar</h3><p>Veri destekli ekonomi haberleri için ayrı akış.</p></a>
+<a class="latest-item" href="https://www.trthaber.com/" target="_blank" rel="noopener"><small>BİLİM / TEKNOLOJİ</small><h3>Teknoloji ve yapay zekâ</h3><p>BTMEDYA'nın uzmanlık alanıyla birleşen haber dosyaları.</p></a>
+</div></section>
 
-<section id="arsiv">
-<div class="section-head"><div><h2>BTMEDYA Arşivi</h2><p>2024 saha haberleri · güncel haberlerden ayrı tutulur</p></div></div>
-<div class="archive-tools"><input id="archiveSearch" class="archive-search" type="search" placeholder="Arşivde ara: pazar, ekonomi, spor..." aria-label="Arşivde ara"><span class="news-meta">27 arşiv haberi</span></div>
-<div class="archive-grid" id="archiveGrid">
-<a class="archive-card" data-search="pazar balıkesir ekonomi" href="/haberler/balikesir-in-en-kalabalik-pazari"><small>YEREL / PAZAR</small><h3>Balıkesir'in En Kalabalık Pazarı</h3><p>2024 saha haberi. Arşiv fiyatları güncel fiyat olarak kullanılmaz.</p></a>
+<section id="ekonomi"><div class="section-head"><div><h2>Ekonomi</h2><p>Fiyat, esnaf, konut, tarım ve yerel işletme dosyaları</p></div></div><div class="latest-list"><a class="latest-item" href="#arsiv"><small>ARŞİV</small><h3>Yerel ekonominin saha kayıtları</h3><p>2024 haberleri güncel verilerden ayrıştırılarak korunuyor.</p></a><a class="latest-item" href="#balikesir"><small>YEREL</small><h3>Esnaf ve küçük işletmeler</h3><p>Yeni saha haberleri için hazır editoryal kategori.</p></a><a class="latest-item" href="#balikesir"><small>TARIM</small><h3>Üretici ve pazar</h3><p>Üretici fiyatı ile tüketici fiyatı arasındaki farkı görünür kılan dosyalar.</p></a></div></section>
+
+<section id="dunya"><div class="section-head"><div><h2>Dünya</h2><p>Uluslararası gündem için ayrı editoryal katman</p></div></div><div class="latest-list"><a class="latest-item" href="https://www.reuters.com/world/" target="_blank" rel="noopener"><small>DÜNYA</small><h3>Uluslararası gelişmeler</h3><p>Kaynaklı ve zaman damgalı dünya haberleri.</p><div class="news-meta">Kaynak: Reuters World</div></a><a class="latest-item" href="#teknoloji"><small>TEKNOLOJİ</small><h3>AI ve teknoloji gündemi</h3><p>Yeni nesil teknolojilerin Türkiye'ye etkileri.</p></a><a class="latest-item" href="#balikesir"><small>BAĞLAM</small><h3>Dünyanın Balıkesir'e etkisi</h3><p>Küresel gelişmeleri yerel ölçekte açıklayan haber dosyaları.</p></a></div></section>
+
+<section id="teknoloji"><div class="section-head"><div><h2>Teknoloji / AI</h2><p>BTMEDYA'nın uzmanlık alanından haber ve analiz</p></div></div><div class="latest-list"><a class="latest-item" href="/#ai-lab"><small>AI LAB</small><h3>Yapay zekâ üretim dünyasını değiştiriyor</h3><p>Üretim, video, medya ve içerik teknolojilerindeki gelişmeler.</p></a><a class="latest-item" href="/#portfolio"><small>MEDYA</small><h3>Video ve dijital yayıncılık</h3><p>Yeni medya üretim araçları ve yayıncılık pratikleri.</p></a><a class="latest-item" href="/#portfolio"><small>PRODÜKSİYON</small><h3>Saha görüntüsünden dijital hikâyeye</h3><p>Gerçek görüntüleri merkeze alan editoryal üretim.</p></a></div></section>
+
+<section id="spor"><div class="section-head"><div><h2>Spor</h2><p>Balıkesir'den ulusal gündeme</p></div></div><div class="latest-list"><a class="latest-item" href="/haberler/balikesir-muay-thai-de-dunya-arenasinda"><small>ARŞİV</small><h3>Balıkesir Muay Thai'de Dünya Arenasında</h3><p>Yerel spor hikâyelerinden oluşan arşiv içeriği.</p></a><a class="latest-item" href="#balikesir"><small>YEREL SPOR</small><h3>İlçelerden spor gündemi</h3><p>Yeni saha haberleri için kategori altyapısı.</p></a><a class="latest-item" href="#balikesir"><small>SPOR</small><h3>Başarı hikâyeleri</h3><p>Yerel sporcuları ulusal ölçekte görünür kılan dosyalar.</p></a></div></section>
+
+<section id="arsiv"><div class="section-head"><div><h2>BTMEDYA Arşivi</h2><p>2024 saha haberleri · güncel haberlerden ayrı</p></div></div><div class="archive-tools"><input id="archiveSearch" class="archive-search" type="search" placeholder="Arşivde ara: pazar, ekonomi, spor..." aria-label="Arşivde ara"><span class="news-meta">27 arşiv haberi</span></div><div class="archive-grid" id="archiveGrid">
+<a class="archive-card" data-search="pazar balıkesir ekonomi" href="/haberler/balikesir-in-en-kalabalik-pazari"><small>YEREL / PAZAR</small><h3>Balıkesir'in En Kalabalık Pazarı</h3><p>2024 saha haberi.</p></a>
 <a class="archive-card" data-search="esnaf ekonomi berber kuaför" href="/haberler/balikesir-de-berber-ve-kuafor-fiyatlari-el-yakiyor"><small>EKONOMİ / YAŞAM</small><h3>Berber ve kuaför fiyatları</h3><p>2024 tarihli maliyet ve tüketici haberi.</p></a>
-<a class="archive-card" data-search="ayakkabı çarşı okul alışveriş" href="/haberler/okul-doneminde-ayakkabicilar-carsisi-na-yogun-ilgi"><small>YEREL / ALIŞVERİŞ</small><h3>Ayakkabıcılar Çarşısı'nda yoğunluk</h3><p>Okul sezonuna ilişkin 2024 saha haberi.</p></a>
-<a class="archive-card" data-search="eğitim açıköğretim" href="/haberler/acikogretim-lisesi-ikinci-bir-sans-mi-yeni-zorluklar-mi"><small>EĞİTİM</small><h3>Açıköğretim Lisesi: İkinci Bir Şans mı?</h3><p>Öğrenci deneyimi üzerinden hazırlanmış arşiv haberi.</p></a>
-<a class="archive-card" data-search="emlak kira konut ekonomi" href="/haberler/balikesir-de-kira-fiyatlarinda-30-artis-bekleniyor"><small>EKONOMİ / EMLAK</small><h3>Balıkesir'de kira fiyatları</h3><p>2024 piyasa beklentisi. Güncel veri değildir.</p></a>
+<a class="archive-card" data-search="ayakkabı çarşı okul alışveriş" href="/haberler/okul-doneminde-ayakkabicilar-carsisi-na-yogun-ilgi"><small>YEREL / ALIŞVERİŞ</small><h3>Ayakkabıcılar Çarşısı'nda yoğunluk</h3><p>Okul sezonuna ilişkin saha haberi.</p></a>
+<a class="archive-card" data-search="eğitim açıköğretim" href="/haberler/acikogretim-lisesi-ikinci-bir-sans-mi-yeni-zorluklar-mi"><small>EĞİTİM</small><h3>Açıköğretim Lisesi</h3><p>Öğrenci deneyimi üzerinden arşiv haberi.</p></a>
+<a class="archive-card" data-search="emlak kira konut ekonomi" href="/haberler/balikesir-de-kira-fiyatlarinda-30-artis-bekleniyor"><small>EKONOMİ / EMLAK</small><h3>Balıkesir'de kira fiyatları</h3><p>2024 piyasa beklentisi.</p></a>
 <a class="archive-card" data-search="zanaat yorgancılık kültür" href="/haberler/el-emegi-yorganlar-artik-isitmiyor"><small>KÜLTÜR / ZANAAT</small><h3>El emeği yorgancılık</h3><p>Kaybolmaya yüz tutan bir zanaat üzerine saha haberi.</p></a>
-</div>
-</section>
+</div></section>
+
+<section class="trust" aria-label="Editoryal ilkeler"><div><b>Kaynak</b><span>Haberin kaynağı ve mümkün olduğunda birincil belge açıkça gösterilir.</span></div><div><b>Zaman</b><span>Yayın ve güncelleme zamanı haber kartında tutulur.</span></div><div><b>Arşiv</b><span>Eski fiyatlar ve geçmiş tahminler güncel veri gibi sunulmaz.</span></div><div><b>Medya</b><span>Gerçek saha fotoğrafı ve video önceliklidir.</span></div></section>
+<p class="disclaimer">Bu sayfa şu anda taslak/editoryal prototiptir. Güncel haberler yayına alınmadan önce kaynak, tarih, görsel kullanım hakkı ve içerik doğrulaması kontrol edilmelidir.</p>
 </main>
 
-<footer class="final-footer">
-<div class="footer-brand"><img src="/assets/btmedya-emblem-derived.png" alt="BTMEDYA"><div><strong>BTMEDYA</strong><span>Haber · Medya · Prodüksiyon</span></div></div>
-<div class="footer-contact"><a href="tel:+905416401029">+90 541 640 10 29</a><a href="/">btmedya.com.tr</a></div>
-<div class="footer-social"><a href="https://www.instagram.com/btmedya10/" target="_blank" rel="noopener">Instagram</a><a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube</a><a href="https://www.tiktok.com/@btcraft10" target="_blank" rel="noopener">TikTok</a></div>
-<div class="footer-legal">© 2026 BTMEDYA · Balıkesir, Türkiye</div>
-</footer>
-<script src="/script.js"></script>
-<script>
-const search=document.getElementById('archiveSearch');
-const cards=[...document.querySelectorAll('.archive-card')];
-search?.addEventListener('input',()=>{const q=search.value.toLocaleLowerCase('tr-TR').trim();cards.forEach(c=>c.hidden=q && !c.dataset.search.includes(q));});
-</script>
-</body>
-</html>
+<footer class="final-footer"><div class="footer-brand"><img src="/assets/btmedya-emblem-derived.png" alt="BTMEDYA"><div><strong>BTMEDYA</strong><span>Haber · Medya · Prodüksiyon</span></div></div><div class="footer-contact"><a href="tel:+905416401029">+90 541 640 10 29</a><a href="/">btmedya.com.tr</a></div><div class="footer-social"><a href="https://www.instagram.com/btmedya10/" target="_blank" rel="noopener">Instagram</a><a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube</a><a href="https://www.tiktok.com/@btcraft10" target="_blank" rel="noopener">TikTok</a></div><div class="footer-legal">© 2026 BTMEDYA · Balıkesir, Türkiye</div></footer>
+<script src="/script.js"></script><script>const s=document.getElementById('archiveSearch'),c=[...document.querySelectorAll('.archive-card')];s?.addEventListener('input',()=>{const q=s.value.toLocaleLowerCase('tr-TR').trim();c.forEach(x=>x.hidden=!!q&&!x.dataset.search.includes(q))});</script>
+</body></html>
