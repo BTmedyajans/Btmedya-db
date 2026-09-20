@@ -54,7 +54,7 @@ export function renderNewsPage(n, origin, vlib){
   const kaynakVid=youtubeId(n.video_url);
   const vid=(vlib&&(vlib.own_youtube_id||vlib.youtube_id))||kaynakVid;
   const kanal=vlib?(vlib.own_youtube_id?'BTMEDYA':(vlib.source_channel||'')):'';
-  const kapak=n.cover_url||'';
+  const kapak=n.cover_url || `${origin}/assets/haber-kapak/${encodeURIComponent(n.slug)}.webp`;
   const tarihTr=n.original_date||trTarih(n.published_at);
   const tarihIso=isoTarih(n.published_at);
   const ozet=(n.excerpt||'').trim()||String(n.body||'').slice(0,155);
@@ -87,7 +87,7 @@ export function renderNewsPage(n, origin, vlib){
 </div>
 ${kanal?`<p class="video-credit">Video ${esc(kanal)} kanalında yayında. <a href="https://www.youtube.com/watch?v=${esc(vid)}" target="_blank" rel="noopener">YouTube'da aç ↗</a></p>`:''}` : '';
 
-  const kapakBlok = (kapak && !vid) ? `
+  const kapakBlok = kapak ? `
 <img class="article-cover" src="${esc(kapak)}" alt="${esc(n.title)}" loading="lazy" decoding="async">` : '';
 
   // Videolu haberler icin VideoObject: Google video aramasinda gorunur olur.
