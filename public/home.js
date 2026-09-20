@@ -97,6 +97,36 @@
     if (cover) return `<div class="news-media"><img src="${esc(cover)}" alt="${esc(n.title)}" loading="lazy" decoding="async"><div class="news-scrim"></div></div><span class="reference-note">GERÇEK ARŞİV GÖRSELİ</span>`;
     return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
   };
+  const youtubeId = v => {
+    const m = String(v || '').match(/(?:youtube\\.com\\/(?:watch\\?(?:.*&)?v=|embed\\/|shorts\\/|live\\/)|youtu\\.be\\/)([A-Za-z0-9_-]{11})/);
+    return m ? m[1] : '';
+  };
+  const renderVideoArchive = (items) => {
+    const grid = d.getElementById('videoArchiveGrid');
+    if (!grid) return;
+    const videos = items.filter(n => youtubeId(n.video_url)).slice(0, 6);
+    grid.innerHTML = videos.length ? videos.map(n => {
+      const id = youtubeId(n.video_url);
+      const article = '/haberler/' + encodeURIComponent(n.slug);
+      const source = n.source_url || '';
+      return `<article class="video-archive-card">
+        <a class="video-archive-thumb" href="${esc(article)}" aria-label="${esc(n.title)} haberini aç">
+          <img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="${esc(n.title)} video kapağı" loading="lazy" decoding="async">
+          <span class="video-play">▶</span>
+          <span class="video-label">GERÇEK SAHA VİDEOSU</span>
+        </a>
+        <div class="video-archive-copy">
+          <small>${esc(n.category || 'HABER')} · ${esc(dateText(n))}</small>
+          <h3>${esc(n.title || '')}</h3>
+          <div class="video-archive-links">
+            <a href="${esc(article)}">HABERİ AÇ ↗</a>
+            <a href="${esc(n.video_url)}" target="_blank" rel="noopener">VİDEOYU İZLE ↗</a>
+            ${source ? `<a href="${esc(source)}" target="_blank" rel="noopener nofollow">KAYNAK ↗</a>` : ''}
+          </div>
+        </div>
+      </article>`).join('') : '<p class="section-side">Arşivde henüz doğrulanmış video kaydı yok.</p>';
+  };
+
   const render = (items) => {
     const list = items.slice(0, 9);
     newsGrid.innerHTML = list.map((n, i) => {
@@ -133,6 +163,7 @@
       }
     }
     render(allNews);
+    renderVideoArchive(allNews);
   };
 
   filterBar?.addEventListener('click', e => {
