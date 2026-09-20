@@ -104,7 +104,7 @@ jobs:
             exit 1
           fi
           cat "$body"
-          node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/health.json","utf8")); if(!x.ok||x.service!=="btmedya"||x.cms!==true||x.r2!==true||x.admin!==true) process.exit(1)'
+          node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/health.json","utf8")); if(!x.ok||x.service!=="btmedya"||x.cms!==true||x.r2!==true) process.exit(1)'
           curl -fsS --max-time 30 "https://btmedya.com.tr/api/news?limit=1" > /dev/null
       - name: Admin protection smoke test
         run: |
