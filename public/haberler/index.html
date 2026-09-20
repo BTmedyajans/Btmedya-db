@@ -72,5 +72,45 @@
 </main>
 
 <footer class="final-footer"><div class="footer-brand"><img src="/assets/btmedya-emblem-derived.png" alt="BTMEDYA"><div><strong>BTMEDYA</strong><span>Haber · Medya · Prodüksiyon</span></div></div><div class="footer-contact"><a href="tel:+905416401029">+90 541 640 10 29</a><a href="/">btmedya.com.tr</a></div><div class="footer-social"><a href="https://www.instagram.com/btmedya10/" target="_blank" rel="noopener">Instagram</a><a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube</a><a href="https://www.tiktok.com/@btcraft10" target="_blank" rel="noopener">TikTok</a></div><div class="footer-legal">© 2026 BTMEDYA · Balıkesir, Türkiye</div></footer>
-<script src="/script.js"></script><script>const s=document.getElementById('archiveSearch'),c=[...document.querySelectorAll('.archive-card')];s?.addEventListener('input',()=>{const q=s.value.toLocaleLowerCase('tr-TR').trim();c.forEach(x=>x.hidden=!!q&&!x.dataset.search.includes(q))});</script>
+<script src="/script.js"></script>
+<script>
+(async function(){
+  const grid=document.querySelector('#son-dakika');
+  const sections={
+    'Balıkesir':document.querySelector('#balikesir .latest-list'),
+    'Türkiye':document.querySelector('#turkiye .latest-list'),
+    'Ekonomi':document.querySelector('#ekonomi .latest-list'),
+    'Dünya':document.querySelector('#dunya .latest-list'),
+    'Teknoloji':document.querySelector('#teknoloji .latest-list'),
+    'Spor':document.querySelector('#spor .latest-list')
+  };
+  function esc(v){return String(v??'').replace(/[&<>"']/g,function(x){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]})}
+  function card(n){
+    const img=n.cover_url?'<img src="'+esc(n.cover_url)+'" alt="'+esc(n.title)+'" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.42">':'';
+    return '<a class="latest-item" href="/haberler/'+encodeURIComponent(n.slug)+'"><small>'+esc(n.category||'HABER')+'</small><h3>'+esc(n.title)+'</h3><p>'+esc(n.excerpt||'')+'</p><div class="news-meta"><span class="source">BTMEDYA · '+esc(n.author||'Haber Merkezi')+'</span></div></a>';
+  }
+  try{
+    const r=await fetch('/api/news?limit=60',{headers:{'Accept':'application/json'}});
+    if(!r.ok)return;
+    const j=await r.json(), items=Array.isArray(j.items)?j.items:[];
+    if(!items.length)return;
+    const fresh=items.filter(n=>n.status==='published');
+    const feature=fresh[0];
+    if(feature && grid){
+      const old=grid.querySelector('.news-card:not(.featured):first-of-type');
+      const hero=grid.querySelector('.news-card.featured');
+      if(hero){
+        hero.href='/haberler/'+encodeURIComponent(feature.slug);
+        hero.innerHTML=(feature.cover_url?'<img src="'+esc(feature.cover_url)+'" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.48">':'')+
+          '<div class="veil"></div><div class="inner"><span class="news-tag">'+esc(feature.category||'SON DAKİKA')+'</span><h2>'+esc(feature.title)+'</h2><p>'+esc(feature.excerpt||'')+'</p><div class="news-meta">BTMEDYA · '+esc(feature.author||'Haber Merkezi')+'</div></div>';
+      }
+    }
+    Object.keys(sections).forEach(function(cat){
+      const el=sections[cat]; if(!el)return;
+      const list=fresh.filter(n=>String(n.category||'').toLocaleLowerCase('tr-TR').includes(cat.toLocaleLowerCase('tr-TR'))).slice(0,6);
+      if(list.length)el.innerHTML=list.map(card).join('');
+    });
+  }catch(e){console.warn('Canlı haber akışı kullanılamadı',e)}
+})();
+</script><script>const s=document.getElementById('archiveSearch'),c=[...document.querySelectorAll('.archive-card')];s?.addEventListener('input',()=>{const q=s.value.toLocaleLowerCase('tr-TR').trim();c.forEach(x=>x.hidden=!!q&&!x.dataset.search.includes(q))});</script>
 </body></html>
