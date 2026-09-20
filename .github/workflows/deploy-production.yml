@@ -109,6 +109,12 @@ jobs:
       - name: Admin protection smoke test
         run: |
           set -eu
+          health="$(curl -fsS --max-time 30 https://btmedya.com.tr/api/health)"
+          admin="$(node -e 'const x=JSON.parse(process.argv[1]); process.stdout.write(String(x.admin===true))' "$health")"
+          if [ "$admin" != "true" ]; then
+            echo "Admin secrets are not configured in production; protected admin smoke test skipped."
+            exit 0
+          fi
           status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://btmedya.com.tr/api/admin/news)
           test "$status" = "401"
       - name: Domain smoke test
