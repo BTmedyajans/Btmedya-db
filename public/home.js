@@ -91,11 +91,11 @@
 
   const dateText = item => item.original_date || (item.published_at ? new Date(item.published_at).toLocaleDateString('tr-TR') : '');
   const cardMedia = n => {
-    const localCover = `/assets/haber-kapak/${encodeURIComponent(n.slug)}.webp`;
-    const cover = n.cover_url || localCover;
+    const cover = n.cover_url || '';
     const yt = String(n.video_url || '').match(/(?:youtube\\.com\\/(?:watch\\?(?:.*&)?v=|embed\\/|shorts\\/|live\\/)|youtu\\.be\\/)([A-Za-z0-9_-]{11})/);
     if (yt) return `<div class="news-media news-video"><img src="https://i.ytimg.com/vi/${yt[1]}/hqdefault.jpg" alt="${esc(n.title)} — video kapağı" loading="lazy"><div class="news-scrim"></div><span class="video-badge">▶ VİDEO</span></div>`;
-    return `<div class="news-media"><img src="${esc(cover)}" alt="${esc(n.title)}" loading="lazy" decoding="async"><div class="news-scrim"></div></div><span class="reference-note">GERÇEK ARŞİV GÖRSELİ</span>`;
+    if (cover) return `<div class="news-media"><img src="${esc(cover)}" alt="${esc(n.title)}" loading="lazy" decoding="async"><div class="news-scrim"></div></div><span class="reference-note">GERÇEK ARŞİV GÖRSELİ</span>`;
+    return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
   };
   const render = (items) => {
     const list = items.slice(0, 9);
