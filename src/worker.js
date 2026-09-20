@@ -23,7 +23,28 @@ async function validSession(request, secret){
 async function signedMediaUrl(request, key, secret, ttl=86400){
   const u=new URL(request.url); const exp=Math.floor(Date.now()/1000)+ttl; const msg=`${key}:${exp}`; const sig=await hmac(secret,msg); return `${u.origin}/media/${key}?exp=${exp}&sig=${encodeURIComponent(sig)}`;
 }
-async function validMediaSig(key, exp, sig, secret){ if(!exp||!sig||Number(exp)<Math.floor(Date.now()/1000)) return false; return (await hmac(secret,`${key}:${exp}`))===sig; }
+async function validMediaSig(key, exp, sig, secret){
+  if(!secret || !exp || !sig || Number(exp)<Math.floor(Date.now()/1000)) return false;
+  return (await hmac(secret,`${key}:${exp}`))===sig;
+}
+
+/* Login koruması: KV bağlıysa IP başına 15 dakikada en fazla 5 başarısız deneme.
+   KV henüz bağlanmamış production'da davranış bozulmasın diye kontrollü olarak pas geçilir. */
+const RATE_LIMIT_MAX=5;
+const RATE_LIMIT_WINDOW_S=15*60;
+async function checkRateLimit(env, ip){
+  if(!env.KV) return {allowed:true,remaining:RATE_LIMIT_MAX};
+  const key=`ratelimit:login:${ip}`;
+  const raw=await env.KV.get(key).catch(()=>null);
+  const count=raw ? Number(raw) : 0;
+  if(count>=RATE_LIMIT_MAX) return {allowed:false,remaining:0};
+  await env.KV.put(key,String(count+1),{expirationTtl:RATE_LIMIT_WINDOW_S}).catch(()=>{});
+  return {allowed:true,remaining:RATE_LIMIT_MAX-count-1};
+}
+async function clearRateLimit(env, ip){
+  if(!env.KV) return;
+  await env.KV.delete(`ratelimit:login:${ip}`).catch(()=>{});
+}
 function safeKey(name){ return name.normalize('NFKD').replace(/[^\w.\-]+/g,'-').replace(/-+/g,'-').replace(/^[-.]+|[-.]+$/g,'').toLowerCase(); }
 function extFromMime(mime){ const map={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/webm':'webm','audio/mpeg':'mp3','audio/wav':'wav','audio/mp4':'m4a','application/pdf':'pdf'}; return map[mime]||'bin'; }
 const ALLOWED_MIME = new Set(['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','audio/mpeg','audio/wav','audio/mp4','application/pdf']);
@@ -31,14 +52,28 @@ const ALLOWED_MIME = new Set(['image/jpeg','image/png','image/webp','image/gif',
 /* ---------- E-posta bildirimi (Resend) ---------- */
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 async function sendContactEmail(env, msg){
-  if(!env.RESEND_API_KEY) return;
+  if(!env.RESEND_API_KEY){
+    console.warn('[email] RESEND_API_KEY tanımlı değil, atlandı.');
+    return false;
+  }
   const to=env.RESEND_TO||'busetuncay1029@gmail.com';
   const from=env.RESEND_FROM||'BTMEDYA <noreply@btmedya.com.tr>';
   const subject=`[BTMEDYA] Yeni mesaj: ${msg.subject||'İletişim Formu'}`;
   const html=`<div style="font-family:sans-serif;max-width:600px;margin:auto"><h2 style="color:#111;border-bottom:2px solid #eee;padding-bottom:8px">Yeni İletişim Formu Mesajı</h2><table style="border-collapse:collapse;width:100%"><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px;width:110px">Ad Soyad</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.name)}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">E-posta</th><td style="padding:8px 12px;border-bottom:1px solid #eee"><a href="mailto:${esc(msg.email)}">${esc(msg.email)}</a></td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">Telefon</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.phone||'—')}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">Konu</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.subject||'—')}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px;vertical-align:top">Mesaj</th><td style="padding:8px 12px;white-space:pre-wrap">${esc(msg.message)}</td></tr></table><p style="margin-top:24px;font-size:12px;color:#999">btmedya.com.tr iletişim formu · ${new Date().toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'})}</p></div>`;
   try{
-    await fetch('https://api.resend.com/emails',{method:'POST',headers:{'Authorization':`Bearer ${env.RESEND_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({from,to:[to],subject,html})});
-  }catch(e){}
+    const res=await fetch('https://api.resend.com/emails',{method:'POST',headers:{'Authorization':`Bearer ${env.RESEND_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({from,to:[to],subject,html})});
+    if(!res.ok){
+      const err=await res.text().catch(()=>'(okunamadı)');
+      console.error(`[email] Resend API hatası: ${res.status} — ${err}`);
+      if(msg.dbId && env.DB) await env.DB.prepare('UPDATE contact_messages SET email_failed=1 WHERE id=?').bind(msg.dbId).run().catch(e=>console.error('[email] DB flag hatası:',e));
+      return false;
+    }
+    return true;
+  }catch(e){
+    console.error('[email] Resend fetch hatası:',e);
+    if(msg.dbId && env.DB) await env.DB.prepare('UPDATE contact_messages SET email_failed=1 WHERE id=?').bind(msg.dbId).run().catch(()=>{});
+    return false;
+  }
 }
 
 /* ---------- Haber CMS API ---------- */
@@ -126,9 +161,10 @@ async function contactApi(request, env, url, ctx){
     const phone=String(b.phone||'').trim().slice(0,60);
     const subject=String(b.subject||'').trim().slice(0,200);
     const message=String(b.message).trim().slice(0,5000);
-    await env.DB.prepare('INSERT INTO contact_messages(name,email,phone,subject,message) VALUES(?,?,?,?,?)')
+    const inserted=await env.DB.prepare('INSERT INTO contact_messages(name,email,phone,subject,message) VALUES(?,?,?,?,?)')
       .bind(name,email,phone,subject,message).run();
-    const emailData={name,email,phone,subject,message};
+    const dbId=inserted.meta?.last_row_id ?? inserted.meta?.last_insert_rowid ?? null;
+    const emailData={dbId,name,email,phone,subject,message};
     if(ctx) ctx.waitUntil(sendContactEmail(env,emailData));
     else sendContactEmail(env,emailData);
     return json({ok:true,message:'Mesajınız alındı, teşekkürler!'});
@@ -138,10 +174,15 @@ async function contactApi(request, env, url, ctx){
     const rows=await env.DB.prepare('SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 200').all();
     return json({ok:true,items:rows.results});
   }
-  const markRead=url.pathname.match(/^\/api\/admin\/contact\/(\d+)$/);
-  if(markRead && request.method==='PATCH'){
+  const contactById=url.pathname.match(/^\/api\/admin\/contact\/(\d+)$/);
+  if(contactById && request.method==='PATCH'){
     if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
-    await env.DB.prepare('UPDATE contact_messages SET read=1 WHERE id=?').bind(Number(markRead[1])).run();
+    await env.DB.prepare('UPDATE contact_messages SET read=1 WHERE id=?').bind(Number(contactById[1])).run();
+    return json({ok:true});
+  }
+  if(contactById && request.method==='DELETE'){
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    await env.DB.prepare('DELETE FROM contact_messages WHERE id=?').bind(Number(contactById[1])).run();
     return json({ok:true});
   }
   return null;
@@ -225,24 +266,39 @@ async function mediaApi(request, env){
   const u=new URL(request.url); const path=u.pathname;
   if(request.method==='OPTIONS') return new Response(null,{status:204,headers:{'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,PATCH,DELETE,PUT,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'}});
 
+  const sess=env.ADMIN_SESSION_SECRET;
+  const mediaSec=env.MEDIA_SIGNING_SECRET;
+
   if(path==='/api/login' && request.method==='POST'){
+    const ip=request.headers.get('CF-Connecting-IP')||'unknown';
+    const rate=await checkRateLimit(env,ip);
+    if(!rate.allowed) return json({error:'Çok fazla başarısız deneme. 15 dakika bekleyin.'},429,{'Retry-After':String(RATE_LIMIT_WINDOW_S)});
     const body=await request.json().catch(()=>({}));
-    if(!env.ADMIN_PASSWORD || !env.ADMIN_SESSION_SECRET || body.password!==env.ADMIN_PASSWORD) return json({error:'Geçersiz kimlik bilgisi'},401);
-    const token=await sessionToken(env.ADMIN_SESSION_SECRET);
+    if(!env.ADMIN_PASSWORD || !sess || body.password!==env.ADMIN_PASSWORD)
+      return json({error:'Geçersiz kimlik bilgisi',remaining:rate.remaining},401);
+    await clearRateLimit(env,ip);
+    const token=await sessionToken(sess);
     return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`});
   }
   if(path==='/api/logout') return new Response(null,{status:204,headers:{'set-cookie':'bt_admin=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict'}});
 
+  if(path==='/api/refresh' && request.method==='POST'){
+    if(!await validSession(request,sess)) return json({ok:false,error:'Geçersiz veya süresi dolmuş oturum'},401);
+    const token=await sessionToken(sess);
+    return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`});
+  }
+
   if(path==='/api/public/media' && request.method==='GET') {
     const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'};
     if(!env.DB) return json({brand:'BTMedya',generated_at:new Date().toISOString(),items:[]},200,cors);
+    if(!mediaSec) return json({error:'Sunucu yapılandırma hatası'},503,cors);
     const q=u.searchParams.get('q')||''; const cat=u.searchParams.get('category')||'';
     let sql='SELECT id,key,original_name,mime,size,category,tags,title,description,alt_text,slot,sort_order,created_at,updated_at FROM media WHERE published=1'; const args=[];
     if(q){sql+=' AND (original_name LIKE ? OR title LIKE ? OR description LIKE ? OR tags LIKE ?)'; const x=`%${q}%`; args.push(x,x,x,x);}
     if(cat){sql+=' AND category=?'; args.push(cat);}
     sql+=' ORDER BY created_at DESC LIMIT 200';
     const r=await env.DB.prepare(sql).bind(...args).all();
-    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET,Number(env.MEDIA_PUBLIC_TTL||3600))})));
+    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600))})));
     return json({brand:'BTMedya',generated_at:new Date().toISOString(),items},200,cors);
   }
 
@@ -340,7 +396,7 @@ async function mediaApi(request, env){
     if(q){sql+=' AND (original_name LIKE ? OR title LIKE ? OR description LIKE ? OR tags LIKE ?)'; const x=`%${q}%`; args.push(x,x,x,x);}
     if(cat){sql+=' AND category=?';args.push(cat);} if(pub!==null){sql+=' AND published=?';args.push(pub==='1'?1:0);} sql+=' ORDER BY created_at DESC LIMIT 500';
     const r=await env.DB.prepare(sql).bind(...args).all();
-    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET,Number(env.MEDIA_PUBLIC_TTL||86400))})));
+    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||86400))})));
     return json({items});
   }
   if(path==='/api/media' && request.method==='POST'){
@@ -392,11 +448,12 @@ async function mediaApi(request, env){
             now,id).run();
     return json({ok:true});
   }
-  if(path==='/api/export'){
-    const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'};
+  if(path==='/api/export' && request.method==='GET'){
+    if(!auth) return json({error:'Yetkisiz'},401);
+    if(!mediaSec) return json({error:'Sunucu yapılandırma hatası'},503);
     const r=await env.DB.prepare('SELECT * FROM media WHERE published=1 ORDER BY created_at DESC').all();
-    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET,Number(env.MEDIA_PUBLIC_TTL||86400))})));
-    return json({generated_at:new Date().toISOString(),brand:'BTMedya',items},200,cors);
+    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||86400))})));
+    return json({generated_at:new Date().toISOString(),brand:'BTMedya',items});
   }
   return null;
 }
@@ -517,7 +574,9 @@ export default { async fetch(request, env, ctx){
 
   if(url.pathname.startsWith('/media/')){
     const key=decodeURIComponent(url.pathname.slice('/media/'.length));
-    const ok=await validMediaSig(key,url.searchParams.get('exp'),url.searchParams.get('sig'),env.MEDIA_SIGNING_SECRET||env.ADMIN_SESSION_SECRET);
+    const mediaSec=env.MEDIA_SIGNING_SECRET;
+    if(!mediaSec) return text('Medya yapılandırma hatası',503);
+    const ok=await validMediaSig(key,url.searchParams.get('exp'),url.searchParams.get('sig'),mediaSec);
     if(!ok) return text('Geçersiz veya süresi dolmuş medya bağlantısı',403);
     if(!env.MEDIA) return text('Medya deposu yapılandırılmadı',503);
     const obj=await env.MEDIA.get(key); if(!obj)return text('Medya bulunamadı',404);
