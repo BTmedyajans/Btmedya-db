@@ -47,6 +47,7 @@ MEDIA_PUBLIC_TTL = "86400"
 # Secret değerleri GitHub'a veya bu dosyaya yazılmaz.
 [secrets]
 required = [
+  "ADMIN_USERNAME",
   "ADMIN_PASSWORD",
   "ADMIN_SESSION_SECRET",
   "MEDIA_SIGNING_SECRET"
