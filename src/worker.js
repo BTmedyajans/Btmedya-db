@@ -279,7 +279,7 @@ async function mediaApi(request, env){
     const rate=await checkRateLimit(env,ip);
     if(!rate.allowed) return json({error:'Çok fazla başarısız deneme. 15 dakika bekleyin.'},429,{'Retry-After':String(RATE_LIMIT_WINDOW_S)});
     const body=await request.json().catch(()=>({}));
-    if(!env.ADMIN_PASSWORD || !sess || body.password!==env.ADMIN_PASSWORD)
+    if(!env.ADMIN_USERNAME || !env.ADMIN_PASSWORD || !sess || body.username!==env.ADMIN_USERNAME || body.password!==env.ADMIN_PASSWORD)
       return json({error:'Geçersiz kimlik bilgisi',remaining:rate.remaining},401);
     await clearRateLimit(env,ip);
     const token=await sessionToken(sess);
