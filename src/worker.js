@@ -148,6 +148,33 @@ async function newsApi(request, env, url){
   return null;
 }
 
+/* ---------- BTMEDYA Control Center ---------- */
+async function controlCenterApi(request, env, url){
+  if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  return json({
+    ok:true,
+    service:'BTMEDYA Control Center',
+    site:{url:'https://btmedya.com.tr/',worker:'btmedya-db'},
+    storage:{d1:!!env.DB,r2:!!env.MEDIA},
+    admin:{configured:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
+    social:socialProviderStatus(env),
+    integrations:{
+      izap:{status:'external_connector',assistant:'busetuncay74',note:'WhatsApp/iZap operasyon asistanı yapılandırıldı; Worker doğrudan iZap sırrı tutmaz.'},
+      cmsOpenData:{status:'assistant_connector',note:'CMS Open Data resmi veri sorguları Control Center/ChatGPT tarafında kullanılabilir; Worker içine Medicare verisi gömülmez.'},
+      github:{status:'deployment_pipeline',note:'main dalı üzerinden Cloudflare Workers Builds deploy zinciri kullanılır.'}
+    },
+    nextActions:[
+      !env.ADMIN_PASSWORD?'Cloudflare Worker secret: ADMIN_PASSWORD ekle':null,
+      !env.ADMIN_SESSION_SECRET?'Cloudflare Worker secret: ADMIN_SESSION_SECRET ekle':null,
+      !env.MEDIA_SIGNING_SECRET?'Cloudflare Worker secret: MEDIA_SIGNING_SECRET ekle':null,
+      !env.META_ACCESS_TOKEN||!env.META_IG_USER_ID?'Instagram bağlantı secretlarını tamamla':null,
+      !env.TIKTOK_ACCESS_TOKEN||!env.TIKTOK_OPEN_ID?'TikTok bağlantı secretlarını tamamla':null,
+      !env.YOUTUBE_CLIENT_ID||!env.YOUTUBE_CLIENT_SECRET||!env.YOUTUBE_REFRESH_TOKEN?'YouTube bağlantı secretlarını tamamla':null
+    ].filter(Boolean)
+  });
+}
+
 /* ---------- İletişim Formu API ---------- */
 async function contactApi(request, env, url, ctx){
   if(url.pathname==='/api/contact' && request.method==='POST'){
@@ -589,7 +616,7 @@ export default { async fetch(request, env, ctx){
   }
 
   if(url.pathname.startsWith('/api/')){
-    const r1 = await newsApi(request, env, url);
+    const rcc = await controlCenterApi(request, env, url);\n    if(rcc) return rcc;\n    const r1 = await newsApi(request, env, url);
     if(r1) return r1;
     if(env.DB){
       const rc = await contactApi(request, env, url, ctx);
