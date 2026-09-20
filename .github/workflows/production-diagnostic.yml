@@ -78,6 +78,23 @@ jobs:
             curl -fsS -X DELETE "${api}/zones/${zone_id}/dns_records/${id}" "${auth[@]}" >/dev/null
           done
 
+      - name: Inspect Cloudflare rules for API challenge
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4"
+          auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
+          zones="$(curl -fsS "${api}/zones?name=btmedya.com.tr&per_page=50" "${auth[@]}")"
+          zone_id="$(jq -r '.result[] | select(.name=="btmedya.com.tr") | .id' <<<"$zones" | head -n1)
+          echo "===== CLOUDFLARE RULESETS MATCHING API/NEWS =====" | tee -a btmedya-production-report.txt
+          rulesets="$(curl -fsS "${api}/zones/${zone_id}/rulesets" "${auth[@]}")"
+          jq -r '.result[] | [.id,.name,.kind,.phase] | @tsv' <<<"$rulesets" | tee -a btmedya-production-report.txt
+          while IFS= read -r rid; do
+            [ -z "$rid" ] && continue
+            curl -fsS "${api}/zones/${zone_id}/rulesets/${rid}" "${auth[@]}" | jq -c '.result.rules[]? | select((.expression // "") | test("api/news|/api/"; "i")) | {id,description,action,enabled,expression}' | tee -a btmedya-production-report.txt || true
+          done < <(jq -r '.result[].id' <<<"$rulesets")
       - name: Run diagnostic
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
