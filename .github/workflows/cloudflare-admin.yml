@@ -263,7 +263,7 @@ jobs:
 
           root = Path("public")
           refs = set()
-          for src in [Path("public/index.html"), Path("public/anasayfa.js"), Path("public/anasayfa.css")]:
+          for src in [Path("public/index.html")]:
               if not src.exists():
                   continue
               text = src.read_text(errors="ignore")
