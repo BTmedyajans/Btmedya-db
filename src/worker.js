@@ -1,4 +1,5 @@
 import { renderNewsPage } from "./news-page.js";
+import { socialProviderStatus } from "./social-platforms.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
  * 2) Medya Kasası (D1 tablo: media, R2) — /api/media*, /api/public/media, /api/export, /media/*, /api/login, /api/logout
@@ -196,6 +197,10 @@ async function socialApi(request, env, url){
   if(!url.pathname.startsWith('/api/admin/social')) return null;
   if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
   if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
+
+  if(url.pathname==='/api/admin/social/providers' && request.method==='GET'){
+    return json({ok:true,providers:socialProviderStatus(env)});
+  }
 
   if(url.pathname==='/api/admin/social' && request.method==='GET'){
     const status=String(url.searchParams.get('status')||'').trim();
