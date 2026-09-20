@@ -34,10 +34,6 @@ custom_domain = true
 binding = "MEDIA"
 bucket_name = "btmedya-media"
 
-# Workers KV: production kodu şu anda KV binding kullanmıyor.
-# Eski/placeholder KV ID'si eklenmeyecek. KV ancak kod gerçekten ihtiyaç
-# duyduğunda gerçek namespace ID ile bağlanacaktır.
-
 [[d1_databases]]
 binding = "DB"
 database_name = "btmedya-media"
@@ -46,26 +42,28 @@ database_id = "94a980cd-62c5-4c29-b7fc-40f96ab665e4"
 [vars]
 MEDIA_PUBLIC_TTL = "86400"
 
+# Yalnızca Worker'ın çalışması için temel secret'lar zorunludur.
+# Sosyal medya ve AI entegrasyonları ayrı aşamada Cloudflare Secret olarak eklenebilir.
 # Secret değerleri GitHub'a veya bu dosyaya yazılmaz.
-# Cloudflare Worker > Settings > Variables and Secrets altında Secret olarak eklenir.
-# wrangler deploy, aşağıdaki required secret isimlerini doğrular.
 [secrets]
 required = [
   "ADMIN_PASSWORD",
   "ADMIN_SESSION_SECRET",
-  "MEDIA_SIGNING_SECRET",
-  "META_ACCESS_TOKEN",
-  "META_IG_USER_ID",
-  "META_PAGE_ID",
-  "TIKTOK_ACCESS_TOKEN",
-  "TIKTOK_OPEN_ID",
-  "YOUTUBE_CLIENT_ID",
-  "YOUTUBE_CLIENT_SECRET",
-  "YOUTUBE_REFRESH_TOKEN"
+  "MEDIA_SIGNING_SECRET"
 ]
 
 # Opsiyonel:
-#   AI_READ_TOKEN         -> salt-okur AI erişim token'ı
-#   RESEND_API_KEY        -> Resend e-posta bildirim API anahtarı
-#   RESEND_TO             -> bildirim alıcı adresi
-#   RESEND_FROM           -> gönderici adresi
+#   OPENAI_API_KEY
+#   OPENAI_NEWS_MODEL
+#   META_ACCESS_TOKEN
+#   META_IG_USER_ID
+#   META_PAGE_ID
+#   TIKTOK_ACCESS_TOKEN
+#   TIKTOK_OPEN_ID
+#   YOUTUBE_CLIENT_ID
+#   YOUTUBE_CLIENT_SECRET
+#   YOUTUBE_REFRESH_TOKEN
+#   AI_READ_TOKEN
+#   RESEND_API_KEY
+#   RESEND_TO
+#   RESEND_FROM
