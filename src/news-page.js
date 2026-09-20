@@ -57,6 +57,8 @@ export function renderNewsPage(n, origin, vlib){
   const kapak=n.cover_url || `${origin}/assets/haber-kapak/${encodeURIComponent(n.slug)}.webp`;
   const tarihTr=n.original_date||trTarih(n.published_at);
   const tarihIso=isoTarih(n.published_at);
+  const arsiv = !!n.archive_note || /2024|2023|2022/.test(String(n.original_date || ''));
+  const okunma = Math.max(1, Math.ceil(String(n.body || '').trim().split(/\\s+/).filter(Boolean).length / 220));
   const ozet=(n.excerpt||'').trim()||String(n.body||'').slice(0,155);
   // maxresdefault her videoda bulunmaz (kaynak dusuk cozunurlukse 404 doner);
   // hqdefault her zaman vardir, paylasim kapagi bos kalmasin.
@@ -75,7 +77,7 @@ export function renderNewsPage(n, origin, vlib){
     ...(n.category?{articleSection:n.category}:{}),
     ...(ogImg?{image:ogImg}:{}),
     mainEntityOfPage:{"@type":"WebPage","@id":url},
-    inLanguage:"tr-TR"
+    inLanguage:"tr-TR", wordCount:String(n.body||"").trim().split(/\\s+/).filter(Boolean).length
   };
 
   /* Kapak karesi YouTube'un kendi CDN'inden gelir; oynatici yuklenmez. */
@@ -122,7 +124,7 @@ ${kanal?`<p class="video-credit">Video ${esc(kanal)} kanalında yayında. <a hre
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
 <link rel="icon" href="/assets/favicon.png" type="image/png"/>
 <link rel="manifest" href="/site.webmanifest"/>
-<link rel="stylesheet" href="/styles.css"/>
+<link rel="stylesheet" href="/styles.css"/><style>.article-page{max-width:920px;margin:auto;padding:56px 20px 90px}.article-page h1{font-family:"Space Grotesk",sans-serif;font-size:clamp(2.7rem,7vw,6.5rem);line-height:.92;letter-spacing:-.065em;margin:14px 0 22px}.article-eyebrow{color:#ff6d64;font-size:.72rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase}.article-meta{display:flex;flex-wrap:wrap;gap:12px;color:#8e99a8;font-size:.82rem;margin-bottom:18px}.article-meta span:first-child{color:#dce3ec}.article-lead{font-size:1.18rem;line-height:1.7;color:#c6ced8;border-left:3px solid #ff4038;padding-left:18px;margin:28px 0}.article-cover{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;margin:28px 0}.article-body{max-width:760px;margin:34px auto}.article-body p{font-size:1.08rem;line-height:1.85;color:#d1d8e1;margin:0 0 1.3em}.article-tools{display:flex;flex-wrap:wrap;gap:9px;margin:24px 0;border-top:1px solid #ffffff18;border-bottom:1px solid #ffffff18;padding:14px 0}.article-tools a{color:#dfe7ef;text-decoration:none;border:1px solid #ffffff18;padding:8px 11px;border-radius:999px;font-size:.75rem}.archive-badge{display:inline-block;color:#ffb0ab;border:1px solid #ff403833;border-radius:999px;padding:6px 10px;font-size:.68rem;font-weight:800;letter-spacing:.08em}.yt-lite{position:relative;aspect-ratio:16/9;overflow:hidden;border-radius:14px;background:#080b10;margin:28px 0;cursor:pointer}.yt-lite img{width:100%;height:100%;object-fit:cover}.yt-lite:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent,#05070aaa)}.yt-play{position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;border:1px solid #ffffff66;background:#05070acc;color:#fff;font-size:1.35rem}.article-byline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}</style>
 <script type="application/ld+json">
 ${JSON.stringify(ld,null,0)}
 </script>
@@ -168,12 +170,11 @@ ${JSON.stringify(videoLd,null,0)}
 <a class="article-back" href="/haberler/">← HABER ARŞİVİ</a>
 ${n.category?`<p class="article-eyebrow">${esc(n.category)}</p>`:''}
 <h1>${esc(n.title)}</h1>
-<div class="article-meta">
-  <span>${esc(n.author||'BTMEDYA')}</span>
+<div class="article-byline"><div class="article-meta">  <span>${esc(n.author||'BTMEDYA')}</span>
   ${tarihTr?`<time datetime="${esc(tarihIso)}">${esc(tarihTr)}</time>`:''}
-</div>
+</div><span class="archive-badge">${arsiv?"ARŞİV · GEÇMİŞ İÇERİK":""}</span></div>
 ${videoBlok}${kapakBlok}
-<div class="article-body">
+<div class="article-tools"><a href="https://wa.me/?text=${encodeURIComponent(n.title+" "+url)}" target="_blank" rel="noopener">WhatsApp ↗</a><a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}" target="_blank" rel="noopener">Facebook ↗</a><a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(n.title)}" target="_blank" rel="noopener">X ↗</a></div>${ozet?`<p class="article-lead">${esc(ozet)}</p>`:""}<div class="article-body">
 ${govde(n.body)}
 </div>
 ${(n.archive_note||n.source_url)?`<div class="article-note">${esc(n.archive_note||'')}${
