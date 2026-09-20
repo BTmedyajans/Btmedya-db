@@ -89,7 +89,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 <div id="loginSection" class="panel login-box">
   <h2>Yönetici Girişi</h2>
   <p class="muted" style="margin-bottom:14px">BTMedya yönetim paneline giriş yapın.</p>
-  <input id="pw" type="password" placeholder="Şifre" style="width:100%;margin-bottom:10px">
+  <input id="adminUser" type="text" autocomplete="username" placeholder="Yönetici adı" style="width:100%;margin-bottom:10px">\n  <input id="pw" type="password" autocomplete="current-password" placeholder="Şifre" style="width:100%;margin-bottom:10px">
   <button class="btn primary" id="loginBtn" style="width:100%">Giriş yap</button>
   <p id="loginMsg" class="status" style="color:#f88"></p>
 </div>
@@ -302,10 +302,10 @@ async function init(){
 }
 $('#loginBtn').onclick=async()=>{
   $('#loginMsg').textContent='';
-  const r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:$('#pw').value})});
+  const r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:$('#adminUser').value.trim(),password:$('#pw').value})});
   if(r.ok){showApp()}else{$('#loginMsg').textContent='Şifre hatalı.'}
 };
-$('#pw').onkeydown=e=>{if(e.key==='Enter')$('#loginBtn').click()};
+$('#adminUser').onkeydown=e=>{if(e.key==='Enter')$('#pw').focus()};\n$('#pw').onkeydown=e=>{if(e.key==='Enter')$('#loginBtn').click()};
 $('#logoutBtn').onclick=()=>fetch('/api/logout').then(()=>location.reload());
 
 /* ---- Tabs ---- */
