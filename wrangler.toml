@@ -1,6 +1,7 @@
 # Cloudflare Workers Builds bu Worker'ı otomatik deploy eder.
 # Alan adı bağlantıları da bu dosyada tutulur: GitHub = kaynak gerçek.
 # Production DNS temizliği, cloudflare-admin workflow'undaki güvenli kayıt filtresiyle yapılır.
+# Automation: GitHub Cloudflare admin workflow is the production DNS/deploy gate.
 name = "btmedya-db"
 main = "src/worker.js"
 compatibility_date = "2026-09-19"
