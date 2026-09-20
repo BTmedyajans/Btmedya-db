@@ -73,9 +73,10 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 <header>
   <strong>BTMEDYA / ADMIN</strong>
   <div class="tabs" id="tabBar" style="display:none">
-    <button class="tab active" data-tab="durum">Site Durumu</button>
-    <button class="tab" data-tab="media">Medya Kasası</button>
+    <button class="tab active" data-tab="newsroom">Haber Merkezi</button>
+    <button class="tab" data-tab="durum">Site Durumu</button>
     <button class="tab" data-tab="news">Haberler</button>
+    <button class="tab" data-tab="media">Medya Kasası</button>
     <button class="tab" data-tab="social">Sosyal İçerik</button>
     <button class="tab" data-tab="videos">Videolar</button>
     <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button>
@@ -89,13 +90,48 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 <div id="loginSection" class="panel login-box">
   <h2>Yönetici Girişi</h2>
   <p class="muted" style="margin-bottom:14px">BTMedya yönetim paneline giriş yapın.</p>
-  <input id="adminUser" type="text" autocomplete="username" placeholder="Yönetici adı" style="width:100%;margin-bottom:10px">\n  <input id="pw" type="password" autocomplete="current-password" placeholder="Şifre" style="width:100%;margin-bottom:10px">
+  <input id="adminUser" type="text" autocomplete="username" placeholder="Yönetici adı" style="width:100%;margin-bottom:10px">
+  <input id="pw" type="password" autocomplete="current-password" placeholder="Şifre" style="width:100%;margin-bottom:10px">
   <button class="btn primary" id="loginBtn" style="width:100%">Giriş yap</button>
   <p id="loginMsg" class="status" style="color:#f88"></p>
 </div>
 
 <!-- APP -->
 <div id="appSection" style="display:none">
+<div class="tab-content active" id="tab-newsroom">
+  <div class="nr-shell">
+    <div class="nr-top">
+      <div>
+        <div class="nr-kicker">BTMEDYA · HABER MERKEZİ</div>
+        <h1>Haber Merkezi</h1>
+        <div class="nr-live"><i></i> Balıkesir · Türkiye · canlı editoryal operasyon</div>
+      </div>
+      <div class="nr-actions">
+        <button class="nr-btn primary" id="nrNew">＋ Yeni Haber</button>
+        <button class="nr-btn" id="nrArchive">Arşiv</button>
+        <button class="nr-btn" id="nrMedia">Gerçek Medyayı Eşleştir</button>
+        <button class="nr-btn" id="nrRefresh">Yenile</button>
+      </div>
+    </div>
+    <div class="nr-grid" id="nrStats"></div>
+    <div class="nr-main">
+      <section class="nr-panel">
+        <h3>Yayın kuyruğu</h3>
+        <div class="nr-list" id="nrQueue"></div>
+      </section>
+      <section class="nr-panel">
+        <h3>Haber kalitesi / SEO / kaynak</h3>
+        <div id="nrSeo"></div>
+      </section>
+    </div>
+    <div class="nr-modules">
+      <div class="nr-module" data-go="news"><b>📰 Haber Editörü</b><span>Başlık, spot, kaynak, tarih, içerik ve yayın durumu.</span></div>
+      <div class="nr-module" data-go="media"><b>🖼️ Gerçek Medya</b><span>R2 arşivindeki fotoğraf ve videoyu haberle eşleştir.</span></div>
+      <div class="nr-module" data-go="durum"><b>🗂️ Arşiv / Eksikler</b><span>Kapaksız haberler, eski içerikler ve site yuvaları.</span></div>
+      <div class="nr-module" data-go="social"><b>📡 Dağıtım</b><span>Sosyal medya için onay ve yayın kuyruğu.</span></div>
+    </div>
+  </div>
+</div>
 
   <!-- TAB: MEDYA KASASI -->
   <div class="tab-content active" id="tab-durum">
