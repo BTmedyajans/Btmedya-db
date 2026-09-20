@@ -14,6 +14,7 @@
     q('#appSection').prepend(c);
     q('#nrTab').onclick=()=>showTab('newsroom');
     q('#nrNew').onclick=()=>showTab('news');
+    q('#nrArchive').onclick=()=>{showTab('durum');setTimeout(()=>{q('#q')&&(q('#q').value='');q('#filter')&&(q('#filter').value='');loadMedia&&loadMedia()},0)};
     q('#nrMedia').onclick=()=>openMediaPicker();
     q('#nrRefresh').onclick=loadRoom;
     document.querySelectorAll('.nr-module').forEach(x=>x.onclick=()=>showTab(x.dataset.go));
@@ -23,12 +24,12 @@
     const stats=q('#nrStats'),queue=q('#nrQueue'),seo=q('#nrSeo');
     if(!stats)return;
     try{
-      const [nr,md]=await Promise.all([get('/api/news?limit=100'),get('/api/media')]);
+      const [nr,md]=await Promise.all([get('/api/admin/news?limit=200'),get('/api/media')]);
       const items=(nr.items||[]), media=(md.items||md.results||[]);
       const pub=items.filter(x=>x.status==='published'), drafts=items.filter(x=>x.status!=='published');
       const now=new Date(); const recent=pub.filter(x=>new Date(x.published_at||x.created_at)>new Date(now-86400000));
       const missing=pub.filter(x=>!x.cover_url);
-      const archive=pub.filter(x=>/^202[0-5]-/.test(String(x.published_at||''))).length;
+      const archive=pub.filter(x=>new Date(x.published_at||0).getFullYear()<new Date().getFullYear()).length;
       stats.innerHTML='<div class="nr-stat"><small>YAYINDA</small><strong>'+pub.length+'</strong><span>Yayındaki haber</span></div><div class="nr-stat"><small>TASLAK</small><strong>'+drafts.length+'</strong><span>Editör kuyruğu</span></div><div class="nr-stat"><small>24 SAAT</small><strong>'+recent.length+'</strong><span>Son 24 saatte yayın</span></div><div class="nr-stat"><small>MEDYA</small><strong>'+media.length+'</strong><span>R2 medya kaydı</span></div><div class="nr-stat"><small>KAPAK EKSİK</small><strong>'+missing.length+'</strong><span>Gerçek görsel bekliyor</span></div><div class="nr-stat"><small>ARŞİV</small><strong>'+archive+'</strong><span>Geçmiş içerik</span></div>';
       const sorted=[...items].sort((a,b)=>new Date(b.updated_at||b.created_at)-new Date(a.updated_at||a.created_at)).slice(0,8);
       queue.innerHTML=sorted.length?sorted.map(x=>'<div class="nr-item"><i class="nr-dot '+(x.status==='published'?'green':'amber')+'"></i><div><b>'+esc(x.title)+'</b><span>'+esc(x.category||'Haber')+' · '+esc(x.status==='published'?'YAYINDA':'TASLAK')+' · '+(x.published_at?new Date(x.published_at).toLocaleString('tr-TR'):'tarih yok')+'</span></div></div>').join(''):'<div class="nr-item"><div><b>Henüz haber verisi yok</b><span>Yeni haber editöründen başlayabilirsiniz.</span></div></div>';
