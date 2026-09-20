@@ -91,10 +91,11 @@
 
   const dateText = item => item.original_date || (item.published_at ? new Date(item.published_at).toLocaleDateString('tr-TR') : '');
   const cardMedia = n => {
-    if (n.cover_url) return `<div class="news-media"><img src="${esc(n.cover_url)}" alt="${esc(n.title)}" loading="lazy"><div class="news-scrim"></div></div><span class="reference-note">ARŞİV GÖRSELİ</span>`;
-    if (n.video_url) return `<div class="news-media"><video muted loop playsinline preload="metadata" src="${esc(n.video_url)}"></video><div class="news-scrim"></div></div><span class="reference-note">VİDEO</span>`;
-    const ref = staticReference[n.slug];
-    return `<div class="news-media"><div style="position:absolute;inset:0;display:grid;place-items:end;padding:20px;background:linear-gradient(140deg,#111,#070707)"><span style="font:9px var(--mono);letter-spacing:.12em;color:#6b6b6b">KAYNAK GÖRSELİ / ARŞİV</span></div><div class="news-scrim"></div></div>${ref?`<span class="reference-note">KAYNAK KAYDI</span>`:''}`;
+    const localCover = `/assets/haber-kapak/${encodeURIComponent(n.slug)}.webp`;
+    const cover = n.cover_url || localCover;
+    const yt = String(n.video_url || '').match(/(?:youtube\\.com\\/(?:watch\\?(?:.*&)?v=|embed\\/|shorts\\/|live\\/)|youtu\\.be\\/)([A-Za-z0-9_-]{11})/);
+    if (yt) return `<div class="news-media news-video"><img src="https://i.ytimg.com/vi/${yt[1]}/hqdefault.jpg" alt="${esc(n.title)} — video kapağı" loading="lazy"><div class="news-scrim"></div><span class="video-badge">▶ VİDEO</span></div>`;
+    return `<div class="news-media"><img src="${esc(cover)}" alt="${esc(n.title)}" loading="lazy" decoding="async"><div class="news-scrim"></div></div><span class="reference-note">GERÇEK ARŞİV GÖRSELİ</span>`;
   };
   const render = (items) => {
     const list = items.slice(0, 9);
