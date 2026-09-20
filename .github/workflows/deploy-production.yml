@@ -43,8 +43,6 @@ jobs:
           root = Path("public")
           files = [
               Path("public/index.html"),
-              Path("public/anasayfa.js"),
-              Path("public/anasayfa.css"),
           ]
           refs = set()
 
