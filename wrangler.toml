@@ -46,11 +46,26 @@ database_id = "94a980cd-62c5-4c29-b7fc-40f96ab665e4"
 [vars]
 MEDIA_PUBLIC_TTL = "86400"
 
-# Secrets — bu dosyaya YAZILMAZ, `wrangler secret put` ile eklenir:
-#   ADMIN_PASSWORD        -> /admin/ giriş şifresi
-#   ADMIN_SESSION_SECRET  -> oturum çerezi imzalama anahtarı
-#   MEDIA_SIGNING_SECRET  -> /media/ imzalı bağlantı anahtarı
-#   AI_READ_TOKEN         -> (opsiyonel) salt-okur AI erişim token'ı
-#   RESEND_API_KEY        -> (opsiyonel) Resend e-posta bildirimi API anahtarı
-#   RESEND_TO             -> (opsiyonel) bildirim alıcı adresi
-#   RESEND_FROM           -> (opsiyonel) gönderici adresi
+# Secret değerleri GitHub'a veya bu dosyaya yazılmaz.
+# Cloudflare Worker > Settings > Variables and Secrets altında Secret olarak eklenir.
+# wrangler deploy, aşağıdaki required secret isimlerini doğrular.
+[secrets]
+required = [
+  "ADMIN_PASSWORD",
+  "ADMIN_SESSION_SECRET",
+  "MEDIA_SIGNING_SECRET",
+  "META_ACCESS_TOKEN",
+  "META_IG_USER_ID",
+  "META_PAGE_ID",
+  "TIKTOK_ACCESS_TOKEN",
+  "TIKTOK_OPEN_ID",
+  "YOUTUBE_CLIENT_ID",
+  "YOUTUBE_CLIENT_SECRET",
+  "YOUTUBE_REFRESH_TOKEN"
+]
+
+# Opsiyonel:
+#   AI_READ_TOKEN         -> salt-okur AI erişim token'ı
+#   RESEND_API_KEY        -> Resend e-posta bildirim API anahtarı
+#   RESEND_TO             -> bildirim alıcı adresi
+#   RESEND_FROM           -> gönderici adresi
