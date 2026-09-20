@@ -310,3 +310,27 @@ jobs:
           echo "health:"
           curl -fsS --max-time 20 https://btmedya.com.tr/api/health
           echo
+          echo "news API:"
+          news_status="$(curl -sS -o /tmp/news.json -w '%{http_code}' --max-time 20 'https://btmedya.com.tr/api/news?limit=1')"
+          echo "HTTP ${news_status}"
+          test "${news_status}" = "200"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('/tmp/news.json').read_text())
+          assert data.get('ok') is True, data
+          assert isinstance(data.get('items'), list), data
+          print('news API payload OK; items=', len(data['items']))
+          PY
+          echo "robots.txt:"
+          curl -fsS --max-time 20 https://btmedya.com.tr/robots.txt | grep -Fq 'Sitemap: https://btmedya.com.tr/sitemap.xml'
+          echo "sitemap.xml:"
+          curl -fsS --max-time 20 https://btmedya.com.tr/sitemap.xml | grep -Fq '<urlset'
+          echo "www canonical redirect:"
+          www_status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 https://www.btmedya.com.tr/)"
+          www_location="$(curl -sSI --max-time 20 https://www.btmedya.com.tr/ | awk 'BEGIN{IGNORECASE=1} /^location:/ {print $2}' | tr -d '\r')"
+          echo "HTTP ${www_status} -> ${www_location}"
+          test "${www_status}" = "301"
+          test "${www_location}" = "https://btmedya.com.tr/"
+          echo "TLS/HTTPS:"
+          curl -fsSIL --max-time 20 https://btmedya.com.tr/ | grep -qi '^HTTP/'
