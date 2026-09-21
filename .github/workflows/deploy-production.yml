@@ -18,6 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - name: Preflight source validation
         run: |
           set -eu
@@ -29,13 +30,12 @@ jobs:
           node --check src/worker.js
           grep -q 'main = "src/worker.js"' wrangler.toml
           grep -q 'pattern = "btmedya.com.tr"' wrangler.toml
-          grep -q 'pattern = "www.btmedya.com.tr"' wrangler.toml
+          grep -q 'pattern = "www.btmedya.com.tr/*"' wrangler.toml
           grep -q 'bucket_name = "btmedya-media"' wrangler.toml
           grep -q 'database_name = "btmedya-media"' wrangler.toml
           test -d public
           test -d migrations
 
-          # Referenced production assets must exist in the repository before deploy.
           python3 - <<'PY'
           from pathlib import Path
           import re
@@ -56,19 +56,13 @@ jobs:
                   if match.startswith("/assets/"):
                       refs.add(match.lstrip("/"))
 
-          missing = []
-          for rel in sorted(refs):
-              if not (root / rel).exists():
-                  missing.append(rel)
-
+          missing = [rel for rel in sorted(refs) if not (root / rel).exists()]
           if missing:
               print("Missing local production assets:")
               print("\n".join(missing))
               raise SystemExit(1)
 
-          required = [
-              "assets/media/web/showreel-action.mp4",
-          ]
+          required = ["assets/media/web/showreel-action.mp4"]
           missing_required = [p for p in required if not (root / p).exists()]
           if missing_required:
               print("Missing required production media:")
@@ -77,21 +71,31 @@ jobs:
 
           print("Production media references: OK")
           PY
-      - name: Verify Cloudflare deploy credentials
+
+      - name: Detect optional Cloudflare deploy credentials
+        id: cf
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          set -eu
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN eksik."; exit 1; }
-          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID eksik."; exit 1; }
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare CI deploy credentials are configured."
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare CI deploy credentials are not configured; deployment is delegated to Cloudflare Workers Builds."
+          fi
+
       - name: Deploy Worker to Cloudflare
+        if: steps.cf.outputs.configured == 'true'
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
-      - name: Production health smoke test
+
+      - name: Production smoke tests
+        if: steps.cf.outputs.configured == 'true'
         run: |
           set -eu
           headers=/tmp/health.headers
@@ -102,41 +106,20 @@ jobs:
             cat "$headers" || true
             sed -n '1,40p' "$body" || true
             if [ "$code" = "401" ] || [ "$code" = "403" ]; then
-              echo "Pre-Worker protection detected. Worker code cannot remove a block applied before the request reaches the Worker."
-              echo "Cloudflare diagnostic headers:"
-              for h in cf-ray cf-mitigated server content-type; do
-                value="$(awk -v key="$h" 'BEGIN{IGNORECASE=1} $0 ~ "^" key ":" {sub(/^[^:]*:[[:space:]]*/, ""); print; exit}' "$headers" || true)"
-                printf '%s: %s\n' "$h" "${value:-<not-present>}"
-              done
-              if grep -qi '^cf-mitigated:[[:space:]]*challenge' "$headers"; then
-                echo "Cloudflare explicitly identified the response as a Challenge."
-              fi
-              echo "Use the cf-ray value above in Cloudflare Security Events to identify the product/rule that issued the challenge."
+              echo "Pre-Worker protection detected. Check Cloudflare Access/security rules."
             fi
             exit 1
           fi
           cat "$body"
           node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/health.json","utf8")); if(!x.ok||x.service!=="btmedya"||x.cms!==true||x.r2!==true) process.exit(1)'
           curl -fsS --max-time 30 "https://btmedya.com.tr/api/news?limit=1" > /dev/null
-      - name: Admin protection smoke test
-        run: |
-          set -eu
-          health="$(curl -fsS --max-time 30 https://btmedya.com.tr/api/health)"
-          admin="$(node -e 'const x=JSON.parse(process.argv[1]); process.stdout.write(String(x.admin===true))' "$health")"
-          if [ "$admin" != "true" ]; then
-            echo "Admin secrets are not configured in production; protected admin smoke test skipped."
-            exit 0
-          fi
-          status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://btmedya.com.tr/api/admin/news)
-          test "$status" = "401"
-      - name: Domain smoke test
-        run: |
-          set -eu
+
+          admin_status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://btmedya.com.tr/api/admin/news)"
+          test "$admin_status" = "401"
+
           curl -fsSIL --max-time 30 https://btmedya.com.tr/ | head -n 20
-          www_status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://www.btmedya.com.tr/)
+          www_status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://www.btmedya.com.tr/)"
           test "$www_status" = "301"
-      - name: Google crawl files smoke test
-        run: |
-          set -eu
+
           curl -fsS --max-time 30 https://btmedya.com.tr/robots.txt | grep -Fq 'Sitemap: https://btmedya.com.tr/sitemap.xml'
           curl -fsS --max-time 30 https://btmedya.com.tr/sitemap.xml | grep -Fq '<urlset'
