@@ -1,3 +1,5 @@
+import { BtmedyaWorkflow } from "./btmedya-workflow.js";
+import { WorkflowStatusDO } from "./workflow-status-do.js";
 import { renderNewsPage } from "./news-page.js";
 import { socialProviderStatus } from "./social-platforms.js";
 /* BTMEDYA Worker — birleşik API
@@ -75,6 +77,56 @@ async function sendContactEmail(env, msg){
     if(msg.dbId && env.DB) await env.DB.prepare('UPDATE contact_messages SET email_failed=1 WHERE id=?').bind(msg.dbId).run().catch(()=>{});
     return false;
   }
+}
+
+/* ---------- Cloudflare Workflow API ---------- */
+async function workflowApi(request, env, url) {
+  if (!url.pathname.startsWith('/api/workflow/')) return null;
+  if (!(await validSession(request, env.ADMIN_SESSION_SECRET))) {
+    return json({ok:false,error:'Yetkisiz'},401);
+  }
+  if (!env.BTMEDYA_WORKFLOW) {
+    return json({ok:false,error:'BTMedya Workflow binding yapılandırılmadı'},503);
+  }
+
+  if (url.pathname === '/api/workflow/start' && request.method === 'POST') {
+    const body = await request.json().catch(() => ({}));
+    const instance = await env.BTMEDYA_WORKFLOW.create({
+      params: {
+        action: String(body.action || 'content-review'),
+        newsId: body.newsId ? Number(body.newsId) : null,
+        mediaKey: body.mediaKey ? String(body.mediaKey) : null,
+        requiresApproval: body.requiresApproval !== false
+      }
+    });
+    return json({
+      ok:true,
+      instanceId:instance.id,
+      message:'BTMedya Workflow başlatıldı'
+    });
+  }
+
+  const statusMatch = url.pathname.match(/^\/api\/workflow\/status\/([^/]+)$/);
+  if (statusMatch && request.method === 'GET') {
+    const instance = await env.BTMEDYA_WORKFLOW.get(statusMatch[1]);
+    return json({ok:true,status:await instance.status()});
+  }
+
+  const eventMatch = url.pathname.match(/^\/api\/workflow\/event\/([^/]+)$/);
+  if (eventMatch && request.method === 'POST') {
+    const body = await request.json().catch(() => ({}));
+    const instance = await env.BTMEDYA_WORKFLOW.get(eventMatch[1]);
+    await instance.sendEvent({
+      type:'btmedya-approval',
+      payload:{
+        approved:Boolean(body.approved),
+        comment:String(body.comment || '')
+      }
+    });
+    return json({ok:true,message:'Workflow onay olayı gönderildi'});
+  }
+
+  return json({ok:false,error:'Workflow endpoint bulunamadı'},404);
 }
 
 /* ---------- Haber CMS API ---------- */
@@ -647,6 +699,9 @@ export default { async fetch(request, env, ctx){
   }
 
   if(url.pathname.startsWith('/api/')){
+    const rw = await workflowApi(request, env, url);
+    if(rw) return rw;
+
     const rcc = await controlCenterApi(request, env, url);\n    if(rcc) return rcc;\n    const r1 = await newsApi(request, env, url);
     if(r1) return r1;
     if(env.DB){
@@ -784,3 +839,7 @@ async function servisEt(request, env) {
 
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
 }
+
+
+// Cloudflare Workflows / Durable Objects exports
+export { BtmedyaWorkflow, WorkflowStatusDO };
