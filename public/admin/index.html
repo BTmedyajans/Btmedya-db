@@ -388,7 +388,7 @@ async function createAutomationPosts(){
   let created=0;
   try{
     for(const n of chosen){
-      await req('/admin/social',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
+      await req('/api/admin/social',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
         title:n.title,
         body:autoText(n,prefix),
         format,
