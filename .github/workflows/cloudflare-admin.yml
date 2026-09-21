@@ -214,23 +214,31 @@ jobs:
             exit 1
           fi
 
-          # Worker Custom Domain kullanıldığından yalnızca bilinen placeholder/
-          # eski R2 kaydı gibi güvenli çakışmaları kaldır. MX/TXT/SPF/DMARC'e dokunma.
+          # Worker Custom Domain kullanıldığından web hostname'lerini Worker'a bırak.
+          # Yalnızca A/AAAA/CNAME kayıtlarını kaldırıyoruz; MX/TXT/SPF/DMARC gibi
+          # e-posta ve doğrulama kayıtlarına dokunmuyoruz.
           records="$(curl -fsS "${api}/zones/${zone_id}/dns_records?per_page=5000" "${auth[@]}")"
           printf '%s' "${records}" | jq -r '
             .result[]
             | select(
-                (.name=="btmedya.com.tr" and .type=="AAAA" and .content=="100::")
+                ((.name=="btmedya.com.tr" or .name=="www.btmedya.com.tr")
+                  and (.type=="A" or .type=="AAAA" or .type=="CNAME"))
                 or (.name=="chatgpt.btmedya.com.tr" and .type=="A" and .content=="192.0.2.1")
-                or (.name=="www.btmedya.com.tr" and .type=="CNAME" and .content=="public.r2.dev")
               )
             | [.id,.type,.name,.content] | @tsv
           ' | while IFS=$'\t' read -r id type name content; do
             [ -z "${id}" ] && continue
-            echo "Siliniyor: ${type} ${name} -> ${content}"
+            echo "Worker Custom Domain çakışması kaldırılıyor: ${type} ${name} -> ${content}"
             curl -fsS -X DELETE "${api}/zones/${zone_id}/dns_records/${id}" "${auth[@]}" >/dev/null
           done
 
+          remaining_web_records="$(curl -fsS "${api}/zones/${zone_id}/dns_records?per_page=5000" "${auth[@]}" \
+            | jq -r '.result[] | select((.name=="btmedya.com.tr" or .name=="www.btmedya.com.tr") and (.type=="A" or .type=="AAAA" or .type=="CNAME")) | [.id,.type,.name,.content] | @tsv')
+          if [ -n "${remaining_web_records}" ]; then
+            echo "Worker Custom Domain için temizlenemeyen web DNS kayıtları var:"
+            printf '%s\n' "${remaining_web_records}"
+            exit 1
+          fi
           echo "Kalan web DNS kayıtları:"
           curl -fsS "${api}/zones/${zone_id}/dns_records?per_page=5000" "${auth[@]}"             | jq -r '.result[] | select(.name=="btmedya.com.tr" or .name=="www.btmedya.com.tr" or .name=="chatgpt.btmedya.com.tr") | [.type,.name,.content,.proxied] | @tsv'             || true
 
