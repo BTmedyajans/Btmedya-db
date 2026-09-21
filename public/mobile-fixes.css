@@ -1,0 +1,263 @@
+/* BTMEDYA mobile hardening
+   Loaded after home.css so phone-specific rules stay isolated and easy to audit. */
+@media (max-width: 720px) {
+  :root {
+    --pad: max(18px, 5vw);
+  }
+
+  html, body {
+    width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  body.menu-open {
+    overflow: hidden;
+    height: 100svh;
+  }
+
+  .topbar {
+    height: 64px;
+    padding-left: max(18px, 5vw);
+    padding-right: max(18px, 5vw);
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .brand {
+    font-size: 14px;
+    gap: 7px;
+  }
+
+  .hamburger {
+    width: 50px;
+    height: 38px;
+    min-width: 50px;
+  }
+
+  .menu-panel {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .menu-panel-inner {
+    min-height: 100svh;
+    padding-top: 82px;
+    padding-left: var(--pad);
+    padding-right: var(--pad);
+    padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  }
+
+  .menu-grid {
+    margin-top: 18px;
+  }
+
+  .menu-cat {
+    padding: 20px 18px;
+  }
+
+  .menu-title {
+    font-size: 25px;
+  }
+
+  .hero {
+    min-height: 100svh;
+    min-height: 100dvh;
+    align-items: flex-end;
+  }
+
+  .hero-media {
+    object-position: 58% center;
+    transform: none;
+  }
+
+  .hero-shade {
+    background:
+      linear-gradient(90deg, rgba(0,0,0,.90), rgba(0,0,0,.45)),
+      linear-gradient(0deg, rgba(0,0,0,.94), transparent 62%);
+  }
+
+  .hero-inner {
+    width: 100%;
+    padding:
+      0 var(--pad)
+      calc(42px + env(safe-area-inset-bottom));
+    display:block;
+  }
+
+  .hero h1 {
+    max-width: 7.2em;
+    font-size: clamp(58px, 18vw, 92px);
+    line-height: .84;
+    margin: 16px 0 22px;
+    overflow-wrap: anywhere;
+  }
+
+  .hero-lead {
+    max-width: 32rem;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .hero-actions {
+    margin-top: 22px;
+    gap: 8px;
+  }
+
+  .button {
+    min-height: 50px;
+    padding: 0 16px;
+  }
+
+  .hero-scroll {
+    right: var(--pad);
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    font-size: 8px;
+  }
+
+  .section {
+    padding-top: 76px;
+    padding-bottom: 76px;
+  }
+
+  .section-head {
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .section h2 {
+    max-width: 8em;
+    overflow-wrap: anywhere;
+  }
+
+  .section-side {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .news-grid {
+    gap: 12px;
+  }
+
+  .news-card,
+  .news-card.featured {
+    min-height: 390px;
+  }
+
+  .news-body {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .news-body h3,
+  .news-card:not(.featured) .news-body h3 {
+    font-size: clamp(27px, 8vw, 38px);
+  }
+
+  .news-body p {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .news-filter {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 5px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .news-filter::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter {
+    flex: 0 0 auto;
+    min-height: 40px;
+  }
+
+  .media-grid {
+    gap: 12px;
+  }
+
+  .media-card,
+  .media-card.media-large {
+    min-height: 330px;
+  }
+
+  .media-info {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .media-info h3 {
+    font-size: clamp(32px, 10vw, 54px);
+  }
+
+  .ai-rail {
+    gap: 1px;
+  }
+
+  .ai-rail article {
+    min-height: 210px;
+    padding: 20px;
+  }
+
+  .ai-rail h3 {
+    margin-top: 34px;
+    font-size: 29px;
+  }
+
+  .digital-copy {
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  .digital-points {
+    gap: 6px;
+  }
+
+  .contact-section {
+    padding-top: 92px;
+    padding-bottom: 100px;
+  }
+
+  .contact-card {
+    padding: 28px 20px;
+  }
+
+  .contact-card h2 {
+    font-size: clamp(54px, 16vw, 88px);
+    line-height: .86;
+  }
+
+  .footer {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 390px) {
+  .hero h1 {
+    font-size: clamp(52px, 17vw, 72px);
+  }
+
+  .section {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .menu-panel-inner {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-media,
+  .news-media img,
+  .news-media video,
+  .media-card video {
+    transition: none !important;
+    transform: none !important;
+  }
+}
