@@ -254,7 +254,42 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <div class="panel"><div id="videoList"></div></div>
   </div>
 
-  <div class="tab-content" id="tab-control">
+  <div class="tab-content" id="tab-automation">
+  <div class="panel">
+    <h2>BTMEDYA Otomasyon Merkezi</h2>
+    <p class="muted">D1'deki gerçek haberleri seçip sosyal içerik kuyruğuna otomatik taslak olarak aktarır. AI LAB içeriği ayrı tutulur; kaynak olarak gerçek haber metni kullanılır.</p>
+    <div class="row">
+      <select id="autoNews"><option value="">Haber seçin…</option></select>
+      <select id="autoMode"><option value="single">Seçili haber</option><option value="latest">Son 5 yayınlanmış haber</option></select>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <input id="autoPrefix" placeholder="Opsiyonel seri etiketi: BTMEDYA / BALIKESİR">
+      <select id="autoFormat"><option value="9:16">9:16</option><option value="4:5">4:5</option><option value="1:1">1:1</option><option value="16:9">16:9</option></select>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label style="display:flex;align-items:center;gap:7px"><input type="checkbox" value="instagram" class="auto-platform"> Instagram</label>
+      <label style="display:flex;align-items:center;gap:7px"><input type="checkbox" value="facebook" class="auto-platform"> Facebook</label>
+      <label style="display:flex;align-items:center;gap:7px"><input type="checkbox" value="tiktok" class="auto-platform"> TikTok</label>
+      <label style="display:flex;align-items:center;gap:7px"><input type="checkbox" value="youtube" class="auto-platform"> YouTube</label>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary" id="autoLoadNews">Haberleri getir</button>
+      <button class="btn primary" id="autoCreate">Sosyal taslakları oluştur</button>
+    </div>
+    <p id="autoStatus" class="status"></p>
+  </div>
+  <div class="panel">
+    <h2>Otomasyon mantığı</h2>
+    <div class="muted">
+      <p>1. Yayınlanmış gerçek haber D1'den alınır.</p>
+      <p>2. Başlık + özet + kaynak bağlantısı sosyal metin için birleştirilir.</p>
+      <p>3. Seçilen platformlar için sosyal içerik kuyruğuna taslak oluşturulur.</p>
+      <p>4. İçerik daha sonra Yönetim → Sosyal İçerik bölümünden onaya ve planlamaya alınır.</p>
+    </div>
+  </div>
+</div>
+
+<div class="tab-content" id="tab-control">
   <div class="panel">
     <h2>BTMEDYA Control Center</h2>
     <p class="muted">Cloudflare, D1, R2, sosyal bağlantılar, iZap ve CMS Open Data iş akışının tek durum ekranı.</p>
@@ -323,6 +358,54 @@ $('#loginBtn').onclick=async()=>{
 };
 $('#pw').onkeydown=e=>{if(e.key==='Enter')$('#loginBtn').click()};
 $('#logoutBtn').onclick=()=>fetch('/api/logout').then(()=>location.reload());
+
+/* ---- BTMEDYA Otomasyon Merkezi ---- */
+let autoNewsCache=[];
+async function loadAutomationNews(){
+  const sel=$('#autoNews'), status=$('#autoStatus');
+  status.textContent='Haberler yükleniyor…';
+  try{
+    const d=await req('/api/news?limit=20');
+    autoNewsCache=d.items||[];
+    sel.innerHTML='<option value="">Haber seçin…</option>'+autoNewsCache.map(n=>'<option value="'+escStr(n.slug)+'">'+escStr(n.title)+'</option>').join('');
+    status.textContent=autoNewsCache.length+' yayınlanmış haber bulundu.';
+  }catch(e){status.textContent='Haber akışı alınamadı.'}
+}
+function autoPlatforms(){
+  return [...document.querySelectorAll('.auto-platform:checked')].map(x=>x.value);
+}
+function autoText(n,prefix){
+  const clean=String(n.excerpt||n.body||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+  const lead=clean.slice(0,500);
+  return (prefix?prefix+'\n\n':'')+n.title+'\n\n'+lead+'\n\nKaynak: https://btmedya.com.tr/haberler/'+n.slug+'.html';
+}
+async function createAutomationPosts(){
+  const status=$('#autoStatus'), mode=$('#autoMode').value, platforms=autoPlatforms();
+  if(!platforms.length){status.textContent='En az bir platform seçin.';return}
+  const chosen=mode==='latest'?autoNewsCache.slice(0,5):autoNewsCache.filter(n=>n.slug===$('#autoNews').value);
+  if(!chosen.length){status.textContent='Önce bir haber seçin veya haberleri yükleyin.';return}
+  const format=$('#autoFormat').value,prefix=$('#autoPrefix').value.trim();
+  let created=0;
+  try{
+    for(const n of chosen){
+      await req('/admin/social',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
+        title:n.title,
+        body:autoText(n,prefix),
+        format,
+        platforms,
+        status:'hazirlaniyor',
+        scheduled_at:null,
+        source_slug:n.slug,
+        media_key:''
+      })});
+      created++;
+    }
+    status.textContent=created+' sosyal içerik taslağı oluşturuldu. Sosyal İçerik sekmesinden onaylayabilirsiniz.';
+    loadSocial();
+  }catch(e){status.textContent='Otomasyon durdu: '+(e.message||'işlem hatası')}
+}
+$('#autoLoadNews').onclick=loadAutomationNews;
+$('#autoCreate').onclick=createAutomationPosts;
 
 /* ---- Tabs ---- */
 async function loadControlCenter(){
