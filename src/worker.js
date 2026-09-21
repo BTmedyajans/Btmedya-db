@@ -81,12 +81,43 @@ async function sendContactEmail(env, msg){
 async function newsApi(request, env, url){
   if(url.pathname==='/api/health') return json({ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,admin:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,mail:!!env.RESEND_API_KEY});
 
-  /* Public: haber listesi */
+  /* Public: haber listesi
+     D1 üretim kaynağıdır. D1'de arşiv seed'i henüz uygulanmamışsa
+     repository içindeki gerçek BTMEDYA arşivi güvenli bir salt-okur
+     fallback olarak kullanılır. Böylece canlı site boş kalmaz. */
   if(url.pathname==='/api/news' && request.method==='GET'){
-    if(!env.DB) return json({ok:true,source:'static',items:[]});
     const limit=Math.min(Number(url.searchParams.get('limit'))||100,100);
-    const rows=await env.DB.prepare("SELECT id,slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news WHERE status='published' ORDER BY published_at DESC LIMIT ?").bind(limit).all();
-    return json({ok:true,items:rows.results});
+    if(env.DB){
+      const rows=await env.DB.prepare("SELECT id,slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news WHERE status='published' ORDER BY published_at DESC LIMIT ?").bind(limit).all();
+      if(rows.results?.length) return json({ok:true,source:'d1',items:rows.results});
+    }
+    try{
+      const req=new Request(new URL('/data/haberler.json',url.origin));
+      const asset=await env.ASSETS.fetch(req);
+      if(!asset.ok) return json({ok:true,source:'static',items:[]});
+      const archive=await asset.json();
+      const items=archive.slice(0,limit).map((n,i)=>({
+        id:n.id||i+1,
+        slug:n.slug,
+        title:n.title,
+        excerpt:n.excerpt||'',
+        body:Array.isArray(n.body)?n.body.join('\\n\\n'):String(n.body||''),
+        category:n.category||'Haber',
+        author:n.author||'BTMEDYA',
+        cover_url:n.cover_url||`/assets/haber-kapak/${encodeURIComponent(n.slug)}.webp`,
+        video_url:n.video_url||null,
+        status:'published',
+        published_at:n.published_at||null,
+        source_url:n.source_url||null,
+        original_date:n.original_date||null,
+        archive_note:n.archive_note||'BTMEDYA arşiv içeriği',
+        updated_at:n.updated_at||null
+      }));
+      return json({ok:true,source:'static-archive',items});
+    }catch(e){
+      console.error('[news] static archive fallback failed:',e);
+      return json({ok:true,source:'static',items:[]});
+    }
   }
 
   /* Admin: haber listesi */
