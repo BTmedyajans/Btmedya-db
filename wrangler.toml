@@ -69,3 +69,20 @@ required = [
 #   RESEND_API_KEY        -> Resend e-posta bildirim API anahtarı
 #   RESEND_TO             -> bildirim alıcı adresi
 #   RESEND_FROM           -> gönderici adresi
+
+
+# Cloudflare Workflow: BTMEDYA içerik/onay otomasyonu
+[[workflows]]
+name = "btmedya-content"
+binding = "BTMEDYA_WORKFLOW"
+class_name = "BtmedyaWorkflow"
+
+# Workflow durumlarını ve canlı panel bildirimlerini tutan Durable Object
+[[durable_objects.bindings]]
+name = "WORKFLOW_STATUS"
+class_name = "WorkflowStatusDO"
+
+# Durable Object için SQLite tabanlı migration
+[[migrations]]
+tag = "workflow-v1"
+new_sqlite_classes = ["WorkflowStatusDO"]
