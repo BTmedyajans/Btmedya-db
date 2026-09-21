@@ -1,5 +1,59 @@
 [
   {
+    "id": 9001,
+    "slug": "karesi-kocaavsar-orman-yangini-kontrol-altina-alindi",
+    "title": "Karesi Kocaavşar’daki Orman Yangını Kontrol Altına Alındı",
+    "author": "BTMEDYA Haber Merkezi",
+    "original_date": "21 Eylül 2026",
+    "published_at": "2026-09-21T00:00:00+03:00",
+    "category": "Gündem / Yangın",
+    "excerpt": "Balıkesir’in Karesi ilçesi Kocaavşar Mahallesi’nde çıkan ve rüzgârın etkisiyle ormanlık alana sıçrayan yangın, havadan ve karadan müdahaleyle kontrol altına alındı. Bölgede soğutma çalışmaları sürüyor.",
+    "body": [
+      "Balıkesir’in Karesi ilçesine bağlı Kocaavşar Mahallesi’ndeki arazide 21 Eylül 2026’da yangın çıktı. Yangının rüzgârın etkisiyle ormanlık alana sıçradığı bildirildi.",
+      "Orman Bölge Müdürlüğü ekiplerinin havadan ve karadan müdahalesiyle yangın kontrol altına alındı. Bölgedeki soğutma çalışmalarının sürdüğü aktarıldı.",
+      "Bu içerik, Anadolu Ajansı’nın 21 Eylül 2026 tarihli haberindeki doğrulanmış bilgiler esas alınarak BTMEDYA tarafından özetlenmiştir."
+    ],
+    "source_url": "https://www.aa.com.tr/tr/gundem/balikesirde-orman-yangini-kontrol-altina-alindi/4063262",
+    "video_url": null,
+    "archive_note": "Güncel kaynak özeti. Kaynak: Anadolu Ajansı."
+  },
+  {
+    "id": 9002,
+    "slug": "edremit-altinkum-kanalizasyon-altyapi-yatirimi",
+    "title": "Edremit Altınkum’da Kanalizasyon Altyapısı Yenilendi",
+    "author": "BTMEDYA Haber Merkezi",
+    "original_date": "21 Eylül 2026",
+    "published_at": "2026-09-21T00:00:00+03:00",
+    "category": "Yerel / Altyapı",
+    "excerpt": "Balıkesir Büyükşehir Belediyesi, Edremit Altınkum Mahallesi’nde yıllardır süren kanalizasyon sorununa yönelik hat yenileme çalışmasının tamamlandığını duyurdu.",
+    "body": [
+      "Balıkesir Büyükşehir Belediyesi, Edremit ilçesi Altınkum Mahallesi’nde kanalizasyon hatlarının baştan sona yenilendiğini açıkladı.",
+      "Belediyenin 21 Eylül 2026 tarihli duyurusuna göre BASKİ ekipleri bölgede altyapıyı yenileyerek daha sağlıklı ve modern bir kanalizasyon sistemi oluşturdu.",
+      "Bu içerik, belediyenin resmi açıklamasından derlenmiş kaynaklı bir haber özetidir."
+    ],
+    "source_url": "https://balikesir.bel.tr/haberler/ahmet-akindan-edremit-altinkumun-altyapisina-buyuk-yatirim",
+    "video_url": null,
+    "archive_note": "Güncel resmi kurum kaynağı özeti. Kaynak: Balıkesir Büyükşehir Belediyesi."
+  },
+  {
+    "id": 9003,
+    "slug": "balikesir-emniyet-7-13-eylul-2026-faaliyetleri",
+    "title": "Balıkesir Emniyet Müdürlüğü 7-13 Eylül Faaliyetlerini Açıkladı",
+    "author": "BTMEDYA Haber Merkezi",
+    "original_date": "15 Eylül 2026",
+    "published_at": "2026-09-15T00:00:00+03:00",
+    "category": "Gündem / Asayiş",
+    "excerpt": "Balıkesir İl Emniyet Müdürlüğü, 7-13 Eylül 2026 tarihleri arasındaki suçların azaltılması ve önlenmesine yönelik çalışmaların sonuçlarını yayımladı.",
+    "body": [
+      "Balıkesir İl Emniyet Müdürlüğü’nün 15 Eylül 2026 tarihli bültenine göre 7-13 Eylül haftasında kişilere karşı 311 olay meydana geldi, 298 olay aydınlatıldı ve 466 şüpheli hakkında adli işlem yapıldı.",
+      "Aynı açıklamada malvarlığına karşı 84 olay meydana geldiği, 47 olayın aydınlatıldığı ve 57 şüpheli hakkında adli işlem yapıldığı belirtildi.",
+      "Bu içerik, Balıkesir İl Emniyet Müdürlüğü’nün resmi basın bültenindeki verilerin kaynak gösterilerek özetlenmiş halidir."
+    ],
+    "source_url": "https://www.balikesir.pol.tr/suclarin-azaltilmasi-onlenmesi-ve-suclularin-yakalanmasina-yonelik-calismalar-2511",
+    "video_url": null,
+    "archive_note": "Güncel resmi kurum kaynağı özeti. Kaynak: Balıkesir İl Emniyet Müdürlüğü."
+  },
+  {
     "id": 1,
     "slug": "balikesir-in-en-kalabalik-pazari",
     "title": "Balıkesir'in En Kalabalık Pazarı",
