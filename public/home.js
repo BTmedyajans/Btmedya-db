@@ -120,7 +120,7 @@
 
   const loadNews = async () => {
     try {
-      const r = await fetch('/api/news?limit=20', {headers:{accept:'application/json'}});
+      const r = await fetch('/api/news?limit=100', {headers:{accept:'application/json'}});
       if (!r.ok) throw new Error('api');
       const data = await r.json();
       allNews = data.items || [];
