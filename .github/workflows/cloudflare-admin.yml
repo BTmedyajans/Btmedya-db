@@ -1,14 +1,6 @@
 name: Cloudflare administration
 
 on:
-  push:
-    branches: ["main"]
-    paths:
-      - "wrangler.toml"
-      - "src/**"
-      - "public/**"
-      - "migrations/**"
-      - ".github/workflows/cloudflare-admin.yml"
   workflow_dispatch:
     inputs:
       action:
@@ -47,7 +39,7 @@ jobs:
         run: npm install --global wrangler@latest
 
       - name: Verify required secrets
-        if: github.event_name == 'push' || inputs.action != 'verify'
+        if: inputs.action != 'verify'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -140,7 +132,7 @@ jobs:
           git push origin HEAD:main
 
       - name: Apply pending D1 migrations
-        if: github.event_name == 'push' || inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
+        if: inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
