@@ -411,18 +411,282 @@ async function mediaApi(request, env){
     return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`});
   }
 
+  const STATIC_REAL_MEDIA = [
+  {
+    "path": "hero-ending.jpg",
+    "id": "static-1",
+    "category": "hero"
+  },
+  {
+    "path": "hero-mobil.mp4",
+    "id": "static-2",
+    "category": "hero"
+  },
+  {
+    "path": "hero-mobil.webm",
+    "id": "static-3",
+    "category": "hero"
+  },
+  {
+    "path": "hero-poster.jpg",
+    "id": "static-4",
+    "category": "hero"
+  },
+  {
+    "path": "hero-scrub.mp4",
+    "id": "static-5",
+    "category": "hero"
+  },
+  {
+    "path": "hero-scrub.webm",
+    "id": "static-6",
+    "category": "hero"
+  },
+  {
+    "path": "media/portfoy/portfoy-video-01.mp4",
+    "id": "static-7",
+    "category": "portfoy"
+  },
+  {
+    "path": "media/web/hero-story-mobile.mp4",
+    "id": "static-8",
+    "category": "video"
+  },
+  {
+    "path": "media/web/hero-story-poster.jpg",
+    "id": "static-9",
+    "category": "video"
+  },
+  {
+    "path": "media/web/hero-story.mp4",
+    "id": "static-10",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-07.mp4",
+    "id": "static-11",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-07.webm",
+    "id": "static-12",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-action.mp4",
+    "id": "static-13",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-action.webm",
+    "id": "static-14",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-fantasy.mp4",
+    "id": "static-15",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-fantasy.webm",
+    "id": "static-16",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-flying-reporter.mp4",
+    "id": "static-17",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-flying-reporter.webm",
+    "id": "static-18",
+    "category": "video"
+  },
+  {
+    "path": "media/web/state-haber.mp4",
+    "id": "static-19",
+    "category": "video"
+  },
+  {
+    "path": "media/web/state-medya.mp4",
+    "id": "static-20",
+    "category": "video"
+  },
+  {
+    "path": "media/web/state-produksiyon.mp4",
+    "id": "static-21",
+    "category": "video"
+  },
+  {
+    "path": "saha/beydonoglu.webp",
+    "id": "static-22",
+    "category": "saha"
+  },
+  {
+    "path": "saha/helva.webp",
+    "id": "static-23",
+    "category": "saha"
+  },
+  {
+    "path": "saha/yorgan.webp",
+    "id": "static-24",
+    "category": "saha"
+  },
+  {
+    "path": "haber-kapak/acikogretim-lisesi-ikinci-bir-sans-mi-yeni-zorluklar-mi.webp",
+    "id": "static-25",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-ali-suuri-pazari-nda-fiyatlar-ne-durumda.webp",
+    "id": "static-26",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-berber-ve-kuafor-fiyatlari-el-yakiyor.webp",
+    "id": "static-27",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-dugunlerin-vazgecilmez-dans-sarkilari.webp",
+    "id": "static-28",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-genclik-asisi-estetik-dunyasini-buyuluyor.webp",
+    "id": "static-29",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-kira-fiyatlarinda-30-artis-bekleniyor.webp",
+    "id": "static-30",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-yaz-sicaklariyla-vantilator-satislari-patladi.webp",
+    "id": "static-31",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-esnafi-eleman-bulmakta-zorlaniyor.webp",
+    "id": "static-32",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-in-en-kalabalik-pazari.webp",
+    "id": "static-33",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-in-gelin-ayakkabilari-ve-kina-terlikleri-modasi.webp",
+    "id": "static-34",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-in-gururu-memleketinde-sov-yapacak.webp",
+    "id": "static-35",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-in-son-kalaycisi-ilyas-baykal.webp",
+    "id": "static-36",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-meyhaneler-bogazi-nda-pide-fiyatlari-ne-kadar.webp",
+    "id": "static-37",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-muay-thai-de-dunya-arenasinda.webp",
+    "id": "static-38",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-pazarinda-canli-helva-sovu.webp",
+    "id": "static-39",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/beydonoglu-yaprak-satarken-festival-yonetiyor.webp",
+    "id": "static-40",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/diyetisyen-den-yaz-aylarinda-saglikli-beslenme-ve-hizli-zayiflama-sirlari.webp",
+    "id": "static-41",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/el-emegi-yorganlar-artik-isitmiyor.webp",
+    "id": "static-42",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/gayrimenkul-uzmani-uyardi.webp",
+    "id": "static-43",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/gunes-koruyucu-seciminde-cilt-tipine-ozel-tavsiyeler.webp",
+    "id": "static-44",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/igneli-epilasyonun-bilinmeyen-riskleri.webp",
+    "id": "static-45",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/kadin-firincidan-30-yillik-basari-oykusu.webp",
+    "id": "static-46",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/kiralik-evlerde-yeni-donem-basliyor.webp",
+    "id": "static-47",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/mangalin-yeni-gozdesi-istiridye-mantari.webp",
+    "id": "static-48",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/okul-doneminde-ayakkabicilar-carsisi-na-yogun-ilgi.webp",
+    "id": "static-49",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/sogan-tarlada-5-pazarda-15tl.webp",
+    "id": "static-50",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/uzmanlardan-kilo-alma-ve-verme-stratejileri.webp",
+    "id": "static-51",
+    "category": "haber"
+  }
+];
+
   if(path==='/api/public/media' && request.method==='GET') {
     const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'};
-    if(!env.DB) return json({brand:'BTMedya',generated_at:new Date().toISOString(),items:[]},200,cors);
-    if(!mediaSec) return json({error:'Sunucu yapılandırma hatası'},503,cors);
-    const q=u.searchParams.get('q')||''; const cat=u.searchParams.get('category')||'';
-    let sql='SELECT id,key,original_name,mime,size,category,tags,title,description,alt_text,slot,sort_order,created_at,updated_at FROM media WHERE published=1'; const args=[];
-    if(q){sql+=' AND (original_name LIKE ? OR title LIKE ? OR description LIKE ? OR tags LIKE ?)'; const x=`%${q}%`; args.push(x,x,x,x);}
-    if(cat){sql+=' AND category=?'; args.push(cat);}
-    sql+=' ORDER BY created_at DESC LIMIT 200';
-    const r=await env.DB.prepare(sql).bind(...args).all();
-    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600))})));
-    return json({brand:'BTMedya',generated_at:new Date().toISOString(),items},200,cors);
+    const q=(u.searchParams.get('q')||'').toLowerCase(); const cat=u.searchParams.get('category')||'';
+    const staticItems=STATIC_REAL_MEDIA
+      .filter(x=>!cat || x.category===cat)
+      .filter(x=>!q || x.path.toLowerCase().includes(q))
+      .map((x,i)=>({id:x.id,key:'static/'+x.path,original_name:x.path.split('/').pop(),mime:/\\.(mp4|webm)$/i.test(x.path)?'video/'+(x.path.endsWith('.webm')?'webm':'mp4'):'image/webp',size:0,category:x.category,tags:['BTMEDYA','gercek','arsiv'],title:x.path.split('/').pop().replace(/\\.[^.]+$/,'').replace(/[-_]+/g,' '),description:'BTMEDYA gerçek arşiv medyası',alt_text:'BTMEDYA gerçek arşiv medyası',slot:x.category==='hero'?'hero':x.category==='video'?'medya':x.category==='portfoy'?'portfoy':'haber',sort_order:i,created_at:null,updated_at:null,url:'/assets/'+x.path,source:'github-static',ai_generated:false}));
+    let r2Items=[];
+    if(env.DB && env.MEDIA && mediaSec){
+      let sql='SELECT id,key,original_name,mime,size,category,tags,title,description,alt_text,slot,sort_order,created_at,updated_at FROM media WHERE published=1'; const args=[];
+      if(q){sql+=' AND (original_name LIKE ? OR title LIKE ? OR description LIKE ? OR tags LIKE ?)'; const x='%'+q+'%'; args.push(x,x,x,x);}
+      if(cat){sql+=' AND category=?'; args.push(cat);} sql+=' ORDER BY created_at DESC LIMIT 200';
+      const r=await env.DB.prepare(sql).bind(...args).all();
+      r2Items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600)),source:'r2',ai_generated:!!x.ai_generated})));
+    }
+    const seen=new Set(r2Items.map(x=>x.url));
+    const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url))];
+    return json({brand:'BTMedya',generated_at:new Date().toISOString(),source:r2Items.length?'r2+github-static':'github-static',items},200,cors);
   }
 
   const aiToken=env.AI_READ_TOKEN;
