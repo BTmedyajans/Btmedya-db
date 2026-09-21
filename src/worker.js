@@ -85,7 +85,7 @@ async function newsApi(request, env, url){
   if(url.pathname==='/api/news' && request.method==='GET'){
     if(!env.DB) return json({ok:true,source:'static',items:[]});
     const limit=Math.min(Number(url.searchParams.get('limit'))||100,100);
-    const rows=await env.DB.prepare("SELECT id,slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,updated_at FROM news WHERE status='published' ORDER BY published_at DESC LIMIT ?").bind(limit).all();
+    const rows=await env.DB.prepare("SELECT id,slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news WHERE status='published' ORDER BY published_at DESC LIMIT ?").bind(limit).all();
     return json({ok:true,items:rows.results});
   }
 
@@ -94,7 +94,7 @@ async function newsApi(request, env, url){
     if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const status=url.searchParams.get('status');
-    let sql='SELECT id,slug,title,excerpt,category,author,cover_url,status,published_at,updated_at FROM news';
+    let sql='SELECT id,slug,title,excerpt,category,author,cover_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news';
     const args=[];
     if(status){sql+=' WHERE status=?';args.push(status);}
     sql+=' ORDER BY updated_at DESC LIMIT 200';
