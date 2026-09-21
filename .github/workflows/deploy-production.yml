@@ -30,7 +30,7 @@ jobs:
           node --check src/worker.js
           grep -q 'main = "src/worker.js"' wrangler.toml
           grep -q 'pattern = "btmedya.com.tr"' wrangler.toml
-          grep -q 'pattern = "www.btmedya.com.tr/*"' wrangler.toml
+          grep -Fq 'pattern = "www.btmedya.com.tr/*"' wrangler.toml
           grep -q 'bucket_name = "btmedya-media"' wrangler.toml
           grep -q 'database_name = "btmedya-media"' wrangler.toml
           test -d public
