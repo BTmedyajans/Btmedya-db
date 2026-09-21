@@ -139,16 +139,17 @@ async function newsApi(request, env, url){
      fallback olarak kullanılır. Böylece canlı site boş kalmaz. */
   if(url.pathname==='/api/news' && request.method==='GET'){
     const limit=Math.min(Number(url.searchParams.get('limit'))||100,100);
+    let d1Items=[];
     if(env.DB){
-      const rows=await env.DB.prepare("SELECT id,slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news WHERE status='published' ORDER BY published_at DESC LIMIT ?").bind(limit).all();
-      if(rows.results?.length) return json({ok:true,source:'d1',items:rows.results});
+      const rows=await env.DB.prepare("SELECT id,slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news WHERE status='published' ORDER BY published_at DESC LIMIT 200").all();
+      d1Items=rows.results||[];
     }
     try{
       const req=new Request(new URL('/data/haberler.json',url.origin));
       const asset=await env.ASSETS.fetch(req);
-      if(!asset.ok) return json({ok:true,source:'static',items:[]});
+      if(!asset.ok) return json({ok:true,source:d1Items.length?'d1':'static',items:d1Items.slice(0,limit)});
       const archive=await asset.json();
-      const items=archive.slice(0,limit).map((n,i)=>({
+      const staticItems=archive.map((n,i)=>({
         id:n.id||i+1,
         slug:n.slug,
         title:n.title,
@@ -165,10 +166,17 @@ async function newsApi(request, env, url){
         archive_note:n.archive_note||'BTMEDYA arşiv içeriği',
         updated_at:n.updated_at||null
       }));
-      return json({ok:true,source:'static-archive',items});
+      const bySlug=new Map(d1Items.map(n=>[n.slug,n]));
+      for(const n of staticItems) if(!bySlug.has(n.slug)) bySlug.set(n.slug,n);
+      const items=[...bySlug.values()].sort((a,b)=>{
+        const ad=Date.parse(a.published_at||a.original_date||'')||0;
+        const bd=Date.parse(b.published_at||b.original_date||'')||0;
+        return bd-ad;
+      }).slice(0,limit);
+      return json({ok:true,source:d1Items.length?'d1+static-archive':'static-archive',items});
     }catch(e){
       console.error('[news] static archive fallback failed:',e);
-      return json({ok:true,source:'static',items:[]});
+      return json({ok:true,source:'d1',items:d1Items.slice(0,limit)});
     }
   }
 
@@ -724,12 +732,37 @@ export default { async fetch(request, env, ctx){
     // Once veritabani, sonra statik dosya. Boylece panelden yapilan duzenleme
     // ve video kutuphanesi anahtari 27 eski haberde de gecerli olur; D1'e
     // ulasilamazsa depodaki statik surum yedek olarak devreye girer.
-    if(env.DB){
+    {
       const slug = decodeURIComponent(url.pathname.slice('/haberler/'.length).replace(/\.html$/,'').replace(/\/$/,''));
       if(slug){
-        const n = await env.DB.prepare(
-          "SELECT * FROM news WHERE slug=? AND status='published'"
-        ).bind(slug).first();
+        let n = null;
+        if(env.DB){
+          n = await env.DB.prepare(
+            "SELECT * FROM news WHERE slug=? AND status='published'"
+          ).bind(slug).first();
+        }
+        // D1 kaydi yoksa repository'deki gerçek haber arşivinden üret.
+        if(!n && env.ASSETS){
+          try{
+            const asset=await env.ASSETS.fetch(new Request(new URL('/data/haberler.json',url.origin)));
+            if(asset.ok){
+              const archive=await asset.json();
+              const a=archive.find(x=>x.slug===slug);
+              if(a){
+                n={
+                  id:a.id||null,slug:a.slug,title:a.title,excerpt:a.excerpt||'',
+                  body:Array.isArray(a.body)?a.body.join('\\n\\n'):String(a.body||''),
+                  category:a.category||'Haber',author:a.author||'BTMEDYA',
+                  cover_url:a.cover_url||`/assets/haber-kapak/${encodeURIComponent(a.slug)}.webp`,
+                  video_url:a.video_url||null,status:'published',
+                  published_at:a.published_at||null,source_url:a.source_url||null,
+                  original_date:a.original_date||null,archive_note:a.archive_note||'BTMEDYA arşiv içeriği',
+                  updated_at:a.updated_at||null
+                };
+              }
+            }
+          }catch(e){ console.error('[news-page] static archive fallback failed:',e); }
+        }
         if(n){
           // Video kutuphanesi kaydi: kendi kanalimiza tasinmissa oraya yonlenir.
           let vlib=null;
