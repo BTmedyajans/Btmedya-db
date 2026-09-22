@@ -1,0 +1,40 @@
+name: BTMEDYA read-only storage audit
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Audit Cloudflare R2 and D1 (read-only)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          api="https://api.cloudflare.com/client/v4"
+          auth=(-H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json")
+
+          echo "=== R2 bucket inventory ==="
+          curl -fsS "$api/accounts/$CLOUDFLARE_ACCOUNT_ID/r2/buckets" "${auth[@]}"             | jq -r '.result.buckets[]?.name' | sort
+
+          for bucket in btmedya-media btmedya-r2; do
+            echo "=== R2: $bucket ==="
+            curl -fsS "$api/accounts/$CLOUDFLARE_ACCOUNT_ID/r2/buckets/$bucket/objects?per_page=5" "${auth[@]}"               | jq -r '{
+                  success,
+                  count:(.result|length),
+                  truncated:(.result_info.is_truncated // false),
+                  keys:(.result|map(.key))
+                }'
+          done
+
+          echo "=== D1 published media ==="
+          curl -fsS -X POST "$api/accounts/$CLOUDFLARE_ACCOUNT_ID/d1/database/94a980cd-62c5-4c29-b7fc-40f96ab665e4/query" "${auth[@]}"             --data '{"sql":"SELECT COUNT(*) AS total, COALESCE(SUM(published),0) AS published FROM media"}'             | jq .
