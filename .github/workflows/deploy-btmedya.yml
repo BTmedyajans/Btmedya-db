@@ -1,4 +1,4 @@
-name: Deploy BTMedya Worker
+name: BTMedya production smoke
 
 on:
   push:
@@ -7,46 +7,60 @@ on:
 
 permissions:
   contents: read
+  checks: read
 
 concurrency:
-  group: btmedya-worker-deploy
+  group: btmedya-production-smoke
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  smoke:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Wait for Cloudflare Workers Build
+        uses: actions/github-script@v7
         with:
-          node-version: 22
-
-      - name: Install Wrangler
-        run: npm install --global wrangler@latest
-
-      - name: Verify Cloudflare credentials
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          set -eu
-          test -n "${CLOUDFLARE_API_TOKEN}" || { echo "CLOUDFLARE_API_TOKEN eksik."; exit 1; }
-          echo "Cloudflare API token is present; Wrangler will use the pinned production account_id from wrangler.toml."
-
-      # Production D1 already contains the required application tables.
-      # Keep schema migrations in the dedicated admin workflow so a CI token
-      # without D1 write permission cannot block an otherwise valid Worker deploy.
-      - name: Deploy btmedya-db
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: npx wrangler deploy --config wrangler.toml
+          script: |
+            const target = 'Workers Builds: btmedya-db';
+            const sha = context.sha;
+            const deadline = Date.now() + 180000;
+            let last = null;
+            while (Date.now() < deadline) {
+              const { data } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: sha,
+                per_page: 100
+              });
+              const check = data.check_runs.find(x => x.name === target && x.head_sha === sha);
+              if (check) {
+                last = check;
+                if (check.status === 'completed') {
+                  if (check.conclusion !== 'success') {
+                    core.setFailed(`Cloudflare Workers Build failed: ${check.conclusion || 'unknown'}`);
+                  }
+                  return;
+                }
+              }
+              await new Promise(r => setTimeout(r, 5000));
+            }
+            core.setFailed(`Cloudflare Workers Build check not completed for ${sha}. Last state: ${last ? last.status : 'not found'}`);
 
       - name: Production smoke test
         run: |
           set -eu
-          curl -fsS --max-time 20 https://btmedya.com.tr/api/health
-          echo
+          for i in $(seq 1 18); do
+            if curl -fsS --max-time 15 https://btmedya.com.tr/api/health > /tmp/health.json; then
+              cat /tmp/health.json
+              break
+            fi
+            if [ "$i" -eq 18 ]; then
+              echo "Production health endpoint did not become ready in time."
+              exit 1
+            fi
+            sleep 5
+          done
           curl -fsS --max-time 20 "https://btmedya.com.tr/api/news?limit=1" >/dev/null
+          curl -fsS --max-time 20 https://btmedya.com.tr/robots.txt >/dev/null
+          curl -fsS --max-time 20 https://btmedya.com.tr/sitemap.xml >/dev/null
           echo "BTMedya production smoke test OK"
