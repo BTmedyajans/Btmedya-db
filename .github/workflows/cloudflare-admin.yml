@@ -57,8 +57,9 @@ jobs:
           set -eu
           # Secret yöneticisine JSON/tırnaklı kopyalanmış değerleri Wrangler ve
           # curl için kanonik çıplak biçime çevir; değerleri loglama.
-          api_token="${CLOUDFLARE_API_TOKEN//\"/}"
-          account_id="${CLOUDFLARE_ACCOUNT_ID//\"/}"
+          api_token="$(printf '%s' "$CLOUDFLARE_API_TOKEN" | tr -d '\"\r\n')"
+          account_id="$(printf '%s' "$CLOUDFLARE_ACCOUNT_ID" | tr -cd '[:alnum:]_-')"
+          test -n "$account_id" || { echo "CLOUDFLARE_ACCOUNT_ID boş."; exit 1; }
           case "$account_id" in
             *[^a-zA-Z0-9_-]*) echo "CLOUDFLARE_ACCOUNT_ID geçersiz karakter içeriyor."; exit 1 ;;
           esac
