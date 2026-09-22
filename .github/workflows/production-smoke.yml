@@ -88,7 +88,8 @@ jobs:
         run: |
           set -euo pipefail
           status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 https://btmedya.com.tr/api/admin/news)"
-          test "$status" = "401"
+          # 401 = application auth; 403 = Cloudflare Access/WAF protection. Both are protected states.
+          test "$status" = "401" || test "$status" = "403"
 
       - name: Check WWW canonical redirect
         run: |
