@@ -52,12 +52,17 @@ jobs:
             process.exit(1);
           }
           const health = JSON.parse(fs.readFileSync("/tmp/health.json","utf8"));
-          const legacyNonEmpty = health.legacyR2Objects === true;
+          const direct = x.items.filter(i => i.source === "r2-direct" || i.source === "r2");
           const legacy = x.items.filter(i => i.source === "r2-legacy");
-          if (legacyNonEmpty && legacy.length < 1) {
+          if (health.r2Objects === true && direct.length < 1) {
+            console.error("btmedya-media contains R2 objects, but none reached /api/public/media.");
+            console.error("source:", x.source, "items:", x.items.length);
+            process.exit(1);
+          }
+          if (health.legacyR2Objects === true && legacy.length < 1) {
             console.error("btmedya-r2 contains objects, but none reached /api/public/media as r2-legacy.");
             console.error("source:", x.source, "items:", x.items.length);
             process.exit(1);
           }
-          console.log("Public media items:", x.items.length, "source:", x.source, "legacy items:", legacy.length, "legacy bucket non-empty:", legacyNonEmpty);
+          console.log("Public media items:", x.items.length, "source:", x.source, "direct R2 items:", direct.length, "legacy R2 items:", legacy.length);
           NODE
