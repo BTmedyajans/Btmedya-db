@@ -974,7 +974,9 @@ export default { async fetch(request, env, ctx){
     const rw = await workflowApi(request, env, url);
     if(rw) return rw;
 
-    const rcc = await controlCenterApi(request, env, url);\n    if(rcc) return rcc;\n    const r1 = await newsApi(request, env, url);
+    const rcc = await controlCenterApi(request, env, url);
+    if(rcc) return rcc;
+    const r1 = await newsApi(request, env, url);
     if(r1) return r1;
     if(env.DB){
       const rc = await contactApi(request, env, url, ctx);
