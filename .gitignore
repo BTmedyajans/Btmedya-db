@@ -2,3 +2,13 @@ node_modules/
 .wrangler/
 .dryrun/
 *.log
+
+# Yerel gelistirme sirlari — asla depoya girmemeli.
+# wrangler dev bu dosyayi otomatik okur; ADMIN_PASSWORD, ADMIN_SESSION_SECRET,
+# META_ACCESS_TOKEN gibi gercek degerler burada tutulur. Uretim sirlari
+# "wrangler secret put" veya panelden girilir, dosyaya yazilmaz.
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+!.env.example
