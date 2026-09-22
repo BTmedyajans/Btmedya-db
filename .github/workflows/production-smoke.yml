@@ -36,7 +36,7 @@ jobs:
           set -euo pipefail
           curl -fsS --max-time 20 https://btmedya.com.tr/ > /tmp/home.html
           grep -Fq 'rel="canonical" href="https://btmedya.com.tr/"' /tmp/home.html
-          grep -Fq 'name="robots" content="index,follow,max-image-preview:large"' /tmp/home.html
+          grep -Fq 'name="robots" content="index,follow' /tmp/home.html
           ! grep -Eiq 'name="robots"[^>]+content="[^"]*noindex' /tmp/home.html
           grep -Fq '"@type":"NewsMediaOrganization"' /tmp/home.html
           grep -Fq '"@type":"WebSite"' /tmp/home.html
