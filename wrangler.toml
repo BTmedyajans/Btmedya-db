@@ -68,7 +68,6 @@ required = [
 #   RESEND_TO             -> bildirim alıcı adresi
 #   RESEND_FROM           -> gönderici adresi
 
-
 # Cloudflare Workflow: BTMEDYA içerik/onay otomasyonu
 [[workflows]]
 name = "btmedya-content"
@@ -80,6 +79,12 @@ class_name = "BtmedyaWorkflow"
 name = "WORKFLOW_STATUS"
 class_name = "WorkflowStatusDO"
 
+# Wrangler 4.x live Durable Object export
+[exports.WorkflowStatusDO]
+type = "durable-object"
+storage = "sqlite"
+
 # Durable Object için SQLite tabanlı migration
+[[migrations]]
 tag = "workflow-v1"
 new_sqlite_classes = ["WorkflowStatusDO"]
