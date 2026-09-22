@@ -19,26 +19,9 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$CLOUDFLARE_API_TOKEN"
-          account_id="$(printf '%s' "$account_id" | tr -d '[:space:]')"
+          account_id="$(printf '%s' "$CLOUDFLARE_ACCOUNT_ID" | tr -d '[:space:]')"
           test -n "$account_id"
-          printf '%s' "$account_id" | grep -Eq '^[a-f0-9]{32}
-
-          echo "=== R2 bucket inventory ==="
-          curl -fsS "$api/accounts/$account_id/r2/buckets" "${auth[@]}"             | jq -r '.result.buckets[]?.name' | sort
-
-          for bucket in btmedya-media btmedya-r2; do
-            echo "=== R2: $bucket ==="
-            curl -fsS "$api/accounts/$account_id/r2/buckets/$bucket/objects?per_page=5" "${auth[@]}"               | jq -r '{
-                  success,
-                  count:(.result|length),
-                  truncated:(.result_info.is_truncated // false),
-                  keys:(.result|map(.key))
-                }'
-          done
-
-          echo "=== D1 published media ==="
-          curl -fsS -X POST "$api/accounts/$account_id/d1/database/94a980cd-62c5-4c29-b7fc-40f96ab665e4/query" "${auth[@]}"             --data '{"sql":"SELECT COUNT(*) AS total, COALESCE(SUM(published),0) AS published FROM media"}'             | jq .
-
+          test "${#account_id}" -eq 32
           api="https://api.cloudflare.com/client/v4"
           auth=(-H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json")
 
