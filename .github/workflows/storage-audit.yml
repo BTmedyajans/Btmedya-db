@@ -12,7 +12,7 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - name: Audit Cloudflare R2 and D1 (read-only)
+      - name: Audit Cloudflare R2 and D1 (read-only, best effort)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -25,18 +25,26 @@ jobs:
           api="https://api.cloudflare.com/client/v4"
           auth=(-H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json")
 
-          echo "=== R2 bucket inventory ==="
-          curl -fsS "$api/accounts/$account_id/r2/buckets" "${auth[@]}"             | jq -r '.result.buckets[]?.name' | sort
-
+          echo "=== R2 bucket/object audit ==="
           for bucket in btmedya-media btmedya-r2; do
-            echo "=== R2: $bucket ==="
-            curl -fsS "$api/accounts/$account_id/r2/buckets/$bucket/objects?per_page=5" "${auth[@]}"               | jq -r '{
-                  success,
-                  count:(.result|length),
-                  truncated:(.result_info.is_truncated // false),
-                  keys:(.result|map(.key))
-                }'
+            tmp="/tmp/r2-$bucket.json"
+            status="$(curl -sS -o "$tmp" -w "%{http_code}" "$api/accounts/$account_id/r2/buckets/$bucket/objects?per_page=5" "${auth[@]}" || true)"
+            echo "$bucket: HTTP $status"
+            if [ "$status" = "200" ]; then
+              jq -r '{success,count:(.result|length),keys:(.result|map(.key))}' "$tmp"
+            else
+              echo "R2 REST read unavailable with the configured CI token; no R2 data was modified."
+              head -c 1000 "$tmp" || true
+            fi
           done
 
-          echo "=== D1 published media ==="
-          curl -fsS -X POST "$api/accounts/$account_id/d1/database/94a980cd-62c5-4c29-b7fc-40f96ab665e4/query" "${auth[@]}"             --data '{"sql":"SELECT COUNT(*) AS total, COALESCE(SUM(published),0) AS published FROM media"}'             | jq .
+          echo "=== D1 media metadata audit ==="
+          tmp=/tmp/d1-media.json
+          status="$(curl -sS -o "$tmp" -w "%{http_code}" -X POST "$api/accounts/$account_id/d1/database/94a980cd-62c5-4c29-b7fc-40f96ab665e4/query" "${auth[@]}"             --data '{"sql":"SELECT COUNT(*) AS total, COALESCE(SUM(published),0) AS published FROM media"}' || true)"
+          echo "D1 media query: HTTP $status"
+          if [ "$status" = "200" ]; then
+            jq . "$tmp"
+          else
+            echo "D1 REST read unavailable with the configured CI token; no D1 data was modified."
+            head -c 1000 "$tmp" || true
+          fi
