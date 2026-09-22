@@ -55,6 +55,7 @@ MEDIA_PUBLIC_TTL = "86400"
 # wrangler deploy, aşağıdaki required secret isimlerini doğrular.
 [secrets]
 required = [
+  "ADMIN_USERNAME",
   "ADMIN_PASSWORD",
   "ADMIN_SESSION_SECRET",
   "MEDIA_SIGNING_SECRET",
