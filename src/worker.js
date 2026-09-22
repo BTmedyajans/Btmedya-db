@@ -50,30 +50,51 @@ function mediaCategoryFromKey(key){
   return 'arsiv';
 }
 
-async function listLegacyMedia(env, {q='',cat=''}={}){
-  if(!env.LEGACY_MEDIA) return [];
-  const allowed=/\\.(?:jpe?g|png|webp|gif|mp4|webm|mov|m4v|mp3|wav|m4a)$/i;
+async function listR2Media(bucket, source, {q='',cat=''}={}){
+  if(!bucket) return [];
+  const allowed=/\.(?:jpe?g|png|webp|gif|mp4|webm|mov|m4v|mp3|wav|m4a)$/i;
   const out=[];
   let cursor;
   do {
-    const page=await env.LEGACY_MEDIA.list({limit:200,cursor,include:['httpMetadata']}).catch(()=>null);
+    const page=await bucket.list({limit:200,cursor,include:['httpMetadata']}).catch(()=>null);
     if(!page) break;
     for(const x of (page.objects||[])){
       const key=String(x.key||'');
       const mime=String(x.httpMetadata?.contentType||'');
-      const extOk=allowed.test(key);
-      const mediaMime=/^(image|video|audio)\\//i.test(mime);
-      if(!extOk && !mediaMime) continue;
+      if(!allowed.test(key) && !/^(image|video|audio)\//i.test(mime)) continue;
       const category=mediaCategoryFromKey(key);
       if(cat && category!==cat) continue;
       if(q && !key.toLowerCase().includes(q.toLowerCase())) continue;
-      out.push({id:'legacy-'+b64url(new TextEncoder().encode(key)).slice(0,24),key,original_name:key.split('/').pop()||key,mime:mime||(/\\.(mp4|webm|mov|m4v)$/i.test(key)?'video/mp4':'image/webp'),size:Number(x.size||0),category,tags:['BTMEDYA','gercek','r2-arsiv'],title:(key.split('/').pop()||key).replace(/\\.[^.]+$/,'').replace(/[-_]+/g,' '),description:'BTMEDYA gerçek R2 arşiv medyası',alt_text:'BTMEDYA gerçek arşiv medyası',slot:'',sort_order:out.length,created_at:x.uploaded?new Date(x.uploaded).toISOString():null,updated_at:x.uploaded?new Date(x.uploaded).toISOString():null,url:null,source:'r2-legacy',ai_generated:false});
-      if(out.length>=200) return out;
+      const isVideo=/\.(mp4|webm|mov|m4v)$/i.test(key) || /^video\//i.test(mime);
+      out.push({
+        id:(source==='r2-legacy'?'legacy-':'r2-')+b64url(new TextEncoder().encode(key)).slice(0,24),
+        key,
+        original_name:key.split('/').pop()||key,
+        mime:mime || (isVideo?'video/mp4':'image/webp'),
+        size:Number(x.size||0),
+        category,
+        tags:['BTMEDYA','gercek',source==='r2-legacy'?'r2-arsiv':'r2'],
+        title:(key.split('/').pop()||key).replace(/\.[^.]+$/,'').replace(/[-_]+/g,' '),
+        description:source==='r2-legacy'?'BTMEDYA gerçek R2 arşiv medyası':'BTMEDYA gerçek R2 medya nesnesi',
+        alt_text:'BTMEDYA gerçek medya',
+        slot:category==='video'?'medya':category==='portfoy'?'portfoy':category==='haber'?'haber':'',
+        sort_order:out.length,
+        created_at:x.uploaded?new Date(x.uploaded).toISOString():null,
+        updated_at:x.uploaded?new Date(x.uploaded).toISOString():null,
+        url:null,
+        source,
+        ai_generated:false
+      });
+      if(out.length>=500) return out;
     }
     cursor=page.truncated?page.cursor:undefined;
   } while(cursor);
   return out;
 }
+async function listLegacyMedia(env, opts={}){
+  return listR2Media(env.LEGACY_MEDIA,'r2-legacy',opts);
+}
+
 async function validMediaSig(key, exp, sig, secret){
   if(!secret || !exp || !sig || Number(exp)<Math.floor(Date.now()/1000)) return false;
   return (await hmac(secret,`${key}:${exp}`))===sig;
@@ -742,8 +763,18 @@ async function mediaApi(request, env){
       const r=await env.DB.prepare(sql).bind(...args).all();
       r2Items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600)),source:'r2',ai_generated:!!x.ai_generated})));
     }
-    // D1 medya metadatası boş/eksik olsa bile eski gerçek R2 arşivini görünür tut.
-    // LEGACY_MEDIA yalnızca okuma fallback'idir; hiçbir R2 objesi taşınmaz veya silinmez.
+    // D1 metadata eksik olsa bile gerçek production R2 nesnelerini görünür tut.
+    // Bu katman salt-okurdur; R2'ye yazmaz, taşımaz veya silmez.
+    if(mediaSec && env.MEDIA){
+      const direct=await listR2Media(env.MEDIA,'r2-direct',{q,cat});
+      const known=new Set(r2Items.map(x=>x.key));
+      for(const x of direct){
+        if(known.has(x.key)) continue;
+        x.url=await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600));
+        r2Items.push(x);
+      }
+    }
+    // Eski R2 yalnızca ikinci salt-okur fallback'tir.
     if(mediaSec && env.LEGACY_MEDIA){
       const legacy=await listLegacyMedia(env,{q,cat});
       const known=new Set(r2Items.map(x=>x.key));
