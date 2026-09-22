@@ -121,7 +121,9 @@
     /* data-kapak-yedegi: gorsel gercekten yoksa kirik <img> yerine arsiv
        kutusu gosterilir (bkz. kapakYedegiKur). Satir ici onerror kullanilmiyor;
        kamuya acik sayfalarda CSP script-src 'self' (cspKur, src/worker.js). */
-    if (cover) return `<div class="news-media"><img src="${esc(cover)}" alt="${esc(n.title)}" loading="lazy" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div></div><span class="reference-note">GERÇEK ARŞİV GÖRSELİ</span>`;
+    /* Kapaklar saha fotografi degil, tasarlanmis grafik kart; bu yuzden
+       AGENTS.md'deki varsayilan geregi AI URETIMI etiketi tasirlar. */
+    if (cover) return `<div class="news-media"><img src="${esc(cover)}" alt="${esc(n.title)}" loading="lazy" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div></div><span class="reference-note">AI ÜRETİMİ GÖRSEL</span>`;
     return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
   };
   const render = (items) => {
@@ -147,7 +149,7 @@
   };
 
   /* Kapak dosyasi gercekten yoksa kirik <img> gosterilmez: kart, kapaksiz
-     haberlerle ayni arsiv kutusuna dondurulur. "GERÇEK ARŞİV GÖRSELİ" notu da
+     haberlerle ayni arsiv kutusuna dondurulur. Gorsel kaynak notu da
      kaldirilir, cunku ortada gorsel yok ve o etiket yanlis beyan olurdu. */
   const kapakYedegiKur = (kok) => {
     kok.querySelectorAll('img[data-kapak-yedegi]').forEach(img => {
@@ -233,7 +235,7 @@
       : '<img class="archive-media" loading="lazy" src="' + esc(url) + '" alt="' + baslik + '">';
     return '<article class="archive-live-card ' + (i === 0 ? 'featured' : '') + '">' + medya +
       '<div class="archive-overlay"></div><div class="archive-copy">' +
-      '<span class="archive-tag">GERÇEK ÇEKİM · ' + kat + '</span><h3>' + baslik + '</h3>' +
+      '<span class="archive-tag">' + (o.ai_generated === false ? 'GERÇEK ÇEKİM' : 'AI ÜRETİMİ') + ' · ' + kat + '</span><h3>' + baslik + '</h3>' +
       '<p>Kaynak: ' + esc(kaynak === 'github-static' ? 'BTMEDYA arşivi' : 'Media Vault') + '</p>' +
       '<div class="archive-actions">' + detay + yt + '</div></div></article>';
   };

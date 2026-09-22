@@ -661,7 +661,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     }else if(video&&url){detail='<a href="'+esc(url)+'" target="_blank" rel="noopener">Videoyu aç ↗</a>';}
     const yt='<a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube ↗</a>';
     const media=video?'<video class="archive-media" muted loop playsinline preload="metadata" src="'+esc(url)+'"></video>':'<img class="archive-media" loading="lazy" src="'+esc(url)+'" alt="'+title+'">';
-    return '<article class="archive-live-card '+(index===0?'featured':'')+'">'+media+'<div class="archive-overlay"></div><div class="archive-copy"><span class="archive-tag">GERÇEK ÇEKİM · '+cat+'</span><h3>'+title+'</h3><p>Kaynak: '+esc(source==='github-static'?'BTMEDYA arşivi':'Media Vault')+'</p><div class="archive-actions">'+detail+yt+'</div></div></article>';
+    return '<article class="archive-live-card '+(index===0?'featured':'')+'">'+media+'<div class="archive-overlay"></div><div class="archive-copy"><span class="archive-tag">'+(item.ai_generated===false?'GERÇEK ÇEKİM':'AI ÜRETİMİ')+' · '+cat+'</span><h3>'+title+'</h3><p>Kaynak: '+esc(source==='github-static'?'BTMEDYA arşivi':'Media Vault')+'</p><div class="archive-actions">'+detail+yt+'</div></div></article>';
   }
   async function loadArchive(){
     const grid=document.getElementById('gercekArsivGrid'); if(!grid)return;
