@@ -5,6 +5,8 @@
 name = "btmedya-db"
 main = "src/worker.js"
 compatibility_date = "2026-09-19"
+# Production Cloudflare account ID is configuration, not a secret.
+account_id = "b239acae17aebe894ea76309fe32cdce"
 
 [observability]
 enabled = true
@@ -79,6 +81,5 @@ name = "WORKFLOW_STATUS"
 class_name = "WorkflowStatusDO"
 
 # Durable Object için SQLite tabanlı migration
-[[migrations]]
 tag = "workflow-v1"
 new_sqlite_classes = ["WorkflowStatusDO"]
