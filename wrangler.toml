@@ -79,12 +79,8 @@ class_name = "BtmedyaWorkflow"
 name = "WORKFLOW_STATUS"
 class_name = "WorkflowStatusDO"
 
-# Wrangler 4.x live Durable Object export
-[exports.WorkflowStatusDO]
-type = "durable-object"
-storage = "sqlite"
-
-# Durable Object için SQLite tabanlı migration
+# Durable Object için SQLite tabanlı legacy migration akışı.
+# Bu Worker daha önce bu migration modelini kullanacak şekilde yapılandırıldı.
 [[migrations]]
 tag = "workflow-v1"
 new_sqlite_classes = ["WorkflowStatusDO"]
