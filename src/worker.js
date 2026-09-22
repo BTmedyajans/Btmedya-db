@@ -179,7 +179,7 @@ async function workflowApi(request, env, url) {
 
 /* ---------- Haber CMS API ---------- */
 async function newsApi(request, env, url){
-  if(url.pathname==='/api/health') return json({ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,admin:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,mail:!!env.RESEND_API_KEY});
+  if(url.pathname==='/api/health') return json({ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA,admin:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,mail:!!env.RESEND_API_KEY});
 
   /* Public: haber listesi
      D1 üretim kaynağıdır. D1'de arşiv seed'i henüz uygulanmamışsa
