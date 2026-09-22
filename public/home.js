@@ -6,19 +6,37 @@
   const menu = d.getElementById('siteMenu');
   const toggle = d.getElementById('menuToggle');
   const close = d.getElementById('menuClose');
+  let menuPreviousFocus = null;
   const setMenu = (open) => {
     if (!menu || !toggle) return;
+    if (open) menuPreviousFocus = d.activeElement;
     menu.classList.toggle('open', open);
     menu.setAttribute('aria-hidden', open ? 'false' : 'true');
     toggle.classList.toggle('open', open);
     toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     toggle.setAttribute('aria-label', open ? 'Menüyü kapat' : 'Menüyü aç');
     d.body.classList.toggle('menu-open', open);
+    if (open) {
+      requestAnimationFrame(() => (close || menu.querySelector('a'))?.focus());
+    } else if (menuPreviousFocus && typeof menuPreviousFocus.focus === 'function') {
+      menuPreviousFocus.focus();
+      menuPreviousFocus = null;
+    }
   };
   toggle?.addEventListener('click', () => setMenu(!menu.classList.contains('open')));
   close?.addEventListener('click', () => setMenu(false));
   menu?.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
-  d.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
+  d.addEventListener('keydown', e => {
+    if (!menu?.classList.contains('open')) return;
+    if (e.key === 'Escape') setMenu(false);
+    if (e.key !== 'Tab') return;
+    const focusable = [...menu.querySelectorAll('a,button')].filter(el => !el.hasAttribute('disabled'));
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && d.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && d.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
 
   if (!reduced && hover) {
     d.body.classList.add('parallax-ready');
@@ -92,7 +110,7 @@
   const dateText = item => item.original_date || (item.published_at ? new Date(item.published_at).toLocaleDateString('tr-TR') : '');
   const cardMedia = n => {
     const cover = n.cover_url || '';
-    const yt = String(n.video_url || '').match(/(?:youtube\\.com\\/(?:watch\\?(?:.*&)?v=|embed\\/|shorts\\/|live\\/)|youtu\\.be\\/)([A-Za-z0-9_-]{11})/);
+    const yt = String(n.video_url || '').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
     if (yt) return `<div class="news-media news-video"><img src="https://i.ytimg.com/vi/${yt[1]}/hqdefault.jpg" alt="${esc(n.title)} — video kapağı" loading="lazy"><div class="news-scrim"></div><span class="video-badge">▶ VİDEO</span></div>`;
     if (cover) return `<div class="news-media"><img src="${esc(cover)}" alt="${esc(n.title)}" loading="lazy" decoding="async"><div class="news-scrim"></div></div><span class="reference-note">GERÇEK ARŞİV GÖRSELİ</span>`;
     return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
@@ -138,7 +156,12 @@
   filterBar?.addEventListener('click', e => {
     const btn = e.target.closest('.filter');
     if (!btn) return;
-    filterBar.querySelectorAll('.filter').forEach(b => b.classList.toggle('active', b === btn));
+    filterBar.querySelectorAll('.filter').forEach(b => {
+      const active = b === btn;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-selected', active ? 'true' : 'false');
+      b.setAttribute('tabindex', active ? '0' : '-1');
+    });
     render(allNews.filter(n => catMatch(n.category, btn.dataset.cat)));
   });
   loadNews();
