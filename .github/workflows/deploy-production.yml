@@ -74,44 +74,23 @@ jobs:
           print("Production media references: OK")
           PY
 
-      - name: Detect optional Cloudflare deploy credentials
-        id: cf
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-            echo "Cloudflare CI deploy credentials are configured."
-          else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "Cloudflare CI deploy credentials are not configured; deployment is delegated to Cloudflare Workers Builds."
-          fi
-
-      - name: Deploy Worker to Cloudflare
-        if: steps.cf.outputs.configured == 'true'
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
-
       - name: Production smoke tests
-        if: steps.cf.outputs.configured == 'true'
         run: |
           set -eu
           headers=/tmp/health.headers
           body=/tmp/health.json
-          code="$(curl -sS -D "$headers" -o "$body" -w '%{http_code}' --max-time 30 https://btmedya.com.tr/api/health || true)"
-          if [ "$code" != "200" ]; then
-            echo "Production /api/health returned HTTP $code"
-            cat "$headers" || true
-            sed -n '1,40p' "$body" || true
-            if [ "$code" = "401" ] || [ "$code" = "403" ]; then
-              echo "Pre-Worker protection detected. Check Cloudflare Access/security rules."
+          for attempt in $(seq 1 20); do
+            code="$(curl -sS -D "$headers" -o "$body" -w '%{http_code}' --max-time 30 https://btmedya.com.tr/api/health || true)"
+            if [ "$code" = "200" ]; then
+              cat "$body"
+              break
             fi
-            exit 1
-          fi
+            echo "Production /api/health HTTP $code; waiting ${attempt}/20 for Cloudflare Workers Builds."
+            sleep 15
+          done
+          test -s "$body"
+          code="$(awk 'NR==1 {print $2}' "$headers")"
+          test "$code" = "200"
           cat "$body"
           node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/health.json","utf8")); if(!x.ok||x.service!=="btmedya"||x.cms!==true||x.r2!==true||x.legacyR2!==true) process.exit(1)'
           curl -fsS --max-time 30 "https://btmedya.com.tr/api/news?limit=1" > /dev/null
