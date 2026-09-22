@@ -32,6 +32,8 @@ jobs:
           grep -q 'pattern = "btmedya.com.tr"' wrangler.toml
           grep -Fq 'pattern = "www.btmedya.com.tr/*"' wrangler.toml
           grep -q 'bucket_name = "btmedya-media"' wrangler.toml
+          grep -q 'binding = "LEGACY_MEDIA"' wrangler.toml
+          grep -q 'bucket_name = "btmedya-r2"' wrangler.toml
           grep -q 'database_name = "btmedya-media"' wrangler.toml
           test -d public
           test -d migrations
@@ -111,7 +113,7 @@ jobs:
             exit 1
           fi
           cat "$body"
-          node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/health.json","utf8")); if(!x.ok||x.service!=="btmedya"||x.cms!==true||x.r2!==true) process.exit(1)'
+          node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/health.json","utf8")); if(!x.ok||x.service!=="btmedya"||x.cms!==true||x.r2!==true||x.legacyR2!==true) process.exit(1)'
           curl -fsS --max-time 30 "https://btmedya.com.tr/api/news?limit=1" > /dev/null
 
           admin_status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://btmedya.com.tr/api/admin/news)"
