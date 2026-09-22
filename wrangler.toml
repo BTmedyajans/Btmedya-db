@@ -35,6 +35,11 @@ zone_name = "btmedya.com.tr"
 binding = "MEDIA"
 bucket_name = "btmedya-media"
 
+# Eski arşiv R2: silinmez; mevcut anahtarları canlı medya katmanında okuyabilmek için salt-okur fallback.
+[[r2_buckets]]
+binding = "LEGACY_MEDIA"
+bucket_name = "btmedya-r2"
+
 # Workers KV: production kodu şu anda KV binding kullanmıyor.
 # Eski/placeholder KV ID'si eklenmeyecek. KV ancak kod gerçekten ihtiyaç
 # duyduğunda gerçek namespace ID ile bağlanacaktır.
