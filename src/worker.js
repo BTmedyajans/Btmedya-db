@@ -26,6 +26,54 @@ async function validSession(request, secret){
 async function signedMediaUrl(request, key, secret, ttl=86400){
   const u=new URL(request.url); const exp=Math.floor(Date.now()/1000)+ttl; const msg=`${key}:${exp}`; const sig=await hmac(secret,msg); return `${u.origin}/media/${key}?exp=${exp}&sig=${encodeURIComponent(sig)}`;
 }
+
+// Medya depolama katmanı: üretim bucket'ı birincildir, eski arşiv bucket'ı yalnızca fallback'tir.
+// Böylece yanlış R2 eşleşmesi mevcut dosyaları görünmez kılmaz ve hiçbir dosya taşınmadan/silinmeden erişilebilir kalır.
+async function getMediaObject(env, key){
+  if(env.MEDIA){
+    const obj=await env.MEDIA.get(key).catch(()=>null);
+    if(obj) return {obj,source:'r2'};
+  }
+  if(env.LEGACY_MEDIA){
+    const obj=await env.LEGACY_MEDIA.get(key).catch(()=>null);
+    if(obj) return {obj,source:'r2-legacy'};
+  }
+  return {obj:null,source:null};
+}
+
+function mediaCategoryFromKey(key){
+  const p=String(key||'').split('/')[0].toLowerCase();
+  if(/haber|news/.test(p)) return 'haber';
+  if(/video|reel|showreel/.test(p)) return 'video';
+  if(/saha|report|portfolio|portfoy/.test(p)) return 'portfoy';
+  if(/hero|web|site/.test(p)) return 'medya';
+  return 'arsiv';
+}
+
+async function listLegacyMedia(env, {q='',cat=''}={}){
+  if(!env.LEGACY_MEDIA) return [];
+  const allowed=/\\.(?:jpe?g|png|webp|gif|mp4|webm|mov|m4v|mp3|wav|m4a)$/i;
+  const out=[];
+  let cursor;
+  do {
+    const page=await env.LEGACY_MEDIA.list({limit:200,cursor,include:['httpMetadata']}).catch(()=>null);
+    if(!page) break;
+    for(const x of (page.objects||[])){
+      const key=String(x.key||'');
+      const mime=String(x.httpMetadata?.contentType||'');
+      const extOk=allowed.test(key);
+      const mediaMime=/^(image|video|audio)\\//i.test(mime);
+      if(!extOk && !mediaMime) continue;
+      const category=mediaCategoryFromKey(key);
+      if(cat && category!==cat) continue;
+      if(q && !key.toLowerCase().includes(q.toLowerCase())) continue;
+      out.push({id:'legacy-'+b64url(new TextEncoder().encode(key)).slice(0,24),key,original_name:key.split('/').pop()||key,mime:mime||(/\\.(mp4|webm|mov|m4v)$/i.test(key)?'video/mp4':'image/webp'),size:Number(x.size||0),category,tags:['BTMEDYA','gercek','r2-arsiv'],title:(key.split('/').pop()||key).replace(/\\.[^.]+$/,'').replace(/[-_]+/g,' '),description:'BTMEDYA gerçek R2 arşiv medyası',alt_text:'BTMEDYA gerçek arşiv medyası',slot:'',sort_order:out.length,created_at:x.uploaded?new Date(x.uploaded).toISOString():null,updated_at:x.uploaded?new Date(x.uploaded).toISOString():null,url:null,source:'r2-legacy',ai_generated:false});
+      if(out.length>=200) return out;
+    }
+    cursor=page.truncated?page.cursor:undefined;
+  } while(cursor);
+  return out;
+}
 async function validMediaSig(key, exp, sig, secret){
   if(!secret || !exp || !sig || Number(exp)<Math.floor(Date.now()/1000)) return false;
   return (await hmac(secret,`${key}:${exp}`))===sig;
@@ -684,9 +732,20 @@ async function mediaApi(request, env){
       const r=await env.DB.prepare(sql).bind(...args).all();
       r2Items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600)),source:'r2',ai_generated:!!x.ai_generated})));
     }
+    // D1 medya metadatası boş/eksik olsa bile eski gerçek R2 arşivini görünür tut.
+    // LEGACY_MEDIA yalnızca okuma fallback'idir; hiçbir R2 objesi taşınmaz veya silinmez.
+    if(mediaSec && env.LEGACY_MEDIA){
+      const legacy=await listLegacyMedia(env,{q,cat});
+      const known=new Set(r2Items.map(x=>x.key));
+      for(const x of legacy){
+        if(known.has(x.key)) continue;
+        x.url=await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600));
+        r2Items.push(x);
+      }
+    }
     const seen=new Set(r2Items.map(x=>x.url));
     const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url))];
-    return json({brand:'BTMedya',generated_at:new Date().toISOString(),source:r2Items.length?'r2+github-static':'github-static',items},200,cors);
+    return json({brand:'BTMedya',generated_at:new Date().toISOString(),source:r2Items.length?'r2+legacy-r2+github-static':'github-static',items},200,cors);
   }
 
   const aiToken=env.AI_READ_TOKEN;
@@ -951,7 +1010,7 @@ export default { async fetch(request, env, ctx){
     if(!env.DB||!env.MEDIA) return text('Medya deposu yapılandırılmadı',503);
     const row=await env.DB.prepare('SELECT key FROM media WHERE key=? AND published=1').bind(key).first();
     if(!row) return text('Bu dosya yayında değil',404);
-    const obj=await env.MEDIA.get(key); if(!obj) return text('Medya bulunamadı',404);
+    const found=await getMediaObject(env,key); const obj=found.obj; if(!obj) return text('Medya bulunamadı',404);
     return new Response(obj.body,{headers:{
       'content-type':obj.httpMetadata?.contentType||'application/octet-stream',
       'cache-control':'public, max-age=3600',
@@ -965,8 +1024,8 @@ export default { async fetch(request, env, ctx){
     if(!mediaSec) return text('Medya yapılandırma hatası',503);
     const ok=await validMediaSig(key,url.searchParams.get('exp'),url.searchParams.get('sig'),mediaSec);
     if(!ok) return text('Geçersiz veya süresi dolmuş medya bağlantısı',403);
-    if(!env.MEDIA) return text('Medya deposu yapılandırılmadı',503);
-    const obj=await env.MEDIA.get(key); if(!obj)return text('Medya bulunamadı',404);
+    if(!env.MEDIA && !env.LEGACY_MEDIA) return text('Medya deposu yapılandırılmadı',503);
+    const found=await getMediaObject(env,key); const obj=found.obj; if(!obj)return text('Medya bulunamadı',404);
     return new Response(obj.body,{headers:{'content-type':obj.httpMetadata?.contentType||'application/octet-stream','cache-control':'public, max-age=86400'}});
   }
 
