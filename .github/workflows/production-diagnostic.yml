@@ -87,7 +87,7 @@ jobs:
           api="https://api.cloudflare.com/client/v4"
           auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
           zones="$(curl -fsS "${api}/zones?name=btmedya.com.tr&per_page=50" "${auth[@]}")"
-          zone_id="$(jq -r '.result[] | select(.name=="btmedya.com.tr") | .id' <<<"$zones" | head -n1)
+          zone_id="$(jq -r '.result[] | select(.name=="btmedya.com.tr") | .id' <<<"$zones" | head -n1)"
           echo "===== CLOUDFLARE RULESETS MATCHING API/NEWS =====" | tee -a btmedya-production-report.txt
           rulesets="$(curl -fsS "${api}/zones/${zone_id}/rulesets" "${auth[@]}")"
           jq -r '.result[] | [.id,.name,.kind,.phase] | @tsv' <<<"$rulesets" | tee -a btmedya-production-report.txt
