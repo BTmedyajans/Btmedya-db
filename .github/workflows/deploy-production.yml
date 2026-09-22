@@ -88,6 +88,75 @@ jobs:
             echo "Cloudflare CI deploy credentials are not configured; deployment is delegated to Cloudflare Workers Builds."
           fi
 
+      - name: Prepare Worker custom-domain DNS
+        if: steps.cf.outputs.configured == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4"
+          auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
+          zones="$(curl -fsS "${api}/zones?name=btmedya.com.tr&per_page=50" "${auth[@]}")"
+          zone_id="$(printf '%s' "${zones}" | jq -r '.result[] | select(.name=="btmedya.com.tr") | .id' | head -n1)"
+          status="$(printf '%s' "${zones}" | jq -r '.result[] | select(.name=="btmedya.com.tr") | .status' | head -n1)"
+          test -n "${zone_id}" && test "${zone_id}" != "null"
+          test "${status}" = "active"
+
+          # Only web A/AAAA/CNAME records for apex/www are removed.
+          # MX/TXT/SPF/DMARC and chatgpt.btmedya.com.tr are untouched.
+          records="$(curl -fsS "${api}/zones/${zone_id}/dns_records?per_page=5000" "${auth[@]}")"
+          printf '%s' "${records}" | jq -r '
+            .result[]
+            | select((.name=="btmedya.com.tr" or .name=="www.btmedya.com.tr")
+              and (.type=="A" or .type=="AAAA" or .type=="CNAME"))
+            | [.id,.type,.name,.content] | @tsv
+          ' | while IFS=        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+
+      - name: Production smoke tests
+        if: steps.cf.outputs.configured == 'true'
+        run: |
+          set -eu
+          headers=/tmp/health.headers
+          body=/tmp/health.json
+          code="$(curl -sS -D "$headers" -o "$body" -w '%{http_code}' --max-time 30 https://btmedya.com.tr/api/health || true)"
+          if [ "$code" != "200" ]; then
+            echo "Production /api/health returned HTTP $code"
+            cat "$headers" || true
+            sed -n '1,40p' "$body" || true
+            if [ "$code" = "401" ] || [ "$code" = "403" ]; then
+              echo "Pre-Worker protection detected. Check Cloudflare Access/security rules."
+            fi
+            exit 1
+          fi
+          cat "$body"
+          node -e 'const x=JSON.parse(require("fs").readFileSync("/tmp/health.json","utf8")); if(!x.ok||x.service!=="btmedya"||x.cms!==true||x.r2!==true||x.legacyR2!==true) process.exit(1)'
+          curl -fsS --max-time 30 "https://btmedya.com.tr/api/news?limit=1" > /dev/null
+
+          admin_status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://btmedya.com.tr/api/admin/news)"
+          test "$admin_status" = "401"
+
+          curl -fsSIL --max-time 30 https://btmedya.com.tr/ | head -n 20
+          www_status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://www.btmedya.com.tr/)"
+          test "$www_status" = "301"
+
+          curl -fsS --max-time 30 https://btmedya.com.tr/robots.txt | grep -Fq 'Sitemap: https://btmedya.com.tr/sitemap.xml'
+          curl -fsS --max-time 30 https://btmedya.com.tr/sitemap.xml | grep -Fq '<urlset'
+\t' read -r id type name content; do
+            [ -z "${id}" ] && continue
+            echo "Removing web DNS conflict: ${type} ${name} -> ${content}"
+            curl -fsS -X DELETE "${api}/zones/${zone_id}/dns_records/${id}" "${auth[@]}" >/dev/null
+          done
+
+          remaining="$(curl -fsS "${api}/zones/${zone_id}/dns_records?per_page=5000" "${auth[@]}"             | jq -r '.result[] | select((.name=="btmedya.com.tr" or .name=="www.btmedya.com.tr") and (.type=="A" or .type=="AAAA" or .type=="CNAME")) | .id')"
+          test -z "${remaining}"
+
+          echo "Worker custom-domain DNS preflight complete."
+
       - name: Deploy Worker to Cloudflare
         if: steps.cf.outputs.configured == 'true'
         uses: cloudflare/wrangler-action@v4
