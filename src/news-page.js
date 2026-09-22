@@ -162,6 +162,7 @@ ${JSON.stringify(videoLd,null,0)}
     <a href="https://wa.me/905416401029?text=Merhaba%20BTMEDYA%2C%20bir%20proje%20i%C3%A7in%20teklif%20almak%20istiyorum." target="_blank" rel="noopener">WhatsApp</a>
     <a href="https://www.instagram.com/btmedya10/" target="_blank" rel="noopener">Instagram</a>
     <a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube</a>
+    <a href="https://www.tiktok.com/@btmedya1010" target="_blank" rel="noopener">TikTok</a>
     <span>Balıkesir · Türkiye</span>
   </div>
 </nav>

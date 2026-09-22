@@ -108,11 +108,20 @@
   let allNews = [];
 
   const dateText = item => item.original_date || (item.published_at ? new Date(item.published_at).toLocaleDateString('tr-TR') : '');
+  /* Kapak kurali haber detay sayfasiyla ayni olmali (src/news-page.js:57).
+     Haberlerin cogunda cover_url bos ama kapak gorseli
+     /assets/haber-kapak/<slug>.webp olarak zaten depoda duruyor; slug'dan
+     turetmezsek 27 gercek kapak hic kullanilmaz ve kart "KAPAK BEKLIYOR"
+     kutusunda kalir. */
+  const kapakYolu = n => n.cover_url || (n.slug ? '/assets/haber-kapak/' + encodeURIComponent(n.slug) + '.webp' : '');
   const cardMedia = n => {
-    const cover = n.cover_url || '';
+    const cover = kapakYolu(n);
     const yt = String(n.video_url || '').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
     if (yt) return `<div class="news-media news-video"><img src="https://i.ytimg.com/vi/${yt[1]}/hqdefault.jpg" alt="${esc(n.title)} — video kapağı" loading="lazy"><div class="news-scrim"></div><span class="video-badge">▶ VİDEO</span></div>`;
-    if (cover) return `<div class="news-media"><img src="${esc(cover)}" alt="${esc(n.title)}" loading="lazy" decoding="async"><div class="news-scrim"></div></div><span class="reference-note">GERÇEK ARŞİV GÖRSELİ</span>`;
+    /* data-kapak-yedegi: gorsel gercekten yoksa kirik <img> yerine arsiv
+       kutusu gosterilir (bkz. kapakYedegiKur). Satir ici onerror kullanilmiyor;
+       kamuya acik sayfalarda CSP script-src 'self' (cspKur, src/worker.js). */
+    if (cover) return `<div class="news-media"><img src="${esc(cover)}" alt="${esc(n.title)}" loading="lazy" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div></div><span class="reference-note">GERÇEK ARŞİV GÖRSELİ</span>`;
     return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
   };
   const render = (items) => {
@@ -133,7 +142,24 @@
         </div>
       </article>`;
     }).join('');
+    kapakYedegiKur(newsGrid);
     observeReveal();
+  };
+
+  /* Kapak dosyasi gercekten yoksa kirik <img> gosterilmez: kart, kapaksiz
+     haberlerle ayni arsiv kutusuna dondurulur. "GERÇEK ARŞİV GÖRSELİ" notu da
+     kaldirilir, cunku ortada gorsel yok ve o etiket yanlis beyan olurdu. */
+  const kapakYedegiKur = (kok) => {
+    kok.querySelectorAll('img[data-kapak-yedegi]').forEach(img => {
+      img.addEventListener('error', () => {
+        const kutu = img.closest('.news-media');
+        if (!kutu) return;
+        const not = kutu.nextElementSibling;
+        if (not && not.classList.contains('reference-note')) not.remove();
+        kutu.classList.add('news-no-cover');
+        kutu.innerHTML = '<div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div>';
+      }, {once:true});
+    });
   };
 
   const loadNews = async () => {
@@ -177,6 +203,74 @@
   };
   revealTargets().forEach(el => el.classList.add('reveal'));
   observeReveal();
+
+  /* ---------------- GERÇEK ARŞİV bölümü ----------------
+     Bu bölümün çizicisi script.js içindeydi, ama anasayfa yalnızca home.js
+     yüklüyor. Sonuç: #gercekArsivGrid canlıda kalıcı olarak "Arşiv
+     yükleniyor…" kutusunda takılı kaldı — bölüm hiç çalışmadı.
+     script.js'i anasayfaya eklemek çözüm değil: o dosya da #newsGrid'i
+     çiziyor ve buradaki çiziciyle çakışırdı. O yüzden blok buraya taşındı. */
+  const arsivSlug = yol => (String(yol || '').split('/').pop() || '').replace(/\.[^.]+$/, '');
+  const arsivBaslik = yol => arsivSlug(yol).replace(/[-_]+/g, ' ').replace(/\b\w/g, m => m.toUpperCase());
+  const arsivVideoMu = o => /^video\//i.test(String(o.mime || ''));
+  const arsivDisi = o => /showreel-fantasy|showreel-flying-reporter/.test(String(o.path || o.original_name || '').toLowerCase());
+
+  const arsivKarti = (o, i) => {
+    const video = arsivVideoMu(o);
+    const baslik = esc(o.title || arsivBaslik(o.key || o.original_name));
+    const kat = esc(String(o.category || 'arşiv').replace(/-/g, ' '));
+    const url = String(o.url || '');
+    const kaynak = String(o.source || '');
+    let detay = '';
+    if (o.category === 'haber') {
+      detay = '<a href="/haberler/' + encodeURIComponent(arsivSlug(o.key || o.original_name)) + '">Haberi aç ↗</a>';
+    } else if (video && url) {
+      detay = '<a href="' + esc(url) + '" target="_blank" rel="noopener">Videoyu aç ↗</a>';
+    }
+    const yt = '<a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube ↗</a>';
+    const medya = video
+      ? '<video class="archive-media" muted loop playsinline preload="metadata" src="' + esc(url) + '"></video>'
+      : '<img class="archive-media" loading="lazy" src="' + esc(url) + '" alt="' + baslik + '">';
+    return '<article class="archive-live-card ' + (i === 0 ? 'featured' : '') + '">' + medya +
+      '<div class="archive-overlay"></div><div class="archive-copy">' +
+      '<span class="archive-tag">GERÇEK ÇEKİM · ' + kat + '</span><h3>' + baslik + '</h3>' +
+      '<p>Kaynak: ' + esc(kaynak === 'github-static' ? 'BTMEDYA arşivi' : 'Media Vault') + '</p>' +
+      '<div class="archive-actions">' + detay + yt + '</div></div></article>';
+  };
+
+  const loadArsiv = async () => {
+    const grid = d.getElementById('gercekArsivGrid');
+    if (!grid) return;
+    try {
+      const r = await fetch('/api/public/media?limit=40', {headers:{accept:'application/json'}});
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      const ogeler = (Array.isArray(data.items) ? data.items : [])
+        .filter(x => x && !x.ai_generated && !arsivDisi(x))
+        .filter(x => ['saha','haber','video','portfoy','hero'].includes(String(x.category || '')))
+        .sort((a, b) => {
+          const sira = x => ({saha:0, haber:1, video:2, portfoy:3, hero:4}[x.category] ?? 9);
+          return sira(a) - sira(b);
+        })
+        .slice(0, 8);
+      if (!ogeler.length) {
+        grid.innerHTML = '<div class="archive-live-empty">Gerçek arşiv kaydı henüz yayın akışına düşmedi.</div>';
+        return;
+      }
+      grid.innerHTML = ogeler.map(arsivKarti).join('');
+      /* Videolar yalnızca ekrandayken oynar: mobil veri ve pil için. */
+      grid.querySelectorAll('video').forEach(v => {
+        const io = new IntersectionObserver(
+          es => es.forEach(e => { if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }),
+          {rootMargin:'120px'}
+        );
+        io.observe(v);
+      });
+    } catch (err) {
+      grid.innerHTML = '<div class="archive-live-empty">Arşiv akışı şu anda okunamadı. Haber arşivi yine açık: <a href="/haberler/">/haberler/</a></div>';
+    }
+  };
+  loadArsiv();
 
   const hero = d.querySelector('.hero');
   if (hero && !reduced) {
