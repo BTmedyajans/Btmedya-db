@@ -202,12 +202,19 @@ async function workflowApi(request, env, url) {
 async function newsApi(request, env, url){
   if(url.pathname==='/api/health'){
     const [r2Probe,legacyProbe]=await Promise.all([
-      env.MEDIA ? env.MEDIA.list({limit:1}).catch(()=>null) : null,
-      env.LEGACY_MEDIA ? env.LEGACY_MEDIA.list({limit:1}).catch(()=>null) : null
+      env.MEDIA ? env.MEDIA.list({limit:200}).catch(()=>null) : null,
+      env.LEGACY_MEDIA ? env.LEGACY_MEDIA.list({limit:200}).catch(()=>null) : null
     ]);
+    const mediaLike=/\.(?:jpe?g|png|webp|gif|mp4|webm|mov|m4v|mp3|wav|m4a)$/i;
+    const mediaCount=(probe)=>Array.isArray(probe?.objects)?probe.objects.filter(o=>{
+      const key=String(o.key||'');
+      const mime=String(o.httpMetadata?.contentType||'');
+      return mediaLike.test(key)||/^(image|video|audio)\//i.test(mime);
+    }).length:0;
     return json({
       ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA,
       r2Objects:!!r2Probe?.objects?.length,legacyR2Objects:!!legacyProbe?.objects?.length,
+      r2MediaObjects:mediaCount(r2Probe),legacyR2MediaObjects:mediaCount(legacyProbe),
       admin:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,mail:!!env.RESEND_API_KEY
     });
   }
