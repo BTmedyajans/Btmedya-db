@@ -171,6 +171,22 @@ jobs:
           set -euo pipefail
           npx wrangler r2 bucket list | tee /tmp/r2-list.txt
           grep -Fq "btmedya-media" /tmp/r2-list.txt
+          grep -Fq "btmedya-r2" /tmp/r2-list.txt
+
+          # Read-only storage audit: do not migrate/delete anything automatically.
+          echo "=== R2 object presence audit ==="
+          api="https://api.cloudflare.com/client/v4"
+          auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
+          for bucket in btmedya-media btmedya-r2; do
+            data="$(curl -fsS "${api}/accounts/${CLOUDFLARE_ACCOUNT_ID}/r2/buckets/${bucket}/objects?per_page=1" "${auth[@]}")"
+            count="$(printf '%s' "${data}" | jq -r 'if (.result? | type) == "array" then (.result|length) elif (.result?.objects? | type) == "array" then (.result.objects|length) else 0 end')"
+            echo "${bucket}: at_least_one_object=${count}"
+          done
+
+          echo "=== D1 published media metadata count ==="
+          npx wrangler d1 execute btmedya-media --remote --json \
+            --command='SELECT COUNT(*) AS published_media FROM media WHERE published=1' \
+            | tee /tmp/d1-media-count.json
 
       - name: Verify Cloudflare credentials
         if: github.event_name == 'workflow_dispatch' && inputs.action == 'verify'
