@@ -51,5 +51,11 @@ jobs:
             console.error("Unexpected media source:", x.source);
             process.exit(1);
           }
-          console.log("Public media items:", x.items.length, "source:", x.source);
+          const legacy = x.items.filter(i => i.source === "r2-legacy");
+          if (legacy.length < 1) {
+            console.error("Legacy R2 bucket is bound but no r2-legacy media reached the public feed.");
+            console.error("source:", x.source, "items:", x.items.length);
+            process.exit(1);
+          }
+          console.log("Public media items:", x.items.length, "source:", x.source, "legacy items:", legacy.length);
           NODE
