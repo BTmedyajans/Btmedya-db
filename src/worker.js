@@ -305,7 +305,7 @@ async function controlCenterApi(request, env, url){
     ok:true,
     service:'BTMEDYA Control Center',
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db'},
-    storage:{d1:!!env.DB,r2:!!env.MEDIA},
+    storage:{d1:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA},
     admin:{configured:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
     social:socialProviderStatus(env),
     integrations:{
