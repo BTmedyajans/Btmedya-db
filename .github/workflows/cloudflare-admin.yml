@@ -69,9 +69,6 @@ jobs:
       - name: Resolve canonical D1 database ID
         if: inputs.action != 'verify'
         id: d1
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
 
@@ -151,17 +148,11 @@ jobs:
 
       - name: Apply pending D1 migrations
         if: inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
           npx wrangler d1 migrations apply btmedya-media --remote
       - name: Verify D1 production schema
         if: inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
           npx wrangler d1 execute btmedya-media --remote --json \
@@ -182,9 +173,6 @@ jobs:
 
       - name: Verify production R2
         if: inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
           npx wrangler r2 bucket list | tee /tmp/r2-list.txt
@@ -219,9 +207,6 @@ jobs:
 
       - name: Inspect and repair safe DNS conflicts
         if: github.event_name == 'push' || inputs.action == 'repair-and-deploy'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
           api="https://api.cloudflare.com/client/v4"
@@ -326,9 +311,6 @@ jobs:
 
       - name: Audit Cloudflare WAF rules affecting API paths
         if: inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
           api="https://api.cloudflare.com/client/v4"
@@ -345,9 +327,6 @@ jobs:
           echo "WAF audit complete; no rule is modified by this step."
       - name: Deploy btmedya-db
         if: inputs.action == 'repair-and-deploy' || inputs.action == 'worker-deploy'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -eu
           npx wrangler deploy --config wrangler.toml
