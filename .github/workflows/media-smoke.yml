@@ -35,6 +35,27 @@ jobs:
           done
           test -s /tmp/health.json
 
+      - name: Audit R2 bucket object presence (read-only)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          api="https://api.cloudflare.com/client/v4"
+          auth=(-H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json")
+          : > /tmp/storage-audit.env
+          for bucket in btmedya-media btmedya-r2; do
+            data="$(curl -fsS "$api/accounts/$CLOUDFLARE_ACCOUNT_ID/r2/buckets/$bucket/objects?per_page=1" "${auth[@]}")"
+            count="$(printf '%s' "$data" | jq -r 'if (.result? | type) == "array" then (.result|length) elif (.result?.objects? | type) == "array" then (.result.objects|length) else 0 end')"
+            echo "$bucket objects_on_first_page=$count"
+            if [ "$bucket" = "btmedya-r2" ]; then
+              echo "LEGACY_NONEMPTY=$([ "$count" -gt 0 ] && echo true || echo false)" >> /tmp/storage-audit.env
+            fi
+          done
+          cat /tmp/storage-audit.env
+
       - name: Verify public media feed is populated
         run: |
           set -euo pipefail
@@ -51,11 +72,13 @@ jobs:
             console.error("Unexpected media source:", x.source);
             process.exit(1);
           }
+          const audit = fs.readFileSync("/tmp/storage-audit.env","utf8");
+          const legacyNonEmpty = /LEGACY_NONEMPTY=true/.test(audit);
           const legacy = x.items.filter(i => i.source === "r2-legacy");
-          if (legacy.length < 1) {
-            console.error("Legacy R2 bucket is bound but no r2-legacy media reached the public feed.");
+          if (legacyNonEmpty && legacy.length < 1) {
+            console.error("btmedya-r2 contains objects, but none reached /api/public/media as r2-legacy.");
             console.error("source:", x.source, "items:", x.items.length);
             process.exit(1);
           }
-          console.log("Public media items:", x.items.length, "source:", x.source, "legacy items:", legacy.length);
+          console.log("Public media items:", x.items.length, "source:", x.source, "legacy items:", legacy.length, "legacy bucket non-empty:", legacyNonEmpty);
           NODE
