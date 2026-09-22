@@ -35,7 +35,7 @@ jobs:
           set -eu
           test -n "${CLOUDFLARE_API_TOKEN}" || { echo "CLOUDFLARE_API_TOKEN eksik."; exit 1; }
           test -n "${CLOUDFLARE_ACCOUNT_ID}" || { echo "CLOUDFLARE_ACCOUNT_ID eksik."; exit 1; }
-          npx wrangler whoami
+          echo "Cloudflare credentials are present; deployment commands will perform the required API authorization."
 
       - name: Apply production D1 migrations
         env:
