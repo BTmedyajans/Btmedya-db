@@ -28,6 +28,7 @@
 <link rel="stylesheet" href="/home.css">
 <link rel="stylesheet" href="/mobile-fixes.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsMediaOrganization","name":"BTMEDYA","url":"https://btmedya.com.tr/","logo":"https://btmedya.com.tr/assets/btmedya-emblem-derived.png","description":"Balıkesir merkezli haber, medya, prodüksiyon ve yapay zekâ medya ajansı.","areaServed":{"@type":"Country","name":"Türkiye"},"sameAs":["https://www.instagram.com/btmedya10/","https://www.youtube.com/@BTmedyaAjans","https://www.tiktok.com/@btcraft10"]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"BTMEDYA","url":"https://btmedya.com.tr/","inLanguage":"tr-TR","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://btmedya.com.tr/haberler/?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script>
 </head>
 <body>
 <a class="skip" href="#icerik">İçeriğe geç</a>
@@ -42,7 +43,7 @@
   </div>
 </header>
 
-<aside class="menu-panel" id="siteMenu" aria-hidden="true">
+<aside class="menu-panel" id="siteMenu" aria-hidden="true" aria-label="Site menüsü" role="dialog" aria-modal="true" tabindex="-1">
   <div class="menu-panel-inner">
     <div class="menu-topline"><span>BTMEDYA / INDEX</span><button id="menuClose" type="button">KAPAT ×</button></div>
     <div class="menu-grid">
@@ -90,8 +91,9 @@
 
 <main id="icerik">
   <section class="hero" id="hero">
-    <video class="hero-media" autoplay muted loop playsinline preload="metadata" aria-hidden="true">
-      <source src="/assets/media/web/showreel-action.mp4" type="video/mp4">
+      <video class="hero-media" autoplay muted loop playsinline preload="metadata" poster="/assets/media/web/hero-story-poster.jpg" aria-label="BTMEDYA sahadan dijitale üretim görüntüleri">
+        <source src="/assets/media/web/showreel-action.webm" type="video/webm">
+        <source src="/assets/media/web/showreel-action.mp4" type="video/mp4">
     </video>
     <div class="hero-shade"></div>
     <div class="hero-orbit orbit-a"></div>
@@ -129,12 +131,12 @@
       </div>
     </div>
     <div class="news-filter" id="newsFilter" role="tablist" aria-label="Haber kategorileri">
-      <button class="filter active" data-cat="all" type="button">TÜMÜ</button>
-      <button class="filter" data-cat="yerel" type="button">YEREL</button>
-      <button class="filter" data-cat="ekonomi" type="button">EKONOMİ</button>
-      <button class="filter" data-cat="kultur" type="button">KÜLTÜR</button>
-      <button class="filter" data-cat="spor" type="button">SPOR</button>
-      <button class="filter" data-cat="saglik" type="button">SAĞLIK</button>
+      <button class="filter active" data-cat="all" type="button" role="tab" aria-selected="true" tabindex="0">TÜMÜ</button>
+      <button class="filter" data-cat="yerel" type="button" role="tab" aria-selected="false" tabindex="-1">YEREL</button>
+      <button class="filter" data-cat="ekonomi" type="button" role="tab" aria-selected="false" tabindex="-1">EKONOMİ</button>
+      <button class="filter" data-cat="kultur" type="button" role="tab" aria-selected="false" tabindex="-1">KÜLTÜR</button>
+      <button class="filter" data-cat="spor" type="button" role="tab" aria-selected="false" tabindex="-1">SPOR</button>
+      <button class="filter" data-cat="saglik" type="button" role="tab" aria-selected="false" tabindex="-1">SAĞLIK</button>
     </div>
     <div class="news-grid" id="newsGrid" aria-live="polite"></div>
   </section>
