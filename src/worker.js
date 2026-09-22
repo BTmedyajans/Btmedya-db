@@ -128,7 +128,7 @@ async function sendContactEmail(env, msg){
     console.warn('[email] RESEND_API_KEY tanımlı değil, atlandı.');
     return false;
   }
-  const to=env.RESEND_TO||'busetuncay1029@gmail.com';
+  const to=env.RESEND_TO||'busetuncay74@gmail.com';
   const from=env.RESEND_FROM||'BTMEDYA <noreply@btmedya.com.tr>';
   const subject=`[BTMEDYA] Yeni mesaj: ${msg.subject||'İletişim Formu'}`;
   const html=`<div style="font-family:sans-serif;max-width:600px;margin:auto"><h2 style="color:#111;border-bottom:2px solid #eee;padding-bottom:8px">Yeni İletişim Formu Mesajı</h2><table style="border-collapse:collapse;width:100%"><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px;width:110px">Ad Soyad</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.name)}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">E-posta</th><td style="padding:8px 12px;border-bottom:1px solid #eee"><a href="mailto:${esc(msg.email)}">${esc(msg.email)}</a></td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">Telefon</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.phone||'—')}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">Konu</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.subject||'—')}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px;vertical-align:top">Mesaj</th><td style="padding:8px 12px;white-space:pre-wrap">${esc(msg.message)}</td></tr></table><p style="margin-top:24px;font-size:12px;color:#999">btmedya.com.tr iletişim formu · ${new Date().toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'})}</p></div>`;
@@ -215,7 +215,7 @@ async function newsApi(request, env, url){
       ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA,
       r2Objects:!!r2Probe?.objects?.length,legacyR2Objects:!!legacyProbe?.objects?.length,
       r2MediaObjects:mediaCount(r2Probe),legacyR2MediaObjects:mediaCount(legacyProbe),
-      admin:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,mail:!!env.RESEND_API_KEY
+      admin:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,adminUsername:!!env.ADMIN_USERNAME || 'BTmedyaajans',mail:!!env.RESEND_API_KEY
     });
   }
 
@@ -334,7 +334,7 @@ async function controlCenterApi(request, env, url){
     service:'BTMEDYA Control Center',
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db'},
     storage:{d1:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA},
-    admin:{configured:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
+    admin:{configured:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,usernameConfigured:!!env.ADMIN_USERNAME || true,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
     social:socialProviderStatus(env),
     integrations:{
       izap:{status:'external_connector',assistant:'busetuncay74',note:'WhatsApp/iZap operasyon asistanı yapılandırıldı; Worker doğrudan iZap sırrı tutmaz.'},
@@ -483,8 +483,10 @@ async function mediaApi(request, env){
     const rate=await checkRateLimit(env,ip);
     if(!rate.allowed) return json({error:'Çok fazla başarısız deneme. 15 dakika bekleyin.'},429,{'Retry-After':String(RATE_LIMIT_WINDOW_S)});
     const body=await request.json().catch(()=>({}));
-    if(!env.ADMIN_PASSWORD || !sess || body.password!==env.ADMIN_PASSWORD)
-      return json({error:'Geçersiz kimlik bilgisi',remaining:rate.remaining},401);
+    const username=String(body.username||'').trim();
+    const expectedUsername=String(env.ADMIN_USERNAME||'BTmedyaajans').trim();
+    if(!env.ADMIN_PASSWORD || !sess || username!==expectedUsername || body.password!==env.ADMIN_PASSWORD)
+      return json({error:'Geçersiz kullanıcı adı veya şifre',remaining:rate.remaining},401);
     await clearRateLimit(env,ip);
     const token=await sessionToken(sess);
     return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`});
