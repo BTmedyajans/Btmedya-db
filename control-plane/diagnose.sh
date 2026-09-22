@@ -45,20 +45,25 @@ else
 fi
 
 section "DNS SAFETY CHECK"
-records="$(curl -fsS "$API/zones/$zone_id/dns_records?per_page=5000" "${auth[@]}")"
-jq -r '.result[] | select(
-  (.name=="'"$BASE_DOMAIN"'" and .type=="AAAA" and .content=="100::")
-  or (.name=="chatgpt.'"$BASE_DOMAIN"'" and .type=="A" and .content=="192.0.2.1")
-  or (.name=="'"$WWW_DOMAIN"'" and .type=="CNAME" and .content=="public.r2.dev")
-) | [.type,.name,.content] | @tsv' <<<"$records" > /tmp/btmedya-conflicts
-if [[ ! -s /tmp/btmedya-conflicts ]]; then
-  ok "Bilinen eski/placeholder web DNS çakışması yok"
+records_http="$(curl -sS -o /tmp/btmedya-dns-records.json -w '%{http_code}' "$API/zones/$zone_id/dns_records?per_page=5000" "${auth[@]}" || true)"
+if [[ "$records_http" == "200" ]]; then
+  records="$(cat /tmp/btmedya-dns-records.json)"
+  jq -r '.result[] | select(
+    (.name=="'"$BASE_DOMAIN"'" and .type=="AAAA" and .content=="100::")
+    or (.name=="chatgpt.'"$BASE_DOMAIN"'" and .type=="A" and .content=="192.0.2.1")
+    or (.name=="'"$WWW_DOMAIN"'" and .type=="CNAME" and .content=="public.r2.dev")
+  ) | [.type,.name,.content] | @tsv' <<<"$records" > /tmp/btmedya-conflicts
+  if [[ ! -s /tmp/btmedya-conflicts ]]; then
+    ok "Bilinen eski/placeholder web DNS çakışması yok"
+  else
+    warn "Bilinen eski/placeholder kayıt bulundu:"
+    cat /tmp/btmedya-conflicts
+  fi
+  printf "Web DNS kayıt özeti:\n"
+  jq -r '.result[] | select(.name=="'"$BASE_DOMAIN"'" or .name=="'"$WWW_DOMAIN"'" or .name=="chatgpt.'"$BASE_DOMAIN"'") | [.type,.name,.content,(.proxied|tostring)] | @tsv' <<<"$records" || true
 else
-  warn "Bilinen eski/placeholder kayıt bulundu:"
-  cat /tmp/btmedya-conflicts
+  warn "DNS kayıt listesi Cloudflare API tarafından HTTP $records_http ile okunamadı; diagnostic DNS'i değiştirmeden devam ediyor."
 fi
-printf "Web DNS kayıt özeti:\n"
-jq -r '.result[] | select(.name=="'"$BASE_DOMAIN"'" or .name=="'"$WWW_DOMAIN"'" or .name=="chatgpt.'"$BASE_DOMAIN"'") | [.type,.name,.content,(.proxied|tostring)] | @tsv' <<<"$records" || true
 printf "Not: MX/TXT/SPF/DKIM/DMARC kayıtları bu diagnostic tarafından değiştirilmez.\n"
 
 section "PUBLIC HTTPS"
