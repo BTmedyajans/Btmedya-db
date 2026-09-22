@@ -1,0 +1,55 @@
+name: BTMEDYA media storage smoke test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  media:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for production Worker and verify health
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 20); do
+            body=/tmp/health.json
+            code="$(curl -sS -o "$body" -w "%{http_code}" --max-time 20 https://btmedya.com.tr/api/health || true)"
+            if [ "$code" = "200" ]; then
+              cat "$body"
+              node - <<'NODE'
+          const fs = require("fs");
+          const x = JSON.parse(fs.readFileSync("/tmp/health.json","utf8"));
+          if (!x.ok || x.service !== "btmedya" || x.cms !== true || x.r2 !== true || x.legacyR2 !== true) {
+            console.error("Storage health mismatch:", x);
+            process.exit(1);
+          }
+          NODE
+              break
+            fi
+            echo "health HTTP $code; waiting ${attempt}/20"
+            sleep 15
+          done
+          test -s /tmp/health.json
+
+      - name: Verify public media feed is populated
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 30 https://btmedya.com.tr/api/public/media > /tmp/media.json
+          head -c 12000 /tmp/media.json
+          node - <<'NODE'
+          const fs = require("fs");
+          const x = JSON.parse(fs.readFileSync("/tmp/media.json","utf8"));
+          if (!Array.isArray(x.items) || x.items.length < 1) {
+            console.error("Public media feed is empty or invalid:", x);
+            process.exit(1);
+          }
+          if (!String(x.source || "").includes("r2") && !String(x.source || "").includes("github-static")) {
+            console.error("Unexpected media source:", x.source);
+            process.exit(1);
+          }
+          console.log("Public media items:", x.items.length, "source:", x.source);
+          NODE
