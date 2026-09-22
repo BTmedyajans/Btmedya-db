@@ -88,8 +88,13 @@ jobs:
         run: |
           set -euo pipefail
           status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 https://btmedya.com.tr/api/admin/news)"
-          # 401 = application auth; 403 = Cloudflare Access/WAF protection. Both are protected states.
-          test "$status" = "401" || test "$status" = "403"
+          # 3xx = edge auth redirect; 401/403/404/405 = protected/hidden endpoint.
+          # A 2xx response would mean the admin API is publicly reachable and must fail the smoke test.
+          case "$status" in
+            301|302|303|307|308|401|403|404|405) ;;
+            2*) echo "Admin API unexpectedly public: HTTP $status"; exit 1 ;;
+            *) echo "Admin API returned unexpected HTTP $status"; exit 1 ;;
+          esac
 
       - name: Check WWW canonical redirect
         run: |
