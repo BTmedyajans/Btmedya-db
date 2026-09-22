@@ -19,17 +19,15 @@ run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/haber/*", "/haberler/
 
 not_found_handling = "404-page"
 
-# Ana alan adı Custom Domain olarak Worker'ın origin'i.
-# www mevcut DNS kaydı nedeniyle Custom Domain olarak oluşturulamıyor.
-# www için Cloudflare zone route kullanıyoruz; Worker /www isteğini
-# ana domaine 301 yönlendiriyor. Böylece mevcut proxied DNS kaydı korunur.
+# Ana ve www alan adları aynı Worker'a Custom Domain olarak bağlanır.
+# Worker /www isteğini ana domaine 301 yönlendirir.
 [[routes]]
 pattern = "btmedya.com.tr"
 custom_domain = true
 
 [[routes]]
-pattern = "www.btmedya.com.tr/*"
-zone_name = "btmedya.com.tr"
+pattern = "www.btmedya.com.tr"
+custom_domain = true
 
 [[r2_buckets]]
 binding = "MEDIA"
