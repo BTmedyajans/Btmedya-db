@@ -1002,3 +1002,21 @@ button,a{touch-action:manipulation}
   }
 }
 
+
+/* GERÇEK ARŞİV: canlı Media Vault akışı */
+.archive-live-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:24px}
+.archive-live-card{position:relative;min-height:260px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:#0b0f14;border-radius:18px;display:flex;flex-direction:column}
+.archive-live-card.featured{grid-column:span 2;min-height:360px}
+.archive-live-card .archive-media{width:100%;height:100%;min-height:220px;object-fit:cover;display:block;background:#111}
+.archive-live-card.featured .archive-media{min-height:360px}
+.archive-live-card .archive-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.03) 35%,rgba(0,0,0,.88) 100%);pointer-events:none}
+.archive-live-card .archive-copy{position:absolute;left:18px;right:18px;bottom:18px;z-index:2}
+.archive-live-card .archive-tag{font-size:10px;letter-spacing:.14em;color:#9edfff;text-transform:uppercase}
+.archive-live-card h3{font-size:clamp(20px,2.4vw,34px);line-height:1.02;margin:7px 0 8px;color:#fff}
+.archive-live-card p{margin:0;color:#c5ced6;font-size:12px;line-height:1.5;max-width:48ch}
+.archive-live-card .archive-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.archive-live-card .archive-actions a{font-size:11px;padding:7px 10px;border:1px solid rgba(255,255,255,.2);border-radius:999px;color:#fff;text-decoration:none;background:rgba(0,0,0,.35);backdrop-filter:blur(8px)}
+.archive-live-card .archive-actions a:hover{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08)}
+.archive-live-loading,.archive-live-empty{grid-column:1/-1;padding:36px;border:1px dashed rgba(255,255,255,.15);border-radius:16px;color:#92a3b2;text-align:center}
+.archive-live-footer{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+@media(max-width:800px){.archive-live-grid{grid-template-columns:1fr}.archive-live-card.featured{grid-column:span 1}.archive-live-card,.archive-live-card.featured{min-height:300px}.archive-live-card .archive-media,.archive-live-card.featured .archive-media{min-height:300px}}

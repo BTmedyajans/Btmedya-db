@@ -643,3 +643,39 @@ document.addEventListener('DOMContentLoaded',()=>{
   window.addEventListener('resize', function(){ pencereY = window.innerHeight; plan(); }, { passive:true });
   ciz();
 })();
+
+/* GERÇEK ARŞİV / MEDIA VAULT */
+(function(){
+  function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+  function slugFromPath(path){const name=String(path||'').split('/').pop()||'';return name.replace(/\.[^.]+$/,'');}
+  function titleFromPath(path){return slugFromPath(path).replace(/[-_]+/g,' ').replace(/\b\w/g,m=>m.toUpperCase());}
+  function isVideo(item){return /^video\//i.test(String(item.mime||''));}
+  function isExcluded(item){const p=String(item.path||item.original_name||'').toLowerCase();return /showreel-fantasy|showreel-flying-reporter/.test(p);}
+  function card(item,index){
+    const video=isVideo(item), title=esc(item.title||titleFromPath(item.key||item.original_name));
+    const cat=esc((item.category||'arşiv').replace(/-/g,' ')), url=String(item.url||''), source=String(item.source||'');
+    let detail='';
+    if(item.category==='haber'){
+      const slug=slugFromPath(item.key||item.original_name);
+      detail='<a href="/haberler/'+encodeURIComponent(slug)+'.html">Haberi aç ↗</a>';
+    }else if(video&&url){detail='<a href="'+esc(url)+'" target="_blank" rel="noopener">Videoyu aç ↗</a>';}
+    const yt='<a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube ↗</a>';
+    const media=video?'<video class="archive-media" muted loop playsinline preload="metadata" src="'+esc(url)+'"></video>':'<img class="archive-media" loading="lazy" src="'+esc(url)+'" alt="'+title+'">';
+    return '<article class="archive-live-card '+(index===0?'featured':'')+'">'+media+'<div class="archive-overlay"></div><div class="archive-copy"><span class="archive-tag">GERÇEK ÇEKİM · '+cat+'</span><h3>'+title+'</h3><p>Kaynak: '+esc(source==='github-static'?'BTMEDYA arşivi':'Media Vault')+'</p><div class="archive-actions">'+detail+yt+'</div></div></article>';
+  }
+  async function loadArchive(){
+    const grid=document.getElementById('gercekArsivGrid'); if(!grid)return;
+    try{
+      const r=await fetch('/api/public/media?limit=40',{headers:{accept:'application/json'}});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const data=await r.json();
+      const items=(Array.isArray(data.items)?data.items:[]).filter(x=>x&&!x.ai_generated&&!isExcluded(x))
+        .filter(x=>['saha','haber','video','portfoy','hero'].includes(String(x.category||'')))
+        .sort((a,b)=>{const rank=x=>({saha:0,haber:1,video:2,portfoy:3,hero:4}[x.category]??9);return rank(a)-rank(b);}).slice(0,8);
+      if(!items.length){grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv kaydı henüz yayın akışına düşmedi.</div>';return;}
+      grid.innerHTML=items.map(card).join('');
+      grid.querySelectorAll('video').forEach(v=>{const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)v.play().catch(()=>{});else v.pause();}),{rootMargin:'120px'});io.observe(v);});
+    }catch(err){grid.innerHTML='<div class="archive-live-empty">Arşiv akışı şu anda okunamadı. Haber arşivi yine açık: <a href="/haberler/">/haberler/</a></div>';}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadArchive,{once:true});else loadArchive();
+})();
