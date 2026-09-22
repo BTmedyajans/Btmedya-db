@@ -96,7 +96,11 @@ jobs:
           curl -fsS --max-time 30 "https://btmedya.com.tr/api/news?limit=1" > /dev/null
 
           admin_status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://btmedya.com.tr/api/admin/news)"
-          test "$admin_status" = "401"
+          case "$admin_status" in
+            301|302|303|307|308|401|403|404|405) ;;
+            2*) echo "Admin API unexpectedly public: HTTP $admin_status"; exit 1 ;;
+            *) echo "Admin API returned unexpected HTTP $admin_status"; exit 1 ;;
+          esac
 
           curl -fsSIL --max-time 30 https://btmedya.com.tr/ | head -n 20
           www_status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 https://www.btmedya.com.tr/)"
