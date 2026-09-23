@@ -58,7 +58,9 @@ export function renderNewsPage(n, origin, vlib){
   const kapakFoto = kapak.replace(/(\/assets\/haber-kapak\/[^/]+)\.webp$/, '$1-foto.webp');
   const tarihTr=n.original_date||trTarih(n.published_at);
   const tarihIso=isoTarih(n.published_at);
-  const arsiv = !!n.archive_note || /2024|2023|2022/.test(String(n.original_date || ''));
+  const durumNotu=String(n.archive_note||'');
+  const arsiv = /2024|2023|2022/.test(String(n.original_date || '')) ||
+    (/arşiv|arsiv|geçmiş|gecmis/i.test(durumNotu) && !/güncel|guncel/i.test(durumNotu));
   const okunma = Math.max(1, Math.ceil(String(n.body || '').trim().split(/\\s+/).filter(Boolean).length / 220));
   const ozet=(n.excerpt||'').trim()||String(n.body||'').slice(0,155);
   // maxresdefault her videoda bulunmaz (kaynak dusuk cozunurlukse 404 doner);

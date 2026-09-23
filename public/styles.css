@@ -243,6 +243,9 @@
 .contact-form input,.contact-form textarea,.contact-form select{width:100%;background:#07111c;border:1px solid rgba(255,255,255,.12);color:var(--ink);padding:13px 16px;font:inherit;font-size:14px;transition:border-color .25s}
 .contact-form input:focus,.contact-form textarea:focus{outline:none;border-color:rgba(87,232,255,.5)}
 .contact-form textarea{min-height:140px;resize:vertical}
+.contact-form .consent-row{display:flex;align-items:flex-start;gap:10px;margin:0;color:#aab7c5;font-size:12px;line-height:1.55;letter-spacing:0;text-transform:none}
+.contact-form .consent-row input{width:18px;min-width:18px;height:18px;margin:1px 0 0;accent-color:var(--cyan)}
+.contact-form .consent-row a{color:var(--cyan);text-decoration:underline;text-underline-offset:3px}
 .contact-form button{background:var(--cyan);color:#001017;border:none;padding:15px 24px;font-size:11px;letter-spacing:.12em;font-weight:700;cursor:pointer;transition:opacity .25s}
 .contact-form button:disabled{opacity:.5;cursor:not-allowed}
 .contact-form .form-msg{font-size:12px;min-height:20px}

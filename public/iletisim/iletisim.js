@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       phone:form.phone.value.trim(),
       subject:form.subject.value,
       message:form.message.value.trim(),
+      consent:form.consent.checked,
       _honey:form._honey.value
     };
     try{

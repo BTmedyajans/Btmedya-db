@@ -249,7 +249,7 @@ async function newsApi(request, env, url){
         slug:n.slug,
         title:n.title,
         excerpt:n.excerpt||'',
-        body:Array.isArray(n.body)?n.body.join('\\n\\n'):String(n.body||''),
+        body:Array.isArray(n.body)?n.body.join('\n\n'):String(n.body||''),
         category:n.category||'Haber',
         author:n.author||'BTMEDYA',
         cover_url:n.cover_url||`/assets/haber-kapak/${encodeURIComponent(n.slug)}.webp`,
@@ -374,6 +374,7 @@ async function contactApi(request, env, url, ctx){
     if(!env.DB) return json({ok:false,error:'Veritabanı yapılandırılmadı'},503);
     const b=await request.json().catch(()=>({}));
     if(!b.name||!b.email||!b.message) return json({ok:false,error:'Ad, e-posta ve mesaj zorunludur'},400);
+    if(b.consent!==true) return json({ok:false,error:'Gizlilik ve KVKK onayı zorunludur'},400);
     if(String(b.message).length>5000) return json({ok:false,error:'Mesaj çok uzun'},400);
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(b.email))) return json({ok:false,error:'Geçersiz e-posta adresi'},400);
     if(b._honey) return json({ok:true});
@@ -382,8 +383,15 @@ async function contactApi(request, env, url, ctx){
     const phone=String(b.phone||'').trim().slice(0,60);
     const subject=String(b.subject||'').trim().slice(0,200);
     const message=String(b.message).trim().slice(0,5000);
-    const inserted=await env.DB.prepare('INSERT INTO contact_messages(name,email,phone,subject,message) VALUES(?,?,?,?,?)')
-      .bind(name,email,phone,subject,message).run();
+    let inserted;
+    try{
+      inserted=await env.DB.prepare('INSERT INTO contact_messages(name,email,phone,subject,message,consent_at) VALUES(?,?,?,?,?,?)')
+        .bind(name,email,phone,subject,message,new Date().toISOString()).run();
+    }catch(e){
+      // Migration henüz uygulanmadıysa iletişim formu çalışmaya devam etsin.
+      inserted=await env.DB.prepare('INSERT INTO contact_messages(name,email,phone,subject,message) VALUES(?,?,?,?,?)')
+        .bind(name,email,phone,subject,message).run();
+    }
     const dbId=inserted.meta?.last_row_id ?? inserted.meta?.last_insert_rowid ?? null;
     const emailData={dbId,name,email,phone,subject,message};
     if(ctx) ctx.waitUntil(sendContactEmail(env,emailData));
@@ -883,7 +891,7 @@ export default { async fetch(request, env, ctx){
               if(a){
                 n={
                   id:a.id||null,slug:a.slug,title:a.title,excerpt:a.excerpt||'',
-                  body:Array.isArray(a.body)?a.body.join('\\n\\n'):String(a.body||''),
+                  body:Array.isArray(a.body)?a.body.join('\n\n'):String(a.body||''),
                   category:a.category||'Haber',author:a.author||'BTMEDYA',
                   cover_url:a.cover_url||`/assets/haber-kapak/${encodeURIComponent(a.slug)}.webp`,
                   video_url:a.video_url||null,status:'published',

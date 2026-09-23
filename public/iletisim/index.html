@@ -97,9 +97,13 @@
       </div>
       <div>
         <label for="cf-message">MESAJINIZ *</label>
-        <textarea id="cf-message" name="message" required placeholder="Projenizi veya sorunuzu anlatın..."></textarea>
+      <textarea id="cf-message" name="message" required placeholder="Projenizi veya sorunuzu anlatın..."></textarea>
       </div>
       <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+      <label class="consent-row" for="cf-consent">
+        <input type="checkbox" id="cf-consent" name="consent" required>
+        <span><a href="/gizlilik/" target="_blank" rel="noopener">Gizlilik ve KVKK bilgilendirmesini</a> okudum, iletişim talebimin yanıtlanması için bilgilerimin işlenmesini kabul ediyorum.</span>
+      </label>
       <button type="submit" id="cf-submit">MESAJ GÖNDER</button>
       <div class="form-msg" id="cf-msg"></div>
     </form>
