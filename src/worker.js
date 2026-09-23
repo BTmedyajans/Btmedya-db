@@ -338,7 +338,7 @@ async function controlCenterApi(request, env, url){
     social:socialProviderStatus(env),
     socialLinks:[
       {key:'instagram',label:'Instagram @btmedya10',url:'https://www.instagram.com/btmedya10/',note:'Görsel profil ve Reels kanalı'},
-      {key:'tiktok',label:'TikTok @btcraft10',url:'https://www.tiktok.com/@btcraft10',note:'Kısa video kanalı; yayın API’si ayrıca yetkilendirilmeli'},
+      {key:'tiktok',label:'TikTok @btmedya1010',url:'https://www.tiktok.com/@btmedya1010',note:'Kısa video kanalı; yayın API’si ayrıca yetkilendirilmeli'},
       {key:'youtube',label:'YouTube @BTmedyaAjans',url:'https://www.youtube.com/@BTmedyaAjans',note:'Video arşivi ve Shorts hedefi'},
       {key:'facebook',label:'Facebook Page',url:null,note:'Sayfa URL’si doğrulanacak; yayın için META_PAGE_ID gerekir'},
       {key:'whatsapp',label:'WhatsApp teklif hattı',url:'https://wa.me/905416401029',note:'İletişim ve proje talebi'}

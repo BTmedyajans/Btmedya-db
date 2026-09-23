@@ -1026,3 +1026,17 @@ button,a{touch-action:manipulation}
 .archive-live-loading,.archive-live-empty{grid-column:1/-1;padding:36px;border:1px dashed rgba(255,255,255,.15);border-radius:16px;color:#92a3b2;text-align:center}
 .archive-live-footer{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
 @media(max-width:800px){.archive-live-grid{grid-template-columns:1fr}.archive-live-card.featured{grid-column:span 1}.archive-live-card,.archive-live-card.featured{min-height:300px}.archive-live-card .archive-media,.archive-live-card.featured .archive-media{min-height:300px}}
+
+/* ===== KARİYER — hakkımızda sayfasındaki özgeçmiş şeridi ===== */
+.kariyer{margin:0 0 80px}
+.kariyer h2{font-size:clamp(32px,4.4vw,56px);line-height:.98;letter-spacing:-.04em;margin:0 0 14px}
+.kariyer-giris{color:#879aaa;line-height:1.7;max-width:680px;margin:0 0 30px}
+.kariyer-liste{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.kariyer-liste li{display:flex;gap:22px;align-items:baseline;padding:18px 0;border-bottom:1px solid var(--line)}
+.kariyer-yil{flex:0 0 88px;font-family:'Space Grotesk',Inter,sans-serif;font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--cyan)}
+.kariyer-liste h3{margin:0 0 4px;font-size:20px;line-height:1.15;letter-spacing:-.02em}
+.kariyer-liste small{font-size:10px;letter-spacing:.14em;color:#8fa2b3}
+.kariyer-baglanti{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.kariyer-baglanti a{font-size:11px;letter-spacing:.1em;padding:9px 13px;border:1px solid rgba(255,255,255,.18);border-radius:999px;color:#fff;text-decoration:none}
+.kariyer-baglanti a:hover{border-color:rgba(53,214,255,.55);background:rgba(53,214,255,.08)}
+@media(max-width:620px){.kariyer-liste li{flex-direction:column;gap:6px}.kariyer-yil{flex:none}}
