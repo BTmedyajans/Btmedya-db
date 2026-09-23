@@ -17,6 +17,9 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Wait for Cloudflare Workers Build
         uses: actions/github-script@v7
         with:
@@ -49,11 +52,6 @@ jobs:
       - name: Dagitim gercekten indi mi
         run: |
           set -eu
-          # Smoke testi /api/health'e bakiyordu; o uc eski surumde de
-          # calistigi icin "build basarili ama dagitim inmedi" durumu
-          # sessizce geciyordu. 23 Eylul 2026'da iki birlestirme boyle
-          # kaybedildi. Artik depodaki dosyanin ozeti canlidakiyle
-          # karsilastiriliyor.
           kontrol() {
             yerel="$(sha256sum "public/$1" | cut -c1-64)"
             for i in $(seq 1 24); do
