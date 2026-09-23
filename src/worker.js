@@ -16,32 +16,6 @@ const text = (data, status=200, headers={}) => new Response(data, {status, heade
 function b64url(bytes){ return btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function unb64url(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4)s+='='; return Uint8Array.from(atob(s),c=>c.charCodeAt(0)); }
 async function hmac(secret, message){ const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']); return b64url(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(message))); }
-// Oturum cerezinin imza anahtari iki sirdan turetilir. ADMIN_SESSION_SECRET
-// panelde duz Variable olarak tutulabiliyor ve tahmin edilebilir bir degere
-// ayarlanmis olabilir; tek basina kullanilirsa o degeri bilen herkes gecerli
-// bir yonetici cerezi uretebilir. MEDIA_SIGNING_SECRET gercek bir Secret
-// oldugu icin karisima eklenir: artik cerez uretmek icin ikisi birden gerekir.
-// Ayirici olarak NUL kullanilir, boylece farkli sir ciftleri ayni anahtari
-// uretemez. MEDIA_SIGNING_SECRET yoksa davranis eskisi gibi kalir.
-function oturumAnahtari(env){
-  const oturum=env.ADMIN_SESSION_SECRET||'';
-  if(!oturum) return '';
-  return env.MEDIA_SIGNING_SECRET ? oturum+'\u0000'+env.MEDIA_SIGNING_SECRET : oturum;
-}
-/* Medya kasasinin listesi eskiden bu dosyada elle tutuluyordu; depoya
-   yeni bir dosya konunca kodu da duzenlemek gerekiyordu. Artik liste
-   tools/medya-listesi.mjs tarafindan dosya sisteminden uretilip
-   public/data/medya-listesi.json icinde tutulur ve buradan okunur.
-   Boylece GitHub'a medya eklemek tek basina siteye yansir. */
-async function medyaListesi(env, origin){
-  if(!env || !env.ASSETS) return [];
-  try{
-    const r = await env.ASSETS.fetch(new Request(new URL('/data/medya-listesi.json', origin)));
-    if(!r.ok) return [];
-    const j = await r.json();
-    return Array.isArray(j) ? j : [];
-  }catch{ return []; }
-}
 async function sessionToken(secret){ const payload=b64url(new TextEncoder().encode(JSON.stringify({iat:Date.now(),exp:Date.now()+7*86400000,role:'admin'}))); return payload+'.'+await hmac(secret,payload); }
 async function validSession(request, secret){
   if(!secret) return false;
@@ -69,13 +43,10 @@ async function getMediaObject(env, key){
 
 function mediaCategoryFromKey(key){
   const p=String(key||'').split('/')[0].toLowerCase();
-  // Klasor adinin TAMAMI eslesmeli: alt dize aramasi "thumbnails" gibi icinde
-  // "ai" gecen her klasoru AI LAB'e atiyordu.
-  if(/^(?:ai-lab|ailab|ai)$/.test(p)) return 'ai-lab';
   if(/haber|news/.test(p)) return 'haber';
   if(/video|reel|showreel/.test(p)) return 'video';
   if(/saha|report|portfolio|portfoy/.test(p)) return 'portfoy';
-  if(/hero|web|site|medya|kurumsal|podcast|sosyal/.test(p)) return 'medya';
+  if(/hero|web|site/.test(p)) return 'medya';
   return 'arsiv';
 }
 
@@ -112,7 +83,7 @@ async function listR2Media(bucket, source, {q='',cat=''}={}){
         updated_at:x.uploaded?new Date(x.uploaded).toISOString():null,
         url:null,
         source,
-        ai_generated:/^(?:ai-lab|ailab|ai)(?:\/|$)/i.test(key)
+        ai_generated:false
       });
       if(out.length>=500) return out;
     }
@@ -157,7 +128,7 @@ async function sendContactEmail(env, msg){
     console.warn('[email] RESEND_API_KEY tanımlı değil, atlandı.');
     return false;
   }
-  const to=env.RESEND_TO||'busetuncay74@gmail.com';
+  const to=env.RESEND_TO||'busetuncay1029@gmail.com';
   const from=env.RESEND_FROM||'BTMEDYA <noreply@btmedya.com.tr>';
   const subject=`[BTMEDYA] Yeni mesaj: ${msg.subject||'İletişim Formu'}`;
   const html=`<div style="font-family:sans-serif;max-width:600px;margin:auto"><h2 style="color:#111;border-bottom:2px solid #eee;padding-bottom:8px">Yeni İletişim Formu Mesajı</h2><table style="border-collapse:collapse;width:100%"><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px;width:110px">Ad Soyad</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.name)}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">E-posta</th><td style="padding:8px 12px;border-bottom:1px solid #eee"><a href="mailto:${esc(msg.email)}">${esc(msg.email)}</a></td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">Telefon</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.phone||'—')}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">Konu</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.subject||'—')}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px;vertical-align:top">Mesaj</th><td style="padding:8px 12px;white-space:pre-wrap">${esc(msg.message)}</td></tr></table><p style="margin-top:24px;font-size:12px;color:#999">btmedya.com.tr iletişim formu · ${new Date().toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'})}</p></div>`;
@@ -180,7 +151,7 @@ async function sendContactEmail(env, msg){
 /* ---------- Cloudflare Workflow API ---------- */
 async function workflowApi(request, env, url) {
   if (!url.pathname.startsWith('/api/workflow/')) return null;
-  if (!(await validSession(request, oturumAnahtari(env)))) {
+  if (!(await validSession(request, env.ADMIN_SESSION_SECRET))) {
     return json({ok:false,error:'Yetkisiz'},401);
   }
   if (!env.BTMEDYA_WORKFLOW) {
@@ -244,7 +215,7 @@ async function newsApi(request, env, url){
       ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA,
       r2Objects:!!r2Probe?.objects?.length,legacyR2Objects:!!legacyProbe?.objects?.length,
       r2MediaObjects:mediaCount(r2Probe),legacyR2MediaObjects:mediaCount(legacyProbe),
-      admin:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,adminUsername:!!env.ADMIN_USERNAME || 'BTmedyaajans',mail:!!env.RESEND_API_KEY
+      admin:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,mail:!!env.RESEND_API_KEY
     });
   }
 
@@ -297,7 +268,7 @@ async function newsApi(request, env, url){
 
   /* Admin: haber listesi */
   if(url.pathname==='/api/admin/news' && request.method==='GET'){
-    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const status=url.searchParams.get('status');
     let sql='SELECT id,slug,title,excerpt,category,author,cover_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news';
@@ -310,7 +281,7 @@ async function newsApi(request, env, url){
 
   /* Admin: haber ekle / güncelle (slug ile upsert) */
   if(url.pathname==='/api/admin/news' && request.method==='POST'){
-    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const b=await request.json().catch(()=>null);
     if(!b || typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
@@ -329,7 +300,7 @@ async function newsApi(request, env, url){
   /* Admin: haber güncelle / sil (ID ile) */
   const newsById=url.pathname.match(/^\/api\/admin\/news\/(\d+)$/);
   if(newsById){
-    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const id=Number(newsById[1]);
     if(request.method==='GET'){
@@ -357,14 +328,21 @@ async function newsApi(request, env, url){
 /* ---------- BTMEDYA Control Center ---------- */
 async function controlCenterApi(request, env, url){
   if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
-  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
   return json({
     ok:true,
     service:'BTMEDYA Control Center',
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db'},
     storage:{d1:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA},
-    admin:{configured:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,usernameConfigured:!!env.ADMIN_USERNAME || true,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
+    admin:{configured:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
     social:socialProviderStatus(env),
+    socialLinks:[
+      {key:'instagram',label:'Instagram @btmedya10',url:'https://www.instagram.com/btmedya10/',note:'Görsel profil ve Reels kanalı'},
+      {key:'tiktok',label:'TikTok @btmedya1010',url:'https://www.tiktok.com/@btmedya1010',note:'Kısa video kanalı; yayın API’si ayrıca yetkilendirilmeli'},
+      {key:'youtube',label:'YouTube @BTmedyaAjans',url:'https://www.youtube.com/@BTmedyaAjans',note:'Video arşivi ve Shorts hedefi'},
+      {key:'facebook',label:'Facebook Page',url:null,note:'Sayfa URL’si doğrulanacak; yayın için META_PAGE_ID gerekir'},
+      {key:'whatsapp',label:'WhatsApp teklif hattı',url:'https://wa.me/905416401029',note:'İletişim ve proje talebi'}
+    ],
     integrations:{
       izap:{status:'external_connector',assistant:'busetuncay74',note:'WhatsApp/iZap operasyon asistanı yapılandırıldı; Worker doğrudan iZap sırrı tutmaz.'},
       cmsOpenData:{status:'assistant_connector',note:'CMS Open Data resmi veri sorguları Control Center/ChatGPT tarafında kullanılabilir; Worker içine Medicare verisi gömülmez.'},
@@ -404,18 +382,18 @@ async function contactApi(request, env, url, ctx){
     return json({ok:true,message:'Mesajınız alındı, teşekkürler!'});
   }
   if(url.pathname==='/api/admin/contact' && request.method==='GET'){
-    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     const rows=await env.DB.prepare('SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 200').all();
     return json({ok:true,items:rows.results});
   }
   const contactById=url.pathname.match(/^\/api\/admin\/contact\/(\d+)$/);
   if(contactById && request.method==='PATCH'){
-    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     await env.DB.prepare('UPDATE contact_messages SET read=1 WHERE id=?').bind(Number(contactById[1])).run();
     return json({ok:true});
   }
   if(contactById && request.method==='DELETE'){
-    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     await env.DB.prepare('DELETE FROM contact_messages WHERE id=?').bind(Number(contactById[1])).run();
     return json({ok:true});
   }
@@ -428,7 +406,7 @@ const SOCIAL_FORMAT = new Set(['9:16','4:5','1:1','16:9']);
 
 async function socialApi(request, env, url){
   if(!url.pathname.startsWith('/api/admin/social')) return null;
-  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
   if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
 
   if(url.pathname==='/api/admin/social/providers' && request.method==='GET'){
@@ -504,7 +482,7 @@ async function mediaApi(request, env){
   const u=new URL(request.url); const path=u.pathname;
   if(request.method==='OPTIONS') return new Response(null,{status:204,headers:{'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,PATCH,DELETE,PUT,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'}});
 
-  const sess=oturumAnahtari(env);
+  const sess=env.ADMIN_SESSION_SECRET;
   const mediaSec=env.MEDIA_SIGNING_SECRET;
 
   if(path==='/api/login' && request.method==='POST'){
@@ -512,10 +490,8 @@ async function mediaApi(request, env){
     const rate=await checkRateLimit(env,ip);
     if(!rate.allowed) return json({error:'Çok fazla başarısız deneme. 15 dakika bekleyin.'},429,{'Retry-After':String(RATE_LIMIT_WINDOW_S)});
     const body=await request.json().catch(()=>({}));
-    const username=String(body.username||'').trim();
-    const expectedUsername=String(env.ADMIN_USERNAME||'BTmedyaajans').trim();
-    if(!env.ADMIN_PASSWORD || !sess || username!==expectedUsername || body.password!==env.ADMIN_PASSWORD)
-      return json({error:'Geçersiz kullanıcı adı veya şifre',remaining:rate.remaining},401);
+    if(!env.ADMIN_PASSWORD || !sess || body.password!==env.ADMIN_PASSWORD)
+      return json({error:'Geçersiz kimlik bilgisi',remaining:rate.remaining},401);
     await clearRateLimit(env,ip);
     const token=await sessionToken(sess);
     return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`});
@@ -528,20 +504,271 @@ async function mediaApi(request, env){
     return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`});
   }
 
-
+  const STATIC_REAL_MEDIA = [
+  {
+    "path": "hero-ending.jpg",
+    "id": "static-1",
+    "category": "hero"
+  },
+  {
+    "path": "hero-mobil.mp4",
+    "id": "static-2",
+    "category": "hero"
+  },
+  {
+    "path": "hero-mobil.webm",
+    "id": "static-3",
+    "category": "hero"
+  },
+  {
+    "path": "hero-poster.jpg",
+    "id": "static-4",
+    "category": "hero"
+  },
+  {
+    "path": "hero-scrub.mp4",
+    "id": "static-5",
+    "category": "hero"
+  },
+  {
+    "path": "hero-scrub.webm",
+    "id": "static-6",
+    "category": "hero"
+  },
+  {
+    "path": "media/portfoy/portfoy-video-01.mp4",
+    "id": "static-7",
+    "category": "portfoy"
+  },
+  {
+    "path": "media/web/hero-story-mobile.mp4",
+    "id": "static-8",
+    "category": "video"
+  },
+  {
+    "path": "media/web/hero-story-poster.jpg",
+    "id": "static-9",
+    "category": "video"
+  },
+  {
+    "path": "media/web/hero-story.mp4",
+    "id": "static-10",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-07.mp4",
+    "id": "static-11",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-07.webm",
+    "id": "static-12",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-action.mp4",
+    "id": "static-13",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-action.webm",
+    "id": "static-14",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-fantasy.mp4",
+    "id": "static-15",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-fantasy.webm",
+    "id": "static-16",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-flying-reporter.mp4",
+    "id": "static-17",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-flying-reporter.webm",
+    "id": "static-18",
+    "category": "video"
+  },
+  {
+    "path": "media/web/state-haber.mp4",
+    "id": "static-19",
+    "category": "video"
+  },
+  {
+    "path": "media/web/state-medya.mp4",
+    "id": "static-20",
+    "category": "video"
+  },
+  {
+    "path": "media/web/state-produksiyon.mp4",
+    "id": "static-21",
+    "category": "video"
+  },
+  {
+    "path": "saha/beydonoglu.webp",
+    "id": "static-22",
+    "category": "saha"
+  },
+  {
+    "path": "saha/helva.webp",
+    "id": "static-23",
+    "category": "saha"
+  },
+  {
+    "path": "saha/yorgan.webp",
+    "id": "static-24",
+    "category": "saha"
+  },
+  {
+    "path": "haber-kapak/acikogretim-lisesi-ikinci-bir-sans-mi-yeni-zorluklar-mi.webp",
+    "id": "static-25",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-ali-suuri-pazari-nda-fiyatlar-ne-durumda.webp",
+    "id": "static-26",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-berber-ve-kuafor-fiyatlari-el-yakiyor.webp",
+    "id": "static-27",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-dugunlerin-vazgecilmez-dans-sarkilari.webp",
+    "id": "static-28",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-genclik-asisi-estetik-dunyasini-buyuluyor.webp",
+    "id": "static-29",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-kira-fiyatlarinda-30-artis-bekleniyor.webp",
+    "id": "static-30",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-yaz-sicaklariyla-vantilator-satislari-patladi.webp",
+    "id": "static-31",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-esnafi-eleman-bulmakta-zorlaniyor.webp",
+    "id": "static-32",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-in-en-kalabalik-pazari.webp",
+    "id": "static-33",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-in-gelin-ayakkabilari-ve-kina-terlikleri-modasi.webp",
+    "id": "static-34",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-in-gururu-memleketinde-sov-yapacak.webp",
+    "id": "static-35",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-in-son-kalaycisi-ilyas-baykal.webp",
+    "id": "static-36",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-meyhaneler-bogazi-nda-pide-fiyatlari-ne-kadar.webp",
+    "id": "static-37",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-muay-thai-de-dunya-arenasinda.webp",
+    "id": "static-38",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-pazarinda-canli-helva-sovu.webp",
+    "id": "static-39",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/beydonoglu-yaprak-satarken-festival-yonetiyor.webp",
+    "id": "static-40",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/diyetisyen-den-yaz-aylarinda-saglikli-beslenme-ve-hizli-zayiflama-sirlari.webp",
+    "id": "static-41",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/el-emegi-yorganlar-artik-isitmiyor.webp",
+    "id": "static-42",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/gayrimenkul-uzmani-uyardi.webp",
+    "id": "static-43",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/gunes-koruyucu-seciminde-cilt-tipine-ozel-tavsiyeler.webp",
+    "id": "static-44",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/igneli-epilasyonun-bilinmeyen-riskleri.webp",
+    "id": "static-45",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/kadin-firincidan-30-yillik-basari-oykusu.webp",
+    "id": "static-46",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/kiralik-evlerde-yeni-donem-basliyor.webp",
+    "id": "static-47",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/mangalin-yeni-gozdesi-istiridye-mantari.webp",
+    "id": "static-48",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/okul-doneminde-ayakkabicilar-carsisi-na-yogun-ilgi.webp",
+    "id": "static-49",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/sogan-tarlada-5-pazarda-15tl.webp",
+    "id": "static-50",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/uzmanlardan-kilo-alma-ve-verme-stratejileri.webp",
+    "id": "static-51",
+    "category": "haber"
+  }
+];
 
   if(path==='/api/public/media' && request.method==='GET') {
     const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'};
     const q=(u.searchParams.get('q')||'').toLowerCase(); const cat=u.searchParams.get('category')||'';
-    // Statik listedeki tek gerçek kamera kaydı saha/ kareleriydi; üzerlerinde
-    // üçüncü taraf yayıncı filigranı olduğu için listeden çıkarıldı. Geriye
-    // kalan liste varsayilan olarak AI üretimi sayilir (AGENTS.md). Yalnizca
-    // "gercek": true isaretli kayitlar GERÇEK ÇEKİM etiketini alir; bunlar
-    // BTMEDYA'nin kendi prodüksiyon kayitlaridir.
-    const staticItems=(await medyaListesi(env,u.origin))
+    const staticItems=STATIC_REAL_MEDIA
       .filter(x=>!cat || x.category===cat)
       .filter(x=>!q || x.path.toLowerCase().includes(q))
-      .map((x,i)=>({id:x.id,key:'static/'+x.path,original_name:x.path.split('/').pop(),mime:/\.(mp4|webm)$/i.test(x.path)?'video/'+(x.path.endsWith('.webm')?'webm':'mp4'):'image/webp',size:0,category:x.category,tags:['BTMEDYA',x.gercek?'gercek':'ai-uretimi','arsiv'],title:x.path.split('/').pop().replace(/\.[^.]+$/,'').replace(/[-_]+/g,' '),description:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',alt_text:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',slot:x.category==='hero'?'hero':x.category==='video'?'medya':x.category==='portfoy'?'portfoy':'haber',sort_order:i,created_at:null,updated_at:null,url:'/assets/'+x.path,source:'github-static',ai_generated:!x.gercek}));
+      .map((x,i)=>({id:x.id,key:'static/'+x.path,original_name:x.path.split('/').pop(),mime:/\\.(mp4|webm)$/i.test(x.path)?'video/'+(x.path.endsWith('.webm')?'webm':'mp4'):'image/webp',size:0,category:x.category,tags:['BTMEDYA','gercek','arsiv'],title:x.path.split('/').pop().replace(/\\.[^.]+$/,'').replace(/[-_]+/g,' '),description:'BTMEDYA gerçek arşiv medyası',alt_text:'BTMEDYA gerçek arşiv medyası',slot:x.category==='hero'?'hero':x.category==='video'?'medya':x.category==='portfoy'?'portfoy':'haber',sort_order:i,created_at:null,updated_at:null,url:'/assets/'+x.path,source:'github-static',ai_generated:false}));
     let r2Items=[];
     if(env.DB && env.MEDIA && mediaSec){
       let sql='SELECT id,key,original_name,mime,size,category,tags,title,description,alt_text,slot,sort_order,created_at,updated_at FROM media WHERE published=1'; const args=[];
@@ -579,7 +806,7 @@ async function mediaApi(request, env){
   const aiToken=env.AI_READ_TOKEN;
   const bearer=(request.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
   const aiRead=(aiToken && bearer===aiToken);
-  const auth=aiRead || await validSession(request,oturumAnahtari(env));
+  const auth=aiRead || await validSession(request,env.ADMIN_SESSION_SECRET);
   if(!auth) return json({error:'Yetkisiz'},401);
 
   /* DEPO PLANI — her dosyanin teknik ozelligi, onerilen hedefler, secilen
@@ -1020,6 +1247,13 @@ async function servisEt(request, env) {
 
   const h = new Headers(res.headers);
   for (const [k, v] of Object.entries(guvenlikBasliklari(url.pathname))) h.set(k, v);
+  // Static Assets bazı HTML yanıtlarında charset parametresini göndermeyebilir.
+  // Türkçe karakterlerin tarayıcılar ve crawler'lar tarafından aynı şekilde
+  // yorumlanması için HTML yanıtını açıkça UTF-8 ilan et.
+  const contentType = h.get('content-type') || '';
+  if (contentType.toLowerCase().startsWith('text/html')) {
+    h.set('content-type', 'text/html; charset=utf-8');
+  }
   if (!h.has('cache-control') || res.status === 404) h.set('cache-control', onbellek(url.pathname));
   else h.set('cache-control', onbellek(url.pathname));
 
