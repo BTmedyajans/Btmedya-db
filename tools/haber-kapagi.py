@@ -1,24 +1,42 @@
 #!/usr/bin/env python3
-"""BTMEDYA haber kapagi uretir (1200x675), mevcut 27 kapagin tasarim diliyle.
+"""BTMEDYA haber kapagi uretir (1200x675), ulusal haber sitesi standardinda.
 
-D1'deki uc guncel haberin cover_url alani doluydu ama dosyalar yoktu;
-makale sayfasinda kirik gorsel cikiyordu. Bu betik eksik kapaklari ayni
-gorsel dille uretir: koyu zemin, ustte camgobegi kategori etiketi ve ince
-cizgi, solda iri iki satir baslik, altinda kucuk alt metin, en altta
-BT MEDYA imzasi.
+TASARIM GEREKCESI
+Onceki kapaklar soyut teknoloji grafigiydi (izgara, veri cizgileri). Bir
+haber sitesinde kapak haberin kendisini tasimali. Ulusal haber sitelerinin
+ortak dili:
 
-Tipografi sitenin kendi fontlari: Space Grotesk (baslik), Manrope (metin).
+  - tam kare fotograf, altta okunurluk icin koyu degrade
+  - sol ustte kirmizi kategori etiketi
+  - sol altta iri beyaz baslik
+  - basligin altinda ince kirmizi cizgi + kaynak/tarih satiri
+  - sag ustte yayinci imzasi
+  - video haberlerde oynat rozeti
+
+Fotograf verilmezse ayni duzen korunur, fotografin yerini derin editoryal
+degrade alir. Boylece fotografli ve fotografsiz kapaklar ayni aileden
+gorunur.
+
+FOTOGRAF KURALI
+Kapak fotografi yalnizca BTMEDYA'nin kendi karesinden gelir. Arsiv
+haberlerinin videolari baska bir yayincinin kanalinda ve kucuk resimleri
+o yayincinin bandini tasiyor; bu kareler kapak yapilmaz. Haber kendi
+kanalimiza tasindiginda plandaki "foto" alani doldurulur.
+
+Kullanim:
+  python3 tools/haber-kapagi.py            plandaki tum kapaklari uretir
+  python3 tools/haber-kapagi.py <slug>...  yalnizca verilenleri uretir
 """
-import os, random
-from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
+import json, math, os, sys
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 W, H = 1200, 675
-BG = (7, 12, 18)
+KEN = 56
 INK = (255, 255, 255)
-CYAN = (53, 214, 255)
-GRI = (139, 152, 168)
-KEN = 48
+KIRMIZI = (255, 64, 56)        # editoryal aksan; src/news-page.js ile ayni
+GRI = (168, 180, 194)
 
+KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FONT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fontlar")
 SG = os.path.join(FONT_DIR, "space-grotesk-tam.ttf")
 MR = os.path.join(FONT_DIR, "manrope-tam.ttf")
@@ -27,43 +45,45 @@ def f_sg(b): return ImageFont.truetype(SG, b)
 def f_mr(b): return ImageFont.truetype(MR, b)
 
 
-def parlama(im, tohum):
-    """Sag ust kadranda yumusak camgobegi isik. Mevcut kapaklarin zemininde
-    bu var; duz siyah zemin onlarin yaninda sonuk duruyor."""
-    r = random.Random(tohum + 100)
-    kat = Image.new("RGB", (W, H), (0, 0, 0))
-    kd = ImageDraw.Draw(kat)
-    cx, cy = r.randint(int(W * 0.62), int(W * 0.84)), r.randint(int(H * 0.18), int(H * 0.52))
+def zemin(foto_yolu=None):
+    """Fotograf varsa tam kareye kirpar; yoksa derin editoryal degrade."""
+    if foto_yolu and os.path.exists(foto_yolu):
+        im = Image.open(foto_yolu).convert("RGB")
+        oran = max(W / im.width, H / im.height)
+        im = im.resize((math.ceil(im.width * oran), math.ceil(im.height * oran)), Image.LANCZOS)
+        sol = (im.width - W) // 2
+        # Roportaj karelerinde yuz genelde ust yarida; ustten kirp.
+        ust = max(0, min((im.height - H) // 2, int(im.height * 0.12)))
+        return im.crop((sol, ust, sol + W, ust + H))
+
+    im = Image.new("RGB", (W, H))
+    d = ImageDraw.Draw(im)
+    for y in range(H):
+        t = y / H
+        d.line([(0, y), (W, y)], fill=(int(14 - 9 * t), int(25 - 16 * t), int(37 - 24 * t)))
+    # Marka bagini koruyan soluk camgobegi isik, sag ust kadran.
+    isik = Image.new("RGB", (W, H), (0, 0, 0))
+    idr = ImageDraw.Draw(isik)
+    cx, cy = int(W * 0.76), int(H * 0.26)
     for i in range(26, 0, -1):
-        yc = i * 26
-        t = int(52 * (i / 26) ** 2)
-        kd.ellipse([cx - yc, cy - yc, cx + yc, cy + yc], fill=(4, t // 3, t))
-    kat = kat.filter(ImageFilter.GaussianBlur(70))
-    return Image.blend(im, Image.blend(im, kat, 0.0), 0.0) if False else ImageChops.add(im, kat)
+        r = i * 26
+        v = int(34 * (i / 26) ** 2)
+        idr.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(2, v // 3, v))
+    isik = isik.filter(ImageFilter.GaussianBlur(90))
+    return Image.merge("RGB", [
+        Image.blend(a, b, 0.65) for a, b in zip(im.split(), isik.split())
+    ]).point(lambda v: min(255, int(v * 1.7)))
 
 
-def arkaplan(d, tohum):
-    """Soyut camgobegi geometri. Her kapak farkli gorunsun diye tohumlanir;
-    render tekrar edilebilir olsun diye rastgelelik sabit tohumla baslar."""
-    r = random.Random(tohum)
-    # Ince izgara.
-    for x in range(0, W, 60):
-        d.line([(x, 0), (x, H)], fill=(20, 32, 44), width=1)
-    for y in range(0, H, 60):
-        d.line([(0, y), (W, y)], fill=(18, 28, 40), width=1)
-    # Sag tarafta degisken yogunlukta yatay cizgi kumesi.
-    for i in range(34):
-        y = r.randint(40, H - 40)
-        x1 = r.randint(int(W * 0.52), int(W * 0.74))
-        x2 = x1 + r.randint(60, 380)
-        ton = r.randint(30, 150)
-        d.line([(x1, y), (min(x2, W - 30), y)], fill=(18, ton, min(255, ton + 90)), width=r.choice([2, 3, 4]))
-    # Birkac soluk blok.
-    for i in range(5):
-        x = r.randint(int(W * 0.58), W - 120)
-        y = r.randint(60, H - 140)
-        w = r.randint(40, 110); h = r.randint(30, 80)
-        d.rectangle([x, y, x + w, y + h], fill=(12, 40 + r.randint(0, 40), 60 + r.randint(0, 50)))
+def perde(im, guc=1.0):
+    """Alt degrade: baslik her zaman okunur kalsin."""
+    maske = Image.new("L", (W, H), 0)
+    d = ImageDraw.Draw(maske)
+    for y in range(H):
+        t = y / H
+        a = 0.12 + 0.88 * max(0.0, (t - 0.30) / 0.70) ** 1.4
+        d.line([(0, y), (W, y)], fill=int(min(255, 255 * a * guc)))
+    return Image.composite(Image.new("RGB", (W, H), (4, 7, 11)), im, maske)
 
 
 def sar(d, metin, font, genislik):
@@ -79,65 +99,84 @@ def sar(d, metin, font, genislik):
     return satir
 
 
-def kapak(kategori, baslik, altmetin, cikti, tohum=0):
-    im = Image.new("RGB", (W, H), BG)
-    im = parlama(im, tohum)
+def aralikli(d, xy, metin, font, dolgu, ara):
+    """Harf aralikli metin: PIL'de dogrudan desteklenmiyor."""
+    x, y = xy
+    for c in metin:
+        d.text((x, y), c, font=font, fill=dolgu)
+        x += d.textlength(c, font=font) + ara
+
+
+def olcu_aralikli(d, metin, font, ara):
+    return sum(d.textlength(c, font=font) + ara for c in metin) - ara
+
+
+def kapak(baslik, kategori, altbilgi, cikti, foto=None, video=False):
+    im = perde(zemin(foto), 1.0 if foto else 0.80)
     d = ImageDraw.Draw(im)
-    arkaplan(d, tohum)
 
-    # Ust serit: kategori etiketi + ince cizgi + kose parantezi.
-    kf = f_mr(17)
+    # Kirmizi kategori etiketi, sol ust.
+    kf = f_mr(18)
     kt = kategori.upper()
-    ARA = 2.2  # harf araligi: mevcut kapaklarda etiket genis harfli
-    kw = sum(d.textlength(c, font=kf) + ARA for c in kt) - ARA
-    d.rectangle([KEN, 30, KEN + kw + 32, 63], fill=CYAN)
-    cx = KEN + 16
-    for c in kt:
-        d.text((cx, 38), c, font=kf, fill=(4, 18, 26))
-        cx += d.textlength(c, font=kf) + ARA
-    d.line([(KEN + kw + 46, 46), (W - 150, 46)], fill=CYAN, width=2)
-    d.line([(W - 150, 46), (W - 150, 92)], fill=(20, 120, 160), width=2)
-    d.line([(W - 150, 46), (W - 60, 46)], fill=(20, 120, 160), width=2)
+    ARA = 2.4
+    kw = olcu_aralikli(d, kt, kf, ARA)
+    d.rectangle([KEN, 44, KEN + kw + 36, 82], fill=KIRMIZI)
+    aralikli(d, (KEN + 18, 52), kt, kf, INK, ARA)
 
-    # Baslik: en fazla iki satir, sigmazsa punto kucultulur.
-    punto = 132
-    while punto > 64:
+    # Yayinci imzasi, sag ust.
+    imf = f_sg(26)
+    d.text((W - KEN - d.textlength("BTMEDYA", font=imf), 50), "BTMEDYA", font=imf, fill=INK)
+
+    # Video rozeti.
+    if video:
+        r, cx, cy = 46, W // 2, int(H * 0.42)
+        d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=INK, width=3)
+        d.polygon([(cx - 13, cy - 21), (cx - 13, cy + 21), (cx + 22, cy)], fill=INK)
+
+    # Baslik, sol alt. Uc satira kadar; sigmazsa punto kucultulur.
+    punto = 82
+    while punto > 42:
         bf = f_sg(punto)
-        satirlar = sar(d, baslik, bf, W * 0.52)
-        if len(satirlar) <= 2:
+        if len(sar(d, baslik, bf, W - 2 * KEN - 30)) <= 3:
             break
-        punto -= 6
+        punto -= 4
     bf = f_sg(punto)
-    satirlar = sar(d, baslik, bf, W * 0.52)[:2]
-    y = 452 - len(satirlar) * int(punto * 0.98)
+    satirlar = sar(d, baslik, bf, W - 2 * KEN - 30)[:3]
+
+    sat_y = int(punto * 1.07)
+    y = H - KEN - 92 - len(satirlar) * sat_y + 10
     for s in satirlar:
         d.text((KEN, y), s, font=bf, fill=INK)
-        y += int(punto * 0.98)
+        y += sat_y
 
-    # Alt blok: dikey camgobegi aksan + alt metin + imza.
-    ust = y + 20
-    d.text((KEN + 18, ust), altmetin, font=f_mr(21), fill=GRI)
-    imf = f_sg(25)
-    d.text((KEN + 18, H - 78), "BT", font=imf, fill=INK)
-    bw = d.textlength("BT", font=imf)
-    d.text((KEN + 18 + bw + 10, H - 78), "MEDYA", font=f_mr(23), fill=(150, 165, 180))
-    d.line([(KEN, ust + 2), (KEN, H - 50)], fill=(30, 120, 155), width=2)
+    # Ince kirmizi cizgi + kaynak/tarih.
+    y += 20
+    d.rectangle([KEN, y, KEN + 64, y + 4], fill=KIRMIZI)
+    d.text((KEN, y + 20), altbilgi, font=f_mr(21), fill=GRI)
 
+    os.makedirs(os.path.dirname(cikti), exist_ok=True)
     im.save(cikti, "WEBP", quality=88, method=6)
     return os.path.getsize(cikti)
 
 
+def plan():
+    p = os.path.join(KOK, "public", "data", "haber-kapak-plani.json")
+    with open(p, encoding="utf-8") as f:
+        return json.load(f)
+
+
 if __name__ == "__main__":
-    hedef = "public/assets/haber-kapak"
-    isler = [
-        ("Gündem · Yangın", "Yangın kontrol altında", "Karesi Kocaavşar",
-         "karesi-kocaavsar-orman-yangini-kontrol-altina-alindi", 11),
-        ("Yerel · Altyapı", "Altyapı yenilendi", "Edremit Altınkum",
-         "edremit-altinkum-kanalizasyon-altyapi-yatirimi", 23),
-        ("Gündem · Asayiş", "Asayiş raporu", "7-13 Eylül 2026",
-         "balikesir-emniyet-7-13-eylul-2026-faaliyetleri", 37),
-    ]
-    for kat, bas, alt, slug, tohum in isler:
-        p = f"{hedef}/{slug}.webp"
-        boyut = kapak(kat, bas, alt, p, tohum)
-        print(f"  {slug[:46]:48} {boyut/1024:>5.0f} KB")
+    istenen = set(sys.argv[1:])
+    hedef = os.path.join(KOK, "public", "assets", "haber-kapak")
+    n = fotolu = 0
+    for h in plan():
+        if istenen and h["slug"] not in istenen:
+            continue
+        foto = os.path.join(KOK, h["foto"]) if h.get("foto") else None
+        boyut = kapak(h["baslik"], h["kategori"], h["altbilgi"],
+                      os.path.join(hedef, h["slug"] + ".webp"),
+                      foto=foto, video=h.get("video", False))
+        n += 1
+        if foto: fotolu += 1
+        print(f"  {'F' if foto else ' '} {h['slug'][:44]:46} {boyut/1024:>5.0f} KB")
+    print(f"\n  {n} kapak uretildi ({fotolu} fotografli, {n-fotolu} editoryal).")
