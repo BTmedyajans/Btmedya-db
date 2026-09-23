@@ -55,10 +55,11 @@ async function getMediaObject(env, key){
 
 function mediaCategoryFromKey(key){
   const p=String(key||'').split('/')[0].toLowerCase();
+  if(/ai-lab|ailab|ai/.test(p)) return 'ai-lab';
   if(/haber|news/.test(p)) return 'haber';
   if(/video|reel|showreel/.test(p)) return 'video';
   if(/saha|report|portfolio|portfoy/.test(p)) return 'portfoy';
-  if(/hero|web|site/.test(p)) return 'medya';
+  if(/hero|web|site|kurumsal|podcast|sosyal/.test(p)) return 'medya';
   return 'arsiv';
 }
 
@@ -95,7 +96,7 @@ async function listR2Media(bucket, source, {q='',cat=''}={}){
         updated_at:x.uploaded?new Date(x.uploaded).toISOString():null,
         url:null,
         source,
-        ai_generated:false
+        ai_generated:/^(?:ai-lab|ailab|ai)(?:\/|$)/i.test(key)
       });
       if(out.length>=500) return out;
     }
