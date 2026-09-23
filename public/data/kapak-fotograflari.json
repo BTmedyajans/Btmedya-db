@@ -1,0 +1,72 @@
+[
+ {
+  "ad": "sunucu",
+  "yol": "public/assets/media/portfoy/buse-tuncay-sunucu-kirmizi.webp",
+  "ust": 0.3,
+  "kunye": "BTMEDYA",
+  "gercek": false
+ },
+ {
+  "ad": "portre-sb",
+  "yol": "public/assets/media/portfoy/buse-tuncay-portre-siyah-beyaz.webp",
+  "ust": 0.28,
+  "kunye": "BTMEDYA",
+  "gercek": true
+ },
+ {
+  "ad": "portre-01",
+  "yol": "public/assets/media/portfoy/buse-tuncay-portre-01.webp",
+  "ust": 0.3,
+  "kunye": "BTMEDYA",
+  "gercek": true
+ },
+ {
+  "ad": "portre-02",
+  "yol": "public/assets/media/portfoy/buse-tuncay-portre-02.webp",
+  "ust": 0.3,
+  "kunye": "BTMEDYA",
+  "gercek": true
+ },
+ {
+  "ad": "portre-03",
+  "yol": "public/assets/media/portfoy/buse-tuncay-portre-03.webp",
+  "ust": 0.3,
+  "kunye": "BTMEDYA",
+  "gercek": true
+ },
+ {
+  "ad": "portre-04",
+  "yol": "public/assets/media/portfoy/buse-tuncay-portre-04.webp",
+  "ust": 0.3,
+  "kunye": "BTMEDYA",
+  "gercek": true
+ },
+ {
+  "ad": "portre-05",
+  "yol": "public/assets/media/portfoy/buse-tuncay-portre-05.webp",
+  "ust": 0.3,
+  "kunye": "BTMEDYA",
+  "gercek": true
+ },
+ {
+  "ad": "kamera-arkasi",
+  "yol": "public/assets/media/portfoy/buse-tuncay-kamera-arkasi.webp",
+  "ust": 0.78,
+  "kunye": "BTMEDYA",
+  "gercek": true
+ },
+ {
+  "ad": "siber-01",
+  "yol": "public/assets/media/ai-lab/btmedya-siber-sunucu-01.webp",
+  "ust": 0.32,
+  "kunye": "BTMEDYA · AI",
+  "gercek": false
+ },
+ {
+  "ad": "siber-02",
+  "yol": "public/assets/media/ai-lab/btmedya-siber-sunucu-02.webp",
+  "ust": 0.32,
+  "kunye": "BTMEDYA · AI",
+  "gercek": false
+ }
+]

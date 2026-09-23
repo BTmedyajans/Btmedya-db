@@ -123,7 +123,7 @@
        kamuya acik sayfalarda CSP script-src 'self' (cspKur, src/worker.js). */
     /* Kapaklar saha fotografi degil, tasarlanmis grafik kart; bu yuzden
        AGENTS.md'deki varsayilan geregi AI URETIMI etiketi tasirlar. */
-    if (cover) return `<div class="news-media"><img src="${esc(cover)}" alt="${esc(n.title)}" loading="lazy" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div></div><span class="reference-note">AI ÜRETİMİ GÖRSEL</span>`;
+    if (cover) return `<div class="news-media"><img src="${esc(cover)}" alt="${esc(n.title)}" loading="lazy" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div></div>`;
     return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
   };
   const render = (items) => {
