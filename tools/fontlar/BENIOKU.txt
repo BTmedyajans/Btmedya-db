@@ -1,0 +1,9 @@
+Bu klasordeki TTF dosyalari public/assets/fonts altindaki woff2 marka
+fontlarindan uretildi. Google Fonts alt kumeleri ayirdigi icin "latin"
+dosyasinda GISgs karakterleri yok; Turkce basliklarda kutu cikiyordu.
+Bu yuzden latin ve latin-ext alt kumeleri sabit agirlikta orneklenip
+birlestirildi (Space Grotesk 700, Manrope 500).
+
+Yeniden uretmek icin: pip install fonttools brotli, sonra
+fontTools.varLib.instancer ile orneklendirip fontTools.merge ile birlestir.
+Yalnizca kapak uretiminde kullanilir; site bu dosyalari yuklemez.
