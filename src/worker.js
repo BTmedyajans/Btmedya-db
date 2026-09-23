@@ -55,11 +55,13 @@ async function getMediaObject(env, key){
 
 function mediaCategoryFromKey(key){
   const p=String(key||'').split('/')[0].toLowerCase();
-  if(/ai-lab|ailab|ai/.test(p)) return 'ai-lab';
+  // Klasor adinin TAMAMI eslesmeli: alt dize aramasi "thumbnails" gibi icinde
+  // "ai" gecen her klasoru AI LAB'e atiyordu.
+  if(/^(?:ai-lab|ailab|ai)$/.test(p)) return 'ai-lab';
   if(/haber|news/.test(p)) return 'haber';
   if(/video|reel|showreel/.test(p)) return 'video';
   if(/saha|report|portfolio|portfoy/.test(p)) return 'portfoy';
-  if(/hero|web|site|kurumsal|podcast|sosyal/.test(p)) return 'medya';
+  if(/hero|web|site|medya|kurumsal|podcast|sosyal/.test(p)) return 'medya';
   return 'arsiv';
 }
 
