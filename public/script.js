@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     card.addEventListener('focus',()=>setCategory(cat,false));
     card.addEventListener('click',()=>{
       setCategory(cat);
-      const target=document.querySelector(card.dataset.target||'#services');
+      const target=document.querySelector(card.dataset.target||'#medya');
       if(target) target.scrollIntoView({behavior:reduced?'auto':'smooth'});
     });
     card.addEventListener('touchstart',()=>setCategory(cat,false),{passive:true});
