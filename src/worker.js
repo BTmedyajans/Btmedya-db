@@ -160,7 +160,7 @@ async function sendContactEmail(env, msg){
 /* ---------- Cloudflare Workflow API ---------- */
 async function workflowApi(request, env, url) {
   if (!url.pathname.startsWith('/api/workflow/')) return null;
-  if (!(await validSession(request, env.ADMIN_SESSION_SECRET))) {
+  if (!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) {
     return json({ok:false,error:'Yetkisiz'},401);
   }
   if (!env.BTMEDYA_WORKFLOW) {
@@ -224,7 +224,7 @@ async function newsApi(request, env, url){
       ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA,
       r2Objects:!!r2Probe?.objects?.length,legacyR2Objects:!!legacyProbe?.objects?.length,
       r2MediaObjects:mediaCount(r2Probe),legacyR2MediaObjects:mediaCount(legacyProbe),
-      admin:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,mail:!!env.RESEND_API_KEY
+      admin:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mail:!!env.RESEND_API_KEY
     });
   }
 
@@ -277,7 +277,7 @@ async function newsApi(request, env, url){
 
   /* Admin: haber listesi */
   if(url.pathname==='/api/admin/news' && request.method==='GET'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const status=url.searchParams.get('status');
     let sql='SELECT id,slug,title,excerpt,category,author,cover_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news';
@@ -290,7 +290,7 @@ async function newsApi(request, env, url){
 
   /* Admin: haber ekle / güncelle (slug ile upsert) */
   if(url.pathname==='/api/admin/news' && request.method==='POST'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const b=await request.json().catch(()=>null);
     if(!b || typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
@@ -309,7 +309,7 @@ async function newsApi(request, env, url){
   /* Admin: haber güncelle / sil (ID ile) */
   const newsById=url.pathname.match(/^\/api\/admin\/news\/(\d+)$/);
   if(newsById){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const id=Number(newsById[1]);
     if(request.method==='GET'){
@@ -337,13 +337,13 @@ async function newsApi(request, env, url){
 /* ---------- BTMEDYA Control Center ---------- */
 async function controlCenterApi(request, env, url){
   if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
   return json({
     ok:true,
     service:'BTMEDYA Control Center',
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db'},
     storage:{d1:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA},
-    admin:{configured:!!env.ADMIN_PASSWORD && !!env.ADMIN_SESSION_SECRET,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
+    admin:{configured:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
     social:socialProviderStatus(env),
     socialLinks:[
       {key:'instagram',label:'Instagram @btmedya10',url:'https://www.instagram.com/btmedya10/',note:'Görsel profil ve Reels kanalı'},
@@ -358,8 +358,8 @@ async function controlCenterApi(request, env, url){
       github:{status:'deployment_pipeline',note:'main dalı üzerinden Cloudflare Workers Builds deploy zinciri kullanılır.'}
     },
     nextActions:[
-      !env.ADMIN_PASSWORD?'Cloudflare Worker secret: ADMIN_PASSWORD ekle':null,
-      !env.ADMIN_SESSION_SECRET?'Cloudflare Worker secret: ADMIN_SESSION_SECRET ekle':null,
+      !env.ADMIN_PASSWORD_SECRET?'Cloudflare Worker secret: ADMIN_PASSWORD_SECRET ekle':null,
+      !env.ADMIN_SESSION_SECRET_SECRET?'Cloudflare Worker secret: ADMIN_SESSION_SECRET_SECRET ekle':null,
       !env.MEDIA_SIGNING_SECRET?'Cloudflare Worker secret: MEDIA_SIGNING_SECRET ekle':null,
       !env.META_ACCESS_TOKEN||!env.META_IG_USER_ID?'Instagram bağlantı secretlarını tamamla':null,
       !env.TIKTOK_ACCESS_TOKEN||!env.TIKTOK_OPEN_ID?'TikTok bağlantı secretlarını tamamla':null,
@@ -399,18 +399,18 @@ async function contactApi(request, env, url, ctx){
     return json({ok:true,message:'Mesajınız alındı, teşekkürler!'});
   }
   if(url.pathname==='/api/admin/contact' && request.method==='GET'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     const rows=await env.DB.prepare('SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 200').all();
     return json({ok:true,items:rows.results});
   }
   const contactById=url.pathname.match(/^\/api\/admin\/contact\/(\d+)$/);
   if(contactById && request.method==='PATCH'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     await env.DB.prepare('UPDATE contact_messages SET read=1 WHERE id=?').bind(Number(contactById[1])).run();
     return json({ok:true});
   }
   if(contactById && request.method==='DELETE'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     await env.DB.prepare('DELETE FROM contact_messages WHERE id=?').bind(Number(contactById[1])).run();
     return json({ok:true});
   }
@@ -423,7 +423,7 @@ const SOCIAL_FORMAT = new Set(['9:16','4:5','1:1','16:9']);
 
 async function socialApi(request, env, url){
   if(!url.pathname.startsWith('/api/admin/social')) return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
   if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
 
   if(url.pathname==='/api/admin/social/providers' && request.method==='GET'){
@@ -499,7 +499,7 @@ async function mediaApi(request, env){
   const u=new URL(request.url); const path=u.pathname;
   if(request.method==='OPTIONS') return new Response(null,{status:204,headers:{'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,PATCH,DELETE,PUT,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'}});
 
-  const sess=env.ADMIN_SESSION_SECRET;
+  const sess=env.ADMIN_SESSION_SECRET_SECRET;
   const mediaSec=env.MEDIA_SIGNING_SECRET;
 
   if(path==='/api/login' && request.method==='POST'){
@@ -507,7 +507,7 @@ async function mediaApi(request, env){
     const rate=await checkRateLimit(env,ip);
     if(!rate.allowed) return json({error:'Çok fazla başarısız deneme. 15 dakika bekleyin.'},429,{'Retry-After':String(RATE_LIMIT_WINDOW_S)});
     const body=await request.json().catch(()=>({}));
-    if(!env.ADMIN_PASSWORD || !sess || body.password!==env.ADMIN_PASSWORD)
+    if(!env.ADMIN_PASSWORD_SECRET || !sess || body.password!==env.ADMIN_PASSWORD_SECRET)
       return json({error:'Geçersiz kimlik bilgisi',remaining:rate.remaining},401);
     await clearRateLimit(env,ip);
     const token=await sessionToken(sess);
@@ -566,7 +566,7 @@ async function mediaApi(request, env){
   const aiToken=env.AI_READ_TOKEN;
   const bearer=(request.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
   const aiRead=(aiToken && bearer===aiToken);
-  const auth=aiRead || await validSession(request,env.ADMIN_SESSION_SECRET);
+  const auth=aiRead || await validSession(request,env.ADMIN_SESSION_SECRET_SECRET);
   if(!auth) return json({error:'Yetkisiz'},401);
 
   /* DEPO PLANI — her dosyanin teknik ozelligi, onerilen hedefler, secilen
