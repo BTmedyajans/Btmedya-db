@@ -265,6 +265,12 @@
 .about-story-text h2 span{color:var(--cyan)}
 .about-story-text p{color:#a9bac8;font-size:15px;line-height:1.8;margin:0 0 16px}
 .about-story-visual{position:relative;border:1px solid rgba(255,255,255,.08);overflow:hidden}
+/* Kurucu karti: 16:9 markali gorsel. Tipografi goruntunun icine gomulu
+   oldugu icin kirpilmaz ve soluklastirilmaz. */
+.kurucu-kart{position:relative;border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:hidden}
+.kurucu-kart img{display:block;width:100%;height:auto}
+/* AGENTS.md: sitedeki her kare AI URETIMI ya da GERCEK CEKIM etiketi tasir. */
+.medya-etiket{position:absolute;right:12px;top:12px;z-index:3;padding:6px 9px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.6);border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.1em;color:#fff}
 .about-story-visual img{width:100%;height:100%;min-height:350px;object-fit:cover;opacity:.8}
 .about-values{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:80px}
 .about-value{padding:30px 24px;background:linear-gradient(150deg,#0b1b2a,#040b12);border:1px solid rgba(255,255,255,.08)}
