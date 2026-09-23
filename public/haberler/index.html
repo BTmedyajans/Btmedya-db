@@ -14,6 +14,25 @@
 <style>
 :root{--red:#ff4038;--muted:#8c97a6;--line:#ffffff18;--panel:#0b1017}
 .news-shell{max-width:1440px;margin:auto;padding:22px 4vw 90px}.news-kicker{display:flex;align-items:center;gap:9px;color:#aeb8c7;font-size:.72rem;letter-spacing:.16em;font-weight:800}.news-kicker i{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 16px #ff4038;display:inline-block}.news-title{font-family:"Bricolage Grotesque","Space Grotesk",sans-serif;font-size:clamp(3.2rem,8vw,8rem);line-height:.86;letter-spacing:-.075em;margin:18px 0}.news-title span{opacity:.35}.news-deck{max-width:780px;color:#aeb8c7;line-height:1.65;font-size:1.05rem}.news-nav{display:flex;gap:8px;overflow:auto;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:28px 0}.news-nav a{white-space:nowrap;text-decoration:none;color:#dce3ec;border:1px solid var(--line);border-radius:999px;padding:9px 15px;font-size:.82rem}.news-nav a:first-child{border-color:#ff403855;color:#fff}.ticker{display:flex;gap:18px;align-items:center;border-bottom:1px solid var(--line);padding:12px 0;margin-bottom:18px;overflow:hidden}.ticker strong{font-size:.68rem;letter-spacing:.14em;color:var(--red);white-space:nowrap}.ticker span{color:#aeb8c7;white-space:nowrap}.news-grid{display:grid;grid-template-columns:1.55fr .8fr .8fr;gap:12px}.news-card{min-height:260px;border:1px solid var(--line);background:linear-gradient(145deg,#101720,#080b10);padding:22px;display:flex;flex-direction:column;justify-content:flex-end;text-decoration:none;color:inherit;position:relative;overflow:hidden}.news-card.featured{min-height:530px}.news-card.video-card{padding:0}.news-card video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.42}.news-card .veil{position:absolute;inset:0;background:linear-gradient(180deg,#05070a22,#05070ae8)}.news-card .inner{position:relative;z-index:2;padding:24px}.news-tag{font-size:.67rem;letter-spacing:.13em;color:#b2bdca;font-weight:800}.news-card h2,.news-card h3{font-family:"Bricolage Grotesque","Space Grotesk",sans-serif;letter-spacing:-.04em;margin:28px 0 9px;line-height:1}.news-card h2{font-size:clamp(2.2rem,4.5vw,4.8rem)}.news-card h3{font-size:1.55rem}.news-card p{color:#aeb8c7;line-height:1.5;margin:0}.news-meta{font-size:.7rem;color:#768292;margin-top:13px}.source{color:#d9e1ea}.section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin:62px 0 18px}.section-head h2{font-family:"Bricolage Grotesque","Space Grotesk";font-size:2rem;margin:0;letter-spacing:-.04em}.section-head p{color:#778393;margin:0}.latest-list{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.latest-item{border-top:1px solid var(--line);padding:18px 0;text-decoration:none;color:inherit}.latest-item small{color:#ff756d;letter-spacing:.12em;font-weight:800}.latest-item h3{font-family:"Bricolage Grotesque","Space Grotesk";font-size:1.4rem;line-height:1.08;margin:9px 0}.latest-item p{color:#8f9aa9;line-height:1.5;margin:0}.archive-tools{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:18px 0}.archive-search{width:min(440px,100%);box-sizing:border-box;background:#0c1016;border:1px solid var(--line);color:#fff;border-radius:10px;padding:13px 15px}.archive-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.archive-card{border-top:1px solid var(--line);padding:20px 0;text-decoration:none;color:inherit}.archive-card small{color:#8d99a8;font-weight:800;letter-spacing:.08em}.archive-card h3{font-family:"Bricolage Grotesque","Space Grotesk";margin:8px 0;font-size:1.25rem}.archive-card p{color:#8792a1;line-height:1.5}.trust{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);margin-top:50px}.trust div{padding:20px;border-right:1px solid var(--line)}.trust div:last-child{border-right:0}.trust b{display:block;font-family:"Bricolage Grotesque","Space Grotesk";font-size:1.5rem}.trust span{color:#7f8b9b;font-size:.8rem;line-height:1.4}.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#43d17a;margin-right:5px}.disclaimer{color:#687483;font-size:.72rem;line-height:1.5;margin-top:18px}
+/* Haber listesi kartlari: kucuk resim + metin satiri.
+   Kapak once kartin arkasina %42 saydamlikla konuyordu; kapagin uzerindeki
+   baslik kartin basligiyla ust uste binip ikisini de okunmaz yapiyordu.
+   Gorsel artik ayri bir sutunda, metnin altinda degil yaninda duruyor. */
+.latest-item.kapakli{display:grid;grid-template-columns:112px 1fr;gap:16px;align-items:start}
+.latest-kapak{display:block;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#0c1016;border:1px solid var(--line)}
+.latest-kapak img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
+.latest-item.kapakli:hover .latest-kapak img{transform:scale(1.05)}
+.latest-metin{display:block;min-width:0}
+.latest-metin .news-meta{display:block}
+.latest-item.kapakli h3{margin:7px 0 6px;font-size:1.22rem}
+.latest-item.kapakli p{font-size:.9rem;display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+@media(max-width:620px){.latest-item.kapakli{grid-template-columns:92px 1fr;gap:13px}.latest-item.kapakli h3{font-size:1.08rem}}
+
+/* Sabit ust bar 62-72 px; sayfa basligi onun altindan baslamali.
+   Mobilde "Haber." basliginin ust kismi bara giriyordu. */
+.news-shell{padding-top:96px}
+@media(max-width:900px){.news-shell{padding-top:84px}}
+
 @media(max-width:900px){.news-grid,.latest-list,.archive-grid,.trust{grid-template-columns:1fr}.trust div{border-right:0;border-bottom:1px solid var(--line)}.trust div:last-child{border-bottom:0}.news-card.featured{min-height:400px}.news-shell{padding-left:18px;padding-right:18px}.archive-tools{flex-direction:column;align-items:stretch}}
 </style>
 </head>
@@ -84,10 +103,11 @@
     'Teknoloji':document.querySelector('#teknoloji .latest-list'),
     'Spor':document.querySelector('#spor .latest-list')
   };
+  function kartGorseli(yol){return String(yol||'').replace(/(\/assets\/haber-kapak\/[^/]+)\.webp$/,'$1-foto.webp')}
   function esc(v){return String(v??'').replace(/[&<>"']/g,function(x){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]})}
   function card(n){
-    const img=n.cover_url?'<img src="'+esc(n.cover_url)+'" alt="'+esc(n.title)+'" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.42">':'';
-    return '<a class="latest-item" href="/haberler/'+encodeURIComponent(n.slug)+'"><small>'+esc(n.category||'HABER')+'</small><h3>'+esc(n.title)+'</h3><p>'+esc(n.excerpt||'')+'</p><div class="news-meta"><span class="source">BTMEDYA · '+esc(n.author||'Haber Merkezi')+'</span></div></a>';
+    const img=n.cover_url?'<span class="latest-kapak"><img src="'+esc(kartGorseli(n.cover_url))+'" alt="" loading="lazy" decoding="async"></span>':'';
+    return '<a class="latest-item'+(img?' kapakli':'')+'" href="/haberler/'+encodeURIComponent(n.slug)+'">'+img+'<span class="latest-metin"><small>'+esc(n.category||'HABER')+'</small><h3>'+esc(n.title)+'</h3><p>'+esc(n.excerpt||'')+'</p><span class="news-meta"><span class="source">BTMEDYA · '+esc(n.author||'Haber Merkezi')+'</span></span></span></a>';
   }
   try{
     const r=await fetch('/api/news?limit=60',{headers:{'Accept':'application/json'}});
@@ -101,7 +121,7 @@
       const hero=grid.querySelector('.news-card.featured');
       if(hero){
         hero.href='/haberler/'+encodeURIComponent(feature.slug);
-        hero.innerHTML=(feature.cover_url?'<img src="'+esc(feature.cover_url)+'" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.48">':'')+
+        hero.innerHTML=(feature.cover_url?'<img src="'+esc(kartGorseli(feature.cover_url))+'" alt="" loading="eager" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 28%;opacity:.82">':'')+
           '<div class="veil"></div><div class="inner"><span class="news-tag">'+esc(feature.category||'SON DAKİKA')+'</span><h2>'+esc(feature.title)+'</h2><p>'+esc(feature.excerpt||'')+'</p><div class="news-meta">BTMEDYA · '+esc(feature.author||'Haber Merkezi')+'</div></div>';
       }
     }

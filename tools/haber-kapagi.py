@@ -207,7 +207,32 @@ def kapak(baslik, kategori, altbilgi, cikti, foto=None, video=False, ust=0.30,
     d.text((W - KEN - d.textlength(sag, font=sf), H - BANT + 17), sag, font=sf, fill=INK)
 
     os.makedirs(os.path.dirname(cikti), exist_ok=True)
-    im.save(cikti, "WEBP", quality=88, method=6)
+    im.save(cikti, "WEBP", quality=92, method=6)
+    return os.path.getsize(cikti)
+
+
+# Kart gorseli icin kare kenar. Kartlarin kutu orani sayfadan sayfaya
+# degisiyor (mobilde 352x388, masaustunde genis); kare kaynak her iki
+# yonde de kirpilinca yuzu cercevede tutuyor.
+FOTO = 1000
+
+
+def kart_fotografi(foto_yolu, cikti, ust=0.30):
+    """Metinsiz kart gorseli uretir.
+
+    Bestelenmis kapak (basligi, kirmizi bandi ve kunyesi uzerinde basili)
+    kart arkasina konunca kartin kendi basligiyla ust uste biniyordu; iki
+    metin birbirini okunmaz hale getiriyordu. Kart artik yalniz fotografi
+    kullanir, metni HTML tarafi yazar. Bestelenmis kapak paylasim gorseli
+    (og:image) olarak kaliyor.
+    """
+    im = Image.open(foto_yolu).convert("RGB")
+    im = kapla(im, FOTO, FOTO, ust)
+    # Kartin uzerine perde dusecegi icin hafif kontrast; yuz yapisina
+    # dokunan hicbir islem yok.
+    im = ImageEnhance.Contrast(im).enhance(1.04)
+    os.makedirs(os.path.dirname(cikti), exist_ok=True)
+    im.save(cikti, "WEBP", quality=84, method=6)
     return os.path.getsize(cikti)
 
 
@@ -243,7 +268,13 @@ if __name__ == "__main__":
                       ust=kare.get("ust", 0.30) if kare else 0.30,
                       kunye=kare.get("kunye", "BTMEDYA") if kare else "BTMEDYA",
                       gercek=bool(kare and kare.get("gercek")))
+        kb = ""
+        if foto:
+            fb = kart_fotografi(foto, os.path.join(hedef, h["slug"] + "-foto.webp"),
+                                kare.get("ust", 0.30))
+            kb = f" + kart {fb/1024:>4.0f} KB"
         n += 1
         if foto: fotolu += 1
-        print(f"  {'F' if foto else ' '} {h['slug'][:44]:46} {boyut/1024:>5.0f} KB")
+        print(f"  {'F' if foto else ' '} {h['slug'][:40]:42} {boyut/1024:>5.0f} KB{kb}")
     print(f"\n  {n} kapak uretildi ({fotolu} fotografli, {n-fotolu} editoryal).")
+    print(f"  {fotolu} metinsiz kart gorseli uretildi.")
