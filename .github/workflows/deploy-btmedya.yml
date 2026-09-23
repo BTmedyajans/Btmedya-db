@@ -17,6 +17,9 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Wait for Cloudflare Workers Build
         uses: actions/github-script@v7
         with:
