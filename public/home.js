@@ -40,7 +40,99 @@
 
   if (!reduced && hover) {
     d.body.classList.add('parallax-ready');
-    const hero = d.querySelector('.hero');
+    /* ---------- PORTFÖY: YouTube kanalındaki gerçek işler ----------
+     Veri public/data/youtube-portfoy.json dosyasından okunur; izlenme ve
+     süre kanaldan alınmış sabit değerlerdir, uydurma yoktur. Önizleme
+     yalnızca tıklamayla açılır: sayfa açılışında 14 iframe yüklemek hem
+     mobil veriyi hem de ilk boyama süresini gereksiz yere harcar. */
+  const sayi = n => Number(n || 0).toLocaleString('tr-TR');
+
+  const portfoyKarti = (x) => {
+    const b = esc(x.baslik || '');
+    return '<article class="portfoy-kart" data-kategori="' + esc(x.kategori || '') + '">' +
+      '<button class="portfoy-oynat" type="button" data-video="' + esc(x.id || '') + '"' +
+      ' aria-label="' + b + ' — önizlemeyi oynat">' +
+      '<img class="portfoy-kapak" loading="lazy" decoding="async" src="' + esc(x.kapak || '') + '" alt="' + b + '">' +
+      '<span class="portfoy-rozet" aria-hidden="true"></span>' +
+      '<span class="portfoy-sure">' + esc(x.sure || '') + '</span></button>' +
+      '<div class="portfoy-metin"><h3>' + b + '</h3>' +
+      '<p>' + sayi(x.izlenme) + ' izlenme · ' + esc(String(x.tarih || '').slice(0, 4)) + '</p>' +
+      '<a href="https://www.youtube.com/watch?v=' + encodeURIComponent(x.id || '') + '"' +
+      ' target="_blank" rel="noopener">YouTube’da aç ↗</a></div></article>';
+  };
+
+  const loadPortfoy = async () => {
+    const grid = d.getElementById('portfoyGrid');
+    if (!grid) return;
+    const filtre = d.getElementById('portfoyFiltre');
+    const kanalKutu = d.getElementById('portfoyKanal');
+    let veri;
+    try {
+      const r = await fetch('/data/youtube-portfoy.json', {headers:{accept:'application/json'}});
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      veri = await r.json();
+    } catch (err) {
+      grid.innerHTML = '<div class="portfoy-bos">Portföy şu anda okunamadı. Kanal yine açık: ' +
+        '<a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube ↗</a></div>';
+      return;
+    }
+    const isler = Array.isArray(veri.isler) ? veri.isler : [];
+    if (!isler.length) { grid.innerHTML = '<div class="portfoy-bos">Portföy kaydı yok.</div>'; return; }
+
+    const k = veri.kanal || {};
+    if (kanalKutu && k.ad) {
+      kanalKutu.innerHTML =
+        '<span><b>' + sayi(k.abone) + '</b>abone</span>' +
+        '<span><b>' + sayi(k.izlenme) + '</b>toplam izlenme</span>' +
+        '<span><b>' + sayi(k.video) + '</b>video</span>' +
+        '<span class="portfoy-kanal-ad">' + esc(k.ad) + ' · YouTube</span>';
+    }
+
+    grid.innerHTML = isler.map(portfoyKarti).join('');
+
+    if (filtre) {
+      const kategoriler = [{ad:'', etiket:'TÜMÜ'}].concat(
+        (veri.kategoriler || []).filter(c => isler.some(x => x.kategori === c.ad)));
+      filtre.innerHTML = kategoriler.map((c, i) =>
+        '<button class="portfoy-sekme' + (i === 0 ? ' secili' : '') + '" type="button" role="tab"' +
+        ' aria-selected="' + (i === 0) + '" data-kategori="' + esc(c.ad) + '">' + esc(c.etiket) + '</button>'
+      ).join('');
+      filtre.addEventListener('click', e => {
+        const b = e.target.closest('.portfoy-sekme');
+        if (!b) return;
+        const sec = b.dataset.kategori || '';
+        filtre.querySelectorAll('.portfoy-sekme').forEach(x => {
+          const aktif = x === b;
+          x.classList.toggle('secili', aktif);
+          x.setAttribute('aria-selected', String(aktif));
+        });
+        grid.querySelectorAll('.portfoy-kart').forEach(kart => {
+          kart.hidden = !!sec && kart.dataset.kategori !== sec;
+        });
+      });
+    }
+
+    /* Tıklanan kartın kapağı yerine gömülü oynatıcı gelir. Kart başına en
+       fazla bir iframe açılır; youtube-nocookie CSP'de zaten izinli. */
+    grid.addEventListener('click', e => {
+      const b = e.target.closest('.portfoy-oynat');
+      if (!b) return;
+      const id = b.dataset.video;
+      if (!id) return;
+      const cerceve = d.createElement('iframe');
+      cerceve.className = 'portfoy-cerceve';
+      cerceve.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) +
+        '?autoplay=1&rel=0&modestbranding=1';
+      cerceve.title = b.getAttribute('aria-label') || 'BTMEDYA portföy videosu';
+      cerceve.allow = 'accelerometer; autoplay; encrypted-media; picture-in-picture';
+      cerceve.setAttribute('allowfullscreen', '');
+      cerceve.loading = 'lazy';
+      b.replaceWith(cerceve);
+    });
+  };
+  loadPortfoy();
+
+  const hero = d.querySelector('.hero');
     let raf = 0;
     let tx = 0, ty = 0, x = 0, y = 0;
     d.addEventListener('pointermove', e => {
