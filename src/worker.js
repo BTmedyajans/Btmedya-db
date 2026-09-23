@@ -754,6 +754,12 @@ async function mediaApi(request, env){
     "path": "haber-kapak/uzmanlardan-kilo-alma-ve-verme-stratejileri.webp",
     "id": "static-51",
     "category": "haber"
+  },
+  {
+    "path": "media/portfoy/btmedya-saha-showreel.mp4",
+    "id": "static-52",
+    "category": "portfoy",
+    "gercek": true
   }
 ];
 
@@ -762,12 +768,13 @@ async function mediaApi(request, env){
     const q=(u.searchParams.get('q')||'').toLowerCase(); const cat=u.searchParams.get('category')||'';
     // Statik listedeki tek gerçek kamera kaydı saha/ kareleriydi; üzerlerinde
     // üçüncü taraf yayıncı filigranı olduğu için listeden çıkarıldı. Geriye
-    // kalan her şey AI üretimi marka görüntüsü ya da tasarlanmış haber kapağı,
-    // yani AGENTS.md'deki "GERÇEK ÇEKİM" iddiasını hiçbiri karşılamıyor.
+    // kalan liste varsayilan olarak AI üretimi sayilir (AGENTS.md). Yalnizca
+    // "gercek": true isaretli kayitlar GERÇEK ÇEKİM etiketini alir; bunlar
+    // BTMEDYA'nin kendi prodüksiyon kayitlaridir.
     const staticItems=STATIC_REAL_MEDIA
       .filter(x=>!cat || x.category===cat)
       .filter(x=>!q || x.path.toLowerCase().includes(q))
-      .map((x,i)=>({id:x.id,key:'static/'+x.path,original_name:x.path.split('/').pop(),mime:/\.(mp4|webm)$/i.test(x.path)?'video/'+(x.path.endsWith('.webm')?'webm':'mp4'):'image/webp',size:0,category:x.category,tags:['BTMEDYA','ai-uretimi','arsiv'],title:x.path.split('/').pop().replace(/\.[^.]+$/,'').replace(/[-_]+/g,' '),description:'BTMEDYA AI üretimi arşiv medyası',alt_text:'BTMEDYA AI üretimi arşiv medyası',slot:x.category==='hero'?'hero':x.category==='video'?'medya':x.category==='portfoy'?'portfoy':'haber',sort_order:i,created_at:null,updated_at:null,url:'/assets/'+x.path,source:'github-static',ai_generated:true}));
+      .map((x,i)=>({id:x.id,key:'static/'+x.path,original_name:x.path.split('/').pop(),mime:/\.(mp4|webm)$/i.test(x.path)?'video/'+(x.path.endsWith('.webm')?'webm':'mp4'):'image/webp',size:0,category:x.category,tags:['BTMEDYA',x.gercek?'gercek':'ai-uretimi','arsiv'],title:x.path.split('/').pop().replace(/\.[^.]+$/,'').replace(/[-_]+/g,' '),description:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',alt_text:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',slot:x.category==='hero'?'hero':x.category==='video'?'medya':x.category==='portfoy'?'portfoy':'haber',sort_order:i,created_at:null,updated_at:null,url:'/assets/'+x.path,source:'github-static',ai_generated:!x.gercek}));
     let r2Items=[];
     if(env.DB && env.MEDIA && mediaSec){
       let sql='SELECT id,key,original_name,mime,size,category,tags,title,description,alt_text,slot,sort_order,created_at,updated_at FROM media WHERE published=1'; const args=[];
