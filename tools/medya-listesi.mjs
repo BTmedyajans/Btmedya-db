@@ -33,6 +33,7 @@ const ICERIK_KLASORLERI = ['media', 'haber-kapak', 'sosyal'];
 // (favicon, amblem, marka gorselleri) site arayuzune aittir.
 const KOK_ICERIK = /^hero-/i;
 const POSTER = /^poster-/i;
+const KART_VARYANTI = /-foto\.webp$/i;
 
 function* dosyalar(dizin) {
   for (const girdi of readdirSync(dizin, { withFileTypes: true })) {
@@ -46,6 +47,7 @@ function* dosyalar(dizin) {
 export function kasayaGirer(gorecelYol) {
   if (!MEDYA_UZANTISI.test(gorecelYol)) return false;
   if (POSTER.test(gorecelYol.split('/').pop())) return false;
+  if (KART_VARYANTI.test(gorecelYol)) return false;
   const parca = gorecelYol.split('/');
   if (parca.length > 1) return ICERIK_KLASORLERI.includes(parca[0]);
   return KOK_ICERIK.test(parca[0]);

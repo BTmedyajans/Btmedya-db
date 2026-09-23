@@ -206,6 +206,9 @@
      turetmezsek 27 gercek kapak hic kullanilmaz ve kart "KAPAK BEKLIYOR"
      kutusunda kalir. */
   const kapakYolu = n => n.cover_url || (n.slug ? '/assets/haber-kapak/' + encodeURIComponent(n.slug) + '.webp' : '');
+  /* Haber kapaginin metinsiz kart varyanti. Uretici her kapagin yaninda
+     bir de "-foto" dosyasi biraktigi icin yol turetmek yeterli. */
+  const kartGorseli = (yol) => String(yol || '').replace(/(\/assets\/haber-kapak\/[^/]+)\.webp$/, '$1-foto.webp');
   const cardMedia = n => {
     const cover = kapakYolu(n);
     const yt = String(n.video_url || '').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
@@ -215,7 +218,11 @@
        kamuya acik sayfalarda CSP script-src 'self' (cspKur, src/worker.js). */
     /* Kapaklar saha fotografi degil, tasarlanmis grafik kart; bu yuzden
        AGENTS.md'deki varsayilan geregi AI URETIMI etiketi tasirlar. */
-    if (cover) return `<div class="news-media"><img src="${esc(cover)}" alt="${esc(n.title)}" loading="lazy" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div></div>`;
+    /* Kartta bestelenmis kapak degil, metinsiz kart gorseli kullanilir:
+       kapagin uzerindeki baslik kartin kendi basligiyla ust uste binip
+       ikisini de okunmaz hale getiriyordu. Bestelenmis kapak paylasim
+       gorseli (og:image) ve makale sayfasi kunyesi olarak kaliyor. */
+    if (cover) return `<div class="news-media"><img src="${esc(kartGorseli(cover))}" alt="${esc(n.title)}" loading="lazy" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div></div>`;
     return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
   };
   const render = (items) => {

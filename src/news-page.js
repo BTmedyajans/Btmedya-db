@@ -55,6 +55,7 @@ export function renderNewsPage(n, origin, vlib){
   const vid=(vlib&&(vlib.own_youtube_id||vlib.youtube_id))||kaynakVid;
   const kanal=vlib?(vlib.own_youtube_id?'BTMEDYA':(vlib.source_channel||'')):'';
   const kapak=n.cover_url || `${origin}/assets/haber-kapak/${encodeURIComponent(n.slug)}.webp`;
+  const kapakFoto = kapak.replace(/(\/assets\/haber-kapak\/[^/]+)\.webp$/, '$1-foto.webp');
   const tarihTr=n.original_date||trTarih(n.published_at);
   const tarihIso=isoTarih(n.published_at);
   const arsiv = !!n.archive_note || /2024|2023|2022/.test(String(n.original_date || ''));
@@ -65,7 +66,8 @@ export function renderNewsPage(n, origin, vlib){
   // Paylasim kapagi sirasi: haberin kendi kapagi > video kucuk resmi >
   // o haber icin uretilmis plaka > kurumsal jenerik gorsel.
   const plaka = `${origin}/assets/haber-kapak/${n.slug}.webp`;
-  const ogImg = kapak || (vid?`https://i.ytimg.com/vi/${vid}/hqdefault.jpg`:plaka);
+  const mutlak = (y) => !y ? '' : (/^https?:\/\//.test(y) ? y : origin + (y.startsWith('/') ? y : '/' + y));
+  const ogImg = mutlak(kapak) || (vid?`https://i.ytimg.com/vi/${vid}/hqdefault.jpg`:plaka);
 
   const ld={
     "@context":"https://schema.org","@type":"NewsArticle",
@@ -90,7 +92,10 @@ export function renderNewsPage(n, origin, vlib){
 ${kanal?`<p class="video-credit">Video ${esc(kanal)} kanalında yayında. <a href="https://www.youtube.com/watch?v=${esc(vid)}" target="_blank" rel="noopener">YouTube'da aç ↗</a></p>`:''}` : '';
 
   const kapakBlok = kapak ? `
-<img class="article-cover" src="${esc(kapak)}" alt="${esc(n.title)}" loading="lazy" decoding="async">` : '';
+<figure class="article-cover-wrap">
+  <img class="article-cover" src="${esc(kapakFoto)}" alt="${esc(n.title)}" loading="eager" decoding="async" width="1000" height="1000">
+  <figcaption>BTMEDYA · Haber: Buse Tuncay</figcaption>
+</figure>` : '';
 
   // Videolu haberler icin VideoObject: Google video aramasinda gorunur olur.
   const videoLd = vid ? {
@@ -118,6 +123,9 @@ ${kanal?`<p class="video-credit">Video ${esc(kanal)} kanalında yayında. <a hre
 <meta property="og:description" content="${esc(ozet)}"/>
 <meta property="og:url" content="${esc(url)}"/>
 <meta property="og:image" content="${esc(ogImg)}"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="675"/>
+<meta property="og:image:alt" content="${esc(n.title)}"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <link rel="preload" href="/assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -125,7 +133,7 @@ ${kanal?`<p class="video-credit">Video ${esc(kanal)} kanalında yayında. <a hre
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
 <link rel="icon" href="/assets/favicon.png" type="image/png"/>
 <link rel="manifest" href="/site.webmanifest"/>
-<link rel="stylesheet" href="/styles.css"/><style>.article-page{max-width:920px;margin:auto;padding:56px 20px 90px}.article-page h1{font-family:"Bricolage Grotesque","Space Grotesk",sans-serif;font-size:clamp(2.7rem,7vw,6.5rem);line-height:.92;letter-spacing:-.065em;margin:14px 0 22px}.article-eyebrow{color:#ff6d64;font-size:.72rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase}.article-meta{display:flex;flex-wrap:wrap;gap:12px;color:#8e99a8;font-size:.82rem;margin-bottom:18px}.article-meta span:first-child{color:#dce3ec}.article-lead{font-size:1.18rem;line-height:1.7;color:#c6ced8;border-left:3px solid #ff4038;padding-left:18px;margin:28px 0}.article-cover{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;margin:28px 0}.article-body{max-width:760px;margin:34px auto}.article-body p{font-size:1.08rem;line-height:1.85;color:#d1d8e1;margin:0 0 1.3em}.article-tools{display:flex;flex-wrap:wrap;gap:9px;margin:24px 0;border-top:1px solid #ffffff18;border-bottom:1px solid #ffffff18;padding:14px 0}.article-tools a{color:#dfe7ef;text-decoration:none;border:1px solid #ffffff18;padding:8px 11px;border-radius:999px;font-size:.75rem}.archive-badge{display:inline-block;color:#ffb0ab;border:1px solid #ff403833;border-radius:999px;padding:6px 10px;font-size:.68rem;font-weight:800;letter-spacing:.08em}.yt-lite{position:relative;aspect-ratio:16/9;overflow:hidden;border-radius:14px;background:#080b10;margin:28px 0;cursor:pointer}.yt-lite img{width:100%;height:100%;object-fit:cover}.yt-lite:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent,#05070aaa)}.yt-play{position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;border:1px solid #ffffff66;background:#05070acc;color:#fff;font-size:1.35rem}.article-byline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.video-credit{color:#91a2b2;font:12px "Manrope",sans-serif;line-height:1.6;margin:8px 0 18px}.article-body,.article-lead{font-family:"Manrope",sans-serif}.article-body p{font-family:"Manrope",sans-serif}</style>
+<link rel="stylesheet" href="/styles.css"/><style>.article-page{max-width:920px;margin:auto;padding:56px 20px 90px}.article-page h1{font-family:"Bricolage Grotesque","Space Grotesk",sans-serif;font-size:clamp(2.7rem,7vw,6.5rem);line-height:.92;letter-spacing:-.065em;margin:14px 0 22px}.article-eyebrow{color:#ff6d64;font-size:.72rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase}.article-meta{display:flex;flex-wrap:wrap;gap:12px;color:#8e99a8;font-size:.82rem;margin-bottom:18px}.article-meta span:first-child{color:#dce3ec}.article-lead{font-size:1.18rem;line-height:1.7;color:#c6ced8;border-left:3px solid #ff4038;padding-left:18px;margin:28px 0}.article-cover-wrap{margin:28px 0}.article-cover{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;object-position:50% 26%;border-radius:14px;margin:0}.article-cover-wrap figcaption{color:#7e8b9a;font:11px "Manrope",sans-serif;letter-spacing:.06em;margin-top:9px}@media(max-width:700px){.article-cover{aspect-ratio:4/3}}.article-body{max-width:760px;margin:34px auto}.article-body p{font-size:1.08rem;line-height:1.85;color:#d1d8e1;margin:0 0 1.3em}.article-tools{display:flex;flex-wrap:wrap;gap:9px;margin:24px 0;border-top:1px solid #ffffff18;border-bottom:1px solid #ffffff18;padding:14px 0}.article-tools a{color:#dfe7ef;text-decoration:none;border:1px solid #ffffff18;padding:8px 11px;border-radius:999px;font-size:.75rem}.archive-badge{display:inline-block;color:#ffb0ab;border:1px solid #ff403833;border-radius:999px;padding:6px 10px;font-size:.68rem;font-weight:800;letter-spacing:.08em}.yt-lite{position:relative;aspect-ratio:16/9;overflow:hidden;border-radius:14px;background:#080b10;margin:28px 0;cursor:pointer}.yt-lite img{width:100%;height:100%;object-fit:cover}.yt-lite:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent,#05070aaa)}.yt-play{position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;border:1px solid #ffffff66;background:#05070acc;color:#fff;font-size:1.35rem}.article-byline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.video-credit{color:#91a2b2;font:12px "Manrope",sans-serif;line-height:1.6;margin:8px 0 18px}.article-body,.article-lead{font-family:"Manrope",sans-serif}.article-body p{font-family:"Manrope",sans-serif}</style>
 <script type="application/ld+json">
 ${JSON.stringify(ld,null,0)}
 </script>
