@@ -170,99 +170,129 @@
   "category": "hero"
  },
  {
-  "path": "media/portfoy/btmedya-saha-showreel.mp4",
+  "path": "media/ai-lab/ai-portre-havuz-01.webp",
   "id": "static-35",
+  "category": "ai-lab"
+ },
+ {
+  "path": "media/ai-lab/ai-portre-havuz-02.webp",
+  "id": "static-36",
+  "category": "ai-lab"
+ },
+ {
+  "path": "media/ai-lab/ai-portre-studyo.webp",
+  "id": "static-37",
+  "category": "ai-lab"
+ },
+ {
+  "path": "media/kurumsal/btmedya-haber-masasi.webp",
+  "id": "static-38",
+  "category": "medya"
+ },
+ {
+  "path": "media/kurumsal/btmedya-ofis-gun-batimi.webp",
+  "id": "static-39",
+  "category": "medya"
+ },
+ {
+  "path": "media/kurumsal/btmedya-studyo-pano.webp",
+  "id": "static-40",
+  "category": "medya"
+ },
+ {
+  "path": "media/portfoy/btmedya-saha-showreel.mp4",
+  "id": "static-41",
   "category": "portfoy",
   "gercek": true
  },
  {
   "path": "media/portfoy/portfoy-video-01.mp4",
-  "id": "static-36",
+  "id": "static-42",
   "category": "portfoy"
  },
  {
   "path": "media/web/hero-story-mobile.mp4",
-  "id": "static-37",
-  "category": "video"
- },
- {
-  "path": "media/web/hero-story-poster.jpg",
-  "id": "static-38",
-  "category": "video"
- },
- {
-  "path": "media/web/hero-story.mp4",
-  "id": "static-39",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-07.mp4",
-  "id": "static-40",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-07.webm",
-  "id": "static-41",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-action.mp4",
-  "id": "static-42",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-action.webm",
   "id": "static-43",
   "category": "video"
  },
  {
-  "path": "media/web/showreel-fantasy.mp4",
+  "path": "media/web/hero-story-poster.jpg",
   "id": "static-44",
   "category": "video"
  },
  {
-  "path": "media/web/showreel-fantasy.webm",
+  "path": "media/web/hero-story.mp4",
   "id": "static-45",
   "category": "video"
  },
  {
-  "path": "media/web/showreel-flying-reporter.mp4",
+  "path": "media/web/showreel-07.mp4",
   "id": "static-46",
   "category": "video"
  },
  {
-  "path": "media/web/showreel-flying-reporter.webm",
+  "path": "media/web/showreel-07.webm",
   "id": "static-47",
   "category": "video"
  },
  {
-  "path": "media/web/state-haber.mp4",
+  "path": "media/web/showreel-action.mp4",
   "id": "static-48",
   "category": "video"
  },
  {
-  "path": "media/web/state-medya.mp4",
+  "path": "media/web/showreel-action.webm",
   "id": "static-49",
   "category": "video"
  },
  {
-  "path": "media/web/state-produksiyon.mp4",
+  "path": "media/web/showreel-fantasy.mp4",
   "id": "static-50",
   "category": "video"
  },
  {
-  "path": "sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4",
+  "path": "media/web/showreel-fantasy.webm",
   "id": "static-51",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-flying-reporter.mp4",
+  "id": "static-52",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-flying-reporter.webm",
+  "id": "static-53",
+  "category": "video"
+ },
+ {
+  "path": "media/web/state-haber.mp4",
+  "id": "static-54",
+  "category": "video"
+ },
+ {
+  "path": "media/web/state-medya.mp4",
+  "id": "static-55",
+  "category": "video"
+ },
+ {
+  "path": "media/web/state-produksiyon.mp4",
+  "id": "static-56",
+  "category": "video"
+ },
+ {
+  "path": "sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4",
+  "id": "static-57",
   "category": "sosyal"
  },
  {
   "path": "sosyal/balikesir-pazarinda-canli-helva-sovu-dikey.mp4",
-  "id": "static-52",
+  "id": "static-58",
   "category": "sosyal"
  },
  {
   "path": "sosyal/el-emegi-yorganlar-artik-isitmiyor-dikey.mp4",
-  "id": "static-53",
+  "id": "static-59",
   "category": "sosyal"
  }
 ]
