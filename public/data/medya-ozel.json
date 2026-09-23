@@ -1,0 +1,11 @@
+{
+  "_aciklama": "Medya listesi uretilirken uygulanan istisnalar. Liste tools/medya-listesi.mjs tarafindan dosya sisteminden uretilir; burasi dosya adindan cikarilamayan bilgiyi tutar.",
+  "_gercek": "GERCEK CEKIM sayilan kayitlar. Varsayilan AI URETIMIdir (AGENTS.md).",
+  "gercek": [
+    "media/portfoy/btmedya-saha-showreel.mp4"
+  ],
+  "_haric": "Icerik klasorunde olup kasada gorunmemesi gereken dosyalar.",
+  "haric": [
+    "hero-robot.webp"
+  ]
+}

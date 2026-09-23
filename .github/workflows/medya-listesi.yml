@@ -1,0 +1,52 @@
+name: BTMedya medya listesi
+
+# Depoya medya eklendiginde kasanin listesini yeniden uretir. Boylece
+# "GitHub'a yukle -> sitede gorun" akisi kod duzenlemeden tamamlanir.
+#
+# Dongu riski yok: tetikleyici public/assets/** yolunu izler, bu is ise
+# yalnizca public/data/medya-listesi.json dosyasini yazar.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "public/assets/**"
+      - "public/data/medya-ozel.json"
+      - "tools/medya-listesi.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: btmedya-medya-listesi
+  cancel-in-progress: false
+
+jobs:
+  liste:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Listeyi yeniden uret
+        run: node tools/medya-listesi.mjs
+
+      - name: Degisiklik varsa isle
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- public/data/medya-listesi.json; then
+            echo "Medya listesi zaten guncel."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/medya-listesi.json
+          adet="$(node -e "console.log(require('./public/data/medya-listesi.json').length)")"
+          git commit -m "chore: medya listesini guncelle (${adet} kayit)"
+          git push

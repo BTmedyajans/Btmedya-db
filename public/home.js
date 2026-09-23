@@ -249,7 +249,7 @@
       const data = await r.json();
       const ogeler = (Array.isArray(data.items) ? data.items : [])
         .filter(x => x && !x.ai_generated && !arsivDisi(x))
-        .filter(x => ['saha','haber','video','portfoy','hero'].includes(String(x.category || '')))
+        .filter(x => ['saha','haber','video','portfoy','hero','sosyal'].includes(String(x.category || '')))
         .sort((a, b) => {
           const sira = x => ({saha:0, haber:1, video:2, portfoy:3, hero:4}[x.category] ?? 9);
           return sira(a) - sira(b);
