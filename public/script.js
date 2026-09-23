@@ -670,7 +670,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       if(!r.ok)throw new Error('HTTP '+r.status);
       const data=await r.json();
       const items=(Array.isArray(data.items)?data.items:[]).filter(x=>x&&!x.ai_generated&&!isExcluded(x))
-        .filter(x=>['saha','haber','video','portfoy','hero'].includes(String(x.category||'')))
+        .filter(x=>['saha','haber','video','portfoy','hero','sosyal'].includes(String(x.category||'')))
         .sort((a,b)=>{const rank=x=>({saha:0,haber:1,video:2,portfoy:3,hero:4}[x.category]??9);return rank(a)-rank(b);}).slice(0,8);
       if(!items.length){grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv kaydı henüz yayın akışına düşmedi.</div>';return;}
       grid.innerHTML=items.map(card).join('');
