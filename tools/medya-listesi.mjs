@@ -51,15 +51,23 @@ export function kasayaGirer(gorecelYol) {
   return KOK_ICERIK.test(parca[0]);
 }
 
-/** Kategori yalnizca ilk yol parcasindan turetilir; Worker ile ayni kural. */
+// media/ alt klasorlerinin kategori karsiligi. Worker'in R2 anahtarlari
+// icin kullandigi mediaCategoryFromKey kuralayla ayni hizada tutulur.
+const MEDYA_ALT = {
+  portfoy: 'portfoy',
+  'ai-lab': 'ai-lab',
+  kurumsal: 'medya',
+  podcast: 'medya',
+  web: 'video',
+};
+
 export function kategori(gorecelYol) {
   const parca = gorecelYol.split('/');
   if (parca.length === 1) return 'hero';
   const p = parca[0].toLowerCase();
   if (p === 'haber-kapak') return 'haber';
   if (p === 'sosyal') return 'sosyal';
-  if (parca[1] === 'portfoy') return 'portfoy';
-  return 'video';
+  return MEDYA_ALT[String(parca[1] || '').toLowerCase()] || 'video';
 }
 
 export function listeUret(kok = VARLIK_KOK, ozelYol = OZEL) {
