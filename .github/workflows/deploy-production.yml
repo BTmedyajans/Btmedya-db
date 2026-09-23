@@ -38,41 +38,7 @@ jobs:
           test -d public
           test -d migrations
 
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-
-          root = Path("public")
-          files = [
-              Path("public/index.html"),
-              Path("public/anasayfa.js"),
-              Path("public/anasayfa.css"),
-          ]
-          refs = set()
-
-          for src in files:
-              if not src.exists():
-                  continue
-              text = src.read_text(errors="ignore")
-              for match in re.findall(r'(?:src|href|url)=[\"\']?(/[^\"\'\s)?#]+)', text):
-                  if match.startswith("/assets/"):
-                      refs.add(match.lstrip("/"))
-
-          missing = [rel for rel in sorted(refs) if not (root / rel).exists()]
-          if missing:
-              print("Missing local production assets:")
-              print("\n".join(missing))
-              raise SystemExit(1)
-
-          required = ["assets/media/web/showreel-action.mp4"]
-          missing_required = [p for p in required if not (root / p).exists()]
-          if missing_required:
-              print("Missing required production media:")
-              print("\n".join(missing_required))
-              raise SystemExit(1)
-
-          print("Production media references: OK")
-          PY
+          python3 tools/validate-assets.py
 
       - name: Production smoke tests
         run: |
