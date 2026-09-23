@@ -46,6 +46,34 @@ jobs:
             }
             core.setFailed(`Cloudflare Workers Build check not completed for ${sha}. Last state: ${last ? last.status : 'not found'}`);
 
+      - name: Dagitim gercekten indi mi
+        run: |
+          set -eu
+          # Smoke testi /api/health'e bakiyordu; o uc eski surumde de
+          # calistigi icin "build basarili ama dagitim inmedi" durumu
+          # sessizce geciyordu. 23 Eylul 2026'da iki birlestirme boyle
+          # kaybedildi. Artik depodaki dosyanin ozeti canlidakiyle
+          # karsilastiriliyor.
+          kontrol() {
+            yerel="$(sha256sum "public/$1" | cut -c1-64)"
+            for i in $(seq 1 24); do
+              canli="$(curl -fsS --max-time 20 "https://btmedya.com.tr/$1" | sha256sum | cut -c1-64)"
+              if [ "$yerel" = "$canli" ]; then
+                echo "  $1 guncel"
+                return 0
+              fi
+              sleep 10
+            done
+            echo "HATA: $1 canlida eski surum. Cloudflare dagitimi inmedi."
+            echo "  depo:  $yerel"
+            echo "  canli: $canli"
+            return 1
+          }
+          kontrol home.css
+          kontrol home.js
+          kontrol styles.css
+          echo "Dagitim dogrulandi."
+
       - name: Production smoke test
         run: |
           set -eu
