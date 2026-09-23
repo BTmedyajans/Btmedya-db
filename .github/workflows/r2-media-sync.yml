@@ -1,0 +1,78 @@
+name: BTMedya GitHub → R2 Media Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "r2-media/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btmedya-r2-media-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Sync media to Cloudflare R2
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "CLOUDFLARE_API_TOKEN GitHub secret is missing."
+            exit 1
+          fi
+
+          if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "CLOUDFLARE_ACCOUNT_ID GitHub secret is missing."
+            exit 1
+          fi
+
+          shopt -s nullglob
+          files=(r2-media/*)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No media files found under r2-media/."
+            exit 0
+          fi
+
+          find r2-media -type f ! -name '.keep' ! -name 'README_R2.txt' -print0 |
+          while IFS= read -r -d '' file; do
+            key="${file#r2-media/}"
+            case "$file" in
+              *.jpg|*.jpeg) mime="image/jpeg" ;;
+              *.png) mime="image/png" ;;
+              *.webp) mime="image/webp" ;;
+              *.gif) mime="image/gif" ;;
+              *.mp4) mime="video/mp4" ;;
+              *.webm) mime="video/webm" ;;
+              *.mov) mime="video/quicktime" ;;
+              *.m4v) mime="video/x-m4v" ;;
+              *.mp3) mime="audio/mpeg" ;;
+              *.wav) mime="audio/wav" ;;
+              *.m4a) mime="audio/mp4" ;;
+              *) echo "Skipping unsupported file: $file"; continue ;;
+            esac
+
+            echo "Uploading $key"
+            npx --yes wrangler r2 object put "btmedya-media/$key" \
+              --file "$file" \
+              --remote \
+              --content-type "$mime"
+          done
+
+          echo "BTMedya R2 media sync completed."
