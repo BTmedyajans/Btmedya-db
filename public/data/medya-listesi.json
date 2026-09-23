@@ -200,114 +200,206 @@
   "category": "ai-lab"
  },
  {
-  "path": "media/kurumsal/btmedya-haber-masasi.webp",
+  "path": "media/ai-lab/btmedya-siber-sunucu-01.webp",
   "id": "static-41",
+  "category": "ai-lab"
+ },
+ {
+  "path": "media/ai-lab/btmedya-siber-sunucu-02.webp",
+  "id": "static-42",
+  "category": "ai-lab"
+ },
+ {
+  "path": "media/ai-lab/btmedya-studyo-sunum-03.webp",
+  "id": "static-43",
+  "category": "ai-lab"
+ },
+ {
+  "path": "media/kurumsal/btmedya-haber-masasi.webp",
+  "id": "static-44",
   "category": "medya"
  },
  {
+  "path": "media/kurumsal/btmedya-marka-kapak.webp",
+  "id": "static-45",
+  "category": "medya",
+  "gercek": true
+ },
+ {
   "path": "media/kurumsal/btmedya-ofis-gun-batimi.webp",
-  "id": "static-42",
+  "id": "static-46",
   "category": "medya"
  },
  {
   "path": "media/kurumsal/btmedya-studyo-pano.webp",
-  "id": "static-43",
+  "id": "static-47",
   "category": "medya"
  },
  {
   "path": "media/portfoy/btmedya-saha-showreel.mp4",
-  "id": "static-44",
+  "id": "static-48",
+  "category": "portfoy",
+  "gercek": true
+ },
+ {
+  "path": "media/portfoy/buse-tuncay-iletisim-fakultesi.webp",
+  "id": "static-49",
+  "category": "portfoy",
+  "gercek": true
+ },
+ {
+  "path": "media/portfoy/buse-tuncay-kamera-arkasi.webp",
+  "id": "static-50",
+  "category": "portfoy",
+  "gercek": true
+ },
+ {
+  "path": "media/portfoy/buse-tuncay-portre-01.webp",
+  "id": "static-51",
+  "category": "portfoy",
+  "gercek": true
+ },
+ {
+  "path": "media/portfoy/buse-tuncay-portre-02.webp",
+  "id": "static-52",
+  "category": "portfoy",
+  "gercek": true
+ },
+ {
+  "path": "media/portfoy/buse-tuncay-portre-03.webp",
+  "id": "static-53",
+  "category": "portfoy",
+  "gercek": true
+ },
+ {
+  "path": "media/portfoy/buse-tuncay-portre-04.webp",
+  "id": "static-54",
+  "category": "portfoy",
+  "gercek": true
+ },
+ {
+  "path": "media/portfoy/buse-tuncay-portre-05.webp",
+  "id": "static-55",
+  "category": "portfoy",
+  "gercek": true
+ },
+ {
+  "path": "media/portfoy/buse-tuncay-portre-siyah-beyaz.webp",
+  "id": "static-56",
+  "category": "portfoy",
+  "gercek": true
+ },
+ {
+  "path": "media/portfoy/buse-tuncay-saha-roportaj.webp",
+  "id": "static-57",
+  "category": "portfoy",
+  "gercek": true
+ },
+ {
+  "path": "media/portfoy/buse-tuncay-studyo-kelebek.webp",
+  "id": "static-58",
+  "category": "portfoy",
+  "gercek": true
+ },
+ {
+  "path": "media/portfoy/buse-tuncay-sunucu-kirmizi.webp",
+  "id": "static-59",
+  "category": "portfoy"
+ },
+ {
+  "path": "media/portfoy/buse-tuncay-yesil-perde-studyo.webp",
+  "id": "static-60",
   "category": "portfoy",
   "gercek": true
  },
  {
   "path": "media/portfoy/portfoy-video-01.mp4",
-  "id": "static-45",
+  "id": "static-61",
   "category": "portfoy"
  },
  {
   "path": "media/web/hero-story-mobile.mp4",
-  "id": "static-46",
+  "id": "static-62",
   "category": "video"
  },
  {
   "path": "media/web/hero-story-poster.jpg",
-  "id": "static-47",
+  "id": "static-63",
   "category": "video"
  },
  {
   "path": "media/web/hero-story.mp4",
-  "id": "static-48",
+  "id": "static-64",
   "category": "video"
  },
  {
   "path": "media/web/showreel-07.mp4",
-  "id": "static-49",
+  "id": "static-65",
   "category": "video"
  },
  {
   "path": "media/web/showreel-07.webm",
-  "id": "static-50",
+  "id": "static-66",
   "category": "video"
  },
  {
   "path": "media/web/showreel-action.mp4",
-  "id": "static-51",
+  "id": "static-67",
   "category": "video"
  },
  {
   "path": "media/web/showreel-action.webm",
-  "id": "static-52",
+  "id": "static-68",
   "category": "video"
  },
  {
   "path": "media/web/showreel-fantasy.mp4",
-  "id": "static-53",
+  "id": "static-69",
   "category": "video"
  },
  {
   "path": "media/web/showreel-fantasy.webm",
-  "id": "static-54",
+  "id": "static-70",
   "category": "video"
  },
  {
   "path": "media/web/showreel-flying-reporter.mp4",
-  "id": "static-55",
+  "id": "static-71",
   "category": "video"
  },
  {
   "path": "media/web/showreel-flying-reporter.webm",
-  "id": "static-56",
+  "id": "static-72",
   "category": "video"
  },
  {
   "path": "media/web/state-haber.mp4",
-  "id": "static-57",
+  "id": "static-73",
   "category": "video"
  },
  {
   "path": "media/web/state-medya.mp4",
-  "id": "static-58",
+  "id": "static-74",
   "category": "video"
  },
  {
   "path": "media/web/state-produksiyon.mp4",
-  "id": "static-59",
+  "id": "static-75",
   "category": "video"
  },
  {
   "path": "sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4",
-  "id": "static-60",
+  "id": "static-76",
   "category": "sosyal"
  },
  {
   "path": "sosyal/balikesir-pazarinda-canli-helva-sovu-dikey.mp4",
-  "id": "static-61",
+  "id": "static-77",
   "category": "sosyal"
  },
  {
   "path": "sosyal/el-emegi-yorganlar-artik-isitmiyor-dikey.mp4",
-  "id": "static-62",
+  "id": "static-78",
   "category": "sosyal"
  }
 ]

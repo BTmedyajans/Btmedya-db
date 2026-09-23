@@ -1,11 +1,23 @@
 {
-  "_aciklama": "Medya listesi uretilirken uygulanan istisnalar. Liste tools/medya-listesi.mjs tarafindan dosya sisteminden uretilir; burasi dosya adindan cikarilamayan bilgiyi tutar.",
-  "_gercek": "GERCEK CEKIM sayilan kayitlar. Varsayilan AI URETIMIdir (AGENTS.md).",
-  "gercek": [
-    "media/portfoy/btmedya-saha-showreel.mp4"
-  ],
-  "_haric": "Icerik klasorunde olup kasada gorunmemesi gereken dosyalar.",
-  "haric": [
-    "hero-robot.webp"
-  ]
+ "_aciklama": "Medya listesi uretilirken uygulanan istisnalar. Liste tools/medya-listesi.mjs tarafindan dosya sisteminden uretilir; burasi dosya adindan cikarilamayan bilgiyi tutar.",
+ "_gercek": "GERCEK CEKIM sayilan kayitlar. Varsayilan AI URETIMIdir (AGENTS.md).",
+ "gercek": [
+  "media/kurumsal/btmedya-marka-kapak.webp",
+  "media/portfoy/btmedya-saha-showreel.mp4",
+  "media/portfoy/buse-tuncay-iletisim-fakultesi.webp",
+  "media/portfoy/buse-tuncay-kamera-arkasi.webp",
+  "media/portfoy/buse-tuncay-portre-01.webp",
+  "media/portfoy/buse-tuncay-portre-02.webp",
+  "media/portfoy/buse-tuncay-portre-03.webp",
+  "media/portfoy/buse-tuncay-portre-04.webp",
+  "media/portfoy/buse-tuncay-portre-05.webp",
+  "media/portfoy/buse-tuncay-portre-siyah-beyaz.webp",
+  "media/portfoy/buse-tuncay-saha-roportaj.webp",
+  "media/portfoy/buse-tuncay-studyo-kelebek.webp",
+  "media/portfoy/buse-tuncay-yesil-perde-studyo.webp"
+ ],
+ "_haric": "Icerik klasorunde olup kasada gorunmemesi gereken dosyalar.",
+ "haric": [
+  "hero-robot.webp"
+ ]
 }
