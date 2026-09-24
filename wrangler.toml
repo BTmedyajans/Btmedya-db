@@ -84,3 +84,8 @@ class_name = "WorkflowStatusDO"
 [[migrations]]
 tag = "workflow-v1"
 new_sqlite_classes = ["WorkflowStatusDO"]
+
+
+# Haber Bulucu: kaynakları periyodik olarak tarar, sonuçları D1'de taslak olarak tutar.
+[triggers]
+crons = ["*/30 * * * *"]
