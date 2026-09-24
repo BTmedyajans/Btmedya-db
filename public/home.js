@@ -350,7 +350,11 @@
   const arsivSlug = yol => (String(yol || '').split('/').pop() || '').replace(/\.[^.]+$/, '');
   const arsivBaslik = yol => arsivSlug(yol).replace(/[-_]+/g, ' ').replace(/\b\w/g, m => m.toUpperCase());
   const arsivVideoMu = o => /^video\//i.test(String(o.mime || ''));
-  const arsivDisi = o => /showreel-fantasy|showreel-flying-reporter/.test(String(o.path || o.original_name || '').toLowerCase());
+  /* Vitrin disi birakilan kayitlar artik public/data/medya-ozel.json'da
+     duruyor; Worker bunu vitrin:false olarak gonderiyor. Once burada
+     sabit bir regex'ti — icerik bilgisi kodda durmaz, veride durur.
+     R2'den gelen kayitlarda alan yok; o zaman vitrinde kalirlar. */
+  const arsivDisi = o => o && o.vitrin === false;
 
   const arsivKarti = (o, i) => {
     const video = arsivVideoMu(o);
@@ -366,7 +370,10 @@
     }
     const yt = '<a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube ↗</a>';
     const medya = video
-      ? '<video class="archive-media" muted loop playsinline preload="metadata" src="' + esc(url) + '"></video>'
+      /* Poster olmadan kart, video metadata'si gelene kadar siyah duruyordu. */
+      ? '<video class="archive-media" muted loop playsinline preload="metadata"' +
+        (o.poster ? ' poster="' + esc(String(o.poster)) + '"' : '') +
+        ' src="' + esc(url) + '"></video>'
       : '<img class="archive-media" loading="lazy" src="' + esc(url) + '" alt="' + baslik + '">';
     return '<article class="archive-live-card ' + (i === 0 ? 'featured' : '') + '">' + medya +
       '<div class="archive-overlay"></div><div class="archive-copy">' +
@@ -386,8 +393,13 @@
         .filter(x => x && !x.ai_generated && !arsivDisi(x))
         .filter(x => ['saha','haber','video','portfoy','hero','sosyal'].includes(String(x.category || '')))
         .sort((a, b) => {
-          const sira = x => ({saha:0, haber:1, video:2, portfoy:3, hero:4}[x.category] ?? 9);
-          return sira(a) - sira(b);
+          /* Once medya-ozel.json'daki acik vitrin sirasi. Alfabetik dizilis
+             ayni cekimden bes portreyi ust uste getiriyor, saha roportaji ve
+             studyo kareleri ilk sekize hic giremiyordu. */
+          const acik = x => (typeof x.sira === 'number' ? x.sira : 999);
+          if (acik(a) !== acik(b)) return acik(a) - acik(b);
+          const kat = x => ({saha:0, haber:1, video:2, portfoy:3, hero:4}[x.category] ?? 9);
+          return kat(a) - kat(b);
         })
         .slice(0, 8);
       if (!ogeler.length) {

@@ -76,6 +76,14 @@ export function listeUret(kok = VARLIK_KOK, ozelYol = OZEL) {
   const ozel = existsSync(ozelYol) ? JSON.parse(readFileSync(ozelYol, 'utf8')) : {};
   const gercekler = new Set(ozel.gercek || []);
   const disarida = new Set(ozel.haric || []);
+  // Elle yazilmis baslik ve vitrin disi birakilan kayitlar. Ikisi de
+  // dosya adindan cikarilamayan bilgi; bu yuzden kodda degil burada.
+  const basliklar = ozel.baslik || {};
+  const posterler = ozel.poster || {};
+  const vitrinDisi = new Set(ozel.vitrinDisi || []);
+  // Vitrin sirasi: alfabetik dizilis ayni cekimden bes kareyi ust uste
+  // getiriyordu. Listedeki kayitlar verilen sirayla basa gecer.
+  const vitrinSirasi = new Map((ozel.vitrinSirasi || []).map((y, n) => [y, n]));
 
   const yollar = [...dosyalar(kok)]
     .map((y) => relative(kok, y).split('\\').join('/'))
@@ -87,6 +95,10 @@ export function listeUret(kok = VARLIK_KOK, ozelYol = OZEL) {
     id: `static-${i + 1}`,
     category: kategori(yol),
     ...(gercekler.has(yol) ? { gercek: true } : {}),
+    ...(basliklar[yol] ? { baslik: basliklar[yol] } : {}),
+    ...(posterler[yol] ? { poster: posterler[yol] } : {}),
+    ...(vitrinDisi.has(yol) ? { vitrin: false } : {}),
+    ...(vitrinSirasi.has(yol) ? { sira: vitrinSirasi.get(yol) } : {}),
   }));
 }
 
@@ -104,5 +116,8 @@ if (kontrol) {
 } else {
   writeFileSync(CIKTI, metin);
   const gercek = liste.filter((x) => x.gercek).length;
-  console.log(`${CIKTI} yazildi: ${liste.length} kayit (${gercek} gercek cekim).`);
+  const basligi = liste.filter((x) => x.baslik).length;
+  const disi = liste.filter((x) => x.vitrin === false).length;
+  console.log(`${CIKTI} yazildi: ${liste.length} kayit (${gercek} gercek cekim, ` +
+    `${basligi} elle baslikli, ${disi} vitrin disi).`);
 }

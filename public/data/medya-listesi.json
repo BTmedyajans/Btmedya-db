@@ -239,67 +239,86 @@
   "path": "media/portfoy/btmedya-saha-showreel.mp4",
   "id": "static-48",
   "category": "portfoy",
-  "gercek": true
+  "gercek": true,
+  "baslik": "Defile çekimi — BTMEDYA prodüksiyon",
+  "poster": "media/portfoy/poster-btmedya-saha-showreel.webp",
+  "sira": 2
  },
  {
   "path": "media/portfoy/buse-tuncay-iletisim-fakultesi.webp",
   "id": "static-49",
   "category": "portfoy",
-  "gercek": true
+  "gercek": true,
+  "baslik": "İletişim Fakültesi önünde",
+  "sira": 4
  },
  {
   "path": "media/portfoy/buse-tuncay-kamera-arkasi.webp",
   "id": "static-50",
   "category": "portfoy",
-  "gercek": true
+  "gercek": true,
+  "baslik": "Kamera arkası — etkinlik çekimi",
+  "sira": 1
  },
  {
   "path": "media/portfoy/buse-tuncay-portre-01.webp",
   "id": "static-51",
   "category": "portfoy",
-  "gercek": true
+  "gercek": true,
+  "baslik": "Açık hava portre serisi — 01",
+  "sira": 7
  },
  {
   "path": "media/portfoy/buse-tuncay-portre-02.webp",
   "id": "static-52",
   "category": "portfoy",
-  "gercek": true
+  "gercek": true,
+  "baslik": "Açık hava portre serisi — 02"
  },
  {
   "path": "media/portfoy/buse-tuncay-portre-03.webp",
   "id": "static-53",
   "category": "portfoy",
-  "gercek": true
+  "gercek": true,
+  "baslik": "Açık hava portre serisi — 03"
  },
  {
   "path": "media/portfoy/buse-tuncay-portre-04.webp",
   "id": "static-54",
   "category": "portfoy",
-  "gercek": true
+  "gercek": true,
+  "baslik": "Açık hava portre serisi — 04"
  },
  {
   "path": "media/portfoy/buse-tuncay-portre-05.webp",
   "id": "static-55",
   "category": "portfoy",
-  "gercek": true
+  "gercek": true,
+  "baslik": "Açık hava portre serisi — 05"
  },
  {
   "path": "media/portfoy/buse-tuncay-portre-siyah-beyaz.webp",
   "id": "static-56",
   "category": "portfoy",
-  "gercek": true
+  "gercek": true,
+  "baslik": "Siyah beyaz stüdyo portresi",
+  "sira": 5
  },
  {
   "path": "media/portfoy/buse-tuncay-saha-roportaj.webp",
   "id": "static-57",
   "category": "portfoy",
-  "gercek": true
+  "gercek": true,
+  "baslik": "Saha röportajı — BTMEDYA mikrofonu",
+  "sira": 0
  },
  {
   "path": "media/portfoy/buse-tuncay-studyo-kelebek.webp",
   "id": "static-58",
   "category": "portfoy",
-  "gercek": true
+  "gercek": true,
+  "baslik": "Stüdyo — kelebek serisi",
+  "sira": 6
  },
  {
   "path": "media/portfoy/buse-tuncay-sunucu-kirmizi.webp",
@@ -310,7 +329,9 @@
   "path": "media/portfoy/buse-tuncay-yesil-perde-studyo.webp",
   "id": "static-60",
   "category": "portfoy",
-  "gercek": true
+  "gercek": true,
+  "baslik": "Yeşil perde stüdyosu — çekim arası",
+  "sira": 3
  },
  {
   "path": "media/portfoy/portfoy-video-01.mp4",
@@ -355,22 +376,26 @@
  {
   "path": "media/web/showreel-fantasy.mp4",
   "id": "static-69",
-  "category": "video"
+  "category": "video",
+  "vitrin": false
  },
  {
   "path": "media/web/showreel-fantasy.webm",
   "id": "static-70",
-  "category": "video"
+  "category": "video",
+  "vitrin": false
  },
  {
   "path": "media/web/showreel-flying-reporter.mp4",
   "id": "static-71",
-  "category": "video"
+  "category": "video",
+  "vitrin": false
  },
  {
   "path": "media/web/showreel-flying-reporter.webm",
   "id": "static-72",
-  "category": "video"
+  "category": "video",
+  "vitrin": false
  },
  {
   "path": "media/web/state-haber.mp4",

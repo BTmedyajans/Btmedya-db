@@ -103,6 +103,23 @@ tara('public'); tara('src');
   }
 }
 
+/* 7) Vitrin disi birakma ve elle yazilmis baslik veride durmali.
+      Ikisi de bir donem kodda sabitti: home.js icinde dosya adi arayan bir
+      regex, worker'da her basligi dosya adindan ureten bir satir. Kayit
+      degisince kod da duzenlenmek zorunda kaliyordu. */
+{
+  const home = existsSync('public/home.js') ? readFileSync('public/home.js', 'utf8') : '';
+  const m = home.match(/const arsivDisi\s*=\s*[^;]+;/);
+  if (m && /showreel|\.mp4|\.webp|portfoy\//i.test(m[0])) {
+    bulgular.push('public/home.js arsivDisi() dosya adi sabitlemis. ' +
+      'Vitrin disi kayitlar public/data/medya-ozel.json vitrinDisi listesinden gelmeli.');
+  }
+  if (worker.includes("source:'github-static'") && !worker.includes('title:x.baslik||')) {
+    bulgular.push("src/worker.js statik besleyicide baslik yalnizca dosya adindan turuyor. " +
+      'Elle yazilmis baslik medya-ozel.json baslik haritasindan gelmeli (x.baslik).');
+  }
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
