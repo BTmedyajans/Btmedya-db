@@ -1024,13 +1024,13 @@ async function dinamikSitemap(request, env) {
       const loc = `${url.origin}/haberler/${encodeURIComponent(row.slug)}`;
       const date = String(row.updated_at || row.published_at || '').slice(0, 10);
       const cover = String(row.cover_url || '').trim();
-      const image = cover ? `<image:image><image:loc>${escXml(/^https?:\\/\\//i.test(cover) ? cover : `${url.origin}${cover.startsWith('/') ? cover : `/${cover}`}`)}</image:loc></image:image>` : '';
-      return `  <url><loc>${escXml(loc)}</loc>${/^\\d{4}-\\d{2}-\\d{2}$/.test(date) ? `<lastmod>${date}</lastmod>` : ''}${image}</url>`;
+      const image = cover ? `<image:image><image:loc>${escXml(/^https?:\/\//i.test(cover) ? cover : `${url.origin}${cover.startsWith('/') ? cover : `/${cover}`}`)}</image:loc></image:image>` : '';
+      return `  <url><loc>${escXml(loc)}</loc>${/^\d{4}-\d{2}-\d{2}$/.test(date) ? `<lastmod>${date}</lastmod>` : ''}${image}</url>`;
     });
     const body = additions.length
       ? (additions.some(addition => addition.includes('<image:image>')) && !xml.includes('xmlns:image=')
           ? xml.replace('<urlset', '<urlset xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"')
-          : xml).replace('</urlset>', `${additions.join('\\n')}\\n</urlset>`)
+          : xml).replace('</urlset>', `${additions.join('\n')}\n</urlset>`)
       : xml;
     return new Response(body, { status: 200, headers: {
       'content-type': 'application/xml; charset=utf-8',
