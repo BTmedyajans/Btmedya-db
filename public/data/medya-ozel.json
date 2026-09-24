@@ -16,6 +16,43 @@
   "media/portfoy/buse-tuncay-studyo-kelebek.webp",
   "media/portfoy/buse-tuncay-yesil-perde-studyo.webp"
  ],
+ "_baslik": "Kasa kartlarinda gorunen baslik. Yoksa dosya adindan turetilir; turetilen baslik cogu zaman kareyi anlatmaz. Yalnizca kareye bakilarak yazilmis basliklar buraya girer.",
+ "baslik": {
+  "media/portfoy/buse-tuncay-saha-roportaj.webp": "Saha röportajı — BTMEDYA mikrofonu",
+  "media/portfoy/buse-tuncay-kamera-arkasi.webp": "Kamera arkası — etkinlik çekimi",
+  "media/portfoy/buse-tuncay-iletisim-fakultesi.webp": "İletişim Fakültesi önünde",
+  "media/portfoy/buse-tuncay-yesil-perde-studyo.webp": "Yeşil perde stüdyosu — çekim arası",
+  "media/portfoy/buse-tuncay-studyo-kelebek.webp": "Stüdyo — kelebek serisi",
+  "media/portfoy/buse-tuncay-portre-siyah-beyaz.webp": "Siyah beyaz stüdyo portresi",
+  "media/portfoy/buse-tuncay-portre-01.webp": "Açık hava portre serisi — 01",
+  "media/portfoy/buse-tuncay-portre-02.webp": "Açık hava portre serisi — 02",
+  "media/portfoy/buse-tuncay-portre-03.webp": "Açık hava portre serisi — 03",
+  "media/portfoy/buse-tuncay-portre-04.webp": "Açık hava portre serisi — 04",
+  "media/portfoy/buse-tuncay-portre-05.webp": "Açık hava portre serisi — 05",
+  "media/portfoy/btmedya-saha-showreel.mp4": "Defile çekimi — BTMEDYA prodüksiyon"
+ },
+ "_poster": "Video kartlarinin kapak karesi. Poster yoksa kart video metadata'si gelene kadar siyah duruyor; vitrindeki tek video kartinin siyah kalmasi kotu goruntu veriyordu. Poster dosyalari kasaya girmez (tools/medya-listesi.mjs POSTER).",
+ "poster": {
+  "media/portfoy/btmedya-saha-showreel.mp4": "media/portfoy/poster-btmedya-saha-showreel.webp"
+ },
+ "_vitrinSirasi": "Anasayfadaki GERCEK ARSIV vitrini ilk 8 kaydi gosterir. Alfabetik siralamada ayni cekimden bes portre ust uste geliyor, saha roportaji ve studyo kareleri disarida kaliyordu. Burada listelenenler verilen sirada basa gecer; listede olmayanlar arkadan gelir.",
+ "vitrinSirasi": [
+  "media/portfoy/buse-tuncay-saha-roportaj.webp",
+  "media/portfoy/buse-tuncay-kamera-arkasi.webp",
+  "media/portfoy/btmedya-saha-showreel.mp4",
+  "media/portfoy/buse-tuncay-yesil-perde-studyo.webp",
+  "media/portfoy/buse-tuncay-iletisim-fakultesi.webp",
+  "media/portfoy/buse-tuncay-portre-siyah-beyaz.webp",
+  "media/portfoy/buse-tuncay-studyo-kelebek.webp",
+  "media/portfoy/buse-tuncay-portre-01.webp"
+ ],
+ "_vitrinDisi": "Kasada duran ama anasayfadaki GERCEK ARSIV vitrininde gosterilmemesi gereken kayitlar. Once bu liste home.js icinde sabit bir regex'ti; icerik bilgisi kodda durmaz.",
+ "vitrinDisi": [
+  "media/web/showreel-fantasy.mp4",
+  "media/web/showreel-fantasy.webm",
+  "media/web/showreel-flying-reporter.mp4",
+  "media/web/showreel-flying-reporter.webm"
+ ],
  "_haric": "Icerik klasorunde olup kasada gorunmemesi gereken dosyalar.",
  "haric": [
   "hero-robot.webp"
