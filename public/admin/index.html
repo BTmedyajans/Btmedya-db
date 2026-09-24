@@ -68,7 +68,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 /* Form grid */
 .form-2col{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
 @media(max-width:640px){.form-2col{grid-template-columns:1fr}}
-</style></head>
+</style><link rel="stylesheet" href="/uiux-pro-max.css"></head>
 <body>
 <header>
   <strong>BTMEDYA / ADMIN</strong>
@@ -86,7 +86,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <button class="tab" data-tab="media">Medya Kasası</button>
     <button class="tab" data-tab="news">Haberler</button>
     <button class="tab" data-tab="social">Sosyal İçerik</button>
-    <button class="tab" data-tab="videos">Videolar</button>
+    <button class="tab" data-tab="videos">Videolar</button><button class="tab" data-tab="automation">Otomasyon</button><button class="tab" data-tab="finder">Haber Bulucu</button>
     <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button><button class="tab" data-tab="control">Control Center</button>
   </div>
   <button class="btn" id="logoutBtn" style="display:none">Çıkış</button>
@@ -264,7 +264,35 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <div class="panel"><div id="videoList"></div></div>
   </div>
 
-  <div class="tab-content" id="tab-automation">
+  
+<div class="tab-content" id="tab-finder">
+  <div class="panel">
+    <h2>Haber Bulucu</h2>
+    <p class="muted">Kaynaklardan yalnızca başlık, özet, tarih ve bağlantı alınır. Tam metin otomatik kopyalanmaz. Bulunanlar <b>TASLAK</b> olarak D1'e düşer ve editör onayı olmadan yayınlanmaz.</p>
+    <div id="finderSources" class="grid" style="margin:14px 0"></div>
+    <div class="row">
+      <button class="btn primary" id="finderScan">Kaynakları şimdi tara</button>
+      <span id="finderStatus" class="status"></span>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>AI İçerik Oluşturucu</h2>
+    <p class="muted">Seçtiğin taslak için başlık, özet, haber gövdesi ve sosyal medya metni üretir. <b>Otomatik yayın yapmaz.</b> OPENAI_API_KEY yapılandırılmışsa aktif olur.</p>
+    <div class="form-2col">
+      <div><label>BAŞLIK</label><input id="aiTitle" style="width:100%" placeholder="Haber başlığı"></div>
+      <div><label>KAYNAK URL</label><input id="aiSource" style="width:100%" placeholder="https://..."></div>
+    </div>
+    <label>KAYNAK METNİ / ÖZET</label>
+    <textarea id="aiText" style="width:100%;min-height:150px" placeholder="Kaynak metnini veya editoryal notları buraya ekleyin"></textarea>
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary" id="aiGenerate">AI taslak oluştur</button>
+      <button class="btn" id="aiUseNews">Seçili haberi getir</button>
+      <span id="aiStatus" class="status"></span>
+    </div>
+    <div id="aiResult" class="panel" style="margin-top:14px;display:none"></div>
+  </div>
+</div>
+<div class="tab-content" id="tab-automation">
   <div class="panel">
     <h2>BTMEDYA Otomasyon Merkezi</h2>
     <p class="muted">D1'deki gerçek haberleri seçip sosyal içerik kuyruğuna otomatik taslak olarak aktarır. AI LAB içeriği ayrı tutulur; kaynak olarak gerçek haber metni kullanılır.</p>
@@ -418,6 +446,32 @@ async function createAutomationPosts(){
 $('#autoLoadNews').onclick=loadAutomationNews;
 $('#autoCreate').onclick=createAutomationPosts;
 
+
+/* ---- Haber Bulucu + AI ---- */
+async function loadFinder(){
+  const box=$('#finderSources'), status=$('#finderStatus');
+  try{
+    const d=await req('/api/admin/news-finder');
+    box.innerHTML=(d.feeds||[]).map(x=>'<label class="card" style="padding:14px;display:block"><b>'+escStr(x.name)+'</b><small class="muted" style="display:block;margin-top:5px">'+escStr(x.category)+'</small></label>').join('');
+    status.textContent=d.openai?'AI üretici hazır.':'AI üretici için OPENAI_API_KEY bekleniyor.';
+  }catch(e){status.textContent='Haber kaynakları okunamadı.'}
+}
+$('#finderScan').onclick=async()=>{
+  const s=$('#finderStatus');s.textContent='Kaynaklar taranıyor…';
+  try{const d=await req('/api/admin/news-finder',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({})});s.textContent=d.count+' yeni haber taslağı bulundu.';loadNewsList()}catch(e){s.textContent='Tarama başarısız.'}
+};
+$('#aiGenerate').onclick=async()=>{
+  const s=$('#aiStatus'), box=$('#aiResult');s.textContent='AI taslağı hazırlanıyor…';box.style.display='none';
+  try{
+    const d=await req('/api/admin/ai-draft',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({title:$('#aiTitle').value,source:$('#aiSource').value,text:$('#aiText').value})});
+    const x=d.draft||{}; box.innerHTML='<b>'+escStr(x.title||'Taslak')+'</b><p style="white-space:pre-wrap;margin:10px 0">'+escStr(x.body||x.excerpt||'')+'</p><div class="muted">Sosyal metin: '+escStr(x.social_caption||'')+'</div>';box.style.display='block';s.textContent='Taslak hazır. Yayın öncesi editör kontrolü gerekli.';
+  }catch(e){s.textContent='AI taslağı oluşturulamadı. Secret veya içerik kontrolünü yapın.'}
+};
+$('#aiUseNews').onclick=()=>{
+  const n=autoNewsCache.find(x=>x.slug===$('#autoNews').value)||autoNewsCache[0];
+  if(!n){$('#aiStatus').textContent='Önce Otomasyon sekmesinden haberleri getir.';return}
+  $('#aiTitle').value=n.title||'';$('#aiSource').value=n.source_url||'';$('#aiText').value=n.body||n.excerpt||'';
+};
 /* ---- Tabs ---- */
 async function loadControlCenter(){
   const box=$('#controlSummary'), integrations=$('#controlIntegrations'), next=$('#controlNext');
@@ -439,7 +493,7 @@ function showTab(name){
   if(name==='news'){loadNewsList()}
   if(name==='social'){loadSocial()}
   if(name==='videos'){loadVideos()}
-  if(name==='messages'){loadMessages()}\n  if(name==='control'){loadControlCenter()}
+  if(name==='messages'){loadMessages()}\n  if(name==='automation'){loadAutomationNews()}\n  if(name==='finder'){loadFinder()}\n  if(name==='control'){loadControlCenter()}
 }
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
 

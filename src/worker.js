@@ -334,6 +334,64 @@ async function newsApi(request, env, url){
   return null;
 }
 
+/* ---------- BTMEDYA Haber Bulucu + AI İçerik Üretici ---------- */
+const NEWS_FEEDS = [
+  {id:'cumha-balikesir',name:'CUMHA / Balıkesir RSS',url:'https://cumha.com.tr/rss/lokasyon/balikesir',category:'Yerel'},
+  {id:'google-balikesir',name:'Google News / Balıkesir',url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir&hl=tr&gl=TR&ceid=TR:tr',category:'Gündem'},
+  {id:'google-ai',name:'Google News / Yapay Zekâ',url:'https://news.google.com/rss/search?q=yapay%20zeka%20AI&hl=tr&gl=TR&ceid=TR:tr',category:'AI'}
+];
+function stripTags(s){return String(s||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()}
+function xmlDecode(s){return String(s||'').replace(/<!\[CDATA\[|\]\]>/g,'').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>')}
+function rssItems(xml){
+  const out=[]; const blocks=xml.match(/<(?:item|entry)\b[\s\S]*?<\/(?:item|entry)>/gi)||[];
+  for(const b of blocks){
+    const pick=(tag)=>{const m=b.match(new RegExp('<'+tag+'(?:[^>]*)>([\\s\\S]*?)<\\/'+tag+'>','i'));return m?xmlDecode(m[1]).trim():''};
+    let title=stripTags(pick('title')); let link=stripTags(pick('link'));
+    if(!link){const m=b.match(/<link[^>]+href=["']([^"']+)["']/i);link=m?m[1]:''}
+    const description=stripTags(pick('description')||pick('summary')||pick('content'));
+    const date=stripTags(pick('pubDate')||pick('published')||pick('updated'));
+    if(title&&link) out.push({title:title.slice(0,240),link:link.slice(0,2000),description:description.slice(0,1800),date});
+  } return out;
+}
+function newsSlug(title,link){let base=String(title||'haber').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,100)||'haber';let h=0;for(const ch of String(link||'')){h=((h<<5)-h+ch.charCodeAt(0))|0}return base+'-'+Math.abs(h)}
+async function scanNewsSources(env,feedIds){
+  const feeds=NEWS_FEEDS.filter(x=>!feedIds||feedIds.includes(x.id)); const found=[];
+  if(!env.DB) return found;
+  for(const feed of feeds){try{
+    const r=await fetch(feed.url,{headers:{accept:'application/rss+xml, application/xml, text/xml, text/html','user-agent':'BTMEDYA-NewsFinder/1.0'},redirect:'follow'}); if(!r.ok) continue;
+    for(const item of rssItems(await r.text()).slice(0,20)){
+      const exists=await env.DB.prepare('SELECT id FROM news WHERE source_url=? LIMIT 1').bind(item.link).first(); if(exists) continue;
+      const slug=newsSlug(item.title,item.link); const duplicate=await env.DB.prepare('SELECT id FROM news WHERE slug=? LIMIT 1').bind(slug).first(); if(duplicate) continue;
+      const now=new Date().toISOString();
+      await env.DB.prepare('INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(slug,item.title,item.description,item.description,feed.category,'BTMEDYA Kaynak Masası','','','draft',null,item.link,item.date||null,'Kaynak Masası tarafından bulundu; editör onayı bekliyor.',now).run();
+      found.push({slug,title:item.title,source:item.link,category:feed.category,date:item.date||null});
+    }
+  }catch(e){}}
+  return found;
+}
+async function newsFinderApi(request,env,url){
+  if(!url.pathname.startsWith('/api/admin/news-finder')) return null;
+  if(!(await validSession(request,env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
+  if(request.method==='GET') return json({ok:true,feeds:NEWS_FEEDS.map(x=>({id:x.id,name:x.name,category:x.category})),openai:!!env.OPENAI_API_KEY});
+  if(request.method!=='POST') return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,POST'});
+  const body=await request.json().catch(()=>({})); const feedIds=Array.isArray(body.feeds)&&body.feeds.length?body.feeds:NEWS_FEEDS.map(x=>x.id);
+  const found=await scanNewsSources(env,feedIds);
+  return json({ok:true,count:found.length,items:found});
+}
+async function aiDraftApi(request,env,url){
+  if(url.pathname!=='/api/admin/ai-draft') return null;
+  if(!(await validSession(request,env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(request.method!=='POST') return json({ok:false,error:'Method not allowed'},405);
+  if(!env.OPENAI_API_KEY) return json({ok:false,error:'OPENAI_API_KEY secret eksik'},503);
+  const b=await request.json().catch(()=>({})); const title=String(b.title||'').trim().slice(0,500); const source=String(b.source||'').trim().slice(0,2000); const textIn=String(b.text||'').trim().slice(0,12000);
+  if(!title&&!textIn) return json({ok:false,error:'Başlık veya metin gerekli'},400);
+  const prompt='BTMEDYA için editoryal TASLAK hazırla. Kaynak metni kopyalama. Yalnızca verilen bilgilerden hareket et, yeni olgu uydurma. Türkçe JSON üret: title, excerpt, body, social_caption. Kaynak linkini ve belirsizliği koru. Otomatik yayın yapma.\n\nBaşlık: '+title+'\nKaynak: '+source+'\nMetin: '+textIn;
+  const r=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+env.OPENAI_API_KEY},body:JSON.stringify({model:'gpt-5.6-luna',input:prompt,store:false})});
+  if(!r.ok) return json({ok:false,error:'AI servisi yanıt vermedi'},502); const data=await r.json();
+  const output=String(data.output_text||data.output?.flatMap(x=>x.content||[]).map(x=>x.text||'').join('')||'').trim(); let parsed=null; try{parsed=JSON.parse(output.replace(/^```json|```$/g,'').trim())}catch{}
+  return json({ok:true,draft:parsed||{title,excerpt:'',body:output,social_caption:''}});
+}
 /* ---------- BTMEDYA Control Center ---------- */
 async function controlCenterApi(request, env, url){
   if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
@@ -363,7 +421,8 @@ async function controlCenterApi(request, env, url){
       !env.MEDIA_SIGNING_SECRET?'Cloudflare Worker secret: MEDIA_SIGNING_SECRET ekle':null,
       !env.META_ACCESS_TOKEN||!env.META_IG_USER_ID?'Instagram bağlantı secretlarını tamamla':null,
       !env.TIKTOK_ACCESS_TOKEN||!env.TIKTOK_OPEN_ID?'TikTok bağlantı secretlarını tamamla':null,
-      !env.YOUTUBE_CLIENT_ID||!env.YOUTUBE_CLIENT_SECRET||!env.YOUTUBE_REFRESH_TOKEN?'YouTube bağlantı secretlarını tamamla':null
+      !env.YOUTUBE_CLIENT_ID||!env.YOUTUBE_CLIENT_SECRET||!env.YOUTUBE_REFRESH_TOKEN?'YouTube bağlantı secretlarını tamamla':null,
+      !env.OPENAI_API_KEY?'AI içerik üretici için OPENAI_API_KEY ekle':null
     ].filter(Boolean)
   });
 }
@@ -802,7 +861,12 @@ function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
   return {aspect,uygun,uygunsuz,siteUyarisi};
 }
 
-export default { async fetch(request, env, ctx){
+export default {
+  async scheduled(event, env, ctx){
+    const task=scanNewsSources(env,NEWS_FEEDS.map(x=>x.id));
+    if(ctx?.waitUntil) ctx.waitUntil(task); else await task;
+  },
+  async fetch(request, env, ctx){
   const url = new URL(request.url);
 
   if(url.hostname.startsWith('www.')){
@@ -856,6 +920,8 @@ export default { async fetch(request, env, ctx){
     const rw = await workflowApi(request, env, url);
     if(rw) return rw;
 
+    const rnf = await newsFinderApi(request, env, url); if(rnf) return rnf;
+    const rad = await aiDraftApi(request, env, url); if(rad) return rad;
     const rcc = await controlCenterApi(request, env, url);
     if(rcc) return rcc;
     const r1 = await newsApi(request, env, url);
