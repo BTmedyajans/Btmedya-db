@@ -291,6 +291,14 @@
         allNews = [];
       }
     }
+    const categories = [...new Set(allNews.map(n => String(n.category || '').trim()).filter(Boolean))].slice(0, 10);
+    if (filterBar) {
+      const labels = {yerel:'YEREL', ekonomi:'EKONOMİ', kultur:'KÜLTÜR', spor:'SPOR', saglik:'SAĞLIK', gundem:'GÜNDEM'};
+      filterBar.innerHTML = ['all', ...categories].map((cat, i) => {
+        const label = cat === 'all' ? 'TÜMÜ' : (labels[norm(cat)] || cat.toUpperCase());
+        return '<button class="filter' + (i === 0 ? ' active' : '') + '" type="button" role="tab" aria-selected="' + (i === 0 ? 'true' : 'false') + '" data-cat="' + esc(cat) + '">' + esc(label) + '</button>';
+      }).join('');
+    }
     render(allNews);
     renderStoryLab(allNews);
   };

@@ -47,10 +47,13 @@ jobs:
         run: |
           set -euo pipefail
           curl -fsS --max-time 20 https://btmedya.com.tr/ > /tmp/home.html
-          grep -Fq '/assets/media/web/showreel-action.mp4' /tmp/home.html
-          grep -Fq 'HABER.' /tmp/home.html
+          grep -Fq '/assets/media/web/hero-story.mp4' /tmp/home.html
+          grep -Fq 'NEWSROOM' /tmp/home.html
           grep -Fq 'AI LAB' /tmp/home.html
+          grep -Fq 'Media Vault' /tmp/home.html
           grep -Fq 'WhatsApp' /tmp/home.html
+          grep -Fq 'home.js' /tmp/home.html
+          grep -Fq 'mobile-fixes.css' /tmp/home.html
 
       - name: Check public media API
         run: |
