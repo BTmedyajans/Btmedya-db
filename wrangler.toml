@@ -17,7 +17,7 @@ binding = "ASSETS"
 
 # API ve medya istekleri önce Worker'a gitmeli; aksi halde Static Assets
 # katmanı mevcut olmayan /api/* yollarını 404 olarak keser.
-run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/haber/*", "/haberler/*", "/hakkimizda*", "/iletisim*", "/gizlilik*", "/admin/*", "/social-studio/*", "/robots.txt", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml"]
+run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/haber/*", "/haberler/*", "/hakkimizda*", "/iletisim*", "/gizlilik*", "/admin/*", "/social-studio/*", "/portfoy/*", "/robots.txt", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml"]
 
 not_found_handling = "404-page"
 
