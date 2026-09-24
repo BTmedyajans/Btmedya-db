@@ -145,6 +145,9 @@ ${kanal?`<p class="video-credit">Video ${esc(kanal)} kanalında yayında. <a hre
 <script type="application/ld+json">
 ${JSON.stringify(ld,null,0)}
 </script>
+<script type="application/ld+json">
+${JSON.stringify(breadcrumbLd,null,0)}
+</script>
 ${videoLd?`<script type="application/ld+json">
 ${JSON.stringify(videoLd,null,0)}
 </script>`:''}
