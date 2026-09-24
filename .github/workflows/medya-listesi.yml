@@ -15,6 +15,7 @@ on:
       - "tools/medya-listesi.mjs"
       - "tools/gerileme-denetimi.mjs"
       - "src/worker.js"
+      - "public/**/*.css"
   workflow_dispatch:
 
 permissions:
@@ -35,6 +36,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: CSS butunluk denetimi
+        run: node tools/css-denetimi.mjs
 
       - name: Gerileme denetimi
         run: node tools/gerileme-denetimi.mjs

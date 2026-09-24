@@ -77,7 +77,7 @@ footer{padding:35px var(--pad);display:grid;grid-template-columns:1fr auto auto;
 .cinematic-video video{filter:saturate(.92) contrast(1.06)}
 .cinematic-ai-visual{opacity:0}
 .cinematic-ai-visual img{filter:saturate(.78) contrast(1.08)}
-.cinematic-vignette{position:absolute;inset:0;z-index:3;background:linear-gradient(90deg,rgba(1,5,9,.86) 0%,rgba(1,5,9,.40) 45%,rgba(1,5,9,.16) 72%,rgba(1,5,9,.72) 100%),linear-gradient(0deg,rgba(1,5,9,.78),transparent 38%,rgba(1,5,9,.28)}
+.cinematic-vignette{position:absolute;inset:0;z-index:3;background:linear-gradient(90deg,rgba(1,5,9,.86) 0%,rgba(1,5,9,.40) 45%,rgba(1,5,9,.16) 72%,rgba(1,5,9,.72) 100%),linear-gradient(0deg,rgba(1,5,9,.78),transparent 38%,rgba(1,5,9,.28))}
 .cinematic-grid{position:absolute;inset:0;z-index:4;opacity:.16;background:linear-gradient(rgba(53,214,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(53,214,255,.12) 1px,transparent 1px);background-size:90px 90px;mask-image:linear-gradient(to bottom,transparent 0%,black 30%,transparent 90%);pointer-events:none}
 .cinematic-noise{position:absolute;inset:0;z-index:6;opacity:.055;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 .cinematic-copy{position:absolute;z-index:8;left:clamp(24px,7vw,110px);top:50%;width:min(700px,76vw);transform:translate3d(calc(var(--hero-mx,0) * -18px),calc(-50% + var(--hero-my,0) * -10px),0);transition:transform .18s ease-out}
@@ -115,4 +115,36 @@ footer{padding:35px var(--pad);display:grid;grid-template-columns:1fr auto auto;
 @media(prefers-reduced-motion:reduce){
   .cinematic-hero{height:100vh}.cinematic-sticky{position:relative}
   .cinematic-video{transition:none}.cinematic-cursor{display:none}
+}
+/* Hero kaynak rozeti — AGENTS.md: sitedeki her kare AI ÜRETİMİ ya da
+   GERÇEK ÇEKİM etiketi taşır. Künye bölüm adını söyler, rozet karenin
+   kaynağını; ikisi karışmasın diye ayrı satırda. */
+.cinematic-kaynak{display:inline-block;margin:0 0 18px;font:700 10px/1 Jet,monospace;letter-spacing:.14em;color:#fff;background:rgba(4,7,11,.72);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:7px 12px;backdrop-filter:blur(6px)}
+
+/* ===== MOBİL DOKUNMA HEDEFLERİ =====
+   Bağlantıların çoğu mobilde 12-35 px yükseklikteydi. Apple HIG ve
+   Material'ın ortak eşiği 44 px. Yazı boyu değişmiyor, yalnız
+   tıklanabilir alan büyüyor. */
+@media(max-width:900px){
+  .topbar .brand,.topbar .top-cta,.topbar .quote{min-height:44px;display:inline-flex;align-items:center}
+  .topbar .hamburger,.topbar #menuToggle,.menu-topline button{min-height:44px;min-width:44px}
+  .skip,.skip-link{min-height:44px;display:inline-flex;align-items:center}
+  .menu-cat a,.menu-grid a,.site-menu a{min-height:44px;display:flex;align-items:center}
+  .footer a,.final-footer a{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
+  .news-body .news-open,.archive-actions a,.portfoy-metin a,.section-side .text-link,.cinematic-actions a{min-height:44px;display:inline-flex;align-items:center}
+  .portfoy-sekme,.button,.news-filter .filter{min-height:44px}
+  .text-link,.story-card-copy a,.bt-world-intro a,.manifesto-copy a{min-height:44px;display:inline-flex;align-items:center}
+  footer nav a{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
+}
+
+/* Mobilde hero perdesi.
+   .cinematic-vignette yatay bir degrade: masaüstünde metin solda durduğu
+   için çalışıyor, mobilde metin tam genişlikte alta indiğinden altında
+   perde kalmıyordu. Künye 2.93:1, spot 3.58:1 ölçüldü (eşik 4.5).
+   Mobilde alttan yukarı ikinci bir perde eklenir. */
+@media(max-width:720px){
+  .cinematic-sticky::after{content:"";position:absolute;inset:0;z-index:5;pointer-events:none;
+    background:linear-gradient(to top,rgba(1,5,9,.95) 0%,rgba(1,5,9,.86) 26%,rgba(1,5,9,.45) 52%,rgba(1,5,9,.12) 78%,transparent 100%)}
+  .cinematic-copy{z-index:8}
+  .cinematic-kicker{color:#7fe4ff}
 }

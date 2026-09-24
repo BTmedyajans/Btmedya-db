@@ -1043,3 +1043,13 @@ button,a{touch-action:manipulation}
 .kariyer-baglanti a{font-size:11px;letter-spacing:.1em;padding:9px 13px;border:1px solid rgba(255,255,255,.18);border-radius:999px;color:#fff;text-decoration:none}
 .kariyer-baglanti a:hover{border-color:rgba(53,214,255,.55);background:rgba(53,214,255,.08)}
 @media(max-width:620px){.kariyer-liste li{flex-direction:column;gap:6px}.kariyer-yil{flex:none}}
+
+/* ===== MOBİL DOKUNMA HEDEFLERİ — eşik 44 px (Apple HIG / Material) ===== */
+@media(max-width:900px){
+  .topbar .brand,.topbar .quote{min-height:44px;display:inline-flex;align-items:center}
+  .news-nav a,.article-tools a,.kariyer-baglanti a,.contact-info-card a{min-height:44px;display:inline-flex;align-items:center}
+  .footer-social a,.footer-contact a{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
+  .site-menu a{min-height:44px;display:flex;align-items:center}
+  .contact-form input[type=checkbox],.consent-row input[type=checkbox]{width:24px;height:24px;min-width:24px;flex:0 0 24px}
+  .consent-row a{min-height:44px;display:inline-flex;align-items:center}
+}
