@@ -688,21 +688,23 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.head.appendChild(style);
   const overlay=document.createElement('div');
   overlay.className='bt-page-transition';
-  overlay.innerHTML='<img alt=""><div class="bt-transition-line">BTMEDYA / NEXT WORLD</div><div class="bt-transition-label">GEÇİŞ HAZIRLANIYOR</div>';
+  overlay.innerHTML='<div class="bt-transition-line">BTMEDYA / NEXT WORLD</div><div class="bt-transition-label">GEÇİŞ HAZIRLANIYOR</div>';
   document.body.appendChild(overlay);
-  const img=overlay.querySelector('img');
+  let img=null;
   const map=[
-    [/haber/i,'/assets/media/portfoy/buse-tuncay-sunucu-kirmizi.webp','01 / HABER'],
-    [/portfoy|medya|studio/i,'/assets/media/portfoy/buse-tuncay-saha-roportaj.webp','03 / MEDYA'],
-    [/ai-lab|ai/i,'/assets/media/ai-lab/btmedya-siber-sunucu-02.webp','04 / AI LAB'],
-    [/iletisim|hakkimizda/i,'/assets/media/portfoy/buse-tuncay-portre-01.webp','BTMEDYA']
+    [/(^|\/)haber/i,'/assets/media/portfoy/buse-tuncay-sunucu-kirmizi.webp','01 / HABER'],
+    [/(^|\/)(portfoy|medya|studio)/i,'/assets/media/portfoy/buse-tuncay-saha-roportaj.webp','03 / MEDYA'],
+    [/(^|\/|#)ai-lab/i,'/assets/media/ai-lab/btmedya-siber-sunucu-02.webp','04 / AI LAB'],
+    [/(^|\/)(iletisim|hakkimizda)/i,'/assets/media/portfoy/buse-tuncay-portre-01.webp','BTMEDYA']
   ];
   function go(a,e){
+    if(e.defaultPrevented || e.button!==0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     const href=a.getAttribute('href');
-    if(!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || a.target==='_blank') return;
+    if(!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || a.target==='_blank' || a.hasAttribute('download')) return;
     const match=map.find(x=>x[0].test(href));
     if(!match) return;
     e.preventDefault();
+    if(!img){ img=document.createElement('img'); img.alt=''; overlay.insertBefore(img, overlay.firstChild); }
     img.src=match[1];
     overlay.querySelector('.bt-transition-label').textContent=match[2];
     overlay.classList.add('is-on');

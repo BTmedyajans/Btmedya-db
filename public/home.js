@@ -528,6 +528,7 @@
   const ai=root.querySelector('.cinematic-ai-visual');
   const title=root.querySelector('[data-cinematic-title]');
   const kicker=root.querySelector('[data-cinematic-kicker]');
+  const kaynakEl=root.querySelector('[data-cinematic-kaynak]');
   const lead=root.querySelector('[data-cinematic-lead]');
   const index=root.querySelector('[data-cinematic-index]');
   const progressEl=root.querySelector('[data-cinematic-progress]');
@@ -535,11 +536,11 @@
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const mobile=()=>window.innerWidth<=720;
   const scenes=[
-    {key:'hero',k:'01 / GİRİŞ · GERÇEK ÇEKİM',t:'GERÇEK<br><span>GÖRÜNTÜ.</span>',d:'Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.'},
-    {key:'haber',k:'02 / HABER · SAHA',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
-    {key:'medya',k:'03 / MEDYA · İÇERİK',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için gerçek üretim.'},
-    {key:'produksiyon',k:'04 / PRODÜKSİYON',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
-    {key:'ai',k:'05 / AI LAB · AÇIK ETİKET',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI üretimi ayrı, açık ve şeffaf bir laboratuvar olarak konumlanıyor.'}
+    {key:'hero',k:'01 / GİRİŞ',kaynak:'AI ÜRETİMİ',t:'GERÇEK<br><span>GÖRÜNTÜ.</span>',d:'Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.'},
+    {key:'haber',k:'02 / HABER · SAHA',kaynak:'AI ÜRETİMİ',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
+    {key:'medya',k:'03 / MEDYA · İÇERİK',kaynak:'AI ÜRETİMİ',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için gerçek üretim.'},
+    {key:'produksiyon',k:'04 / PRODÜKSİYON',kaynak:'AI ÜRETİMİ',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
+    {key:'ai',k:'05 / AI LAB · AÇIK ETİKET',kaynak:'AI ÜRETİMİ',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI üretimi ayrı, açık ve şeffaf bir laboratuvar olarak konumlanıyor.'}
   ];
   let active=-1, raf=0;
   function loadVideo(v){
@@ -557,6 +558,7 @@
       active=i;
       root.classList.remove('beat-haber','beat-medya','beat-produksiyon','beat-ai');
       if(scene.key!=='hero') root.classList.add('beat-'+scene.key);
+      if(kaynakEl) kaynakEl.textContent=scene.kaynak||'AI ÜRETİMİ';
       if(title){title.innerHTML=scene.t;title.animate([{opacity:.35,transform:'translateY(16px)'},{opacity:1,transform:'translateY(0)'}],{duration:420,easing:'cubic-bezier(.2,.75,.2,1)'})}
       if(kicker) kicker.textContent=scene.k;
       if(lead) lead.textContent=scene.d;
