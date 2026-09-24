@@ -844,6 +844,10 @@ export default { async fetch(request, env, ctx){
     return new Response(obj.body,{headers:{'content-type':obj.httpMetadata?.contentType||'application/octet-stream','cache-control':'public, max-age=86400'}});
   }
 
+  if(url.pathname === '/news-sitemap.xml' && request.method === 'GET'){
+    return dinamikNewsSitemap(request, env);
+  }
+
   if(url.pathname === '/sitemap.xml' && request.method === 'GET'){
     return dinamikSitemap(request, env);
   }
@@ -1031,6 +1035,45 @@ async function dinamikSitemap(request, env) {
   } catch (error) {
     console.error('[sitemap] dynamic merge failed:', error);
     return env.ASSETS.fetch(new Request(new URL('/sitemap.xml', url.origin)));
+  }
+}
+
+async function dinamikNewsSitemap(request, env) {
+  const url = new URL(request.url);
+  const escXml = value => String(value ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+  const headers = {
+    'content-type': 'application/xml; charset=utf-8',
+    'cache-control': 'public, max-age=300, must-revalidate'
+  };
+  const empty = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
+    'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"></urlset>';
+  if (!env.DB) return new Response(empty, { status: 503, headers });
+  try {
+    const cutoff = Date.now() - (2 * 24 * 60 * 60 * 1000);
+    const rows = await env.DB.prepare(
+      "SELECT slug, title, published_at FROM news WHERE status='published' AND published_at IS NOT NULL ORDER BY published_at DESC LIMIT 1000"
+    ).all();
+    const items = (rows.results || []).filter(row => {
+      const publishedMs = Date.parse(String(row.published_at || ''));
+      return row.slug && row.title && Number.isFinite(publishedMs) && publishedMs >= cutoff;
+    }).map(row => {
+      const rawDate = String(row.published_at).trim();
+      const publishedDate = /^\d{4}-\d{2}-\d{2}$/.test(rawDate)
+        ? rawDate
+        : new Date(rawDate).toISOString();
+      const loc = `${url.origin}/haberler/${encodeURIComponent(row.slug)}`;
+      return `  <url><loc>${escXml(loc)}</loc><news:news><news:publication><news:name>BTMEDYA</news:name><news:language>tr</news:language></news:publication><news:publication_date>${escXml(publishedDate)}</news:publication_date><news:title>${escXml(row.title)}</news:title></news:news></url>`;
+    });
+    const body = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">\n' +
+      `${items.join('\n')}\n</urlset>`;
+    return new Response(body, { status: 200, headers });
+  } catch (error) {
+    console.error('[news-sitemap] generation failed:', error);
+    return new Response(empty, { status: 503, headers });
   }
 }
 
