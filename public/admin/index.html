@@ -3,7 +3,7 @@
 body{font-family:Inter,system-ui,sans-serif;margin:0;background:#090909;color:#eee;font-size:14px}
 a{color:#7dd}
 header{padding:14px 20px;border-bottom:1px solid #222;display:flex;align-items:center;gap:14px;position:sticky;top:0;background:#090909;z-index:10;flex-wrap:wrap}
-header strong{font-size:15px;letter-spacing:.04em;color:#fff;margin-right:auto}
+header strong{font-size:15px;letter-spacing:.04em;color:#fff;margin-right:auto}.admin-site-links{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.admin-site-links a{border:1px solid #333;border-radius:8px;padding:6px 10px;color:#aaa;text-decoration:none;font-size:12px}.admin-site-links a:hover{color:#fff;border-color:#777;background:#171717}
 .tabs{display:flex;gap:4px}
 .tab{background:none;border:1px solid #333;color:#999;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;position:relative}
 .tab.active{background:#eee;color:#111;border-color:#eee}
@@ -72,6 +72,15 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 <body>
 <header>
   <strong>BTMEDYA / ADMIN</strong>
+  <nav class="admin-site-links" aria-label="Yayın sitesi bağlantıları">
+    <a href="/" target="_blank" rel="noopener">Siteyi aç ↗</a>
+    <a href="/haberler/" target="_blank" rel="noopener">Haberler ↗</a>
+    <a href="/iletisim/" target="_blank" rel="noopener">İletişim ↗</a>
+    <a href="/#medya" target="_blank" rel="noopener">Medya ↗</a>
+    <a href="/#portfoy" target="_blank" rel="noopener">Portföy ↗</a>
+    <a href="/#ai-lab" target="_blank" rel="noopener">AI LAB ↗</a>
+    <a href="/#digital" target="_blank" rel="noopener">Dijital ↗</a>
+  </nav>
   <div class="tabs" id="tabBar" style="display:none">
     <button class="tab active" data-tab="durum">Site Durumu</button>
     <button class="tab" data-tab="media">Medya Kasası</button>
