@@ -11,7 +11,7 @@
  *
  * Kullanim: node tools/gerileme-denetimi.mjs
  * ===================================================================== */
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const bulgular = [];
@@ -56,10 +56,58 @@ const tara = (dizin) => {
 };
 tara('public'); tara('src');
 
+/* 5) GERCEK CEKIM etiketi gercekten gercek bir kareye bakmali.
+      24 Eylul 2026: anasayfanin 01/HABER sekmesi "GERCEK CEKIM · BUSE TUNCAY"
+      diyordu ama gosterdigi kare yapay zeka uretimi bir yuzdu — ustelik
+      muhabirin kendi yuzu bile degildi. Bir haber markasinda bu dogrudan
+      yanlis beyan. Dogruluk kaynagi public/data/medya-ozel.json. */
+{
+  const ozelYol = 'public/data/medya-ozel.json';
+  const ozel = existsSync(ozelYol) ? JSON.parse(readFileSync(ozelYol, 'utf8')) : {};
+  const gercek = new Set(ozel.gercek || []);
+  for (const sayfa of ['public/index.html']) {
+    if (!existsSync(sayfa)) continue;
+    const metin = readFileSync(sayfa, 'utf8');
+    const dugme = /data-image="\/assets\/([^"]+)"[^>]*?data-source="([^"]*)"/g;
+    let m;
+    while ((m = dugme.exec(metin))) {
+      const [, yol, kaynak] = m;
+      if (!/GERÇEK ÇEKİM/.test(kaynak)) continue;
+      if (!gercek.has(yol)) {
+        bulgular.push(`${sayfa}: "${kaynak}" etiketi /assets/${yol} karesine basiliyor ` +
+          `ama bu kare ${ozelYol} gercek listesinde yok (varsayilan AI URETIMI).`);
+      }
+    }
+  }
+}
+
+/* 6) Haber kapaklarinin kaynak kaydi plandan turemeli; elle yazilirsa
+      kapak karesi degistiginde rozet eski kaynagi gostermeye devam eder. */
+{
+  const planYol = 'public/data/haber-kapak-plani.json';
+  const havuzYol = 'public/data/kapak-fotograflari.json';
+  const kaynakYol = 'public/data/haber-kapak-kaynagi.json';
+  if (existsSync(planYol) && existsSync(havuzYol) && existsSync(kaynakYol)) {
+    const plan = JSON.parse(readFileSync(planYol, 'utf8'));
+    const havuz = Object.fromEntries(JSON.parse(readFileSync(havuzYol, 'utf8')).map(k => [k.ad, k]));
+    const kaynak = JSON.parse(readFileSync(kaynakYol, 'utf8'));
+    for (const h of plan) {
+      const kare = havuz[h.foto || ''];
+      const olmasiGereken = kare && kare.gercek ? 'gercek' : 'ai';
+      if (kaynak[h.slug] !== olmasiGereken) {
+        bulgular.push(`${kaynakYol}: "${h.slug}" ${kaynak[h.slug] ?? 'kayitsiz'} yaziyor, ` +
+          `plandaki kare "${h.foto}" ise ${olmasiGereken}. ` +
+          '"python3 tools/haber-kapagi.py" calistirin.');
+      }
+    }
+  }
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
   process.exit(1);
 }
 console.log('Gerileme denetimi temiz: medya listesi uretilen dosyadan okunuyor, ' +
-  'regex kacislari dogru, kaynak etiketi oge basina turuyor, TikTok hesabi guncel.');
+  'regex kacislari dogru, kaynak etiketi oge basina turuyor, TikTok hesabi guncel, ' +
+  'GERCEK CEKIM etiketleri gercek karelere basiyor.');
