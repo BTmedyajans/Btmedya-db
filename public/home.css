@@ -87,3 +87,33 @@ body,.hero-lead,.section-side,.news-body p,.digital-copy,.contact-card p:not(.ki
   .archive-live-card .archive-copy{left:16px;right:16px;bottom:16px}
   .archive-live-footer .button{width:100%}
 }
+
+/* CINEMATIC STORYBEAT SYSTEM */
+body{--story-accent:var(--cyan);--story-progress:0;perspective:1200px}
+.story-transition{position:fixed;inset:0;z-index:300;display:grid;place-items:center;background:#050505;opacity:0;pointer-events:none;transform:translateY(100%);transition:opacity .45s var(--ease),transform .7s var(--ease)}
+.story-transition-mark{font-family:var(--display);font-size:clamp(80px,18vw,260px);font-weight:800;letter-spacing:-.12em;color:transparent;-webkit-text-stroke:1px var(--story-accent);transform:scale(.75) rotateX(35deg);transition:transform .8s var(--ease)}
+.story-transition-line{position:absolute;width:34vw;height:1px;background:var(--story-accent);transform:scaleX(0);transition:transform .8s var(--ease) .08s;box-shadow:0 0 24px var(--story-accent)}
+body.story-leave .story-transition{opacity:1;transform:none}
+body.story-leave .story-transition-mark{transform:scale(1) rotateX(0)}
+body.story-leave .story-transition-line{transform:scaleX(1)}
+.brand-symbol{position:relative;display:inline-grid;place-items:center;width:25px;height:25px;transform-style:preserve-3d;transition:transform .18s ease;filter:drop-shadow(0 0 8px rgba(53,214,255,.35))}
+.brand-symbol img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:.9;transform:translateZ(8px);mix-blend-mode:screen}
+.brand-symbol b{position:relative;z-index:2;font:800 10px var(--mono);letter-spacing:-.12em;color:#050505;text-shadow:1px 0 var(--cyan);transform:translateZ(17px)}
+.brand-symbol:before,.brand-symbol:after{content:"";position:absolute;inset:3px;border:1px solid var(--cyan);transform:translateZ(-2px) rotate(45deg);opacity:.5}
+.brand-symbol:after{inset:6px;border-color:#fff;transform:translateZ(-8px) rotate(-18deg);opacity:.28}
+.brand-emblem{display:none}
+.hero{isolation:isolate;background:#040608}
+.hero:after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.15;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:80px 80px;mask-image:linear-gradient(90deg,#000,transparent 80%);transform:translate3d(calc(var(--mx,0)*-10px),calc(var(--my,0)*-10px),0)}
+.hero-media{transform:scale(calc(1.04 + var(--scroll-p,0)*.08)) translate3d(calc(var(--mx,0)*-18px),calc(var(--my,0)*-12px),0);transition:transform .25s ease-out;will-change:transform,filter}
+.hero-shade{background:linear-gradient(90deg,rgba(0,0,0,.94),rgba(0,0,0,.6) 43%,rgba(0,0,0,.1) 82%),linear-gradient(0deg,rgba(0,0,0,.94),transparent 65%)}
+.hero-inner>*{animation:story-in 1s var(--ease) both}.hero-inner>.eyebrow{animation-delay:.12s}.hero-inner>.hero-copy{animation-delay:.22s}.hero-inner>.hero-index{animation-delay:.38s}
+@keyframes story-in{from{opacity:0;transform:translate3d(0,28px,0);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+.section{view-timeline-name:--story-section;view-timeline-axis:block}
+.section-head,.news-card,.media-card,.ai-rail article,.digital-wrap,.contact-card,.archive-live-card{animation:story-card linear both;animation-timeline:view();animation-range:entry 0% cover 30%}
+@keyframes story-card{from{opacity:.15;transform:translateY(42px) scale(.98);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+.news-section{background:radial-gradient(circle at 24% 20%,rgba(53,214,255,.07),transparent 30%),#070707}
+.media-section{background:linear-gradient(120deg,#080c10,#061019 50%,#080c10)}
+.media-card,.news-card,.archive-live-card{transition:transform .55s var(--ease),border-color .35s,box-shadow .55s var(--ease)}
+.media-card:hover,.news-card:hover,.archive-live-card:hover{transform:translateY(-7px) rotateX(1deg);border-color:rgba(53,214,255,.55);box-shadow:0 24px 70px rgba(0,0,0,.4),0 0 0 1px rgba(53,214,255,.08)}
+@media(max-width:720px){.brand-symbol{width:22px;height:22px}.hero:after{background-size:45px 45px}.hero-media{transform:scale(1.05)}.section-head,.news-card,.media-card,.ai-rail article,.digital-wrap,.contact-card,.archive-live-card{animation:none}}
+@media(prefers-reduced-motion:reduce){.story-transition{transition:none}.hero-inner>*{animation:none}.hero-media{transform:none}.section-head,.news-card,.media-card,.ai-rail article,.digital-wrap,.contact-card,.archive-live-card{animation:none}.media-card:hover,.news-card:hover,.archive-live-card:hover{transform:none}}

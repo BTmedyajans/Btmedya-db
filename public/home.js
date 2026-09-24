@@ -380,4 +380,46 @@
       hero.style.setProperty('--scroll-p', p.toFixed(3));
     }, {passive:true});
   }
+
+  /* Sinematik kimlik: sembol, imlecin yönünü takip eden küçük bir 3D obje
+     gibi davranır; dokunmatik ve reduced-motion cihazlarda pasif kalır. */
+  const logo = d.querySelector('[data-logo-3d]');
+  if (logo && !reduced && hover) {
+    logo.addEventListener('pointermove', e => {
+      const r = logo.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - .5;
+      const py = (e.clientY - r.top) / r.height - .5;
+      logo.style.transform = `perspective(260px) rotateX(${(-py * 28).toFixed(2)}deg) rotateY(${(px * 32).toFixed(2)}deg) scale3d(1.12,1.12,1.12)`;
+    });
+    logo.addEventListener('pointerleave', () => { logo.style.transform = ''; });
+  }
+
+  /* Storybeat: iç sayfa linkleri kapak gibi kapanır ve yeni sayfa açılır;
+     aynı sayfadaki anchor linkleri doğal scroll akışını korur. */
+  const transition = (href) => {
+    if (reduced) { window.location.href = href; return; }
+    d.body.classList.add('story-leave');
+    window.setTimeout(() => { window.location.href = href; }, 520);
+  };
+  d.querySelectorAll('a[href^="/"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const href = a.getAttribute('href');
+      if (!href || href === '/' || href.startsWith('/#') || a.target === '_blank' || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      transition(href);
+    });
+  });
+
+  /* Bölüm geçişlerinde renk tonu ve story etiketi güncellenir; bu, uzun ana
+     sayfada kullanıcıya haber → medya → AI akışını sürekli hissettirir. */
+  const beats = [...d.querySelectorAll('main > section[id]')];
+  if ('IntersectionObserver' in window && beats.length) {
+    const beatObserver = new IntersectionObserver(entries => entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      d.body.dataset.story = en.target.id;
+      const accent = en.target.id === 'ai-lab' ? '#ff3040' : en.target.id === 'digital' ? '#35d6ff' : '#35d6ff';
+      d.body.style.setProperty('--story-accent', accent);
+    }), {threshold:.45});
+    beats.forEach(section => beatObserver.observe(section));
+  }
 })();
