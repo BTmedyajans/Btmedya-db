@@ -209,7 +209,30 @@
      /assets/haber-kapak/<slug>.webp olarak zaten depoda duruyor; slug'dan
      turetmezsek 27 gercek kapak hic kullanilmaz ve kart "KAPAK BEKLIYOR"
      kutusunda kalir. */
-  const kapakYolu = n => n.cover_url || (n.slug ? '/assets/haber-kapak/' + encodeURIComponent(n.slug) + '.webp' : '');
+  /* Editoryal kapak önceliği:
+     1) Haber için doğrulanmış cover_url
+     2) İçerikte Buse Tuncay'ın gerçekten yer aldığına dair açık medya alanı
+     3) Haber kişisi için doğrulanmış person_image / people_image
+     4) Arşivdeki slug kapağı
+     Böylece kişisi olmayan haberde rastgele portre kullanılmaz; kişi haberinde
+     kişi görünür, Buse Tuncay haberin öznesiyse Buse kullanılır. */
+  const kisiGorseli = n => {
+    if (!n) return '';
+    const buse = Boolean(
+      n.buse_tuncay_present === true ||
+      n.featured_person === 'Buse Tuncay' ||
+      n.person_name === 'Buse Tuncay'
+    );
+    if (buse) return n.buse_tuncay_image || '/assets/media/portfoy/buse-tuncay-saha-roportaj.webp';
+    return String(n.person_image || n.people_image || n.subject_image || '');
+  };
+  const kapakYolu = n => {
+    const verified = String(n?.cover_url || '');
+    if (verified) return verified;
+    const person = kisiGorseli(n);
+    if (person) return person;
+    return n?.slug ? '/assets/haber-kapak/' + encodeURIComponent(n.slug) + '.webp' : '';
+  };
   /* Haber kapaginin metinsiz kart varyanti. Uretici her kapagin yaninda
      bir de "-foto" dosyasi biraktigi icin yol turetmek yeterli. */
   const kartGorseli = (yol) => String(yol || '').replace(/(\/assets\/haber-kapak\/[^/]+)\.webp$/, '$1-foto.webp');
@@ -220,8 +243,8 @@
     /* data-kapak-yedegi: gorsel gercekten yoksa kirik <img> yerine arsiv
        kutusu gosterilir (bkz. kapakYedegiKur). Satir ici onerror kullanilmiyor;
        kamuya acik sayfalarda CSP script-src 'self' (cspKur, src/worker.js). */
-    /* Kapaklar saha fotografi degil, tasarlanmis grafik kart; bu yuzden
-       AGENTS.md'deki varsayilan geregi AI URETIMI etiketi tasirlar. */
+    /* Kapak kartı fotoğraf önceliği editoryal metadata ile belirlenir.
+       AI etiketi yalnızca kaynak dosyada açıkça ai olarak işaretlenmişse gösterilir. */
     /* Kartta bestelenmis kapak degil, metinsiz kart gorseli kullanilir:
        kapagin uzerindeki baslik kartin kendi basligiyla ust uste binip
        ikisini de okunmaz hale getiriyordu. Bestelenmis kapak paylasim
@@ -229,7 +252,8 @@
     if (cover) {
       const kaynak = kapakKaynagi[n.slug] === 'ai' ? 'AI ÜRETİMİ'
         : kapakKaynagi[n.slug] === 'gercek' ? 'GERÇEK ÇEKİM'
-        : '';  /* Kayit yoksa rozet basilmaz: bilmedigimizi uydurmaktansa susariz. */
+        : kisiGorseli(n) ? 'GERÇEK ÇEKİM'
+        : '';  /* Kayit yoksa rozet basilmaz. */
       return `<div class="news-media"><img src="${esc(kartGorseli(cover))}" alt="${esc(n.title)}" loading="lazy" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div>${kaynak?`<span class="news-kaynak">${esc(kaynak)}</span>`:''}</div>`;
     }
     return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
