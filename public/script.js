@@ -679,3 +679,37 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadArchive,{once:true});else loadArchive();
 })();
+
+/* BTMEDYA page transition: category-aware, lightweight, no framework */
+(function(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const style=document.createElement('style');
+  style.textContent='.bt-page-transition{position:fixed;inset:0;z-index:100000;background:#05080d;display:grid;place-items:center;opacity:0;pointer-events:none;transition:opacity .28s ease}.bt-page-transition.is-on{opacity:1;pointer-events:auto}.bt-page-transition img{width:min(52vw,520px);height:min(68vh,680px);object-fit:cover;filter:saturate(.9) contrast(1.05);transform:scale(.94);transition:transform .7s cubic-bezier(.2,.75,.2,1)}.bt-page-transition.is-on img{transform:scale(1)}.bt-page-transition .bt-transition-label{position:absolute;left:24px;bottom:24px;font:700 11px Jet,monospace;letter-spacing:.16em;color:#d6a84a}.bt-page-transition .bt-transition-line{position:absolute;left:24px;top:24px;font:600 10px Jet,monospace;letter-spacing:.13em;color:#91a0ad}@media(max-width:700px){.bt-page-transition img{width:72vw;height:58vh}.bt-page-transition .bt-transition-label{left:16px;bottom:16px}}';
+  document.head.appendChild(style);
+  const overlay=document.createElement('div');
+  overlay.className='bt-page-transition';
+  overlay.innerHTML='<img alt=""><div class="bt-transition-line">BTMEDYA / NEXT WORLD</div><div class="bt-transition-label">GEÇİŞ HAZIRLANIYOR</div>';
+  document.body.appendChild(overlay);
+  const img=overlay.querySelector('img');
+  const map=[
+    [/haber/i,'/assets/media/portfoy/buse-tuncay-sunucu-kirmizi.webp','01 / HABER'],
+    [/portfoy|medya|studio/i,'/assets/media/portfoy/buse-tuncay-saha-roportaj.webp','03 / MEDYA'],
+    [/ai-lab|ai/i,'/assets/media/ai-lab/btmedya-siber-sunucu-02.webp','04 / AI LAB'],
+    [/iletisim|hakkimizda/i,'/assets/media/portfoy/buse-tuncay-portre-01.webp','BTMEDYA']
+  ];
+  function go(a,e){
+    const href=a.getAttribute('href');
+    if(!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || a.target==='_blank') return;
+    const match=map.find(x=>x[0].test(href));
+    if(!match) return;
+    e.preventDefault();
+    img.src=match[1];
+    overlay.querySelector('.bt-transition-label').textContent=match[2];
+    overlay.classList.add('is-on');
+    setTimeout(()=>{window.location.href=href},380);
+  }
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('a');
+    if(a) go(a,e);
+  },true);
+})();
