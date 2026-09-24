@@ -394,6 +394,25 @@
     logo.addEventListener('pointerleave', () => { logo.style.transform = ''; });
   }
 
+  /* Bento yüzeyleri: referans videodaki havada duran kart hissi. Hareket
+     yalnızca gerçek mouse cihazında çalışır ve kartın kendi sınırlarında
+     kalır; dokunmatik ve reduced-motion akışları sabit kalır. */
+  if (!reduced && hover) {
+    d.querySelectorAll('.news-card,.media-card,.archive-live-card').forEach(card => {
+      card.addEventListener('pointermove', e => {
+        const r = card.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - .5;
+        const py = (e.clientY - r.top) / r.height - .5;
+        card.style.setProperty('--card-rx', `${(-py * 5).toFixed(2)}deg`);
+        card.style.setProperty('--card-ry', `${(px * 7).toFixed(2)}deg`);
+      }, {passive:true});
+      card.addEventListener('pointerleave', () => {
+        card.style.removeProperty('--card-rx');
+        card.style.removeProperty('--card-ry');
+      });
+    });
+  }
+
   /* Storybeat: iç sayfa linkleri kapak gibi kapanır ve yeni sayfa açılır;
      aynı sayfadaki anchor linkleri doğal scroll akışını korur. */
   const transition = (href) => {
