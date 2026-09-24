@@ -198,6 +198,10 @@
   const newsGrid = d.getElementById('newsGrid');
   const filterBar = d.getElementById('newsFilter');
   let allNews = [];
+  /* Kapak karesinin kaynagi (gercek cekim / AI uretimi). Uretici
+     tools/haber-kapagi.py bu dosyayi kapak havuzundan turetir; rozet
+     kodda sabit durmadigi icin kare degisince etiket de degisir. */
+  let kapakKaynagi = {};
 
   const dateText = item => item.original_date || (item.published_at ? new Date(item.published_at).toLocaleDateString('tr-TR') : '');
   /* Kapak kurali haber detay sayfasiyla ayni olmali (src/news-page.js:57).
@@ -222,7 +226,12 @@
        kapagin uzerindeki baslik kartin kendi basligiyla ust uste binip
        ikisini de okunmaz hale getiriyordu. Bestelenmis kapak paylasim
        gorseli (og:image) ve makale sayfasi kunyesi olarak kaliyor. */
-    if (cover) return `<div class="news-media"><img src="${esc(kartGorseli(cover))}" alt="${esc(n.title)}" loading="lazy" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div></div>`;
+    if (cover) {
+      const kaynak = kapakKaynagi[n.slug] === 'ai' ? 'AI ÜRETİMİ'
+        : kapakKaynagi[n.slug] === 'gercek' ? 'GERÇEK ÇEKİM'
+        : '';  /* Kayit yoksa rozet basilmaz: bilmedigimizi uydurmaktansa susariz. */
+      return `<div class="news-media"><img src="${esc(kartGorseli(cover))}" alt="${esc(n.title)}" loading="lazy" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div>${kaynak?`<span class="news-kaynak">${esc(kaynak)}</span>`:''}</div>`;
+    }
     return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
   };
   const storyMedia = n => {
@@ -278,6 +287,10 @@
   };
 
   const loadNews = async () => {
+    try {
+      const r = await fetch('/data/haber-kapak-kaynagi.json', {headers:{accept:'application/json'}});
+      if (r.ok) kapakKaynagi = await r.json();
+    } catch { kapakKaynagi = {}; }
     try {
       const r = await fetch('/api/news?limit=100', {headers:{accept:'application/json'}});
       if (!r.ok) throw new Error('api');

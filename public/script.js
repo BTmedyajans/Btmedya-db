@@ -692,8 +692,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.body.appendChild(overlay);
   let img=null;
   const map=[
-    [/(^|\/)haber/i,'/assets/media/portfoy/buse-tuncay-sunucu-kirmizi.webp','01 / HABER'],
-    [/(^|\/)(portfoy|medya|studio)/i,'/assets/media/portfoy/buse-tuncay-saha-roportaj.webp','03 / MEDYA'],
+    [/(^|\/)haber/i,'/assets/media/portfoy/buse-tuncay-saha-roportaj.webp','01 / HABER'],
+    [/(^|\/)(portfoy|medya|studio)/i,'/assets/media/portfoy/buse-tuncay-kamera-arkasi.webp','03 / MEDYA'],
     [/(^|\/|#)ai-lab/i,'/assets/media/ai-lab/btmedya-siber-sunucu-02.webp','04 / AI LAB'],
     [/(^|\/)(iletisim|hakkimizda)/i,'/assets/media/portfoy/buse-tuncay-portre-01.webp','BTMEDYA']
   ];

@@ -250,6 +250,25 @@ def havuz():
         return {k["ad"]: k for k in json.load(f)}
 
 
+def kaynak_dosyasi(kareler, plan_kayitlari):
+    """Her haberin kapak karesinin kaynagini (gercek cekim / AI uretimi)
+    diske yazar.
+
+    Rozeti kodun icine sabitlemek yanlis beyana aciktir: kapak karesi
+    degistiginde etiket eskisi gibi kalir. Havuzun 'gercek' alani tek
+    dogruluk kaynagi; site bu dosyayi okuyup rozeti ona gore basar."""
+    kayit = {}
+    for h in plan_kayitlari:
+        kare = kareler.get(h.get("foto") or "")
+        kayit[h["slug"]] = "gercek" if (kare and kare.get("gercek")) else "ai"
+    yol = os.path.join(KOK, "public", "data", "haber-kapak-kaynagi.json")
+    with open(yol, "w", encoding="utf-8") as f:
+        json.dump(kayit, f, ensure_ascii=False, indent=1, sort_keys=True)
+        f.write("\n")
+    g = sum(1 for v in kayit.values() if v == "gercek")
+    return len(kayit), g
+
+
 if __name__ == "__main__":
     istenen = set(sys.argv[1:])
     hedef = os.path.join(KOK, "public", "assets", "haber-kapak")
@@ -278,3 +297,5 @@ if __name__ == "__main__":
         print(f"  {'F' if foto else ' '} {h['slug'][:40]:42} {boyut/1024:>5.0f} KB{kb}")
     print(f"\n  {n} kapak uretildi ({fotolu} fotografli, {n-fotolu} editoryal).")
     print(f"  {fotolu} metinsiz kart gorseli uretildi.")
+    toplam, gercek = kaynak_dosyasi(kareler, plan())
+    print(f"  haber-kapak-kaynagi.json: {toplam} kayit ({gercek} gercek cekim).")

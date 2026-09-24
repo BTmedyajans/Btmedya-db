@@ -1,12 +1,5 @@
 [
  {
-  "ad": "sunucu",
-  "yol": "public/assets/media/portfoy/buse-tuncay-sunucu-kirmizi.webp",
-  "ust": 0.3,
-  "kunye": "BTMEDYA",
-  "gercek": false
- },
- {
   "ad": "portre-sb",
   "yol": "public/assets/media/portfoy/buse-tuncay-portre-siyah-beyaz.webp",
   "ust": 0.28,

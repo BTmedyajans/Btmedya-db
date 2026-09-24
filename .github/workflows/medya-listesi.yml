@@ -16,6 +16,10 @@ on:
       - "tools/gerileme-denetimi.mjs"
       - "src/worker.js"
       - "public/**/*.css"
+      - "public/index.html"
+      - "public/data/haber-kapak-plani.json"
+      - "public/data/kapak-fotograflari.json"
+      - "public/data/haber-kapak-kaynagi.json"
   workflow_dispatch:
 
 permissions:
