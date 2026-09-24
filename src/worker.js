@@ -861,7 +861,12 @@ function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
   return {aspect,uygun,uygunsuz,siteUyarisi};
 }
 
-export default { async fetch(request, env, ctx){
+export default {
+  async scheduled(event, env, ctx){
+    const task=scanNewsSources(env,NEWS_FEEDS.map(x=>x.id));
+    if(ctx?.waitUntil) ctx.waitUntil(task); else await task;
+  },
+  async fetch(request, env, ctx){
   const url = new URL(request.url);
 
   if(url.hostname.startsWith('www.')){
