@@ -1,405 +1,406 @@
 [
- {
-  "path": "haber-kapak/acikogretim-lisesi-ikinci-bir-sans-mi-yeni-zorluklar-mi.webp",
-  "id": "static-1",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-ali-suuri-pazari-nda-fiyatlar-ne-durumda.webp",
-  "id": "static-2",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-de-berber-ve-kuafor-fiyatlari-el-yakiyor.webp",
-  "id": "static-3",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-de-dugunlerin-vazgecilmez-dans-sarkilari.webp",
-  "id": "static-4",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-de-genclik-asisi-estetik-dunyasini-buyuluyor.webp",
-  "id": "static-5",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-de-kira-fiyatlarinda-30-artis-bekleniyor.webp",
-  "id": "static-6",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-de-yaz-sicaklariyla-vantilator-satislari-patladi.webp",
-  "id": "static-7",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-emniyet-7-13-eylul-2026-faaliyetleri.webp",
-  "id": "static-8",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-esnafi-eleman-bulmakta-zorlaniyor.webp",
-  "id": "static-9",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-in-en-kalabalik-pazari.webp",
-  "id": "static-10",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-in-gelin-ayakkabilari-ve-kina-terlikleri-modasi.webp",
-  "id": "static-11",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-in-gururu-memleketinde-sov-yapacak.webp",
-  "id": "static-12",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-in-son-kalaycisi-ilyas-baykal.webp",
-  "id": "static-13",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-meyhaneler-bogazi-nda-pide-fiyatlari-ne-kadar.webp",
-  "id": "static-14",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-muay-thai-de-dunya-arenasinda.webp",
-  "id": "static-15",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/balikesir-pazarinda-canli-helva-sovu.webp",
-  "id": "static-16",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/beydonoglu-yaprak-satarken-festival-yonetiyor.webp",
-  "id": "static-17",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/diyetisyen-den-yaz-aylarinda-saglikli-beslenme-ve-hizli-zayiflama-sirlari.webp",
-  "id": "static-18",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/edremit-altinkum-kanalizasyon-altyapi-yatirimi.webp",
-  "id": "static-19",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/el-emegi-yorganlar-artik-isitmiyor.webp",
-  "id": "static-20",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/gayrimenkul-uzmani-uyardi.webp",
-  "id": "static-21",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/gunes-koruyucu-seciminde-cilt-tipine-ozel-tavsiyeler.webp",
-  "id": "static-22",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/igneli-epilasyonun-bilinmeyen-riskleri.webp",
-  "id": "static-23",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/kadin-firincidan-30-yillik-basari-oykusu.webp",
-  "id": "static-24",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/karesi-kocaavsar-orman-yangini-kontrol-altina-alindi.webp",
-  "id": "static-25",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/kiralik-evlerde-yeni-donem-basliyor.webp",
-  "id": "static-26",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/mangalin-yeni-gozdesi-istiridye-mantari.webp",
-  "id": "static-27",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/okul-doneminde-ayakkabicilar-carsisi-na-yogun-ilgi.webp",
-  "id": "static-28",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/sogan-tarlada-5-pazarda-15tl.webp",
-  "id": "static-29",
-  "category": "haber"
- },
- {
-  "path": "haber-kapak/uzmanlardan-kilo-alma-ve-verme-stratejileri.webp",
-  "id": "static-30",
-  "category": "haber"
- },
- {
-  "path": "hero-ending.jpg",
-  "id": "static-31",
-  "category": "hero"
- },
- {
-  "path": "hero-mobil-poster.jpg",
-  "id": "static-32",
-  "category": "hero"
- },
- {
-  "path": "hero-mobil.mp4",
-  "id": "static-33",
-  "category": "hero"
- },
- {
-  "path": "hero-mobil.webm",
-  "id": "static-34",
-  "category": "hero"
- },
- {
-  "path": "hero-poster.jpg",
-  "id": "static-35",
-  "category": "hero"
- },
- {
-  "path": "hero-scrub.mp4",
-  "id": "static-36",
-  "category": "hero"
- },
- {
-  "path": "hero-scrub.webm",
-  "id": "static-37",
-  "category": "hero"
- },
- {
-  "path": "media/ai-lab/ai-portre-havuz-01.webp",
-  "id": "static-38",
-  "category": "ai-lab"
- },
- {
-  "path": "media/ai-lab/ai-portre-havuz-02.webp",
-  "id": "static-39",
-  "category": "ai-lab"
- },
- {
-  "path": "media/ai-lab/ai-portre-studyo.webp",
-  "id": "static-40",
-  "category": "ai-lab"
- },
- {
-  "path": "media/ai-lab/btmedya-siber-sunucu-01.webp",
-  "id": "static-41",
-  "category": "ai-lab"
- },
- {
-  "path": "media/ai-lab/btmedya-siber-sunucu-02.webp",
-  "id": "static-42",
-  "category": "ai-lab"
- },
- {
-  "path": "media/ai-lab/btmedya-studyo-sunum-03.webp",
-  "id": "static-43",
-  "category": "ai-lab"
- },
- {
-  "path": "media/kurumsal/btmedya-haber-masasi.webp",
-  "id": "static-44",
-  "category": "medya"
- },
- {
-  "path": "media/kurumsal/btmedya-marka-kapak.webp",
-  "id": "static-45",
-  "category": "medya",
-  "gercek": true
- },
- {
-  "path": "media/kurumsal/btmedya-ofis-gun-batimi.webp",
-  "id": "static-46",
-  "category": "medya"
- },
- {
-  "path": "media/kurumsal/btmedya-studyo-pano.webp",
-  "id": "static-47",
-  "category": "medya"
- },
- {
-  "path": "media/portfoy/btmedya-saha-showreel.mp4",
-  "id": "static-48",
-  "category": "portfoy",
-  "gercek": true
- },
- {
-  "path": "media/portfoy/buse-tuncay-iletisim-fakultesi.webp",
-  "id": "static-49",
-  "category": "portfoy",
-  "gercek": true
- },
- {
-  "path": "media/portfoy/buse-tuncay-kamera-arkasi.webp",
-  "id": "static-50",
-  "category": "portfoy",
-  "gercek": true
- },
- {
-  "path": "media/portfoy/buse-tuncay-portre-01.webp",
-  "id": "static-51",
-  "category": "portfoy",
-  "gercek": true
- },
- {
-  "path": "media/portfoy/buse-tuncay-portre-02.webp",
-  "id": "static-52",
-  "category": "portfoy",
-  "gercek": true
- },
- {
-  "path": "media/portfoy/buse-tuncay-portre-03.webp",
-  "id": "static-53",
-  "category": "portfoy",
-  "gercek": true
- },
- {
-  "path": "media/portfoy/buse-tuncay-portre-04.webp",
-  "id": "static-54",
-  "category": "portfoy",
-  "gercek": true
- },
- {
-  "path": "media/portfoy/buse-tuncay-portre-05.webp",
-  "id": "static-55",
-  "category": "portfoy",
-  "gercek": true
- },
- {
-  "path": "media/portfoy/buse-tuncay-portre-siyah-beyaz.webp",
-  "id": "static-56",
-  "category": "portfoy",
-  "gercek": true
- },
- {
-  "path": "media/portfoy/buse-tuncay-saha-roportaj.webp",
-  "id": "static-57",
-  "category": "portfoy",
-  "gercek": true
- },
- {
-  "path": "media/portfoy/buse-tuncay-studyo-kelebek.webp",
-  "id": "static-58",
-  "category": "portfoy",
-  "gercek": true
- },
- {
-  "path": "media/portfoy/buse-tuncay-sunucu-kirmizi.webp",
-  "id": "static-59",
-  "category": "portfoy"
- },
- {
-  "path": "media/portfoy/buse-tuncay-yesil-perde-studyo.webp",
-  "id": "static-60",
-  "category": "portfoy",
-  "gercek": true
- },
- {
-  "path": "media/portfoy/portfoy-video-01.mp4",
-  "id": "static-61",
-  "category": "portfoy"
- },
- {
-  "path": "media/web/hero-story-mobile.mp4",
-  "id": "static-62",
-  "category": "video"
- },
- {
-  "path": "media/web/hero-story-poster.jpg",
-  "id": "static-63",
-  "category": "video"
- },
- {
-  "path": "media/web/hero-story.mp4",
-  "id": "static-64",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-07.mp4",
-  "id": "static-65",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-07.webm",
-  "id": "static-66",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-action.mp4",
-  "id": "static-67",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-action.webm",
-  "id": "static-68",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-fantasy.mp4",
-  "id": "static-69",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-fantasy.webm",
-  "id": "static-70",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-flying-reporter.mp4",
-  "id": "static-71",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-flying-reporter.webm",
-  "id": "static-72",
-  "category": "video"
- },
- {
-  "path": "media/web/state-haber.mp4",
-  "id": "static-73",
-  "category": "video"
- },
- {
-  "path": "media/web/state-medya.mp4",
-  "id": "static-74",
-  "category": "video"
- },
- {
-  "path": "media/web/state-produksiyon.mp4",
-  "id": "static-75",
-  "category": "video"
- },
- {
-  "path": "sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4",
-  "id": "static-76",
-  "category": "sosyal"
- },
- {
-  "path": "sosyal/balikesir-pazarinda-canli-helva-sovu-dikey.mp4",
-  "id": "static-77",
-  "category": "sosyal"
- },
- {
-  "path": "sosyal/el-emegi-yorganlar-artik-isitmiyor-dikey.mp4",
-  "id": "static-78",
-  "category": "sosyal"
- }
+  {
+    "path": "haber-kapak/acikogretim-lisesi-ikinci-bir-sans-mi-yeni-zorluklar-mi.webp",
+    "id": "static-1",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-ali-suuri-pazari-nda-fiyatlar-ne-durumda.webp",
+    "id": "static-2",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-berber-ve-kuafor-fiyatlari-el-yakiyor.webp",
+    "id": "static-3",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-dugunlerin-vazgecilmez-dans-sarkilari.webp",
+    "id": "static-4",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-genclik-asisi-estetik-dunyasini-buyuluyor.webp",
+    "id": "static-5",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-kira-fiyatlarinda-30-artis-bekleniyor.webp",
+    "id": "static-6",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-de-yaz-sicaklariyla-vantilator-satislari-patladi.webp",
+    "id": "static-7",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-emniyet-7-13-eylul-2026-faaliyetleri.webp",
+    "id": "static-8",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-esnafi-eleman-bulmakta-zorlaniyor.webp",
+    "id": "static-9",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-in-en-kalabalik-pazari.webp",
+    "id": "static-10",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-in-gelin-ayakkabilari-ve-kina-terlikleri-modasi.webp",
+    "id": "static-11",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-in-gururu-memleketinde-sov-yapacak.webp",
+    "id": "static-12",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-in-son-kalaycisi-ilyas-baykal.webp",
+    "id": "static-13",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-meyhaneler-bogazi-nda-pide-fiyatlari-ne-kadar.webp",
+    "id": "static-14",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-muay-thai-de-dunya-arenasinda.webp",
+    "id": "static-15",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/balikesir-pazarinda-canli-helva-sovu.webp",
+    "id": "static-16",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/beydonoglu-yaprak-satarken-festival-yonetiyor.webp",
+    "id": "static-17",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/diyetisyen-den-yaz-aylarinda-saglikli-beslenme-ve-hizli-zayiflama-sirlari.webp",
+    "id": "static-18",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/edremit-altinkum-kanalizasyon-altyapi-yatirimi.webp",
+    "id": "static-19",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/el-emegi-yorganlar-artik-isitmiyor.webp",
+    "id": "static-20",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/gayrimenkul-uzmani-uyardi.webp",
+    "id": "static-21",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/gunes-koruyucu-seciminde-cilt-tipine-ozel-tavsiyeler.webp",
+    "id": "static-22",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/igneli-epilasyonun-bilinmeyen-riskleri.webp",
+    "id": "static-23",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/kadin-firincidan-30-yillik-basari-oykusu.webp",
+    "id": "static-24",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/karesi-kocaavsar-orman-yangini-kontrol-altina-alindi.webp",
+    "id": "static-25",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/kiralik-evlerde-yeni-donem-basliyor.webp",
+    "id": "static-26",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/mangalin-yeni-gozdesi-istiridye-mantari.webp",
+    "id": "static-27",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/okul-doneminde-ayakkabicilar-carsisi-na-yogun-ilgi.webp",
+    "id": "static-28",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/sogan-tarlada-5-pazarda-15tl.webp",
+    "id": "static-29",
+    "category": "haber"
+  },
+  {
+    "path": "haber-kapak/uzmanlardan-kilo-alma-ve-verme-stratejileri.webp",
+    "id": "static-30",
+    "category": "haber"
+  },
+  {
+    "path": "hero-ending.jpg",
+    "id": "static-31",
+    "category": "hero"
+  },
+  {
+    "path": "hero-mobil-poster.jpg",
+    "id": "static-32",
+    "category": "hero"
+  },
+  {
+    "path": "hero-mobil.mp4",
+    "id": "static-33",
+    "category": "hero"
+  },
+  {
+    "path": "hero-mobil.webm",
+    "id": "static-34",
+    "category": "hero"
+  },
+  {
+    "path": "hero-poster.jpg",
+    "id": "static-35",
+    "category": "hero"
+  },
+  {
+    "path": "hero-scrub.mp4",
+    "id": "static-36",
+    "category": "hero"
+  },
+  {
+    "path": "hero-scrub.webm",
+    "id": "static-37",
+    "category": "hero"
+  },
+  {
+    "path": "media/ai-lab/ai-portre-havuz-01.webp",
+    "id": "static-38",
+    "category": "ai-lab"
+  },
+  {
+    "path": "media/ai-lab/ai-portre-havuz-02.webp",
+    "id": "static-39",
+    "category": "ai-lab"
+  },
+  {
+    "path": "media/ai-lab/ai-portre-studyo.webp",
+    "id": "static-40",
+    "category": "ai-lab"
+  },
+  {
+    "path": "media/ai-lab/btmedya-siber-sunucu-01.webp",
+    "id": "static-41",
+    "category": "ai-lab"
+  },
+  {
+    "path": "media/ai-lab/btmedya-siber-sunucu-02.webp",
+    "id": "static-42",
+    "category": "ai-lab"
+  },
+  {
+    "path": "media/ai-lab/btmedya-studyo-sunum-03.webp",
+    "id": "static-43",
+    "category": "ai-lab"
+  },
+  {
+    "path": "media/kurumsal/btmedya-haber-masasi.webp",
+    "id": "static-44",
+    "category": "medya"
+  },
+  {
+    "path": "media/kurumsal/btmedya-marka-kapak.webp",
+    "id": "static-45",
+    "category": "medya",
+    "gercek": true
+  },
+  {
+    "path": "media/kurumsal/btmedya-ofis-gun-batimi.webp",
+    "id": "static-46",
+    "category": "medya"
+  },
+  {
+    "path": "media/kurumsal/btmedya-studyo-pano.webp",
+    "id": "static-47",
+    "category": "medya"
+  },
+  {
+    "path": "media/portfoy/btmedya-saha-showreel.mp4",
+    "id": "static-48",
+    "category": "portfoy",
+    "gercek": true
+  },
+  {
+    "path": "media/portfoy/buse-tuncay-iletisim-fakultesi.webp",
+    "id": "static-49",
+    "category": "portfoy",
+    "gercek": true
+  },
+  {
+    "path": "media/portfoy/buse-tuncay-kamera-arkasi.webp",
+    "id": "static-50",
+    "category": "portfoy",
+    "gercek": true
+  },
+  {
+    "path": "media/portfoy/buse-tuncay-portre-01.webp",
+    "id": "static-51",
+    "category": "portfoy",
+    "gercek": true
+  },
+  {
+    "path": "media/portfoy/buse-tuncay-portre-02.webp",
+    "id": "static-52",
+    "category": "portfoy",
+    "gercek": true
+  },
+  {
+    "path": "media/portfoy/buse-tuncay-portre-03.webp",
+    "id": "static-53",
+    "category": "portfoy",
+    "gercek": true
+  },
+  {
+    "path": "media/portfoy/buse-tuncay-portre-04.webp",
+    "id": "static-54",
+    "category": "portfoy",
+    "gercek": true
+  },
+  {
+    "path": "media/portfoy/buse-tuncay-portre-05.webp",
+    "id": "static-55",
+    "category": "portfoy",
+    "gercek": true
+  },
+  {
+    "path": "media/portfoy/buse-tuncay-portre-siyah-beyaz.webp",
+    "id": "static-56",
+    "category": "portfoy",
+    "gercek": true
+  },
+  {
+    "path": "media/portfoy/buse-tuncay-saha-roportaj.webp",
+    "id": "static-57",
+    "category": "portfoy",
+    "gercek": true
+  },
+  {
+    "path": "media/portfoy/buse-tuncay-studyo-kelebek.webp",
+    "id": "static-58",
+    "category": "portfoy",
+    "gercek": true
+  },
+  {
+    "path": "media/portfoy/buse-tuncay-sunucu-kirmizi.webp",
+    "id": "static-59",
+    "category": "portfoy",
+    "gercek": true
+  },
+  {
+    "path": "media/portfoy/buse-tuncay-yesil-perde-studyo.webp",
+    "id": "static-60",
+    "category": "portfoy",
+    "gercek": true
+  },
+  {
+    "path": "media/portfoy/portfoy-video-01.mp4",
+    "id": "static-61",
+    "category": "portfoy"
+  },
+  {
+    "path": "media/web/hero-story-mobile.mp4",
+    "id": "static-62",
+    "category": "video"
+  },
+  {
+    "path": "media/web/hero-story-poster.jpg",
+    "id": "static-63",
+    "category": "video"
+  },
+  {
+    "path": "media/web/hero-story.mp4",
+    "id": "static-64",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-07.mp4",
+    "id": "static-65",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-07.webm",
+    "id": "static-66",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-action.mp4",
+    "id": "static-67",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-action.webm",
+    "id": "static-68",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-fantasy.mp4",
+    "id": "static-69",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-fantasy.webm",
+    "id": "static-70",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-flying-reporter.mp4",
+    "id": "static-71",
+    "category": "video"
+  },
+  {
+    "path": "media/web/showreel-flying-reporter.webm",
+    "id": "static-72",
+    "category": "video"
+  },
+  {
+    "path": "media/web/state-haber.mp4",
+    "id": "static-73",
+    "category": "video"
+  },
+  {
+    "path": "media/web/state-medya.mp4",
+    "id": "static-74",
+    "category": "video"
+  },
+  {
+    "path": "media/web/state-produksiyon.mp4",
+    "id": "static-75",
+    "category": "video"
+  },
+  {
+    "path": "sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4",
+    "id": "static-76",
+    "category": "sosyal"
+  },
+  {
+    "path": "sosyal/balikesir-pazarinda-canli-helva-sovu-dikey.mp4",
+    "id": "static-77",
+    "category": "sosyal"
+  },
+  {
+    "path": "sosyal/el-emegi-yorganlar-artik-isitmiyor-dikey.mp4",
+    "id": "static-78",
+    "category": "sosyal"
+  }
 ]
