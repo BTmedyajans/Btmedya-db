@@ -75,7 +75,8 @@ jobs:
           echo "Cloudflare'daki btmedya-media D1 kaynağı bulunuyor..."
           npx wrangler d1 list --json > /tmp/d1-list.json
 
-          node <<'NODE'
+          configured_id="$(grep -E '^database_id = "' wrangler.toml | head -n1 | sed -E 's/.*"([^\"]+)".*/\1/')"
+          CONFIGURED_D1_ID="$configured_id" node <<'NODE'
           const fs = require("fs");
           const raw = JSON.parse(fs.readFileSync("/tmp/d1-list.json", "utf8"));
           const list =
@@ -87,14 +88,19 @@ jobs:
           const matches = list.filter(x =>
             (x.name ?? x.database_name) === "btmedya-media"
           );
+          const configured = process.env.CONFIGURED_D1_ID;
+          const preferred = matches.filter(x =>
+            (x.uuid ?? x.id ?? x.database_id) === configured
+          );
+          const selected = preferred.length === 1 ? preferred : matches;
 
-          if (matches.length !== 1) {
+          if (selected.length !== 1) {
             console.error("btmedya-media için benzersiz bir D1 kaynağı bulunamadı.");
             console.error(JSON.stringify(matches, null, 2));
             process.exit(1);
           }
 
-          const db = matches[0];
+          const db = selected[0];
           const id = db.uuid ?? db.id ?? db.database_id;
           if (!id) {
             console.error("D1 kaydında UUID/ID alanı bulunamadı.");
