@@ -55,7 +55,6 @@ export function renderNewsPage(n, origin, vlib){
   const vid=(vlib&&(vlib.own_youtube_id||vlib.youtube_id))||kaynakVid;
   const kanal=vlib?(vlib.own_youtube_id?'BTMEDYA':(vlib.source_channel||'')):'';
   const kapak=n.cover_url || `${origin}/assets/haber-kapak/${encodeURIComponent(n.slug)}.webp`;
-  const kapakFoto = kapak.replace(/(\/assets\/haber-kapak\/[^/]+)\.webp$/, '$1-foto.webp');
   const tarihTr=n.original_date||trTarih(n.published_at);
   const tarihIso=isoTarih(n.published_at);
   const durumNotu=String(n.archive_note||'');
@@ -75,13 +74,20 @@ export function renderNewsPage(n, origin, vlib){
     "@context":"https://schema.org","@type":"NewsArticle",
     headline:n.title, description:ozet, url,
     ...(tarihIso?{datePublished:tarihIso,dateModified:isoTarih(n.updated_at)||tarihIso}:{}),
-    author:{"@type":"Person",name:n.author||'BTMEDYA'},
+    author:(n.author&&/buse\s+tuncay/i.test(n.author))?{"@type":"Person",name:n.author,url:`${origin}/portfoy/buse-tuncay/`}:{"@type":"Organization",name:n.author||'BTMEDYA',url:origin},
     publisher:{"@type":"Organization",name:"BTMEDYA",
       logo:{"@type":"ImageObject",url:`${origin}/assets/btmedya-emblem-derived.png`}},
     ...(n.category?{articleSection:n.category}:{}),
     ...(ogImg?{image:ogImg}:{}),
     mainEntityOfPage:{"@type":"WebPage","@id":url},
     inLanguage:"tr-TR", wordCount:String(n.body||"").trim().split(/\\s+/).filter(Boolean).length
+  };
+  const breadcrumbLd={
+    "@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+      {"@type":"ListItem","position":1,"name":"BTMEDYA","item":origin+"/"},
+      {"@type":"ListItem","position":2,"name":"Haberler","item":origin+"/haberler/"},
+      {"@type":"ListItem","position":3,"name":n.title,"item":url}
+    ]
   };
 
   /* Kapak karesi YouTube'un kendi CDN'inden gelir; oynatici yuklenmez. */
@@ -95,8 +101,8 @@ ${kanal?`<p class="video-credit">Video ${esc(kanal)} kanalında yayında. <a hre
 
   const kapakBlok = kapak ? `
 <figure class="article-cover-wrap">
-  <img class="article-cover" src="${esc(kapakFoto)}" alt="${esc(n.title)}" loading="eager" decoding="async" width="1000" height="1000">
-  <figcaption>BTMEDYA · Haber: Buse Tuncay</figcaption>
+  <img class="article-cover" src="${esc(kapak)}" alt="${esc(n.title)}" loading="eager" decoding="async" width="1200" height="675">
+  <figcaption>BTMEDYA · Haber: ${esc(n.author||"BTMEDYA")}</figcaption>
 </figure>` : '';
 
   // Videolu haberler icin VideoObject: Google video aramasinda gorunur olur.
