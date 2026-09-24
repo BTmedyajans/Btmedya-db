@@ -354,14 +354,9 @@ function rssItems(xml){
   } return out;
 }
 function newsSlug(title,link){let base=String(title||'haber').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,100)||'haber';let h=0;for(const ch of String(link||'')){h=((h<<5)-h+ch.charCodeAt(0))|0}return base+'-'+Math.abs(h)}
-async function newsFinderApi(request,env,url){
-  if(!url.pathname.startsWith('/api/admin/news-finder')) return null;
-  if(!(await validSession(request,env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
-  if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
-  if(request.method==='GET') return json({ok:true,feeds:NEWS_FEEDS.map(x=>({id:x.id,name:x.name,category:x.category})),openai:!!env.OPENAI_API_KEY});
-  if(request.method!=='POST') return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,POST'});
-  const body=await request.json().catch(()=>({})); const feedIds=Array.isArray(body.feeds)&&body.feeds.length?body.feeds:NEWS_FEEDS.map(x=>x.id);
-  const feeds=NEWS_FEEDS.filter(x=>feedIds.includes(x.id)); const found=[];
+async function scanNewsSources(env,feedIds){
+  const feeds=NEWS_FEEDS.filter(x=>!feedIds||feedIds.includes(x.id)); const found=[];
+  if(!env.DB) return found;
   for(const feed of feeds){try{
     const r=await fetch(feed.url,{headers:{accept:'application/rss+xml, application/xml, text/xml, text/html','user-agent':'BTMEDYA-NewsFinder/1.0'},redirect:'follow'}); if(!r.ok) continue;
     for(const item of rssItems(await r.text()).slice(0,20)){
@@ -372,6 +367,16 @@ async function newsFinderApi(request,env,url){
       found.push({slug,title:item.title,source:item.link,category:feed.category,date:item.date||null});
     }
   }catch(e){}}
+  return found;
+}
+async function newsFinderApi(request,env,url){
+  if(!url.pathname.startsWith('/api/admin/news-finder')) return null;
+  if(!(await validSession(request,env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
+  if(request.method==='GET') return json({ok:true,feeds:NEWS_FEEDS.map(x=>({id:x.id,name:x.name,category:x.category})),openai:!!env.OPENAI_API_KEY});
+  if(request.method!=='POST') return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,POST'});
+  const body=await request.json().catch(()=>({})); const feedIds=Array.isArray(body.feeds)&&body.feeds.length?body.feeds:NEWS_FEEDS.map(x=>x.id);
+  const found=await scanNewsSources(env,feedIds);
   return json({ok:true,count:found.length,items:found});
 }
 async function aiDraftApi(request,env,url){
