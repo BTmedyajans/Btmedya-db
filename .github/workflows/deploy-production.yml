@@ -73,4 +73,8 @@ jobs:
           test "$www_status" = "301"
 
           curl -fsS --max-time 30 https://btmedya.com.tr/robots.txt | grep -Fq 'Sitemap: https://btmedya.com.tr/sitemap.xml'
+          curl -fsS --max-time 30 https://btmedya.com.tr/robots.txt | grep -Fq 'Sitemap: https://btmedya.com.tr/news-sitemap.xml'
           curl -fsS --max-time 30 https://btmedya.com.tr/sitemap.xml | grep -Fq '<urlset'
+          news_sitemap="$(curl -fsS --max-time 30 https://btmedya.com.tr/news-sitemap.xml)"
+          printf '%s' "$news_sitemap" | grep -Fq 'sitemap-news/0.9'
+          printf '%s' "$news_sitemap" | grep -Fq '<urlset'

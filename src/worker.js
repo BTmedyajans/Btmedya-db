@@ -844,11 +844,11 @@ export default { async fetch(request, env, ctx){
     return new Response(obj.body,{headers:{'content-type':obj.httpMetadata?.contentType||'application/octet-stream','cache-control':'public, max-age=86400'}});
   }
 
-  if(url.pathname === '/news-sitemap.xml' && request.method === 'GET'){
+  if(url.pathname === '/news-sitemap.xml' && (request.method === 'GET' || request.method === 'HEAD')){
     return dinamikNewsSitemap(request, env);
   }
 
-  if(url.pathname === '/sitemap.xml' && request.method === 'GET'){
+  if(url.pathname === '/sitemap.xml' && (request.method === 'GET' || request.method === 'HEAD')){
     return dinamikSitemap(request, env);
   }
 
@@ -1008,7 +1008,7 @@ async function dinamikSitemap(request, env) {
     const fallback = await env.ASSETS.fetch(new Request(new URL('/sitemap.xml', url.origin)));
     if (!env.DB || !fallback.ok) return fallback;
     const rows = await env.DB.prepare(
-      "SELECT slug, published_at, updated_at FROM news WHERE status='published' ORDER BY published_at DESC"
+      "SELECT slug, published_at, updated_at, cover_url FROM news WHERE status='published' ORDER BY published_at DESC"
     ).all();
     const escXml = value => String(value ?? '')
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -1023,10 +1023,14 @@ async function dinamikSitemap(request, env) {
     }).map(row => {
       const loc = `${url.origin}/haberler/${encodeURIComponent(row.slug)}`;
       const date = String(row.updated_at || row.published_at || '').slice(0, 10);
-      return `  <url><loc>${escXml(loc)}</loc>${/^\\d{4}-\\d{2}-\\d{2}$/.test(date) ? `<lastmod>${date}</lastmod>` : ''}</url>`;
+      const cover = String(row.cover_url || '').trim();
+      const image = cover ? `<image:image><image:loc>${escXml(/^https?:\\/\\//i.test(cover) ? cover : `${url.origin}${cover.startsWith('/') ? cover : `/${cover}`}`)}</image:loc></image:image>` : '';
+      return `  <url><loc>${escXml(loc)}</loc>${/^\\d{4}-\\d{2}-\\d{2}$/.test(date) ? `<lastmod>${date}</lastmod>` : ''}${image}</url>`;
     });
     const body = additions.length
-      ? xml.replace('</urlset>', `${additions.join('\\n')}\\n</urlset>`)
+      ? (additions.some(addition => addition.includes('<image:image>')) && !xml.includes('xmlns:image=')
+          ? xml.replace('<urlset', '<urlset xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"')
+          : xml).replace('</urlset>', `${additions.join('\\n')}\\n</urlset>`)
       : xml;
     return new Response(body, { status: 200, headers: {
       'content-type': 'application/xml; charset=utf-8',
