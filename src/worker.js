@@ -844,6 +844,10 @@ export default { async fetch(request, env, ctx){
     return new Response(obj.body,{headers:{'content-type':obj.httpMetadata?.contentType||'application/octet-stream','cache-control':'public, max-age=86400'}});
   }
 
+  if(url.pathname === '/sitemap.xml' && request.method === 'GET'){
+    return dinamikSitemap(request, env);
+  }
+
   if(url.pathname.startsWith('/api/')){
     const rw = await workflowApi(request, env, url);
     if(rw) return rw;
@@ -992,6 +996,41 @@ function onbellek(pathname) {
   if (/\.(?:css|js)$/i.test(pathname))
     return 'public, max-age=3600, must-revalidate';
   return 'public, max-age=300, must-revalidate';
+}
+
+async function dinamikSitemap(request, env) {
+  const url = new URL(request.url);
+  const fallback = await env.ASSETS.fetch(new Request(new URL('/sitemap.xml', url.origin), request));
+  if (!env.DB || !fallback.ok) return fallback;
+  try {
+    const rows = await env.DB.prepare(
+      "SELECT slug, published_at, updated_at FROM news WHERE status='published' ORDER BY published_at DESC"
+    ).all();
+    const escXml = value => String(value ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+    const xml = await fallback.text();
+    const known = new Set([...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => match[1]));
+    const additions = (rows.results || []).filter(row => row.slug).filter(row => {
+      const loc = `${url.origin}/haberler/${encodeURIComponent(row.slug)}`;
+      if (known.has(loc)) return false;
+      known.add(loc);
+      return true;
+    }).map(row => {
+      const loc = `${url.origin}/haberler/${encodeURIComponent(row.slug)}`;
+      const date = String(row.updated_at || row.published_at || '').slice(0, 10);
+      return `  <url><loc>${escXml(loc)}</loc>${/^\\d{4}-\\d{2}-\\d{2}$/.test(date) ? `<lastmod>${date}</lastmod>` : ''}</url>`;
+    });
+    if (!additions.length) return fallback;
+    const body = xml.replace('</urlset>', `${additions.join('\\n')}\\n</urlset>`);
+    return new Response(body, { status: 200, headers: {
+      'content-type': 'application/xml; charset=utf-8',
+      'cache-control': 'public, max-age=300, must-revalidate'
+    }});
+  } catch (error) {
+    console.error('[sitemap] dynamic merge failed:', error);
+    return fallback;
+  }
 }
 
 async function servisEt(request, env) {
