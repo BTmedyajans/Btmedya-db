@@ -483,3 +483,38 @@
     beats.forEach(section => beatObserver.observe(section));
   }
 })();
+
+/* BT WORLD NAVIGATOR */
+(function(){
+  const stage=document.querySelector('[data-world-stage]');
+  if(!stage) return;
+  const frame=stage.querySelector('[data-world-image]');
+  const kicker=stage.querySelector('[data-world-kicker]');
+  const title=stage.querySelector('[data-world-title]');
+  const source=stage.querySelector('[data-world-source]');
+  const detail=stage.querySelector('[data-world-detail]');
+  const tabs=[...stage.querySelectorAll('[data-world]')];
+  function activate(tab){
+    tabs.forEach(t=>{const active=t===tab;t.classList.toggle('is-active',active);t.setAttribute('aria-selected',active?'true':'false');});
+    stage.dataset.world=tab.dataset.world;
+    stage.querySelector('.bt-world-visual').classList.add('is-changing');
+    window.setTimeout(()=>{
+      frame.style.backgroundImage='url("'+tab.dataset.image+'")';
+      kicker.textContent=tab.dataset.kicker||'';
+      title.textContent=tab.dataset.title||'';
+      source.textContent=tab.dataset.source||'';
+      detail.textContent=tab.dataset.desc||'';
+      stage.querySelector('.bt-world-visual').classList.remove('is-changing');
+    },180);
+  }
+  activate(tabs[0]);
+  tabs.forEach(tab=>{
+    tab.addEventListener('mouseenter',()=>activate(tab));
+    tab.addEventListener('focus',()=>activate(tab));
+    tab.addEventListener('click',()=>{
+      const link=tab.dataset.link;
+      if(link && link.startsWith('#')) document.querySelector(link)?.scrollIntoView({behavior:'smooth',block:'start'});
+      else if(link) window.location.href=link;
+    });
+  });
+})();
