@@ -518,3 +518,95 @@
     });
   });
 })();
+
+/* ===== CINEMATIC HERO STORY ENGINE ===== */
+(function(){
+  const root=document.querySelector('.cinematic-hero');
+  if(!root) return;
+  const sticky=root.querySelector('.cinematic-sticky');
+  const videos=[...root.querySelectorAll('.cinematic-video')];
+  const ai=root.querySelector('.cinematic-ai-visual');
+  const title=root.querySelector('[data-cinematic-title]');
+  const kicker=root.querySelector('[data-cinematic-kicker]');
+  const lead=root.querySelector('[data-cinematic-lead]');
+  const index=root.querySelector('[data-cinematic-index]');
+  const progressEl=root.querySelector('[data-cinematic-progress]');
+  const label=root.querySelector('[data-cinematic-label]');
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const mobile=()=>window.innerWidth<=720;
+  const scenes=[
+    {key:'hero',k:'01 / GİRİŞ · GERÇEK ÇEKİM',t:'GERÇEK<br><span>GÖRÜNTÜ.</span>',d:'Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.'},
+    {key:'haber',k:'02 / HABER · SAHA',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
+    {key:'medya',k:'03 / MEDYA · İÇERİK',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için gerçek üretim.'},
+    {key:'produksiyon',k:'04 / PRODÜKSİYON',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
+    {key:'ai',k:'05 / AI LAB · AÇIK ETİKET',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI üretimi ayrı, açık ve şeffaf bir laboratuvar olarak konumlanıyor.'}
+  ];
+  let active=-1, raf=0;
+  function loadVideo(v){
+    if(!v) return;
+    const el=v.querySelector('video');
+    if(!el || el.dataset.loaded) return;
+    const src=mobile() && el.dataset.mobile ? el.dataset.mobile : el.dataset.src;
+    if(!src) return;
+    el.dataset.loaded='1'; el.src=src; el.load();
+  }
+  function setScene(i,p){
+    const scene=scenes[i];
+    if(!scene) return;
+    if(i!==active){
+      active=i;
+      root.classList.remove('beat-haber','beat-medya','beat-produksiyon','beat-ai');
+      if(scene.key!=='hero') root.classList.add('beat-'+scene.key);
+      if(title){title.innerHTML=scene.t;title.animate([{opacity:.35,transform:'translateY(16px)'},{opacity:1,transform:'translateY(0)'}],{duration:420,easing:'cubic-bezier(.2,.75,.2,1)'})}
+      if(kicker) kicker.textContent=scene.k;
+      if(lead) lead.textContent=scene.d;
+      if(index) index.textContent=String(i+1).padStart(2,'0');
+      if(label) label.textContent=i===0?'SCROLL TO EXPLORE':scene.k;
+      videos.forEach((v,n)=>{
+        if(n===i) loadVideo(v);
+        const el=v.querySelector('video');
+        if(el && n!==i) el.pause();
+      });
+      if(i===4 && ai) ai.animate([{opacity:0,transform:'scale(1.08)'},{opacity:1,transform:'scale(1)'}],{duration:600,fill:'forwards',easing:'cubic-bezier(.2,.75,.2,1)'});
+    }
+    const seg=Math.min(0.999,Math.max(0,p))*scenes.length;
+    const local=seg-i;
+    videos.forEach((v,n)=>{
+      if(n>=scenes.length-1) return;
+      const target=n===i ? Math.max(.0,1-local*1.35) : n===i-1 ? Math.min(1,Math.max(0,(local-.05)*1.35)) : (n===0&&i===0?1:0);
+      v.style.opacity=n===i ? String(target) : (n===i-1?String(target):'0');
+      v.style.transform='scale('+(n===i ? (1.045-local*.045) : 1.06)+')';
+      v.classList.toggle('is-active',n===i);
+    });
+    if(ai) ai.style.opacity=i===4?String(Math.min(1,Math.max(0,(local-.02)*1.5))):'0';
+    if(progressEl) progressEl.style.width=(p*100)+'%';
+    root.style.setProperty('--hero-progress',p.toFixed(3));
+  }
+  function tick(){
+    raf=0;
+    const rect=root.getBoundingClientRect();
+    const travel=Math.max(1,root.offsetHeight-window.innerHeight);
+    const p=Math.min(1,Math.max(0,-rect.top/travel));
+    const scene=Math.min(scenes.length-1,Math.floor(p*scenes.length));
+    setScene(scene,p);
+    const x=parseFloat(root.style.getPropertyValue('--hero-mx')||0);
+    const y=parseFloat(root.style.getPropertyValue('--hero-my')||0);
+    if(sticky && !reduced) sticky.style.setProperty('--hero-mx',x.toFixed(3)),sticky.style.setProperty('--hero-my',y.toFixed(3));
+  }
+  const request=()=>{if(!raf) raf=requestAnimationFrame(tick)};
+  if(!reduced){
+    window.addEventListener('scroll',request,{passive:true});
+    window.addEventListener('resize',request,{passive:true});
+    sticky.addEventListener('pointermove',e=>{
+      const r=sticky.getBoundingClientRect();
+      root.style.setProperty('--hero-mx',(((e.clientX-r.left)/r.width)-.5).toFixed(3));
+      root.style.setProperty('--hero-my',(((e.clientY-r.top)/r.height)-.5).toFixed(3));
+    },{passive:true});
+    sticky.addEventListener('pointerleave',()=>{root.style.setProperty('--hero-mx','0');root.style.setProperty('--hero-my','0')},{passive:true});
+  } else {
+    root.style.height='100vh';
+    loadVideo(videos[0]);
+  }
+  setScene(0,0);
+  request();
+})();
