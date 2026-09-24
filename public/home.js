@@ -225,6 +225,20 @@
     if (cover) return `<div class="news-media"><img src="${esc(kartGorseli(cover))}" alt="${esc(n.title)}" loading="lazy" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div></div>`;
     return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
   };
+  const storyMedia = n => {
+    const yt = String(n.video_url || '').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+    return yt ? `https://i.ytimg.com/vi/${yt[1]}/hqdefault.jpg` : kartGorseli(kapakYolu(n));
+  };
+  const renderStoryLab = items => {
+    const root = d.getElementById('storyCards');
+    if (!root || !items.length) return;
+    const [main, side] = items.slice(0, 2);
+    const card = (n, extra) => `<article class="story-card ${extra}">
+      <img src="${esc(storyMedia(n))}" alt="${esc(n.title || 'BTMEDYA haber görseli')}" loading="lazy" decoding="async">
+      <div class="story-card-copy"><small>${esc(n.category || 'HABER')} · ${esc(dateText(n))}</small><h3>${esc(n.title || '')}</h3><p>${esc(String(n.excerpt || '').replace(/\s+/g, ' ').slice(0, 150))}</p><a href="/haberler/${encodeURIComponent(n.slug)}">Haberi aç ↗</a></div>
+    </article>`;
+    root.innerHTML = card(main, 'story-card-main') + (side ? card(side, 'story-card-side') : '');
+  };
   const render = (items) => {
     const list = items.slice(0, 9);
     newsGrid.innerHTML = list.map((n, i) => {
@@ -278,6 +292,7 @@
       }
     }
     render(allNews);
+    renderStoryLab(allNews);
   };
 
   filterBar?.addEventListener('click', e => {
@@ -379,6 +394,24 @@
       const p = Math.min(1, Math.max(0, window.scrollY / Math.max(1, hero.offsetHeight - window.innerHeight)));
       hero.style.setProperty('--scroll-p', p.toFixed(3));
     }, {passive:true});
+  }
+
+  const storyLab = d.querySelector('.story-lab');
+  if (storyLab && !reduced) {
+    let storyRaf = 0;
+    const updateStory = () => {
+      storyRaf = 0;
+      const rect = storyLab.getBoundingClientRect();
+      const travel = Math.max(1, storyLab.offsetHeight - window.innerHeight);
+      const progress = Math.min(1, Math.max(0, -rect.top / travel));
+      storyLab.style.setProperty('--story-progress', progress.toFixed(3));
+      storyLab.style.setProperty('--story-x', ((progress - .5) * 2).toFixed(3));
+      storyLab.style.setProperty('--story-y', (progress * 2 - 1).toFixed(3));
+    };
+    const requestStory = () => { if (!storyRaf) storyRaf = requestAnimationFrame(updateStory); };
+    window.addEventListener('scroll', requestStory, {passive:true});
+    window.addEventListener('resize', requestStory, {passive:true});
+    requestStory();
   }
 
   /* Sinematik kimlik: sembol, imlecin yönünü takip eden küçük bir 3D obje
