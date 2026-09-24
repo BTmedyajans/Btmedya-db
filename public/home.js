@@ -220,8 +220,9 @@
     if (!n) return '';
     const buse = Boolean(
       n.buse_tuncay_present === true ||
-      n.featured_person === 'Buse Tuncay' ||
-      n.person_name === 'Buse Tuncay'
+      /buse\s+tuncay/i.test(String(n.featured_person || '')) ||
+      /buse\s+tuncay/i.test(String(n.person_name || '')) ||
+      /buse\s+tuncay/i.test(String(n.author || ''))
     );
     if (buse) return n.buse_tuncay_image || '/assets/media/portfoy/buse-tuncay-saha-roportaj.webp';
     return String(n.person_image || n.people_image || n.subject_image || '');
