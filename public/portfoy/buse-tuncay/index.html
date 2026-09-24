@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05070a">
+<link rel="canonical" href="https://btmedya.com.tr/portfoy/buse-tuncay/">
+<title>Buse Tuncay | Gazeteci Portföyü — BTMEDYA</title>
+<meta name="description" content="Buse Tuncay gazeteci portföyü: saha muhabirliği, haber editörlüğü, video tasarımı, görsel tasarım ve SEO uyumlu içerik üretimi.">
+<meta property="og:type" content="profile">
+<meta property="og:title" content="Buse Tuncay | Gazeteci Portföyü">
+<meta property="og:description" content="Haber, saha, video ve görsel tasarım çalışmalarından seçilmiş arşiv.">
+<meta property="og:url" content="https://btmedya.com.tr/portfoy/buse-tuncay/">
+<meta property="og:image" content="https://btmedya.com.tr/assets/media/portfoy/buse-tuncay-saha-roportaj.webp">
+<link rel="preload" href="/assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/bricolage-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
+<link rel="stylesheet" href="/styles.css">
+<style>
+:root{--bt-red:#ff4038;--bt-line:#ffffff18;--bt-muted:#9ba6b5;--bt-panel:#0a0f16}
+body{background:#05070a}
+.cv-page{max-width:1440px;margin:auto;padding:28px 4vw 100px}
+.cv-hero{min-height:72vh;display:grid;grid-template-columns:1.15fr .85fr;gap:42px;align-items:end;padding:80px 0 52px;border-bottom:1px solid var(--bt-line)}
+.cv-kicker,.cv-tag{font-size:.7rem;letter-spacing:.16em;font-weight:800;color:#aeb8c7;text-transform:uppercase}
+.cv-hero h1{font-family:"Bricolage Grotesque","Space Grotesk",sans-serif;font-size:clamp(4rem,10vw,10rem);line-height:.78;letter-spacing:-.075em;margin:18px 0}
+.cv-hero h1 span{display:block;color:#fff}.cv-hero h1 .outline{color:transparent;-webkit-text-stroke:1px #dce3ec}
+.cv-lead{max-width:700px;color:#c8d0da;font-size:1.08rem;line-height:1.75}
+.cv-hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.cv-portrait{position:relative;min-height:540px;overflow:hidden;border:1px solid var(--bt-line);background:#0c1118}
+.cv-portrait img{width:100%;height:100%;min-height:540px;object-fit:cover;display:block}
+.cv-portrait figcaption{position:absolute;left:18px;bottom:18px;padding:9px 12px;background:#05070add;border:1px solid #ffffff22;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase}
+.cv-section{padding:78px 0;border-bottom:1px solid var(--bt-line)}
+.cv-head{display:flex;justify-content:space-between;gap:30px;align-items:end;margin-bottom:28px}.cv-head h2{font-family:"Bricolage Grotesque","Space Grotesk",sans-serif;font-size:clamp(2.7rem,6vw,6.5rem);line-height:.85;letter-spacing:-.065em;margin:8px 0}.cv-head p{max-width:520px;color:var(--bt-muted);line-height:1.7}
+.cv-about{display:grid;grid-template-columns:.75fr 1.25fr;gap:34px}.cv-facts{display:grid;gap:10px}.cv-fact{border:1px solid var(--bt-line);padding:18px;background:linear-gradient(145deg,#0e141c,#070a0f)}.cv-fact b{display:block;color:#fff;margin-bottom:6px}.cv-fact span{color:var(--bt-muted);font-size:.9rem;line-height:1.55}.cv-bio{font-size:1.08rem;line-height:1.9;color:#cbd3dd}.cv-bio strong{color:#fff}
+.cv-work-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.cv-work{display:flex;flex-direction:column;min-height:410px;border:1px solid var(--bt-line);background:#0a0f16;text-decoration:none;color:inherit;overflow:hidden}.cv-work img{width:100%;height:220px;object-fit:cover;display:block;filter:saturate(.92)}.cv-work-body{padding:20px}.cv-work-body h3{font-family:"Bricolage Grotesque","Space Grotesk",sans-serif;font-size:1.65rem;line-height:1;letter-spacing:-.04em;margin:10px 0}.cv-work-body p{color:var(--bt-muted);line-height:1.6;font-size:.9rem;margin:0 0 16px}.cv-work-meta{margin-top:auto;padding-top:10px;color:#dce3ec;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase}.cv-source{display:inline-flex;color:#ff817a;font-size:.75rem;margin-top:10px}
+.cv-proof{display:grid;grid-template-columns:1fr 1fr;gap:12px}.cv-proof-card{border:1px solid var(--bt-line);padding:26px;background:linear-gradient(145deg,#101721,#080b10)}.cv-proof-card h3{font-size:1.2rem;margin:0 0 10px}.cv-proof-card p{color:var(--bt-muted);line-height:1.7;margin:0}.cv-proof-card a{color:#fff}
+.cv-designs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.cv-designs img{width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid var(--bt-line)}
+.cv-bottom{display:flex;justify-content:space-between;align-items:end;gap:30px;padding-top:60px}.cv-bottom h2{font-family:"Bricolage Grotesque","Space Grotesk",sans-serif;font-size:clamp(3rem,8vw,8rem);line-height:.82;letter-spacing:-.07em;margin:0}.cv-bottom p{max-width:500px;color:var(--bt-muted);line-height:1.7}
+@media(max-width:900px){.cv-hero,.cv-about{grid-template-columns:1fr}.cv-portrait,.cv-portrait img{min-height:420px}.cv-work-grid{grid-template-columns:1fr 1fr}.cv-designs{grid-template-columns:1fr 1fr}.cv-bottom{display:block}}
+@media(max-width:620px){.cv-page{padding-left:18px;padding-right:18px}.cv-hero{padding-top:48px}.cv-work-grid,.cv-proof{grid-template-columns:1fr}.cv-head{display:block}.cv-section{padding:56px 0}.cv-hero h1{font-size:clamp(3.6rem,18vw,6rem)}}
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ProfilePage","name":"Buse Tuncay | Gazeteci Portföyü","url":"https://btmedya.com.tr/portfoy/buse-tuncay/","mainEntity":{"@type":"Person","name":"Buse Tuncay","jobTitle":"Gazeteci","sameAs":["https://www.instagram.com/busetuncayy10/","https://www.youtube.com/@BTmedyaAjans"]}}
+</script>
+</head>
+<body>
+<div class="noise" aria-hidden="true"></div>
+<header class="topbar">
+  <a class="brand" href="/" aria-label="BTMEDYA ana sayfa"><img src="/assets/btmedya-emblem-derived.png" alt="BTMEDYA" class="brand-emblem"><span class="brand-mark">BT</span><span class="brand-word">MEDYA</span></a>
+  <button class="menu-toggle" aria-controls="anaMenu" type="button" aria-label="Menüyü aç" aria-expanded="false">☰</button>
+  <a class="quote" href="/iletisim/">PROJE ANLAT ↗</a>
+</header>
+<nav id="anaMenu" class="site-menu" aria-label="Ana menü">
+  <a href="/">Ana Sayfa</a><a href="/#medya">Medya</a><a href="/#portfoy">Portföy</a><a href="/haberler/">Haberler</a><a href="/hakkimizda/">Hakkımızda</a><a href="/iletisim/">İletişim</a>
+  <div class="site-menu-alt"><a href="https://www.instagram.com/busetuncayy10/" target="_blank" rel="noopener">Instagram</a><a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube</a><span>Balıkesir · Türkiye</span></div>
+</nav>
+
+<main class="cv-page">
+<section class="cv-hero">
+  <div>
+    <div class="cv-kicker">BTMEDYA / GAZETECİ PORTFÖYÜ</div>
+    <h1><span>BUSE</span><span class="outline">TUNCAY</span><span>GAZETECİ.</span></h1>
+    <p class="cv-lead">1998 doğumlu ve Balıkesirli gazeteci. Gümüşhane Üniversitesi Radyo, Sinema ve Televizyon Bölümü mezunu. Medya sektöründe 7 yılı aşkın deneyim; haber editörlüğü, saha muhabirliği, görsel tasarım ve SEO uyumlu içerik üretimi.</p>
+    <div class="cv-hero-actions"><a class="button button-fill" href="#calismalar">Çalışmaları gör ↘</a><a class="button" href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube ↗</a></div>
+  </div>
+  <figure class="cv-portrait"><img src="/assets/media/portfoy/buse-tuncay-saha-roportaj.webp" alt="Buse Tuncay sahada röportaj yaparken" loading="eager"><figcaption>GERÇEK ÇEKİM · SAHA MUHABİRLİĞİ</figcaption></figure>
+</section>
+
+<section class="cv-section" id="hakkimda">
+  <div class="cv-head"><div><div class="cv-kicker">01 / HAKKIMDA</div><h2>SAHADAN<br>HİKÂYE.</h2></div><p>Özgeçmişte yer alan mesleki profil, eğitim ve beceriler BTMEDYA'nın gazetecilik vitrini içinde tek bir akışta toplandı.</p></div>
+  <div class="cv-about">
+    <div class="cv-facts">
+      <div class="cv-fact"><b>Meslek</b><span>Gazeteci · Muhabir · Editör · Grafik Tasarım</span></div>
+      <div class="cv-fact"><b>Deneyim</b><span>Medya sektöründe 7 yılı aşkın deneyim</span></div>
+      <div class="cv-fact"><b>Eğitim</b><span>Gümüşhane Üniversitesi · Radyo, Sinema ve Televizyon · Lisans</span></div>
+      <div class="cv-fact"><b>Ek eğitim</b><span>Anadolu Üniversitesi · Halkla İlişkiler ve Reklamcılık</span></div>
+    </div>
+    <div class="cv-bio">Haber editörlüğü, saha muhabirliği, görsel tasarım ve SEO uyumlu içerik üretiminde uzmanlaştım. Premiere, After Effects ve Photoshop gibi araçlarla yaratıcı ve dikkat çekici medya içerikleri ürettim. <strong>Gazetecilikte kalite ve özgünlüğü her zaman ön planda tuttum.</strong></div>
+  </div>
+</section>
+
+<section class="cv-section" id="calismalar">
+  <div class="cv-head"><div><div class="cv-kicker">02 / ÖZGEÇMİŞTEN SEÇİLMİŞ İŞLER</div><h2>HABER.<br>GÖRÜNTÜ.</h2></div><p>Aşağıdaki çalışmalar CV'de kaynaklarıyla birlikte yer alan haber ve video üretimleridir. BTMEDYA'da yeniden tam metin kopyalamak yerine kısa çalışma özeti ve özgün yayın bağlantısı gösterilir.</p></div>
+  <div class="cv-work-grid">
+    <a class="cv-work" href="https://www.eminbuldan.tv/video-8697-muay-thai-takimi-boyle-yetisiyor.html" target="_blank" rel="noopener nofollow">
+      <img src="/assets/haber-kapak/balikesir-muay-thai-de-dunya-arenasinda.webp" alt="Muay Thai haber çalışması">
+      <div class="cv-work-body"><span class="cv-tag">VİDEO / MUHABİR + VİDEO TASARIM</span><h3>Muay Thai Takımı Böyle Yetişiyor</h3><p>CV'de muhabirlik ve video tasarımı birlikte üstlenilen haber çalışması olarak listeleniyor.</p><span class="cv-source">Özgün yayın: Emin Buldan TV ↗</span></div>
+    </a>
+    <a class="cv-work" href="https://gazetemerhaba.com/15-yasindaki-berkay-balikesir-pazarinin-gozdesi/" target="_blank" rel="noopener nofollow">
+      <img src="/assets/media/portfoy/buse-tuncay-saha-roportaj.webp" alt="Buse Tuncay saha röportajı">
+      <div class="cv-work-body"><span class="cv-tag">SAHA / YAZIM + VİDEO</span><h3>15 Yaşındaki Berkay</h3><p>Balıkesir pazarındaki genç esnaf hikâyesi. CV'de muhabirlik, video tasarımı ve yazım çalışması olarak yer alıyor.</p><span class="cv-source">Özgün yayın: Gazete Merhaba ↗</span></div>
+    </a>
+    <a class="cv-work" href="https://gazetemerhaba.com/balikesirli-salvar-sever" target="_blank" rel="noopener nofollow">
+      <img src="/assets/media/portfoy/buse-tuncay-portre-02.webp" alt="Buse Tuncay portre">
+      <div class="cv-work-body"><span class="cv-tag">SAHA / GÖRÜNTÜLÜ HABER</span><h3>Balıkesirli Şalvar Sever</h3><p>Balıkesir kırsalındaki şalvar ve kumaş kültürünü ele alan, CV'de muhabirlik, video tasarımı ve yazımıyla belirtilen çalışma.</p><span class="cv-source">Özgün yayın: Gazete Merhaba ↗</span></div>
+    </a>
+    <a class="cv-work" href="https://gazetemerhaba.com/balikesirde-unlu-mermer-fabrikasi-kapandi" target="_blank" rel="noopener nofollow">
+      <img src="/assets/portfoy-youtube/3CVoXU2xaWI.webp" alt="Assos Mermer Fabrikası haber videosu">
+      <div class="cv-work-body"><span class="cv-tag">ÖZEL HABER / VİDEO</span><h3>Mermer Fabrikası Kapandı</h3><p>İşçilerin yaşadığı sorunları konu alan haber. CV'de muhabirlik, video tasarımı ve yazımıyla listeleniyor.</p><span class="cv-source">Özgün yayın: Gazete Merhaba ↗</span></div>
+    </a>
+    <a class="cv-work" href="https://gazetemerhaba.com/el-emegi-yorganlar-artik-isitmiyor" target="_blank" rel="noopener nofollow">
+      <img src="/assets/haber-kapak/el-emegi-yorganlar-artik-isitmiyor.webp" alt="El Emeği Yorganlar Artık Isıtmıyor haber kapağı">
+      <div class="cv-work-body"><span class="cv-tag">KÜLTÜR / ZANAAT / VİDEO</span><h3>El Emeği Yorganlar Artık Isıtmıyor</h3><p>Unutulmaya yüz tutan yorgancılık mesleğini ele alan görüntülü haber.</p><span class="cv-source">Özgün yayın: Gazete Merhaba ↗</span></div>
+    </a>
+    <a class="cv-work" href="https://gazetemerhaba.com/balikesir-sokaklarinda-bando-gelenegi-yok-mu/" target="_blank" rel="noopener nofollow">
+      <img src="/assets/media/portfoy/buse-tuncay-kamera-arkasi.webp" alt="Buse Tuncay kamera arkası">
+      <div class="cv-work-body"><span class="cv-tag">ÖZEL HABER</span><h3>Bando Geleneği</h3><p>Balıkesir sokaklarında bando geleneğinin kaybolma riski üzerine özel haber çalışması.</p><span class="cv-source">Özgün yayın: Gazete Merhaba ↗</span></div>
+    </a>
+    <a class="cv-work" href="https://gazetemerhaba.com/balikesirden-aldigi-enerjiyi-notalara-dokuyor/" target="_blank" rel="noopener nofollow">
+      <img src="/assets/media/portfoy/buse-tuncay-studyo-kelebek.webp" alt="Buse Tuncay medya çalışması">
+      <div class="cv-work-body"><span class="cv-tag">KÜLTÜR / MÜZİK</span><h3>Enerjiyi Notalara Dökmek</h3><p>Balıkesirli sanatçı Tansu Aydalga'nın sokak müziği yolculuğunu anlatan haber.</p><span class="cv-source">Özgün yayın: Gazete Merhaba ↗</span></div>
+    </a>
+    <a class="cv-work" href="https://gazetemerhaba.com/balikesirde-dugun-hazirligi-yapanlara-mujde/" target="_blank" rel="noopener nofollow">
+      <img src="/assets/media/portfoy/buse-tuncay-portre-03.webp" alt="Buse Tuncay medya çalışması">
+      <div class="cv-work-body"><span class="cv-tag">YAŞAM / GÖRÜNTÜLÜ HABER</span><h3>Düğün Hazırlığı</h3><p>Gelinlik ve abiye sezon sonu kampanyasını konu alan haber çalışması.</p><span class="cv-source">Özgün yayın: Gazete Merhaba ↗</span></div>
+    </a>
+  </div>
+</section>
+
+<section class="cv-section">
+  <div class="cv-head"><div><div class="cv-kicker">03 / KANIT & ARŞİV</div><h2>GERÇEK<br>İŞLER.</h2></div><p>BTMEDYA arşivinde Buse Tuncay imzalı haberler ayrıca korunuyor. Video portföyü de aynı sayfadan doğrudan YouTube'a açılıyor.</p></div>
+  <div class="cv-proof">
+    <div class="cv-proof-card"><h3>BTMEDYA Haber Arşivi</h3><p>Muay Thai, El Emeği Yorganlar ve başka saha çalışmaları BTMEDYA haber arşivinde yazar bilgisiyle yer alıyor.</p><a href="/haberler/">Haber arşivini aç ↗</a></div>
+    <div class="cv-proof-card"><h3>YouTube / Gerçek Video</h3><p>CV'de yer alan video üretim çizgisinin devamı olarak kanal portföyünde haber, prodüksiyon ve reklam işleri ayrı kategorilerde tutuluyor.</p><a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">Kanalı aç ↗</a></div>
+  </div>
+</section>
+
+<section class="cv-section">
+  <div class="cv-head"><div><div class="cv-kicker">04 / GÖRSEL TASARIM</div><h2>HABER<br>KAPAKLARI.</h2></div><p>Özgeçmişin 7. sayfasında yer alan haber kapak tasarımlarını BTMEDYA'nın gerçek üretim portföyü içinde ayrı bir görsel alan olarak konumlandırdım.</p></div>
+  <div class="cv-designs">
+    <img src="/assets/haber-kapak/karesi-kocaavsar-orman-yangini-kontrol-altina-alindi-foto.webp" alt="BTMEDYA haber kapağı örneği" loading="lazy">
+    <img src="/assets/haber-kapak/balikesir-muay-thai-de-dunya-arenasinda.webp" alt="Haber kapağı örneği" loading="lazy">
+    <img src="/assets/haber-kapak/el-emegi-yorganlar-artik-isitmiyor.webp" alt="Haber kapağı örneği" loading="lazy">
+    <img src="/assets/portfoy-youtube/3CVoXU2xaWI.webp" alt="Video haber kapağı örneği" loading="lazy">
+  </div>
+</section>
+
+<section class="cv-bottom">
+  <div><div class="cv-kicker">05 / BİRLİKTE ÇALIŞALIM</div><h2>HİKÂYENİ<br>ANLAT.</h2></div>
+  <div><p>Özgeçmişteki iletişim bilgileriyle BTMEDYA üzerinden haber, medya, video ve dijital projeler için iletişime geçebilirsiniz.</p><a class="button button-fill" href="/iletisim/">İletişime geç ↗</a></div>
+</section>
+</main>
+<footer class="final-footer">
+  <div class="footer-brand"><img src="/assets/btmedya-emblem-derived.png" alt="BTMEDYA"><div><strong>BTMEDYA</strong><span>Haber · medya · prodüksiyon · AI LAB</span></div></div>
+  <div class="footer-contact"><a href="tel:+905416401029">+90 541 640 10 29</a><a href="mailto:busetuncay74@gmail.com">busetuncay74@gmail.com</a></div>
+  <div class="footer-social"><a href="https://www.instagram.com/busetuncayy10/" target="_blank" rel="noopener">Instagram</a><a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube</a><a href="/haberler/">Haberler</a></div>
+  <div class="footer-legal">© 2026 BTMEDYA</div>
+</footer>
+<script src="/script.js"></script>
+</body>
+</html>
