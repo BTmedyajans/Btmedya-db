@@ -54,6 +54,15 @@ jobs:
           grep -Fq 'WhatsApp' /tmp/home.html
           grep -Fq 'home.js' /tmp/home.html
           grep -Fq 'mobile-fixes.css' /tmp/home.html
+          grep -Fq 'Balıkesir Haber, Medya, Prodüksiyon ve AI' /tmp/home.html
+          grep -Fq 'name="robots" content="index,follow' /tmp/home.html
+          grep -Fq 'rel="manifest" href="/site.webmanifest"' /tmp/home.html
+          grep -Fq '"@type":"WebPage"' /tmp/home.html
+          grep -Fq '/haberler/karesi-kocaavsar-orman-yangini-kontrol-altina-alindi' /tmp/home.html
+          curl -fsS --max-time 20 https://btmedya.com.tr/haberler/karesi-kocaavsar-orman-yangini-kontrol-altina-alindi > /tmp/article.html
+          grep -Fq '"@type":"NewsArticle"' /tmp/article.html
+          grep -Fq '"@type":"BreadcrumbList"' /tmp/article.html
+          grep -Fq 'rel="canonical"' /tmp/article.html
 
       - name: Check public media API
         run: |
