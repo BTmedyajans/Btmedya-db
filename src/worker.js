@@ -126,6 +126,20 @@ async function clearRateLimit(env, ip){
   if(!env.KV) return;
   await env.KV.delete(`ratelimit:login:${ip}`).catch(()=>{});
 }
+async function recordAutomationHeartbeat(env){
+  const now=new Date().toISOString();
+  let queued=0, overdue=0;
+  if(env.DB){
+    try{
+      const row=await env.DB.prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN scheduled_at IS NOT NULL AND scheduled_at<=? AND status='planlandi' THEN 1 ELSE 0 END) AS overdue FROM social_posts WHERE status='planlandi'").bind(now).first();
+      queued=Number(row?.total||0);
+      overdue=Number(row?.overdue||0);
+    }catch(e){ console.warn('[automation] queue health skipped',e?.message||e); }
+  }
+  const snapshot={ok:true,cron:'*/30 * * * *',heartbeatAt:now,queued,overdue,providers:socialProviderStatus(env)};
+  if(env.KV) await env.KV.put('automation:heartbeat',JSON.stringify(snapshot),{expirationTtl:86400}).catch(()=>{});
+  return snapshot;
+}
 function safeKey(name){ return name.normalize('NFKD').replace(/[^\w.\-]+/g,'-').replace(/-+/g,'-').replace(/^[-.]+|[-.]+$/g,'').toLowerCase(); }
 function extFromMime(mime){ const map={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/webm':'webm','audio/mpeg':'mp3','audio/wav':'wav','audio/mp4':'m4a','application/pdf':'pdf'}; return map[mime]||'bin'; }
 const ALLOWED_MIME = new Set(['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','audio/mpeg','audio/wav','audio/mp4','application/pdf']);
@@ -344,12 +358,18 @@ async function newsApi(request, env, url){
 async function controlCenterApi(request, env, url){
   if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
   if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  let automation={configured:true,cron:'*/30 * * * *',lastHeartbeat:null};
+  if(env.KV){
+    const raw=await env.KV.get('automation:heartbeat').catch(()=>null);
+    if(raw) try{ automation={...automation,...JSON.parse(raw)}; }catch{}
+  }
   return json({
     ok:true,
     service:'BTMEDYA Control Center',
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db'},
     storage:{d1:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA},
     admin:{configured:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
+    automation,
     social:socialProviderStatus(env),
     socialLinks:[
       {key:'instagram',label:'Instagram @btmedyajans',url:'https://www.instagram.com/btmedyajans/',note:'Görsel profil ve Reels kanalı'},
@@ -810,7 +830,10 @@ function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
   return {aspect,uygun,uygunsuz,siteUyarisi};
 }
 
-export default { async scheduled(controller, env, ctx){ console.log('[btmedya] scheduled tick', controller?.cron || 'cron'); }, async fetch(request, env, ctx){
+export default { async scheduled(controller, env, ctx){
+  const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
+  if(ctx?.waitUntil) ctx.waitUntil(task); else await task;
+}, async fetch(request, env, ctx){
   const url = new URL(request.url);
 
   if(url.hostname.startsWith('www.')){
