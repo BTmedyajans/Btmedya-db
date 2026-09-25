@@ -50,6 +50,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: latest
           command: d1 migrations apply btmedya-media --remote
 
       - name: Wait for Cloudflare Workers Build
