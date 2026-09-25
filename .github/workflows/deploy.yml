@@ -20,6 +20,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare release marker
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, datetime
+          payload = {
+              "commit": os.environ["GITHUB_SHA"],
+              "built_at": datetime.datetime.now(datetime.timezone.utc).isoformat()
+          }
+          with open("public/release.json", "w", encoding="utf-8") as f:
+              json.dump(payload, f, ensure_ascii=False, separators=(",", ":"))
+          PY
+
       - name: Deploy Worker
         id: deploy
         env:
@@ -45,10 +58,29 @@ jobs:
           fi
 
       - name: Production smoke test
+        env:
+          EXPECTED_COMMIT: ${{ github.sha }}
         run: |
           set -euo pipefail
+
           test "$(curl -L -s -o /dev/null -w "%{http_code}" --max-time 30 https://btmedya.com.tr/)" = "200"
           test "$(curl -L -s -o /dev/null -w "%{http_code}" --max-time 30 https://btmedya.com.tr/kaynak-masasi/)" = "200"
+          test "$(curl -L -s -o /dev/null -w "%{http_code}" --max-time 30 https://btmedya.com.tr/robots.txt)" = "200"
+          test "$(curl -L -s -o /dev/null -w "%{http_code}" --max-time 30 https://btmedya.com.tr/sitemap.xml)" = "200"
+
+          release="$(curl -L -s --max-time 30 https://btmedya.com.tr/release.json)"
+          echo "$release"
+          echo "$release" | grep -q "\"commit\":\"$EXPECTED_COMMIT\""
+
           health="$(curl -L -s --max-time 30 https://btmedya.com.tr/api/health)"
           echo "$health"
           echo "$health" | grep -q '"ok":true'
+
+          media="$(curl -L -s --max-time 30 "https://btmedya.com.tr/api/public/media?limit=40")"
+          echo "$media" | grep -q '"items"'
+          ! echo "$media" | grep -Eiq '\\.(trashed|tmp|temp)(-|/)|thumbs\\.db'
+
+          home="$(curl -L -s --max-time 30 https://btmedya.com.tr/)"
+          echo "$home" | grep -q 'GERÇEK ÇEKİM'
+          echo "$home" | grep -q 'AI ÜRETİMİ'
+          echo "$home" | grep -q 'Kaynak Masası'
