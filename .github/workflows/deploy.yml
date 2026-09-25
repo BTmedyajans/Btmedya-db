@@ -21,6 +21,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Source preflight
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate source and assets
+        run: |
+          set -euo pipefail
+          test -s src/worker.js
+          test -s wrangler.toml
+          test -s public/index.html
+          test -s public/robots.txt
+          test -s public/sitemap.xml
+          node --check src/worker.js
+          python3 tools/validate-assets.py
+
       - name: Wait for Cloudflare Workers Build
         uses: actions/github-script@v7
         with:
