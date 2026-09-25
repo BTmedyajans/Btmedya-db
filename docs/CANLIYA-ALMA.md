@@ -2,6 +2,8 @@
 
 Bu depo BTMEDYA'nın üretim kaynağıdır. `main` dalı Cloudflare Workers Builds tarafından `btmedya-db` Worker'ına deploy edilir.
 
+
+> **Kimlik doğrulama notu:** Production runtime accepts the current *_SECRET names and the older ADMIN_PASSWORD / ADMIN_SESSION_SECRET names for compatibility. Prefer ADMIN_PASSWORD_SECRET and ADMIN_SESSION_SECRET_SECRET in new deployments.
 ## Mevcut üretim mimarisi
 
 | Bileşen | Durum |
