@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  checks: read
 
 concurrency:
   group: btmedya-production-deploy
@@ -15,51 +16,39 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy btmedya-db to Cloudflare Workers
+    name: Verify Cloudflare Workers Build and production
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare release marker
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import json, os, datetime
-          payload = {
-              "commit": os.environ["GITHUB_SHA"],
-              "built_at": datetime.datetime.now(datetime.timezone.utc).isoformat()
-          }
-          with open("public/release.json", "w", encoding="utf-8") as f:
-              json.dump(payload, f, ensure_ascii=False, separators=(",", ":"))
-          PY
-
-      - name: Deploy Worker
-        id: deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          set +e
-          npx --yes wrangler@4 deploy --keep-vars
-          status=$?
-          set -e
-
-          # A known historical issue is an externally-managed www DNS record
-          # causing Wrangler to return non-zero after the Worker upload succeeds.
-          # Accept that partial result only when the new production page is live.
-          if [ "$status" -ne 0 ]; then
-            echo "Wrangler returned $status; checking production deployment."
-            code=$(curl -L -s -o /tmp/source-desk.html -w "%{http_code}" --max-time 30 https://btmedya.com.tr/kaynak-masasi/)
-            if [ "$code" = "200" ] && grep -q "Kaynak Masası" /tmp/source-desk.html; then
-              echo "Production content is live despite a post-upload Wrangler warning."
-              exit 0
-            fi
-            exit "$status"
-          fi
+      - name: Wait for Cloudflare Workers Build
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const target = 'Workers Builds: btmedya-db';
+            const sha = context.sha;
+            const deadline = Date.now() + 10 * 60 * 1000;
+            while (Date.now() < deadline) {
+              const { data } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: sha,
+                per_page: 100
+              });
+              const check = data.check_runs.find(x => x.name === target && x.head_sha === sha);
+              if (check?.status === 'completed') {
+                if (check.conclusion !== 'success') {
+                  core.setFailed(`Cloudflare Workers Build başarısız: ${check.conclusion || 'bilinmiyor'}`);
+                } else {
+                  core.notice('Cloudflare Workers Build başarılı.');
+                }
+                return;
+              }
+              await new Promise(r => setTimeout(r, 10000));
+            }
+            core.setFailed('Cloudflare Workers Build 10 dakika içinde sonuçlanmadı.');
 
       - name: Production smoke test
-        env:
-          EXPECTED_COMMIT: ${{ github.sha }}
         run: |
           set -euo pipefail
 
@@ -68,15 +57,13 @@ jobs:
           test "$(curl -L -s -o /dev/null -w "%{http_code}" --max-time 30 https://btmedya.com.tr/robots.txt)" = "200"
           test "$(curl -L -s -o /dev/null -w "%{http_code}" --max-time 30 https://btmedya.com.tr/sitemap.xml)" = "200"
 
-          release="$(curl -L -s --max-time 30 https://btmedya.com.tr/release.json)"
-          echo "$release"
-          echo "$release" | grep -q "\"commit\":\"$EXPECTED_COMMIT\""
-
           health="$(curl -L -s --max-time 30 https://btmedya.com.tr/api/health)"
           echo "$health"
           echo "$health" | grep -q '"ok":true'
+          echo "$health" | grep -q '"cms":true'
+          echo "$health" | grep -q '"r2":true'
 
-          media="$(curl -L -s --max-time 30 "https://btmedya.com.tr/api/public/media?limit=40")"
+          media="$(curl -L -s --max-time 30 "https://btmedya.com.tr/api/public/media")"
           echo "$media" | grep -q '"items"'
           ! echo "$media" | grep -Eiq '\.(trashed|tmp|temp)(-|/)|thumbs\.db'
 
@@ -84,3 +71,6 @@ jobs:
           echo "$home" | grep -q 'GERÇEK ÇEKİM'
           echo "$home" | grep -q 'AI ÜRETİMİ'
           echo "$home" | grep -q 'Kaynak Masası'
+
+          www_status="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 https://www.btmedya.com.tr/)"
+          test "$www_status" = "301"
