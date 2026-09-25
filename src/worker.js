@@ -10,6 +10,7 @@ import { socialProviderStatus } from "./social-platforms.js";
  */
 
 const json = (data, status=200, headers={}) => new Response(JSON.stringify(data), {status, headers:{'content-type':'application/json; charset=utf-8', 'cache-control':'no-store', ...headers}});
+const publicJson = (data, ttl=60, headers={}) => json(data, 200, {'cache-control':`public, max-age=${ttl}, s-maxage=${ttl}`, ...headers});
 const text = (data, status=200, headers={}) => new Response(data, {status, headers:{'content-type':'text/plain; charset=utf-8', ...headers}});
 
 /* ---------- yardımcılar (medya kasası) ---------- */
@@ -215,6 +216,9 @@ async function workflowApi(request, env, url) {
 /* ---------- Haber CMS API ---------- */
 async function newsApi(request, env, url){
   if(url.pathname==='/api/health'){
+    const healthKey=new Request(new URL('/api/health',url.origin).toString(),{method:'GET'});
+    const cachedHealth=await caches.default.match(healthKey).catch(()=>null);
+    if(cachedHealth) return cachedHealth;
     const [r2Probe,legacyProbe]=await Promise.all([
       env.MEDIA ? env.MEDIA.list({limit:200}).catch(()=>null) : null,
       env.LEGACY_MEDIA ? env.LEGACY_MEDIA.list({limit:200}).catch(()=>null) : null
@@ -225,12 +229,14 @@ async function newsApi(request, env, url){
       const mime=String(o.httpMetadata?.contentType||'');
       return !isHiddenR2Key(key) && (mediaLike.test(key)||/^(image|video|audio)\//i.test(mime));
     }).length:0;
-    return json({
+    const health=publicJson({
       ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA,
       r2Objects:!!r2Probe?.objects?.length,legacyR2Objects:!!legacyProbe?.objects?.length,
       r2MediaObjects:mediaCount(r2Probe),legacyR2MediaObjects:mediaCount(legacyProbe),
       admin:!!(env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD) && !!(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET),mail:!!env.RESEND_API_KEY
-    });
+    },30);
+    await caches.default.put(healthKey,health.clone()).catch(()=>{});
+    return health;
   }
 
   /* Public: haber listesi
@@ -247,7 +253,7 @@ async function newsApi(request, env, url){
     try{
       const req=new Request(new URL('/data/haberler.json',url.origin));
       const asset=await env.ASSETS.fetch(req);
-      if(!asset.ok) return json({ok:true,source:d1Items.length?'d1':'static',items:d1Items.slice(0,limit)});
+      if(!asset.ok) return publicJson({ok:true,source:d1Items.length?'d1':'static',items:d1Items.slice(0,limit)},60);
       const archive=await asset.json();
       const staticItems=archive.map((n,i)=>({
         id:n.id||i+1,
@@ -273,10 +279,10 @@ async function newsApi(request, env, url){
         const bd=Date.parse(b.published_at||b.original_date||'')||0;
         return bd-ad;
       }).slice(0,limit);
-      return json({ok:true,source:d1Items.length?'d1+static-archive':'static-archive',items});
+      return publicJson({ok:true,source:d1Items.length?'d1+static-archive':'static-archive',items},60);
     }catch(e){
       console.error('[news] static archive fallback failed:',e);
-      return json({ok:true,source:'d1',items:d1Items.slice(0,limit)});
+      return publicJson({ok:true,source:'d1',items:d1Items.slice(0,limit)},60);
     }
   }
 
@@ -725,6 +731,9 @@ async function mediaApi(request, env){
 
   if(path==='/api/public/media' && request.method==='GET') {
     const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'};
+    const mediaCacheKey=new Request(request.url,{method:'GET'});
+    const cachedMedia=await caches.default.match(mediaCacheKey).catch(()=>null);
+    if(cachedMedia) return cachedMedia;
     const q=(u.searchParams.get('q')||'').toLowerCase(); const cat=u.searchParams.get('category')||'';
     const staticItems=(await medyaListesi(env,u.origin))
       .filter(x=>!cat || x.category===cat)
@@ -786,7 +795,9 @@ async function mediaApi(request, env){
     const r2Keys=new Set(r2Items.map(x=>String(x.key||'').replace(/^static\//,'')));
     const seen=new Set(r2Items.map(x=>x.url));
     const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url) && !r2Keys.has(String(x.key||'').replace(/^static\//,'')))];
-    return json({brand:'BTMedya',generated_at:new Date().toISOString(),source:r2Items.length?'r2+legacy-r2+github-static':'github-static',items},200,cors);
+    const mediaResponse=publicJson({brand:'BTMedya',generated_at:new Date().toISOString(),source:r2Items.length?'r2+legacy-r2+github-static':'github-static',items},60,cors);
+    await caches.default.put(mediaCacheKey,mediaResponse.clone()).catch(()=>{});
+    return mediaResponse;
   }
 
   const aiToken=env.AI_READ_TOKEN;
