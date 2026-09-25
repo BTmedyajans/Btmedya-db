@@ -96,7 +96,7 @@ GERÇEK ÇEKİM etiketi taşır. Varsayılan AI ÜRETİMİdir.
 
 ## Tasarım
 
-Anasayfanın tasarım kaynağı docs/10K-TASARIM-PAKETI.md.
+Site geneli görsel sistem için `docs/REDESIGN-BRIEF-2026-09-23.md`, sinematik hero ve kaydırmalı giriş için `docs/HERO-TASARIM-PAKETI.md` kanonik tasarım kaynaklarıdır.
 
 Bant metinlerinin en kötü kare kontrastı **3.5:1'in altına düşemez**.
 
