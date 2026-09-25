@@ -2,6 +2,7 @@ import { BtmedyaWorkflow } from "./btmedya-workflow.js";
 import { WorkflowStatusDO } from "./workflow-status-do.js";
 import { renderNewsPage } from "./news-page.js";
 import { socialProviderStatus } from "./social-platforms.js";
+import { recoveryPasswordValid } from "./auth-recovery.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
  * 2) Medya Kasası (D1 tablo: media, R2) — /api/media*, /api/public/media, /api/export, /media/*, /api/login, /api/logout
@@ -31,14 +32,6 @@ async function validSession(request, secret){
   const c=request.headers.get('cookie')||''; const m=c.match(/bt_admin=([^;]+)/); if(!m) return false;
   const [p,s]=m[1].split('.'); if(!p||!s) return false; const expected=await hmac(secret,p);
   if(s!==expected) return false; try { return JSON.parse(new TextDecoder().decode(unb64url(p))).exp>Date.now(); } catch { return false; }
-}
-function recoveryPasswordValid(value, configured){
-  if(!configured) return false;
-  const sep=String(configured).indexOf(':');
-  if(sep<1) return false;
-  const expires=Number(String(configured).slice(0,sep));
-  const code=String(configured).slice(sep+1);
-  return Number.isSafeInteger(expires) && expires>Math.floor(Date.now()/1000) && !!code && value===code;
 }
 async function signedMediaUrl(request, key, secret, ttl=86400){
   const u=new URL(request.url); const exp=Math.floor(Date.now()/1000)+ttl; const msg=`${key}:${exp}`; const sig=await hmac(secret,msg); return `${u.origin}/media/${key}?exp=${exp}&sig=${encodeURIComponent(sig)}`;
