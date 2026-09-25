@@ -352,7 +352,7 @@ async function controlCenterApi(request, env, url){
     admin:{configured:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
     social:socialProviderStatus(env),
     socialLinks:[
-      {key:'instagram',label:'Instagram @btmedya10',url:'https://www.instagram.com/btmedya10/',note:'Görsel profil ve Reels kanalı'},
+      {key:'instagram',label:'Instagram @btmedyajans',url:'https://www.instagram.com/btmedyajans/',note:'Görsel profil ve Reels kanalı'},
       {key:'tiktok',label:'TikTok @btmedya1010',url:'https://www.tiktok.com/@btmedya1010',note:'Kısa video kanalı; yayın API’si ayrıca yetkilendirilmeli'},
       {key:'youtube',label:'YouTube @BTmedyaAjans',url:'https://www.youtube.com/@BTmedyaAjans',note:'Video arşivi ve Shorts hedefi'},
       {key:'facebook',label:'Facebook Page',url:null,note:'Sayfa URL’si doğrulanacak; yayın için META_PAGE_ID gerekir'},
