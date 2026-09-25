@@ -4,3 +4,4 @@ Disallow: /admin/
 Disallow: /api/
 Sitemap: https://btmedya.com.tr/sitemap.xml
 Sitemap: https://btmedya.com.tr/news-sitemap.xml
+Contact: https://btmedya.com.tr/.well-known/security.txt

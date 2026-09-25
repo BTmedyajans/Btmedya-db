@@ -1,0 +1,4 @@
+Contact: mailto:busetuncay74@gmail.com
+Preferred-Languages: tr, en
+Canonical: https://btmedya.com.tr/.well-known/security.txt
+Policy: https://btmedya.com.tr/gizlilik/
