@@ -9,6 +9,8 @@ Panel siteye bağlantı verilmez, adresi bilen girer. Şifre Cloudflare tarafın
 
 ---
 
+
+> **Kimlik doğrulama notu:** ADMIN_PASSWORD secret name is inconsistent with older documentation; support both names and prefer ADMIN_PASSWORD_SECRET in production.
 ## Giriş
 
 1. Adresi açın.
