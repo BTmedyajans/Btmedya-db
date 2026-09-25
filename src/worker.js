@@ -602,6 +602,11 @@ async function mediaApi(request, env){
       const direct=await listR2Media(env.MEDIA,'r2-direct',{q,cat});
       const known=new Set(r2Items.map(x=>x.key));
       for(const x of direct){
+        /* R2'de telefon/Drive gibi kaynaklardan kalan çöp ve geçici nesneler
+           public medya kataloğuna girmemeli. Silme/taşıma yapmıyoruz, yalnızca
+           vitrinde ve API'de görünmesini engelliyoruz. */
+        const key=String(x.key||'');
+        if(/(^|\\/)\\.(?:trashed|tmp|temp)(?:-|\\/|$)/i.test(key) || /(^|\\/)thumbs\\.db$/i.test(key)) continue;
         if(known.has(x.key)) continue;
         x.url=await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600));
         r2Items.push(x);
