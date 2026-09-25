@@ -262,7 +262,7 @@
       const ref = staticReference[n.slug] || n.source_url || '';
       const cls = i === 0 ? 'news-card featured' : 'news-card';
       const excerpt = String(n.excerpt || '').replace(/\s+/g,' ').slice(0,180);
-      return `<article class="${cls} reveal">
+      return `<article class="${cls} reveal" data-category="${esc(norm(n.category || 'haber'))}">
         ${cardMedia(n, i === 0)}
         <div class="news-body">
           <small>${esc(n.category || 'HABER')}</small>
@@ -614,7 +614,11 @@
       v.classList.toggle('is-active',n===i);
     });
     if(ai) ai.style.opacity=i===4?String(Math.min(1,Math.max(0,(local-.02)*1.5))):'0';
-    if(progressEl) progressEl.style.width=(p*100)+'%';
+    if(progressEl){
+      progressEl.style.width=(p*100)+'%';
+      const progressBar=progressEl.closest('[role="progressbar"]');
+      if(progressBar) progressBar.setAttribute('aria-valuenow',String(Math.round(p*100)));
+    }
     root.style.setProperty('--hero-progress',p.toFixed(3));
   }
   function tick(){

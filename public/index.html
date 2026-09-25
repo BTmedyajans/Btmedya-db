@@ -31,6 +31,7 @@
 <link rel="icon" href="/assets/favicon.png" type="image/png">
 <link rel="preload" as="image" href="/assets/media/web/hero-story-poster.jpg" fetchpriority="high"><link rel="stylesheet" href="/home.css"><link rel="stylesheet" href="/uiux-pro-max.css">
 <link rel="stylesheet" href="/mobile-fixes.css">
+<link rel="stylesheet" href="/cinematic-overrides.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"NewsMediaOrganization","name":"BTMEDYA","url":"https://btmedya.com.tr/","logo":"https://btmedya.com.tr/assets/btmedya-emblem-derived.png","description":"Balıkesir merkezli haber, medya, prodüksiyon ve yapay zekâ medya ajansı.","areaServed":{"@type":"Country","name":"Türkiye"},"telephone":"+90 541 640 10 29","email":"busetuncay74@gmail.com","founder":{"@type":"Person","name":"Buse Tuncay","url":"https://btmedya.com.tr/portfoy/buse-tuncay/"},"sameAs":["https://www.instagram.com/btmedyajans/","https://www.youtube.com/@BTmedyaAjans","https://www.tiktok.com/@btmedya1010"]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"BTMEDYA | Balıkesir Haber, Medya, Prodüksiyon ve AI","url":"https://btmedya.com.tr/","inLanguage":"tr-TR","isPartOf":{"@type":"WebSite","name":"BTMEDYA","url":"https://btmedya.com.tr/"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"BTMEDYA","url":"https://btmedya.com.tr/","inLanguage":"tr-TR","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://btmedya.com.tr/haberler/?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script>
@@ -70,7 +71,7 @@
     <div class="cinematic-copy">
       <p class="cinematic-kicker" data-cinematic-kicker>01 / GİRİŞ</p>
       <p class="cinematic-kaynak" data-cinematic-kaynak>GERÇEK ÇEKİM</p>
-      <h1 class="display cinematic-title" data-cinematic-title>GERÇEK<br><span>GÖRÜNTÜ.</span></h1>
+      <h1 class="display cinematic-title" data-cinematic-title aria-live="polite">GERÇEK<br><span>GÖRÜNTÜ.</span></h1>
       <p class="cinematic-lead" data-cinematic-lead>Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.</p>
       <div class="cinematic-actions">
         <a class="button button-dark" href="#news">Haber akışına gir ↘</a>
@@ -79,7 +80,7 @@
     </div>
     <div class="cinematic-brand" aria-hidden="true">BT<span>MEDYA</span></div>
     <div class="cinematic-index"><span data-cinematic-index>01</span><i></i><b>05</b></div>
-    <div class="cinematic-progress"><i data-cinematic-progress></i></div>
+    <div class="cinematic-progress" role="progressbar" aria-label="Sinematik giriş ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i data-cinematic-progress></i></div>
     <div class="cinematic-label" data-cinematic-label>SCROLL TO EXPLORE</div>
     <div class="cinematic-cursor" data-cinematic-cursor>BT</div>
   </div>
