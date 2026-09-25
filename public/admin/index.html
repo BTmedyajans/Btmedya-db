@@ -653,7 +653,9 @@ function showTab(name){
   if(name==='social'){loadSocial()}
   if(name==='videos'){loadVideos()}
   if(name==='messages'){loadMessages()}
-  if(name==='automation'){loadAutomationNews()}\n  if(name==='finder'){loadFinder()}\n  if(name==='control'){loadControlCenter();loadLiveVerification()}
+  if(name==='automation'){loadAutomationNews()}
+  if(name==='finder'){loadFinder()}
+  if(name==='control'){loadControlCenter();loadLiveVerification()}
 }
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
 
