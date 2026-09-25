@@ -1077,3 +1077,50 @@ button,a{touch-action:manipulation}
 @media(prefers-reduced-motion:reduce){
   .news-media-editorial>img{filter:none}
 }
+
+/* Öne çıkan haber: sosyal paylaşım kapağı sayfanın ana görselini taşır.
+   Başlık görselin üzerinde bir kez görünür; metin gövdesindeki h3 erişilebilir
+   başlık olarak kalır ama ikinci kez basılmaz. */
+.news-card.featured{
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:minmax(0,1.55fr) minmax(260px,.65fr);
+  padding:0;
+  overflow:hidden;
+}
+.news-card.featured .news-media-editorial{
+  min-height:100%;
+  aspect-ratio:auto;
+}
+.news-card.featured .news-body{
+  padding:30px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.news-card.featured .news-body h3{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+  border:0;
+}
+.news-card.featured .news-body p{
+  font-size:13px;
+  line-height:1.7;
+}
+@media(max-width:900px){
+  .news-card.featured{
+    grid-template-columns:1fr;
+  }
+  .news-card.featured .news-media-editorial{
+    aspect-ratio:4/3;
+  }
+  .news-card.featured .news-body{
+    padding:22px;
+  }
+}
