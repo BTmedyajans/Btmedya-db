@@ -1,6 +1,6 @@
 # BTMEDYA | Canlıya Alma ve Yayın Kontrolü
 
-Bu depo BTMEDYA'nın üretim kaynağıdır. `main` dalı Cloudflare Workers Builds tarafından `btmedya-db` Worker'ına deploy edilir.
+Bu depo BTMEDYA'nın üretim kaynağıdır. `main` dalı GitHub Actions `.github/workflows/deploy.yml` üzerinden `btmedya-db` Worker'ına deploy edilir.
 
 
 > **Kimlik doğrulama notu:** Production runtime accepts the current *_SECRET names and the older ADMIN_PASSWORD / ADMIN_SESSION_SECRET names for compatibility. Prefer ADMIN_PASSWORD_SECRET and ADMIN_SESSION_SECRET_SECRET in new deployments.
@@ -25,8 +25,8 @@ Bu depo BTMEDYA'nın üretim kaynağıdır. `main` dalı Cloudflare Workers Buil
 
 Aşağıdaki secret'lar GitHub'a veya `wrangler.toml` dosyasına yazılmaz. Cloudflare Worker Secret olarak tanımlanmalıdır:
 
-- `ADMIN_PASSWORD`
-- `ADMIN_SESSION_SECRET`
+- `ADMIN_PASSWORD_SECRET`
+- `ADMIN_SESSION_SECRET_SECRET`
 - `MEDIA_SIGNING_SECRET`
 
 İsteğe bağlı:
