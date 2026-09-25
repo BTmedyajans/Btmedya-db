@@ -8,7 +8,7 @@ BTMEDYA'nın günlük yönetimi `https://btmedya.com.tr/admin/` üzerinden yapı
 - D1: haberler, mesajlar ve medya kayıtları
 - R2: fotoğraf, video, ses ve belge
 - GitHub: yalnızca kod ve sürüm geçmişi
-- Cloudflare Workers Builds: `main` dalından production deploy
+- GitHub Actions `deploy.yml` + Cloudflare Workers: `main` dalından production deploy
 
 ## Günlük kullanım
 
@@ -73,8 +73,8 @@ Medya yüklemeleri R2'ye, içerik kayıtları D1'e gider.
 
 Secrets GitHub'a veya `wrangler.toml` dosyasına yazılmaz. Worker çalışma zamanı secret'ları Cloudflare tarafında tutulur:
 
-- `ADMIN_PASSWORD`
-- `ADMIN_SESSION_SECRET`
+- `ADMIN_PASSWORD_SECRET`
+- `ADMIN_SESSION_SECRET_SECRET`
 - `MEDIA_SIGNING_SECRET`
 
 ## Değişiklik kuralı
