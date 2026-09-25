@@ -45,14 +45,6 @@ jobs:
           test ! -e .github/workflows/media-smoke.yml
           test ! -e .github/workflows/storage-audit.yml
 
-      - name: Apply remote D1 migrations
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: latest
-          command: d1 migrations apply btmedya-media --remote
-
       - name: Wait for Cloudflare Workers Build
         uses: actions/github-script@v7
         with:
