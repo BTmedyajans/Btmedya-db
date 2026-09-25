@@ -107,7 +107,7 @@
       const hero=grid.querySelector('.news-card.featured');
       if(hero){
         hero.href='/haberler/'+encodeURIComponent(feature.slug);
-        hero.innerHTML=(feature.cover_url?'<img src="'+esc(kartGorseli(feature.cover_url))+'" alt="" loading="eager" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 28%;opacity:.82">':'')+
+        hero.innerHTML=(feature.cover_url?'<img src="'+esc(feature.cover_url)+'" alt="'+esc(feature.title||'BTMEDYA haber kapağı')+'" loading="eager" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%;opacity:.9">':'')+
           '<div class="veil"></div><div class="inner"><span class="news-tag">'+esc(feature.category||'SON DAKİKA')+'</span><h2>'+esc(feature.title)+'</h2><p>'+esc(feature.excerpt||'')+'</p><div class="news-meta">BTMEDYA · '+esc(feature.author||'Haber Merkezi')+'</div></div>';
       }
     }
