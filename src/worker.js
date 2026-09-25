@@ -627,8 +627,28 @@ async function mediaApi(request, env){
         r2Items.push(x);
       }
     }
+    // GitHub katalog metadatasini ayni anahtar adina sahip R2 nesnesine miras ver.
+    // Böylece poster, vitrin sirasi ve gercek/AI etiketi R2 tarafinda tekrar elle girilmez.
+    const staticByPath=new Map();
+    for(const x of staticItems){
+      const p=String(x.key||'').replace(/^static\\//,'');
+      staticByPath.set(p,x);
+      staticByPath.set(String(x.original_name||''),x);
+    }
+    for(const x of r2Items){
+      const match=staticByPath.get(String(x.key||'')) || staticByPath.get(String(x.original_name||''));
+      if(!match) continue;
+      if(!x.title || /^BTMEDYA gerçek R2/.test(String(x.title))) x.title=match.title;
+      if(!x.category || x.category==='arsiv') x.category=match.category;
+      if(!x.slot) x.slot=match.slot||'';
+      if(match.poster) x.poster=match.poster;
+      if(typeof match.vitrin==='boolean') x.vitrin=match.vitrin;
+      if(typeof match.sira==='number') x.sira=match.sira;
+      if(match.ai_generated===true) x.ai_generated=true;
+    }
+    const r2Keys=new Set(r2Items.map(x=>String(x.key||'').replace(/^static\\//,'')));
     const seen=new Set(r2Items.map(x=>x.url));
-    const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url))];
+    const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url) && !r2Keys.has(String(x.key||'').replace(/^static\\//,'')))];
     return json({brand:'BTMedya',generated_at:new Date().toISOString(),source:r2Items.length?'r2+legacy-r2+github-static':'github-static',items},200,cors);
   }
 
