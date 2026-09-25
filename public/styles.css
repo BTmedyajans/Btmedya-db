@@ -1053,3 +1053,27 @@ button,a{touch-action:manipulation}
   .contact-form input[type=checkbox],.consent-row input[type=checkbox]{width:24px;height:24px;min-width:24px;flex:0 0 24px}
   .consent-row a{min-height:44px;display:inline-flex;align-items:center}
 }
+
+/* ===== EDITORIAL HABER KAPAKLARI =====
+   Featured haber, sosyal paylaşım kartındaki BTMEDYA dilini taşır:
+   gerçek fotoğraf + iri başlık + kırmızı kategori/künye. */
+.news-media-editorial{position:relative;aspect-ratio:16/9;overflow:hidden;background:#05080d}
+.news-media-editorial>img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.92) contrast(1.05)}
+.news-media-editorial .news-scrim{position:absolute;inset:0;background:
+  linear-gradient(90deg,rgba(3,6,10,.92) 0%,rgba(3,6,10,.70) 44%,rgba(3,6,10,.08) 78%),
+  linear-gradient(0deg,rgba(3,6,10,.78),transparent 48%);pointer-events:none}
+.news-cover-overlay{position:absolute;left:clamp(16px,3vw,38px);right:clamp(16px,4vw,52%);bottom:clamp(16px,3vw,34px);z-index:2;display:grid;gap:9px}
+.news-cover-category{display:inline-flex;width:max-content;max-width:100%;padding:7px 10px;background:#ff4038;color:#fff;font:800 10px/1 "Space Grotesk",sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.news-cover-overlay strong{font:800 clamp(27px,4vw,58px)/.92 "Space Grotesk",sans-serif;letter-spacing:-.045em;color:#fff;text-wrap:balance}
+.news-cover-meta{font:700 10px/1.3 "Manrope",sans-serif;letter-spacing:.08em;color:#c9d2db;text-transform:uppercase}
+.news-media-editorial .news-kaynak{top:14px;right:14px;bottom:auto;z-index:3}
+@media(max-width:800px){
+  .news-media-editorial{aspect-ratio:4/3}
+  .news-media-editorial .news-scrim{background:
+    linear-gradient(180deg,rgba(3,6,10,.18) 24%,rgba(3,6,10,.86) 100%)}
+  .news-cover-overlay{left:16px;right:16px;bottom:16px;gap:7px}
+  .news-cover-overlay strong{font-size:clamp(25px,7vw,40px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .news-media-editorial>img{filter:none}
+}
