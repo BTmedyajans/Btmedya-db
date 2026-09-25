@@ -17,6 +17,11 @@ public/              Yayınlanan her şey (assets binding bu klasörü servis ed
   admin/             Media Vault yönetim paneli (/admin/)
   social-studio/     İçerik → sosyal video üretim sayfası
   hizmetler/         Hızlı gelir odaklı hizmet paketleri ve WhatsApp teklif akışı
+  sosyal-medya/      Aylık sosyal medya içerik ve yayın sistemi
+  video-produksiyon/ Video, tanıtım ve röportaj hizmetleri
+  whatsapp-katalog/  Hizmet seçimi ve kısa brief akışı
+  basin-kiti/        Kurumsal tanım, kurucu ve editoryal güven katmanı
+  vaka-calismalari/  Gerçek işler, problem/çözüm/teslim portföyü
   robots.txt, sitemap.xml, news-sitemap.xml, rss.xml, site.webmanifest, llms.txt, llms-full.txt
 docs/                Yayına alma, Media Vault ve kaynak/provenance kılavuzları
 ```
