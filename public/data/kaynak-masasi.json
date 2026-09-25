@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "updated_at": "2026-09-25",
+  "purpose": "BTMEDYA editoryal kaynak kayıtları. Dış kaynak içerikleri kopyalamak yerine kaynak URL'si, kaynak türü ve kullanım durumunu saklar.",
+  "policy": {
+    "external_text": "summary_only",
+    "external_media": "permission_or_license_required",
+    "ai_media": "separate_and_explicitly_labeled",
+    "archive_content": "original_date_and_source_url_preserved"
+  },
+  "official_sources": [
+    {
+      "id": "balikesir-buyuksehir",
+      "name": "Balıkesir Büyükşehir Belediyesi",
+      "url": "https://balikesir.bel.tr/",
+      "type": "official",
+      "usage_scope": [
+        "local-news",
+        "municipal-decisions",
+        "public-services",
+        "city-data"
+      ],
+      "rights_status": "link-only"
+    },
+    {
+      "id": "balikesir-open-data",
+      "name": "Balıkesir Açık Veri Platformu",
+      "url": "https://acikveri.balikesir.bel.tr/dataset/",
+      "type": "open-data",
+      "usage_scope": [
+        "data-research",
+        "data-visualization"
+      ],
+      "rights_status": "pending-per-dataset"
+    },
+    {
+      "id": "kygm",
+      "name": "Kütüphaneler ve Yayımlar Genel Müdürlüğü",
+      "url": "https://kygm.ktb.gov.tr/",
+      "type": "official-catalog",
+      "usage_scope": [
+        "research",
+        "bibliography"
+      ],
+      "rights_status": "link-only"
+    },
+    {
+      "id": "milli-kutuphane",
+      "name": "Millî Kütüphane",
+      "url": "https://www.millikutuphane.gov.tr/",
+      "type": "official-catalog",
+      "usage_scope": [
+        "research",
+        "bibliography",
+        "archive-discovery"
+      ],
+      "rights_status": "link-only"
+    },
+    {
+      "id": "milli-kutuphane-katalog",
+      "name": "Millî Kütüphane Katalog Tarama / KÂŞİF",
+      "url": "https://www.millikutuphane.gov.tr/page/Katalog-Tarama",
+      "type": "catalog",
+      "usage_scope": [
+        "bibliographic-research"
+      ],
+      "rights_status": "link-only"
+    }
+  ],
+  "archive_sources": [
+    {
+      "id": "aa",
+      "name": "Anadolu Ajansı",
+      "domain": "aa.com.tr",
+      "type": "archive-source",
+      "usage_scope": [
+        "source-check",
+        "attribution"
+      ],
+      "rights_status": "link-only"
+    },
+    {
+      "id": "balikesir-pol",
+      "name": "Balıkesir İl Emniyet Müdürlüğü",
+      "domain": "balikesir.pol.tr",
+      "type": "official-source",
+      "usage_scope": [
+        "public-safety",
+        "official-statements"
+      ],
+      "rights_status": "link-only"
+    },
+    {
+      "id": "gazete-merhaba",
+      "name": "Gazete Merhaba",
+      "domain": "gazetemerhaba.com",
+      "type": "archive-source",
+      "usage_scope": [
+        "archive-news",
+        "original-publication"
+      ],
+      "rights_status": "link-only"
+    }
+  ],
+  "social_sources": [
+    {
+      "id": "instagram",
+      "name": "BTMedya Instagram",
+      "url": "https://www.instagram.com/btmedya10/",
+      "type": "owned-social",
+      "usage_scope": [
+        "portfolio",
+        "social-archive"
+      ]
+    },
+    {
+      "id": "youtube",
+      "name": "BTMedya YouTube",
+      "url": "https://www.youtube.com/@BTmedyaAjans",
+      "type": "owned-social",
+      "usage_scope": [
+        "portfolio",
+        "video-archive"
+      ]
+    },
+    {
+      "id": "tiktok",
+      "name": "BTMedya TikTok",
+      "url": "https://www.tiktok.com/@btmedya1010",
+      "type": "owned-social",
+      "usage_scope": [
+        "portfolio",
+        "short-video"
+      ]
+    }
+  ],
+  "source_fields": [
+    "source_url",
+    "source_type",
+    "rights_status",
+    "credit",
+    "captured_at",
+    "ai_generated",
+    "alt_text",
+    "usage_scope"
+  ]
+}
