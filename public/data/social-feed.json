@@ -1,0 +1,54 @@
+{
+  "generated_at": "2026-09-25T16:45:00+03:00",
+  "source": "Metricool",
+  "mode": "verified_snapshot",
+  "note": "Bu akış Metricool'dan doğrulanan son yayınların snapshot'ıdır. Sürekli canlı eşitleme için Worker tarafında sosyal OAuth/secret bağlantıları tamamlanmalıdır.",
+  "profiles": [
+    {
+      "key": "instagram",
+      "label": "Instagram",
+      "url": "https://www.instagram.com/btmedyajans/",
+      "status": "profile_link",
+      "note": "Sitedeki mevcut profil bağlantısı."
+    },
+    {
+      "key": "facebook",
+      "label": "Facebook",
+      "url": null,
+      "status": "verification_pending",
+      "note": "Facebook yayın hesabı için sayfa URL'si ve META_PAGE_ID doğrulaması bekleniyor."
+    },
+    {
+      "key": "youtube",
+      "label": "YouTube",
+      "url": "https://www.youtube.com/@BTmedyaAjans",
+      "status": "connected_identity",
+      "note": "Metricool brand'inde kanal kimliği mevcut."
+    },
+    {
+      "key": "tiktok",
+      "label": "TikTok",
+      "url": "https://www.tiktok.com/@btmedya1010",
+      "status": "publishing_verified",
+      "note": "Metricool üzerinden son iki yayın doğrulandı."
+    }
+  ],
+  "items": [
+    {
+      "platform": "TikTok",
+      "date": "2026-09-24",
+      "title": "Balıkesir Pazarında Canlı Helva Şovu",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7689117783484943637",
+      "archive_context": "Mayıs 2024",
+      "note": "Metricool yayını. Mevcut kayıtta TikTok AIGC alanı true görünüyor; gerçek arşiv/AI LAB sınıflandırması admin kontrolden geçirilmeli."
+    },
+    {
+      "platform": "TikTok",
+      "date": "2026-09-23",
+      "title": "Balıkesir'in Cuma Pazarı",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7688622591740824853",
+      "archive_context": "Ekim 2024",
+      "note": "Metricool yayını. Mevcut kayıtta TikTok AIGC alanı true görünüyor; gerçek arşiv/AI LAB sınıflandırması admin kontrolden geçirilmeli."
+    }
+  ]
+}
