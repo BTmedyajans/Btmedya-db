@@ -644,6 +644,44 @@ document.addEventListener('DOMContentLoaded',()=>{
   ciz();
 })();
 
+
+/* SOSYAL AKIŞ / METRICOOL SNAPSHOT */
+(function(){
+  function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+  function profileCard(p){
+    const statusMap={publishing_verified:'YAYIN DOĞRULANDI',connected_identity:'KANAL BAĞLI',profile_link:'PROFİL',verification_pending:'DOĞRULAMA BEKLİYOR'};
+    const label=esc(p.label||'Platform'), status=esc(statusMap[p.status]||p.status||'');
+    const action=p.url
+      ? '<a href="'+esc(p.url)+'" target="_blank" rel="noopener">'+label+' ↗</a>'
+      : '<span class="is-disabled">'+label+' · URL bekleniyor</span>';
+    return '<article class="social-profile-card"><div><span class="social-platform-tag">'+label+'</span><small>'+status+'</small></div><div>'+action+'</div></article>';
+  }
+  function feedCard(item){
+    const title=esc(item.title), platform=esc(item.platform), date=esc(item.date);
+    return '<article class="social-feed-card"><div class="social-feed-card-top"><span>'+platform+'</span><time datetime="'+date+'">'+date+'</time></div><h3>'+title+'</h3><p>'+esc(item.archive_context||'')+'</p><a href="'+esc(item.url)+'" target="_blank" rel="noopener">Yayını aç ↗</a></article>';
+  }
+  async function loadSocialFeed(){
+    const profiles=document.getElementById('socialProfiles');
+    const meta=document.getElementById('socialFeedMeta');
+    const grid=document.getElementById('socialFeedGrid');
+    if(!profiles||!meta||!grid)return;
+    try{
+      const r=await fetch('/api/public/social-feed',{headers:{accept:'application/json'}});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const data=await r.json();
+      profiles.innerHTML=(Array.isArray(data.profiles)?data.profiles:[]).map(profileCard).join('');
+      const count=Array.isArray(data.items)?data.items.length:0;
+      meta.textContent='Kaynak: '+String(data.source||'Metricool')+' · '+count+' doğrulanmış yayın snapshotı · '+String(data.generated_at||'');
+      grid.innerHTML=count ? data.items.map(feedCard).join('') : '<div class="social-feed-empty">Doğrulanmış yayın kaydı yok.</div>';
+    }catch(err){
+      profiles.innerHTML='';
+      meta.textContent='Sosyal profil bağlantıları korunuyor; son yayın snapshotı şu anda okunamadı.';
+      grid.innerHTML='<div class="social-feed-empty">Sosyal akış geçici olarak kullanılamıyor.</div>';
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadSocialFeed,{once:true});else loadSocialFeed();
+})();
+
 /* GERÇEK ARŞİV / MEDIA VAULT */
 (function(){
   function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
