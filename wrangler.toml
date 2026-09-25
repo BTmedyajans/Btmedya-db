@@ -40,9 +40,11 @@ bucket_name = "btmedya-media"
 binding = "LEGACY_MEDIA"
 bucket_name = "btmedya-r2"
 
-# Workers KV: production kodu şu anda KV binding kullanmıyor.
-# Eski/placeholder KV ID'si eklenmeyecek. KV ancak kod gerçekten ihtiyaç
-# duyduğunda gerçek namespace ID ile bağlanacaktır.
+# Workers KV: admin giriş denemeleri için IP tabanlı hız sınırlaması.
+
+[[kv_namespaces]]
+binding = "KV"
+id = "41a0fc3c9e9848fca750d2283d4d1fc3"
 
 [[d1_databases]]
 binding = "DB"
