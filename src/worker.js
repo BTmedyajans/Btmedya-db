@@ -209,6 +209,12 @@ async function workflowApi(request, env, url) {
 
 /* ---------- Haber CMS API ---------- */
 async function newsApi(request, env, url){
+  if(url.pathname==='/api/public/social-feed' && request.method==='GET'){
+    const r=await env.ASSETS.fetch(new Request(new URL('/data/social-feed.json',url.origin)));
+    if(!r.ok) return json({ok:false,error:'Sosyal akış snapshot bulunamadı'},404);
+    return new Response(r.body,{status:200,headers:{'content-type':'application/json; charset=utf-8','cache-control':'public, max-age=300'}});
+  }
+
   if(url.pathname==='/api/health'){
     const [r2Probe,legacyProbe]=await Promise.all([
       env.MEDIA ? env.MEDIA.list({limit:200}).catch(()=>null) : null,
