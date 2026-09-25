@@ -415,7 +415,7 @@ async function mediaSyncApi(request, env, url){
   const assetUrl=new URL('/assets/'+raw,origin);
   const response=await env.ASSETS.fetch(new Request(assetUrl.toString(),{method:'GET'}));
   if(!response.ok) return json({ok:false,error:'Statik medya okunamadı: HTTP '+response.status},502);
-  const mime=response.headers.get('content-type') || (/\\.(mp4|webm)$/i.test(raw)?'video/mp4':'image/webp');
+  const mime=response.headers.get('content-type') || (/\.(mp4|webm)$/i.test(raw)?'video/mp4':'image/webp');
   const size=Number(response.headers.get('content-length')||0);
   await env.MEDIA.put(raw,response.body,{httpMetadata:{contentType:mime}});
   if(env.DB){

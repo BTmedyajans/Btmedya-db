@@ -28,10 +28,13 @@ if (!/async function medyaListesi\(/.test(worker) || !/await medyaListesi\(/.tes
     'Medya kasasi uretilen listeden beslenmeli (PR #72).');
 }
 
-/* 2) Regex literalinde \\. TERS BOLU arar, nokta degil. Bu hata once mime
-      tespitini, sonra baslik uretimini bozdu; ikisi de sessizce. */
-for (const kalip of worker.match(/\/[^/\n]*\\\\\.[^/\n]*\/[gimsuy]*/g) || []) {
-  bulgular.push(`src/worker.js regex literalinde \\\\. var: ${kalip.slice(0, 60)} ` +
+/* 2) Regex literalinde iki ters bolu (\\.) ters bolu arar, nokta degil.
+      Bu hata once mime tespitini, sonra baslik uretimini bozdu; ikisi de sessizce.
+      Kaynak metnini dogrudan kontrol ediyoruz; onceki regex denetimi tek ters
+      boluyu de esleyerek gecerli /\./ kaliplarini yanlis bildiriyordu. */
+for (const satir of worker.split('\n')) {
+  if (!satir.includes('\\\\.')) continue;
+  bulgular.push(`src/worker.js regex literalinde \\\\. var: ${satir.trim().slice(0, 60)} ` +
     '— bu nokta degil ters bolu arar.');
 }
 
