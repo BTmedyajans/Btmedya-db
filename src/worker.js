@@ -631,7 +631,7 @@ async function mediaApi(request, env){
     // Böylece poster, vitrin sirasi ve gercek/AI etiketi R2 tarafinda tekrar elle girilmez.
     const staticByPath=new Map();
     for(const x of staticItems){
-      const p=String(x.key||'').replace(/^static\\//,'');
+      const p=String(x.key||'').replace(/^static\//,'');
       staticByPath.set(p,x);
       staticByPath.set(String(x.original_name||''),x);
     }
@@ -646,9 +646,9 @@ async function mediaApi(request, env){
       if(typeof match.sira==='number') x.sira=match.sira;
       if(match.ai_generated===true) x.ai_generated=true;
     }
-    const r2Keys=new Set(r2Items.map(x=>String(x.key||'').replace(/^static\\//,'')));
+    const r2Keys=new Set(r2Items.map(x=>String(x.key||'').replace(/^static\//,'')));
     const seen=new Set(r2Items.map(x=>x.url));
-    const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url) && !r2Keys.has(String(x.key||'').replace(/^static\\//,'')))];
+    const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url) && !r2Keys.has(String(x.key||'').replace(/^static\//,'')))];
     return json({brand:'BTMedya',generated_at:new Date().toISOString(),source:r2Items.length?'r2+legacy-r2+github-static':'github-static',items},200,cors);
   }
 
