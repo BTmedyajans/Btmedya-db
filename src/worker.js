@@ -401,11 +401,46 @@ async function aiDraftApi(request,env,url){
 async function controlCenterApi(request, env, url){
   if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
   if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+  const origin=new URL(request.url).origin;
+  const staticCatalog=await medyaListesi(env,origin);
+  const r2Live=await listR2Media(env.MEDIA,'r2');
+  const legacyLive=await listLegacyMedia(env);
+  let d1Media=0,d1News=0,d1Published=0;
+  if(env.DB){
+    try{
+      const [m,n,p]=await Promise.all([
+        env.DB.prepare('SELECT COUNT(*) AS n FROM media').first(),
+        env.DB.prepare('SELECT COUNT(*) AS n FROM news').first(),
+        env.DB.prepare("SELECT COUNT(*) AS n FROM news WHERE status='published'").first()
+      ]);
+      d1Media=Number(m?.n||0); d1News=Number(n?.n||0); d1Published=Number(p?.n||0);
+    }catch{}
+  }
+  const r2Keys=new Set(r2Live.map(x=>x.key));
+  const staticPaths=staticCatalog.map(x=>String(x.path||x.key||'')).filter(Boolean);
+  const r2MissingStatic=staticPaths.filter(k=>!r2Keys.has(k)).slice(0,40);
   return json({
     ok:true,
     service:'BTMEDYA Control Center',
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db'},
     storage:{d1:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA},
+    catalog:{
+      staticRecords:staticCatalog.length,
+      staticReal:staticCatalog.filter(x=>x.gercek===true || x.ai_generated===false).length,
+      staticAi:staticCatalog.filter(x=>x.ai_generated===true || x.gercek===false).length,
+      r2Objects:r2Live.length,
+      legacyR2Objects:legacyLive.length,
+      d1MediaRecords:d1Media,
+      d1NewsRecords:d1News,
+      publishedNews:d1Published,
+      staticNotInR2:r2MissingStatic.length,
+      note:'Statik GitHub medya kayıtları ASSETS üzerinden canlı sunulur; R2 eksikliği tek başına yayın hatası değildir.'
+    },
+    audit:{
+      staticNotInR2:r2MissingStatic,
+      r2Sample:r2Live.slice(0,12).map(x=>x.key),
+      lastChecked:new Date().toISOString()
+    },
     admin:{configured:!!(env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD) && !!(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET),mediaSigning:!!env.MEDIA_SIGNING_SECRET},
     social:socialProviderStatus(env),
     socialLinks:[
