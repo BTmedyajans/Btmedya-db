@@ -263,7 +263,7 @@
       const cls = i === 0 ? 'news-card featured' : 'news-card';
       const excerpt = String(n.excerpt || '').replace(/\s+/g,' ').slice(0,180);
       return `<article class="${cls} reveal">
-        ${cardMedia(n)}
+        ${cardMedia(n, i === 0)}
         <div class="news-body">
           <small>${esc(n.category || 'HABER')}</small>
           <h3>${esc(n.title || '')}</h3>
