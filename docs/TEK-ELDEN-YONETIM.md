@@ -29,9 +29,9 @@ Günlük haber, fotoğraf ve video işlemleri için GitHub veya Cloudflare Dashb
 ```
 GitHub main
     ↓
-Cloudflare Workers Builds
+GitHub Actions deploy.yml
     ↓
-npx wrangler deploy
+npx wrangler@4 deploy
     ↓
 btmedya-db
     ↓
