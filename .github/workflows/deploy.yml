@@ -78,7 +78,7 @@ jobs:
 
           media="$(curl -L -s --max-time 30 "https://btmedya.com.tr/api/public/media?limit=40")"
           echo "$media" | grep -q '"items"'
-          ! echo "$media" | grep -Eiq '\\.(trashed|tmp|temp)(-|/)|thumbs\\.db'
+          ! echo "$media" | grep -Eiq '\.(trashed|tmp|temp)(-|/)|thumbs\.db'
 
           home="$(curl -L -s --max-time 30 https://btmedya.com.tr/)"
           echo "$home" | grep -q 'GERÇEK ÇEKİM'
