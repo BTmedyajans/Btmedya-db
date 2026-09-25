@@ -102,7 +102,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <button class="tab" data-tab="news">Haberler</button>
     <button class="tab" data-tab="social">Sosyal İçerik</button>
     <button class="tab" data-tab="videos">Videolar</button>
-    <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button><button class="tab" data-tab="control">Control Center</button>
+    <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button><button class="tab" data-tab="control">Control Center</button><button class="tab" data-tab="trends">Trendler & Kaynaklar</button>
   </div>
   <button class="btn" id="logoutBtn" style="display:none">Çıkış</button>
 </header>
@@ -206,6 +206,18 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
         <img id="coverPreview" class="cover-preview" alt="Kapak önizleme">
         <label>VIDEO URL</label>
         <input id="nVideoUrl" style="width:100%" placeholder="YouTube bağlantısı yapıştırın (watch, youtu.be, shorts)">
+        <div class="form-2col">
+          <div>
+            <label>KAYNAK URL *</label>
+            <input id="nSourceUrl" style="width:100%" placeholder="https://kurum.gov.tr/aciklama veya özgün yayın">
+          </div>
+          <div>
+            <label>ÖZGÜN TARİH</label>
+            <input id="nOriginalDate" type="date" style="width:100%">
+          </div>
+        </div>
+        <label>ARŞİV / KAYNAK NOTU</label>
+        <input id="nArchiveNote" style="width:100%" placeholder="Kaynağın niteliği, izin veya arşiv bağlamı">
         <label>ÖZET</label>
         <textarea id="nExcerpt" style="width:100%;min-height:70px" placeholder="Kısa özet (anasayfada görünür)"></textarea>
         <label>İÇERİK</label>
@@ -330,6 +342,24 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   </div>
 </div>
 
+<div class="tab-content" id="tab-trends">
+  <div class="panel">
+    <h2>BTMEDYA Trend ve Kaynak Masası</h2>
+    <p class="muted">Platform önerileri resmi kaynaklardan türetilmiş dört haftalık pilotlardır; otomatik yayın garantisi değildir. Her içerik kaynak, izin, tarih ve AI/gerçek çekim kontrolünden geçer.</p>
+    <div id="trendPolicy" class="status">Yükleniyor…</div>
+  </div>
+  <div class="panel"><div id="trendCards" class="grid"><p class="muted">Trend verisi yükleniyor…</p></div></div>
+  <div class="panel">
+    <h2>Sosyal profil güncelleme kiti</h2>
+    <div class="news-list">
+      <div class="news-row"><div class="news-row-info"><b>Instagram · @btmedyajans</b><small>BTMEDYA | Haber & İçerik Stüdyosu · Reels / Carousel / Stories</small></div><a class="btn sm" href="/sosyal-medya-kit/" target="_blank">Metni aç ↗</a></div>
+      <div class="news-row"><div class="news-row-info"><b>TikTok · @btmedya1010</b><small>BTMEDYA | Haber & Video · yer + olay + kaynak</small></div><a class="btn sm" href="/sosyal-medya-kit/" target="_blank">Metni aç ↗</a></div>
+      <div class="news-row"><div class="news-row-info"><b>YouTube · @BTmedyaAjans</b><small>BTMEDYA | Buse Tuncay · Shorts + açıklayıcı + playlist</small></div><a class="btn sm" href="/sosyal-medya-kit/" target="_blank">Metni aç ↗</a></div>
+      <div class="news-row"><div class="news-row-info"><b>WhatsApp Business</b><small>Profil + katalog + beş bilgilik brief</small></div><a class="btn sm" href="/whatsapp-katalog/" target="_blank">Kataloğu aç ↗</a></div>
+    </div>
+  </div>
+</div>
+
 <div class="tab-content" id="tab-messages">
     <div class="panel">
       <div class="row" style="margin-bottom:10px">
@@ -403,7 +433,9 @@ function autoPlatforms(){
 function autoText(n,prefix){
   const clean=String(n.excerpt||n.body||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
   const lead=clean.slice(0,500);
-  return (prefix?prefix+'\n\n':'')+n.title+'\n\n'+lead+'\n\nKaynak: https://btmedya.com.tr/haberler/'+n.slug+'.html';
+  const source=n.source_url||('https://btmedya.com.tr/haberler/'+n.slug+'.html');
+  const note=n.archive_note?('\n\nArşiv notu: '+n.archive_note):'';
+  return (prefix?prefix+'\n\n':'')+n.title+'\n\n'+lead+note+'\n\nKaynak: '+source;
 }
 async function createAutomationPosts(){
   const status=$('#autoStatus'), mode=$('#autoMode').value, platforms=autoPlatforms();
@@ -454,9 +486,20 @@ function showTab(name){
   if(name==='news'){loadNewsList()}
   if(name==='social'){loadSocial()}
   if(name==='videos'){loadVideos()}
-  if(name==='messages'){loadMessages()}\n  if(name==='control'){loadControlCenter()}
+  if(name==='messages'){loadMessages()}
+  if(name==='control'){loadControlCenter()}
+  if(name==='trends'){loadTrends()}
 }
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
+
+async function loadTrends(){
+  const policy=$('#trendPolicy'), box=$('#trendCards');
+  try{
+    const d=await fetch('/data/editorial-trends.json').then(r=>r.json());
+    policy.textContent=(d.generated_at||'')+' · '+(d.policy||'');
+    box.innerHTML=(d.platforms||[]).map(p=>`<article class="card"><div class="meta"><b>${escStr(p.name)}</b><p class="muted">${escStr(p.pilot)}</p><p><strong>Formatlar:</strong> ${escStr((p.formats||[]).join(' · '))}</p><p><strong>Seriler:</strong> ${escStr((p.series||[]).join(' · '))}</p><p>${(p.official_sources||[]).slice(0,3).map(u=>'<a href="'+escStr(u)+'" target="_blank" rel="noopener">Resmi kaynak ↗</a>').join(' · ')}</p></div></article>`).join('');
+  }catch(e){policy.textContent='Trend verisi alınamadı.';box.innerHTML=''}
+}
 
 /* ---- Medya Kasası ---- */
 $('#files').onchange=e=>{selectedFiles=[...e.target.files];$('#drop').querySelector('input').after(document.createTextNode(` (${selectedFiles.length} dosya seçildi)`))};
@@ -679,7 +722,7 @@ function clearNewsForm(){
   editingNewsId=null;
   $('#newsFormTitle').textContent='Yeni haber ekle';
   $('#nTitle').value='';delete $('#nSlug').dataset.touched;$('#nSlug').value='';
-  $('#nCategory').value='';$('#nAuthor').value='';$('#nCoverUrl').value='';$('#nVideoUrl').value='';
+  $('#nCategory').value='';$('#nAuthor').value='';$('#nCoverUrl').value='';$('#nVideoUrl').value='';$('#nSourceUrl').value='';$('#nOriginalDate').value='';$('#nArchiveNote').value='';
   $('#nExcerpt').value='';$('#nBody').value='';$('#nDate').value='';$('#nStatus').value='published';
   $('#coverPreview').style.display='none';
   $('#nCancelBtn').style.display='none';
@@ -697,12 +740,16 @@ async function saveNews(forceStatus){
     author:$('#nAuthor').value.trim(),
     cover_url:$('#nCoverUrl').value.trim(),
     video_url:$('#nVideoUrl').value.trim(),
+    source_url:$('#nSourceUrl').value.trim(),
+    original_date:$('#nOriginalDate').value,
+    archive_note:$('#nArchiveNote').value.trim(),
     excerpt:$('#nExcerpt').value.trim(),
     body:$('#nBody').value.trim(),
     status,
     published_at:$('#nDate').value ? new Date($('#nDate').value).toISOString() : null
   };
   if(!b.title||!b.slug){$('#nStatus2').textContent='Başlık ve slug zorunlu';return}
+  if(status==='published'&&!b.source_url){$('#nStatus2').textContent='Yayın için kaynak URL zorunlu';return}
   $('#nStatus2').textContent='Kaydediliyor…';
   try{
     let r,d;
@@ -757,6 +804,9 @@ async function loadNewsEdit(id){
   $('#nAuthor').value=n.author||'';
   $('#nCoverUrl').value=n.cover_url||'';
   $('#nVideoUrl').value=n.video_url||'';
+  $('#nSourceUrl').value=n.source_url||'';
+  $('#nOriginalDate').value=n.original_date ? String(n.original_date).slice(0,10) : '';
+  $('#nArchiveNote').value=n.archive_note||'';
   $('#nExcerpt').value=n.excerpt||'';
   $('#nBody').value=n.body||'';
   $('#nStatus').value=n.status||'draft';

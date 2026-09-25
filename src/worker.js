@@ -320,9 +320,18 @@ async function newsApi(request, env, url){
     if(!title || !slug) return json({ok:false,error:'Geçersiz başlık veya slug'},400);
     const status=b.status==='published'?'published':'draft';
     const now=new Date().toISOString();
-    await env.DB.prepare(`INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,updated_at)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(slug) DO UPDATE SET title=excluded.title,excerpt=excluded.excerpt,body=excluded.body,category=excluded.category,author=excluded.author,cover_url=excluded.cover_url,video_url=excluded.video_url,status=excluded.status,published_at=excluded.published_at,updated_at=excluded.updated_at`)
-      .bind(slug,title,String(b.excerpt||'').slice(0,1000),String(b.body||'').slice(0,200000),String(b.category||'').slice(0,100),String(b.author||'').slice(0,160),String(b.cover_url||'').slice(0,2000),String(b.video_url||'').slice(0,2000),status,status==='published'?(b.published_at||now):null,now).run();
+    const sourceUrl=String(b.source_url||'').trim().slice(0,2000);
+    const originalDate=String(b.original_date||'').trim().slice(0,64);
+    const archiveNote=String(b.archive_note||'').trim().slice(0,2000);
+    try{
+      await env.DB.prepare(`INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(slug) DO UPDATE SET title=excluded.title,excerpt=excluded.excerpt,body=excluded.body,category=excluded.category,author=excluded.author,cover_url=excluded.cover_url,video_url=excluded.video_url,status=excluded.status,published_at=excluded.published_at,source_url=excluded.source_url,original_date=excluded.original_date,archive_note=excluded.archive_note,updated_at=excluded.updated_at`)
+        .bind(slug,title,String(b.excerpt||'').slice(0,1000),String(b.body||'').slice(0,200000),String(b.category||'').slice(0,100),String(b.author||'').slice(0,160),String(b.cover_url||'').slice(0,2000),String(b.video_url||'').slice(0,2000),status,status==='published'?(b.published_at||now):null,sourceUrl,originalDate,archiveNote,now).run();
+    }catch(e){
+      await env.DB.prepare(`INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,updated_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(slug) DO UPDATE SET title=excluded.title,excerpt=excluded.excerpt,body=excluded.body,category=excluded.category,author=excluded.author,cover_url=excluded.cover_url,video_url=excluded.video_url,status=excluded.status,published_at=excluded.published_at,updated_at=excluded.updated_at`)
+        .bind(slug,title,String(b.excerpt||'').slice(0,1000),String(b.body||'').slice(0,200000),String(b.category||'').slice(0,100),String(b.author||'').slice(0,160),String(b.cover_url||'').slice(0,2000),String(b.video_url||'').slice(0,2000),status,status==='published'?(b.published_at||now):null,now).run();
+    }
     return json({ok:true,slug,status});
   }
 
@@ -341,8 +350,13 @@ async function newsApi(request, env, url){
       const b=await request.json();
       const now=new Date().toISOString();
       const status=b.status==='published'?'published':'draft';
-      await env.DB.prepare('UPDATE news SET title=?,excerpt=?,body=?,category=?,author=?,cover_url=?,video_url=?,status=?,published_at=?,updated_at=? WHERE id=?')
-        .bind(b.title||'',b.excerpt||'',b.body||'',b.category||'',b.author||'',b.cover_url||'',b.video_url||'',status,status==='published'?(b.published_at||now):null,now,id).run();
+      const values=[b.title||'',b.excerpt||'',b.body||'',b.category||'',b.author||'',b.cover_url||'',b.video_url||'',status,status==='published'?(b.published_at||now):null,String(b.source_url||'').trim().slice(0,2000),String(b.original_date||'').trim().slice(0,64),String(b.archive_note||'').trim().slice(0,2000),now,id];
+      try{
+        await env.DB.prepare('UPDATE news SET title=?,excerpt=?,body=?,category=?,author=?,cover_url=?,video_url=?,status=?,published_at=?,source_url=?,original_date=?,archive_note=?,updated_at=? WHERE id=?').bind(...values).run();
+      }catch(e){
+        await env.DB.prepare('UPDATE news SET title=?,excerpt=?,body=?,category=?,author=?,cover_url=?,video_url=?,status=?,published_at=?,updated_at=? WHERE id=?')
+          .bind(...values.slice(0,9),now,id).run();
+      }
       return json({ok:true});
     }
     if(request.method==='DELETE'){

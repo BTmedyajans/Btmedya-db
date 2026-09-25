@@ -29,8 +29,11 @@ Panelde **Haber yayınla** bölümü.
 | Slug | Adres eki, `orn-haber-basligi` biçiminde, Türkçe karakter ve boşluk olmadan |
 | Kategori | Yerel, Ekonomi, Spor gibi |
 | Gövde | Haber metni |
+| Kaynak URL | Yayınlanan haber için özgün/resmî kaynak bağlantısı; zorunlu |
+| Özgün tarih | Arşiv haberinin veya olayın ilk tarihi |
+| Arşiv/kaynak notu | İzin, arşiv bağlamı veya doğrulama notu |
 
-İki buton var: **Taslak kaydet** ve **Yayınla**. Yalnızca yayınlananlar siteye çıkar.
+İki buton var: **Taslak kaydet** ve **Yayınla**. Yalnızca yayınlananlar siteye çıkar. Yayın için kaynak URL girilmesi zorunludur; kaynak bilinmiyorsa içerik taslak olarak tutulmalıdır.
 
 **Yayınlanan haber nereye düşer:**
 
@@ -83,6 +86,12 @@ Bu ayrım mevzuat açısından da önemli. Ayrıntı: `docs/10K-TASARIM-PAKETI.m
 6.5 bölümü.
 
 ---
+
+## Trendler ve sosyal profil kiti
+
+Panelde **Trendler & Kaynaklar** sekmesi; Instagram, TikTok, YouTube ve WhatsApp için resmi kaynaklı pilot formatları, yayın ritmini, serileri ve sosyal profil metinlerine giden bağlantıları gösterir. Bu öneriler algoritma garantisi değildir; dört haftalık ölçüm pilotudur.
+
+Profil metinleri ve görsel etiket sistemi: `/sosyal-medya-kit/`. Kaynak kataloğu: `/kaynak-masasi/`.
 
 ## İletişim mesajları
 
