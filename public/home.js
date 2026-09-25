@@ -220,8 +220,9 @@
     /* data-kapak-yedegi: gorsel gercekten yoksa kirik <img> yerine arsiv
        kutusu gosterilir (bkz. kapakYedegiKur). Satir ici onerror kullanilmiyor;
        kamuya acik sayfalarda CSP script-src 'self' (cspKur, src/worker.js). */
-    /* Kapaklar saha fotografi degil, tasarlanmis grafik kart; bu yuzden
-       AGENTS.md'deki varsayilan geregi AI URETIMI etiketi tasirlar. */
+    /* Bileşik paylaşım kapağı ile kart fotoğrafı ayrıdır: paylaşım kapağı
+       BTMEDYA'nın kendi gerçek fotoğrafından üretilen başlık/künye grafiğidir.
+       Kartlarda metinsiz gerçek fotoğraf kullanılır; kaynak etiketi veriden gelir. */
     /* Kartta bestelenmis kapak degil, metinsiz kart gorseli kullanilir:
        kapagin uzerindeki baslik kartin kendi basligiyla ust uste binip
        ikisini de okunmaz hale getiriyordu. Bestelenmis kapak paylasim
