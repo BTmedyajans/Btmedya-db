@@ -652,7 +652,8 @@ function showTab(name){
   if(name==='news'){loadNewsList()}
   if(name==='social'){loadSocial()}
   if(name==='videos'){loadVideos()}
-  if(name==='messages'){loadMessages()}\n  if(name==='automation'){loadAutomationNews()}\n  if(name==='finder'){loadFinder()}\n  if(name==='control'){loadControlCenter();loadLiveVerification()}
+  if(name==='messages'){loadMessages()}
+  if(name==='automation'){loadAutomationNews()}\n  if(name==='finder'){loadFinder()}\n  if(name==='control'){loadControlCenter();loadLiveVerification()}
 }
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
 
