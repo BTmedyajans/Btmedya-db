@@ -19,16 +19,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup Wrangler
+        uses: cloudflare/wrangler-action@v3
         with:
-          node-version: 22
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: latest
 
-      - name: Install Wrangler
-        run: npm install --global wrangler@latest
-
-      - name: Sync archive
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: node tools/sync-r2-catalog.mjs
+      - name: Sync static media
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r key; do
+            [ -z "$key" ] && continue
+            file="public/$key"
+            [ -f "$file" ] || file="public/assets/$key"
+            [ -f "$file" ] || file="public/media/$key"
+            if [ -f "$file" ]; then
+              echo "SYNC $key"
+              wrangler r2 object put "btmedya-media/$key" --file "$file" --remote
+            else
+              echo "SKIP $key"
+            fi
+          done < <(node -e 'for (const x of require("./public/data/medya-listesi.json")) console.log(x.path)')
