@@ -1,0 +1,35 @@
+# BTMEDYA machine-readable site guide
+
+BTMEDYA combines journalism, media production, portfolio work and a separately labeled AI LAB.
+
+## Content model
+
+### News
+The /haberler/ section contains BTMEDYA's published news and archive material. Each published story may carry category, author, publication date, original date, source URL and archive note. Historical stories retain their original date context.
+
+### Real media
+The Media Vault contains photographs, videos and production material. Public media is served through /api/public/media. Temporary or trashed R2 objects are excluded from the public feed.
+
+### AI LAB
+AI-generated visuals and experiments are shown under the AI LAB and carry an explicit AI ÜRETİMİ label. They should not be interpreted as documentary or on-location photography.
+
+### Source Desk
+The Source Desk documents official, research, archive and owned-media sources used for editorial work. It is a provenance guide, not a replacement for the original source.
+
+## Canonical URLs
+- Home: https://btmedya.com.tr/
+- News: https://btmedya.com.tr/haberler/
+- Portfolio: https://btmedya.com.tr/portfoy/buse-tuncay/
+- AI LAB: https://btmedya.com.tr/#ai-lab
+- Source Desk: https://btmedya.com.tr/kaynak-masasi/
+- Contact: https://btmedya.com.tr/iletisim/
+
+## Machine-readable endpoints
+- https://btmedya.com.tr/api/news
+- https://btmedya.com.tr/api/public/media
+- https://btmedya.com.tr/rss.xml
+- https://btmedya.com.tr/sitemap.xml
+- https://btmedya.com.tr/news-sitemap.xml
+
+## Trust and attribution
+Use source_url and original_date fields when available. Do not convert archive reporting into a claim about the current date. Do not remove the distinction between GERÇEK ÇEKİM and AI ÜRETİMİ.
