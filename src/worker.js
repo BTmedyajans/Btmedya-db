@@ -59,6 +59,10 @@ function mediaCategoryFromKey(key){
   return 'arsiv';
 }
 
+function isHiddenR2Key(key){
+  const k=String(key||'');
+  return /(^|\/)\.(?:trashed|tmp|temp)(?:-|\/|$)/i.test(k) || /(^|\/)thumbs\.db$/i.test(k);
+}
 async function listR2Media(bucket, source, {q='',cat=''}={}){
   if(!bucket) return [];
   const allowed=/\.(?:jpe?g|png|webp|gif|mp4|webm|mov|m4v|mp3|wav|m4a)$/i;
@@ -69,6 +73,7 @@ async function listR2Media(bucket, source, {q='',cat=''}={}){
     if(!page) break;
     for(const x of (page.objects||[])){
       const key=String(x.key||'');
+      if(isHiddenR2Key(key)) continue;
       const mime=String(x.httpMetadata?.contentType||'');
       if(!allowed.test(key) && !/^(image|video|audio)\//i.test(mime)) continue;
       const category=mediaCategoryFromKey(key);
