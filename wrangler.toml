@@ -57,6 +57,8 @@ MEDIA_PUBLIC_TTL = "86400"
 # Secret değerleri GitHub'a veya bu dosyaya yazılmaz.
 # Cloudflare Worker > Settings > Variables and Secrets altında Secret olarak eklenir.
 # wrangler deploy, aşağıdaki required secret isimlerini doğrular.
+# Süreli recovery Secret biçimi: UNIX_SANIYE:geçici-kod
+# Süre dolunca otomatik olarak geçersiz olur; production'da kullanımdan sonra silinmelidir.
 [secrets]
 required = [
   "ADMIN_PASSWORD_SECRET",

@@ -32,6 +32,14 @@ async function validSession(request, secret){
   const [p,s]=m[1].split('.'); if(!p||!s) return false; const expected=await hmac(secret,p);
   if(s!==expected) return false; try { return JSON.parse(new TextDecoder().decode(unb64url(p))).exp>Date.now(); } catch { return false; }
 }
+function recoveryPasswordValid(value, configured){
+  if(!configured) return false;
+  const sep=String(configured).indexOf(':');
+  if(sep<1) return false;
+  const expires=Number(String(configured).slice(0,sep));
+  const code=String(configured).slice(sep+1);
+  return Number.isSafeInteger(expires) && expires>Math.floor(Date.now()/1000) && !!code && value===code;
+}
 async function signedMediaUrl(request, key, secret, ttl=86400){
   const u=new URL(request.url); const exp=Math.floor(Date.now()/1000)+ttl; const msg=`${key}:${exp}`; const sig=await hmac(secret,msg); return `${u.origin}/media/${key}?exp=${exp}&sig=${encodeURIComponent(sig)}`;
 }
@@ -547,9 +555,13 @@ async function mediaApi(request, env){
     const rate=await checkRateLimit(env,ip);
     if(!rate.allowed) return json({error:'Çok fazla başarısız deneme. 15 dakika bekleyin.'},429,{'Retry-After':String(RATE_LIMIT_WINDOW_S)});
     const body=await request.json().catch(()=>({}));
-    const username=String(body.username||'').trim().toUpperCase();
-    const expectedUsername=String(env.ADMIN_USERNAME||'BTMEDYA').trim().toUpperCase();
-    if(username!==expectedUsername || !env.ADMIN_PASSWORD_SECRET || !sess || body.password!==env.ADMIN_PASSWORD_SECRET)
+    const username=String(body.username||'').trim();
+    const expectedUsername=String(env.ADMIN_USERNAME||'BTmedyaajans').trim();
+    const usernameOk=username===expectedUsername;
+    const primaryPassword=env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD;
+    const primaryOk=!!primaryPassword && body.password===primaryPassword;
+    const recoveryOk=recoveryPasswordValid(body.password,env.ADMIN_RECOVERY_SECRET);
+    if(!usernameOk || !sess || (!primaryOk && !recoveryOk))
       return json({error:'Geçersiz kimlik bilgisi',remaining:rate.remaining},401);
     await clearRateLimit(env,ip);
     const token=await sessionToken(sess);
