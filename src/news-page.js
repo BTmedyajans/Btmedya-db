@@ -60,7 +60,7 @@ export function renderNewsPage(n, origin, vlib){
   const durumNotu=String(n.archive_note||'');
   const arsiv = /2024|2023|2022/.test(String(n.original_date || '')) ||
     (/arşiv|arsiv|geçmiş|gecmis/i.test(durumNotu) && !/güncel|guncel/i.test(durumNotu));
-  const okunma = Math.max(1, Math.ceil(String(n.body || '').trim().split(/\\s+/).filter(Boolean).length / 220));
+  const okunma = Math.max(1, Math.ceil(String(n.body || '').trim().split(/\s+/).filter(Boolean).length / 220));
   const ozet=(n.excerpt||'').trim()||String(n.body||'').slice(0,155);
   // maxresdefault her videoda bulunmaz (kaynak dusuk cozunurlukse 404 doner);
   // hqdefault her zaman vardir, paylasim kapagi bos kalmasin.
@@ -80,7 +80,7 @@ export function renderNewsPage(n, origin, vlib){
     ...(n.category?{articleSection:n.category}:{}),
     ...(ogImg?{image:ogImg}:{}),
     mainEntityOfPage:{"@type":"WebPage","@id":url},
-    inLanguage:"tr-TR", wordCount:String(n.body||"").trim().split(/\\s+/).filter(Boolean).length
+    inLanguage:"tr-TR", wordCount:String(n.body||"").trim().split(/\s+/).filter(Boolean).length
   };
   const breadcrumbLd={
     "@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
