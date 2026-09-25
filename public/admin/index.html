@@ -68,7 +68,77 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 /* Form grid */
 .form-2col{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
 @media(max-width:640px){.form-2col{grid-template-columns:1fr}}
-</style><link rel="stylesheet" href="/uiux-pro-max.css"></head>
+</style>
+/* BTMEDYA site ile ayni tasarim sistemi + mobil yonetim */
+:root{
+  --admin-bg:#02070d;
+  --admin-surface:#07111c;
+  --admin-surface-2:#040b12;
+  --admin-line:rgba(234,242,248,.12);
+  --admin-ink:#eaf2f8;
+  --admin-muted:#8da0b2;
+  --admin-gold:#d6a84a;
+  --admin-gold-ink:#120b00;
+  --admin-cyan:#35d6ff;
+}
+html{background:var(--admin-bg)}
+body{background:
+  radial-gradient(circle at 15% 0%,rgba(53,214,255,.08),transparent 32rem),
+  radial-gradient(circle at 85% 10%,rgba(214,168,74,.07),transparent 28rem),
+  var(--admin-bg);
+  color:var(--admin-ink);min-width:0}
+header{background:rgba(2,7,13,.92);border-color:var(--admin-line);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.panel,.card,.news-row,.msg-row{background:rgba(7,17,28,.88);border-color:var(--admin-line)}
+.panel{box-shadow:0 16px 44px rgba(0,0,0,.16)}
+.muted,label,.status{color:var(--admin-muted)}
+input,select,textarea{background:var(--admin-surface-2);border-color:var(--admin-line);color:var(--admin-ink);min-height:44px}
+input:focus,select:focus,textarea:focus{border-color:rgba(53,214,255,.62);box-shadow:0 0 0 3px rgba(53,214,255,.08)}
+.btn{min-height:44px;background:rgba(255,255,255,.03);border-color:var(--admin-line);color:var(--admin-ink);transition:transform .18s ease,border-color .18s ease,background .18s ease}
+.btn:hover{background:rgba(255,255,255,.07);border-color:rgba(234,242,248,.24);transform:translateY(-1px)}
+.btn.primary,.tab.active{background:var(--admin-gold);border-color:var(--admin-gold);color:var(--admin-gold-ink)}
+.btn.primary:hover,.tab.active:hover{background:#e8c06a;border-color:#e8c06a}
+.btn.sm{min-height:44px}
+.tabs{max-width:100%;overflow-x:auto;scrollbar-width:thin;flex-wrap:nowrap}
+.tab{min-height:44px;flex:0 0 auto}
+.admin-site-links{max-width:100%;overflow-x:auto;scrollbar-width:thin}
+.admin-site-links a{min-height:44px;display:inline-flex;align-items:center}
+.drop{min-height:120px;display:grid;place-items:center;gap:10px;border-color:rgba(53,214,255,.22);background:rgba(4,11,18,.65)}
+.grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.news-row{min-width:0}
+.news-row-info{min-width:0}
+a{color:#e8c06a}
+#liveVerify{line-height:1.7}
+.live-checks{display:grid;gap:7px;margin-top:10px}
+.live-check{display:flex;justify-content:space-between;gap:12px;padding:9px 11px;border:1px solid var(--admin-line);border-radius:9px;background:rgba(255,255,255,.02)}
+.live-check b{font-size:12px}
+.live-ok{color:#79d6a1}.live-bad{color:#ff8b96}.live-note{color:var(--admin-muted);font-size:11px}
+@media(max-width:800px){
+  header{padding:12px 14px;align-items:stretch}
+  header strong{width:100%;margin-right:0}
+  .admin-site-links{width:100%;order:2;flex-wrap:nowrap;gap:6px;padding-bottom:3px}
+  .tabs{width:100%;order:3}
+  .wrap{padding:12px}
+  .panel{padding:14px;border-radius:12px}
+  .grid{grid-template-columns:1fr}
+  .form-2col{grid-template-columns:1fr}
+  .news-row{display:grid;grid-template-columns:56px minmax(0,1fr);gap:10px;align-items:start}
+  .news-row>.row{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr}
+  .news-row>.row .btn{width:100%}
+  .msg-header{align-items:flex-start}
+  .msg-date{font-size:10px;white-space:normal;text-align:right}
+  #slotList>div,#videoList>div{grid-template-columns:1fr!important}
+  #videoList>div img{width:100%!important;max-width:100%}
+  #videoList input{width:100%;min-height:44px}
+  .row{gap:8px}
+  .row>input,.row>select,.row>.btn{flex:1 1 160px}
+  .live-check{align-items:flex-start;flex-direction:column}
+}
+@media(max-width:480px){
+  .row>input,.row>select,.row>.btn{flex-basis:100%}
+  .news-row>.row{grid-template-columns:1fr}
+  .drop{padding:22px 12px}
+}
+<link rel="stylesheet" href="/uiux-pro-max.css"></head>
 <body>
 <header>
   <strong>BTMEDYA / ADMIN</strong>
@@ -334,6 +404,14 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <p class="muted">Cloudflare, D1, R2, sosyal bağlantılar, iZap ve CMS Open Data iş akışının tek durum ekranı.</p>
     <div id="controlSummary" class="status">Yükleniyor…</div>
   </div>
+
+    <div class="panel">
+      <div class="row" style="margin-bottom:10px">
+        <h2 style="margin:0;flex:1">Canlı yayın doğrulaması</h2>
+        <button class="btn sm" id="liveVerifyBtn">Şimdi denetle</button>
+      </div>
+      <div id="liveVerify" class="status">Kontrol bekleniyor…</div>
+    </div>
   <div class="panel">
     <h2>Bağlantılar</h2>
     <div id="controlIntegrations"></div>
@@ -386,6 +464,8 @@ function showApp(){
   $('#logoutBtn').style.display='block';
   loadSlots();   // giriste once "sitede ne eksik" gorunur
   loadMedia();
+  loadControlCenter();
+  loadLiveVerification();
 }
 async function init(){
   try{await req('/api/media');showApp()}catch(e){}
@@ -485,6 +565,31 @@ async function loadControlCenter(){
   }catch(e){box.textContent='Control Center durumu alınamadı.'}
 }
 
+
+async function loadLiveVerification(){
+  const box=$('#liveVerify');
+  if(!box)return;
+  box.innerHTML='<span class="live-note">Canlı uçlar kontrol ediliyor…</span>';
+  const check=async(label,fn)=>{
+    try{
+      const value=await fn();
+      return {label,ok:true,value};
+    }catch(e){
+      return {label,ok:false,value:e&&e.message?e.message:String(e)};
+    }
+  };
+  const results=await Promise.all([
+    check('API sağlık',async()=>{const r=await fetch('/api/health',{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();if(!d.ok)throw Error('ok=false');return 'Worker OK';}),
+    check('Haber akışı',async()=>{const r=await fetch('/api/news?limit=1',{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();return (d.items||[]).length+' kayıt döndü';}),
+    check('Medya akışı',async()=>{const r=await fetch('/api/public/media?limit=100',{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();const items=Array.isArray(d.items)?d.items:[];const real=items.filter(x=>x&&x.ai_generated===false).length;const ai=items.filter(x=>x&&x.ai_generated===true).length;const bad=items.filter(x=>/(^|\/)\.(?:trashed|tmp|temp)(?:-|\/|$)/i.test(String(x.key||''))||/(^|\/)thumbs\.db$/i.test(String(x.key||''))).length;if(bad)throw Error(bad+' geçici/çöp nesne sızıntısı');if(!items.length)throw Error('medya akışı boş');if(!real)throw Error('gerçek medya etiketi yok');return items.length+' kayıt · '+real+' gerçek · '+ai+' AI';}),
+    check('Kaynak Masası',async()=>{const r=await fetch('/kaynak-masasi/',{redirect:'manual',cache:'no-store'});if(!(r.ok||r.status===200))throw Error('HTTP '+r.status);return '200 OK';}),
+    check('Yönetim paneli',async()=>{const r=await fetch('/api/admin/control-center',{cache:'no-store'});if(r.status!==401 && !r.ok)throw Error('HTTP '+r.status);return r.status===401?'oturum koruması aktif':'oturum açık';})
+  ]);
+  const allOk=results.every(x=>x.ok);
+  box.innerHTML='<div><b class="'+(allOk?'live-ok':'live-bad')+'">'+(allOk?'YAYIN ZİNCİRİ SAĞLIKLI':'DÜZELTME GEREKİYOR')+'</b><span class="live-note"> · '+new Date().toLocaleString('tr-TR')+'</span></div>'+
+    '<div class="live-checks">'+results.map(x=>'<div class="live-check"><b>'+escStr(x.label)+'</b><span class="'+(x.ok?'live-ok':'live-bad')+'">'+(x.ok?'✓ ':'✗ ')+escStr(x.value)+'</span></div>').join('')+'</div>';
+}
+
 function showTab(name){
   document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
@@ -494,7 +599,7 @@ function showTab(name){
   if(name==='news'){loadNewsList()}
   if(name==='social'){loadSocial()}
   if(name==='videos'){loadVideos()}
-  if(name==='messages'){loadMessages()}\n  if(name==='automation'){loadAutomationNews()}\n  if(name==='finder'){loadFinder()}\n  if(name==='control'){loadControlCenter()}
+  if(name==='messages'){loadMessages()}\n  if(name==='automation'){loadAutomationNews()}\n  if(name==='finder'){loadFinder()}\n  if(name==='control'){loadControlCenter();loadLiveVerification()}
 }
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
 
@@ -755,10 +860,9 @@ async function saveNews(forceStatus){
     }
     if(!r.ok||!d.ok){$('#nStatus2').textContent='Hata: '+(d.error||r.status);return}
     // Haber artik kendi adresinde yayinda; dogrudan acilabilsin.
-    if(b.status==='published'){
-      $('#nStatus2').innerHTML='Yayınlandı ✓ <a href="/haberler/'+encodeURIComponent(b.slug)+'" target="_blank" style="color:#e8c06a">haberi aç ↗</a>';
-    }
-    $('#nStatus2').textContent=status==='published'?'Yayınlandı ✓':'Taslak kaydedildi ✓';
+    $('#nStatus2').innerHTML=status==='published'
+      ? 'Yayınlandı ✓ <a href="/haberler/'+encodeURIComponent(b.slug)+'.html" target="_blank" rel="noopener" style="color:#e8c06a">haberi aç ↗</a>'
+      : 'Taslak kaydedildi ✓';
     loadNewsList();
   }catch(e){$('#nStatus2').textContent='Hata: '+e.message}
 }
