@@ -69,6 +69,10 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 .form-2col{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
 @media(max-width:640px){.form-2col{grid-template-columns:1fr}}
 </style>
+.cover-suggestion{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:10px 0;padding:12px;border:1px solid rgba(53,214,255,.18);border-radius:10px;background:rgba(53,214,255,.04)}
+.cover-suggestion-copy{display:grid;gap:4px}.cover-suggestion-copy span{font-size:11px;color:var(--admin-muted);line-height:1.45}
+@media(max-width:600px){.cover-suggestion{align-items:stretch;flex-direction:column}.cover-suggestion .btn{width:100%}}
+
 /* BTMEDYA site ile ayni tasarim sistemi + mobil yonetim */
 :root{
   --admin-bg:#02070d;
@@ -257,8 +261,15 @@ a{color:#e8c06a}
             <input id="nAuthor" style="width:100%" placeholder="Buse Tuncay">
           </div>
         </div>
-        <label>KAPAK GÖRSELI URL'si</label>
-        <input id="nCoverUrl" style="width:100%" placeholder="https://... veya /assets/...">
+        <label>KAPAK GÖRSELI</label>
+        <div class="row">
+          <input id="nCoverUrl" style="width:100%;flex:1" placeholder="https://... veya /assets/...">
+          <button class="btn" type="button" id="coverSuggestBtn">Arşiv kapağını öner</button>
+        </div>
+        <div id="coverSuggestion" class="cover-suggestion" hidden>
+          <div class="cover-suggestion-copy"><b>BTMEDYA editoryal kapak</b><span>Haberin kendi slug'ına ait metinsiz gerçek çekim karesi. Paylaşım kapağı başlık + kırmızı künyeyle üretilen ayrı versiyondur.</span></div>
+          <button class="btn sm primary" type="button" id="coverUseBtn">Bu kapağı kullan</button>
+        </div>
         <img id="coverPreview" class="cover-preview" alt="Kapak önizleme">
         <label>VIDEO URL</label>
         <input id="nVideoUrl" style="width:100%" placeholder="YouTube bağlantısı yapıştırın (watch, youtu.be, shorts)">
@@ -417,6 +428,10 @@ a{color:#e8c06a}
     <div id="controlIntegrations"></div>
   </div>
   <div class="panel">
+    <h2>Arşiv / R2 eşleşmesi</h2>
+    <div id="controlCatalog" class="status">Yükleniyor…</div>
+  </div>
+  <div class="panel">
     <h2>Bekleyen kurulumlar</h2>
     <div id="controlNext"></div>
   </div>
@@ -562,6 +577,15 @@ async function loadControlCenter(){
     const labels={izap:'iZap / WhatsApp',cmsOpenData:'CMS Open Data',github:'GitHub → Cloudflare'};
     integrations.innerHTML=Object.entries(d.integrations).map(([k,v])=>'<div style="padding:12px 0;border-bottom:1px solid #222"><b>'+escStr(labels[k]||k)+'</b><div class="muted" style="margin-top:4px">'+escStr(v.status)+' · '+escStr(v.note)+'</div></div>').join('');
     next.innerHTML=d.nextActions?.length?'<ul style="margin:0;padding-left:20px;color:#ccc">'+d.nextActions.map(x=>'<li style="margin:7px 0">'+escStr(x)+'</li>').join('')+'</ul>':'<span style="color:#6c6">Şu an Worker tarafında bekleyen zorunlu secret görünmüyor.</span>';
+    const cat=d.catalog||{};
+    $('#controlCatalog').innerHTML='<div class="live-checks">'+
+      '<div class="live-check"><b>Statik medya kataloğu</b><span class="live-ok">'+Number(cat.staticRecords||0)+' kayıt</span></div>'+
+      '<div class="live-check"><b>Gerçek / AI</b><span>'+Number(cat.staticReal||0)+' gerçek · '+Number(cat.staticAi||0)+' AI</span></div>'+
+      '<div class="live-check"><b>Canlı R2</b><span>'+Number(cat.r2Objects||0)+' nesne</span></div>'+
+      '<div class="live-check"><b>D1 medya</b><span>'+Number(cat.d1MediaRecords||0)+' kayıt</span></div>'+
+      '<div class="live-check"><b>Haber</b><span>'+Number(cat.publishedNews||0)+' yayın · '+Number(cat.d1NewsRecords||0)+' toplam</span></div>'+
+      '<div class="live-check"><b>Statik → R2</b><span class="'+(Number(cat.staticNotInR2||0)?'live-note':'live-ok')+'">'+Number(cat.staticNotInR2||0)+' kayıt R2 dışında, ASSETS üzerinden sunuluyor</span></div>'+
+      '</div><p class="live-note">'+escStr(cat.note||'')+'</p>';
   }catch(e){box.textContent='Control Center durumu alınamadı.'}
 }
 
@@ -812,13 +836,23 @@ function slugify(s){return s.toLowerCase().replace(/ğ/g,'g').replace(/ü/g,'u')
 $('#nTitle').addEventListener('input',()=>{if(!$('#nSlug').dataset.touched)$('#nSlug').value=slugify($('#nTitle').value)});
 $('#nSlug').addEventListener('input',()=>{$('#nSlug').dataset.touched='1'});
 
+function coverPhotoPath(slug){return slug?'/assets/haber-kapak/'+encodeURIComponent(slug)+'-foto.webp':''}
+function updateCoverSuggestion(){
+  const slug=$('#nSlug').value.trim(), box=$('#coverSuggestion'), btn=$('#coverUseBtn');
+  if(!slug){box.hidden=true;return}
+  btn.dataset.url=coverPhotoPath(slug); box.hidden=false;
+}
 function updateCoverPreview(){
-  const url=$('#nCoverUrl').value.trim();
-  const img=$('#coverPreview');
-  if(url){img.src=url;img.style.display='block'}
-  else{img.style.display='none'}
+  const url=$('#nCoverUrl').value.trim(), img=$('#coverPreview');
+  if(url){img.src=url;img.style.display='block'}else{img.style.display='none'}
 }
 $('#nCoverUrl').addEventListener('input',updateCoverPreview);
+$('#nSlug').addEventListener('input',updateCoverSuggestion);
+$('#coverSuggestBtn').onclick=()=>{updateCoverSuggestion();$('#coverSuggestion').scrollIntoView({behavior:'smooth',block:'nearest'})};
+$('#coverUseBtn').onclick=()=>{
+  const url=$('#coverUseBtn').dataset.url||''; if(!url)return;
+  $('#nCoverUrl').value=url; updateCoverPreview(); $('#nStatus2').textContent='Arşiv kapağı seçildi ✓';
+};
 
 function clearNewsForm(){
   editingNewsId=null;
@@ -826,7 +860,7 @@ function clearNewsForm(){
   $('#nTitle').value='';delete $('#nSlug').dataset.touched;$('#nSlug').value='';
   $('#nCategory').value='';$('#nAuthor').value='';$('#nCoverUrl').value='';$('#nVideoUrl').value='';
   $('#nExcerpt').value='';$('#nBody').value='';$('#nDate').value='';$('#nStatus').value='published';
-  $('#coverPreview').style.display='none';
+  $('#coverPreview').style.display='none'; $('#coverSuggestion').hidden=true;
   $('#nCancelBtn').style.display='none';
   $('#nStatus2').textContent='';
 }
@@ -897,6 +931,7 @@ async function loadNewsEdit(id){
   $('#nTitle').value=n.title||'';
   $('#nSlug').dataset.touched='1';
   $('#nSlug').value=n.slug||'';
+  updateCoverSuggestion();
   $('#nCategory').value=n.category||'';
   $('#nAuthor').value=n.author||'';
   $('#nCoverUrl').value=n.cover_url||'';
