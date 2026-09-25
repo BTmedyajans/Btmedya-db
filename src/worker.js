@@ -611,7 +611,7 @@ async function mediaApi(request, env){
            public medya kataloğuna girmemeli. Silme/taşıma yapmıyoruz, yalnızca
            vitrinde ve API'de görünmesini engelliyoruz. */
         const key=String(x.key||'');
-        if(/(^|\\/)\\.(?:trashed|tmp|temp)(?:-|\\/|$)/i.test(key) || /(^|\\/)thumbs\\.db$/i.test(key)) continue;
+        if(/(^|\/).(?:trashed|tmp|temp)(?:-|\/|$)/i.test(key) || /(^|\/)thumbs\.db$/i.test(key)) continue;
         if(known.has(x.key)) continue;
         x.url=await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600));
         r2Items.push(x);
