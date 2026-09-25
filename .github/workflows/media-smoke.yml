@@ -64,5 +64,16 @@ jobs:
             console.error("source:", x.source, "items:", x.items.length);
             process.exit(1);
           }
-          console.log("Public media items:", x.items.length, "source:", x.source, "direct R2 items:", direct.length, "legacy R2 items:", legacy.length);
+          const bad = x.items.filter(i => /(^|\\/)\\.(?:trashed|tmp|temp)(?:-|\\/|$)/i.test(String(i.key||"")) || /(^|\\/)thumbs\\.db$/i.test(String(i.key||"")));
+          if (bad.length) {
+            console.error("Temporary/trash objects leaked into public media feed:", bad.slice(0,5));
+            process.exit(1);
+          }
+          const aiItems = x.items.filter(i => i.ai_generated === true);
+          const realItems = x.items.filter(i => i.ai_generated === false);
+          if (!realItems.length) {
+            console.error("Public media feed has no explicitly real-media item.");
+            process.exit(1);
+          }
+          console.log("Public media items:", x.items.length, "source:", x.source, "direct R2 items:", direct.length, "legacy R2 items:", legacy.length, "AI:", aiItems.length, "real:", realItems.length);
           NODE
