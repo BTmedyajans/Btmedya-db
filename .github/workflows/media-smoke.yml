@@ -64,7 +64,7 @@ jobs:
             console.error("source:", x.source, "items:", x.items.length);
             process.exit(1);
           }
-          const bad = x.items.filter(i => /(^|\\/)\\.(?:trashed|tmp|temp)(?:-|\\/|$)/i.test(String(i.key||"")) || /(^|\\/)thumbs\\.db$/i.test(String(i.key||"")));
+          const bad = x.items.filter(i => /(^|\/)\.(?:trashed|tmp|temp)(?:-|\/|$)/i.test(String(i.key||"")) || /(^|\/)thumbs\.db$/i.test(String(i.key||"")));
           if (bad.length) {
             console.error("Temporary/trash objects leaked into public media feed:", bad.slice(0,5));
             process.exit(1);
