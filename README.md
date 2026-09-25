@@ -16,6 +16,7 @@ public/              Yayınlanan her şey (assets binding bu klasörü servis ed
   data/haberler.json Haber arşivi verisi (tam metin, kaynak, yazar)
   admin/             Media Vault yönetim paneli (/admin/)
   social-studio/     İçerik → sosyal video üretim sayfası
+  hizmetler/         Hızlı gelir odaklı hizmet paketleri ve WhatsApp teklif akışı
   robots.txt, sitemap.xml, news-sitemap.xml, rss.xml, site.webmanifest, llms.txt, llms-full.txt
 docs/                Yayına alma, Media Vault ve kaynak/provenance kılavuzları
 ```
