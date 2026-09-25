@@ -810,7 +810,7 @@ function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
   return {aspect,uygun,uygunsuz,siteUyarisi};
 }
 
-export default { async fetch(request, env, ctx){
+export default { async scheduled(controller, env, ctx){ console.log('[btmedya] scheduled tick', controller?.cron || 'cron'); }, async fetch(request, env, ctx){
   const url = new URL(request.url);
 
   if(url.hostname.startsWith('www.')){
