@@ -404,7 +404,7 @@ async function mediaSyncApi(request, env, url){
   if(!env.MEDIA) return json({ok:false,error:'Üretim R2 bağlı değil'},503);
   if(!env.ASSETS) return json({ok:false,error:'Statik ASSETS bağlı değil'},503);
   const body=await request.json().catch(()=>({}));
-  const raw=String(body.path||'').replace(/^\\/+/, '');
+  const raw=String(body.path||'').replace(/^\/+/, '');
   if(!raw || raw.includes('..') || raw.length>500) return json({ok:false,error:'Geçersiz medya yolu'},400);
   const origin=new URL(request.url).origin;
   const catalog=await medyaListesi(env,origin);
@@ -421,7 +421,7 @@ async function mediaSyncApi(request, env, url){
   if(env.DB){
     const id=crypto.randomUUID(), now=new Date().toISOString();
     const category=String(item.category||'arsiv');
-    const title=String(item.baslik||raw.split('/').pop()||raw).replace(/\\.[^.]+$/,'').replace(/[-_]+/g,' ');
+    const title=String(item.baslik||raw.split('/').pop()||raw).replace(/\.[^.]+$/,'').replace(/[-_]+/g,' ');
     const ai=item.gercek===true ? 0 : 1;
     const slot=category==='hero'?'hero':category==='video'?'medya':category==='portfoy'?'portfoy':'';
     const tags=JSON.stringify(['BTMEDYA',ai?'ai-uretimi':'gercek','arsiv','r2']);
