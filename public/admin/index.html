@@ -3,7 +3,7 @@
 body{font-family:Inter,system-ui,sans-serif;margin:0;background:#090909;color:#eee;font-size:14px}
 a{color:#7dd}
 header{padding:14px 20px;border-bottom:1px solid #222;display:flex;align-items:center;gap:14px;position:sticky;top:0;background:#090909;z-index:10;flex-wrap:wrap}
-header strong{font-size:15px;letter-spacing:.04em;color:#fff;margin-right:auto}.admin-site-links{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.admin-site-links a{border:1px solid #333;border-radius:8px;padding:6px 10px;color:#aaa;text-decoration:none;font-size:12px}.admin-site-links a:hover{color:#fff;border-color:#777;background:#171717}
+header strong{font-size:15px;letter-spacing:.04em;color:#fff;margin-right:auto}
 .tabs{display:flex;gap:4px}
 .tab{background:none;border:1px solid #333;color:#999;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;position:relative}
 .tab.active{background:#eee;color:#111;border-color:#eee}
@@ -68,100 +68,16 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 /* Form grid */
 .form-2col{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
 @media(max-width:640px){.form-2col{grid-template-columns:1fr}}
-.cover-suggestion{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:10px 0;padding:12px;border:1px solid rgba(53,214,255,.18);border-radius:10px;background:rgba(53,214,255,.04)}
-.cover-suggestion-copy{display:grid;gap:4px}.cover-suggestion-copy span{font-size:11px;color:var(--admin-muted);line-height:1.45}
-@media(max-width:600px){.cover-suggestion{align-items:stretch;flex-direction:column}.cover-suggestion .btn{width:100%}}
-
-/* BTMEDYA site ile ayni tasarim sistemi + mobil yonetim */
-:root{
-  --admin-bg:#02070d;
-  --admin-surface:#07111c;
-  --admin-surface-2:#040b12;
-  --admin-line:rgba(234,242,248,.12);
-  --admin-ink:#eaf2f8;
-  --admin-muted:#8da0b2;
-  --admin-gold:#d6a84a;
-  --admin-gold-ink:#120b00;
-  --admin-cyan:#35d6ff;
-}
-html{background:var(--admin-bg)}
-body{background:
-  radial-gradient(circle at 15% 0%,rgba(53,214,255,.08),transparent 32rem),
-  radial-gradient(circle at 85% 10%,rgba(214,168,74,.07),transparent 28rem),
-  var(--admin-bg);
-  color:var(--admin-ink);min-width:0}
-header{background:rgba(2,7,13,.92);border-color:var(--admin-line);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
-.panel,.card,.news-row,.msg-row{background:rgba(7,17,28,.88);border-color:var(--admin-line)}
-.panel{box-shadow:0 16px 44px rgba(0,0,0,.16)}
-.muted,label,.status{color:var(--admin-muted)}
-input,select,textarea{background:var(--admin-surface-2);border-color:var(--admin-line);color:var(--admin-ink);min-height:44px}
-input:focus,select:focus,textarea:focus{border-color:rgba(53,214,255,.62);box-shadow:0 0 0 3px rgba(53,214,255,.08)}
-.btn{min-height:44px;background:rgba(255,255,255,.03);border-color:var(--admin-line);color:var(--admin-ink);transition:transform .18s ease,border-color .18s ease,background .18s ease}
-.btn:hover{background:rgba(255,255,255,.07);border-color:rgba(234,242,248,.24);transform:translateY(-1px)}
-.btn.primary,.tab.active{background:var(--admin-gold);border-color:var(--admin-gold);color:var(--admin-gold-ink)}
-.btn.primary:hover,.tab.active:hover{background:#e8c06a;border-color:#e8c06a}
-.btn.sm{min-height:44px}
-.tabs{max-width:100%;overflow-x:auto;scrollbar-width:thin;flex-wrap:nowrap}
-.tab{min-height:44px;flex:0 0 auto}
-.admin-site-links{max-width:100%;overflow-x:auto;scrollbar-width:thin}
-.admin-site-links a{min-height:44px;display:inline-flex;align-items:center}
-.drop{min-height:120px;display:grid;place-items:center;gap:10px;border-color:rgba(53,214,255,.22);background:rgba(4,11,18,.65)}
-.grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
-.news-row{min-width:0}
-.news-row-info{min-width:0}
-a{color:#e8c06a}
-#liveVerify{line-height:1.7}
-.live-checks{display:grid;gap:7px;margin-top:10px}
-.live-check{display:flex;justify-content:space-between;gap:12px;padding:9px 11px;border:1px solid var(--admin-line);border-radius:9px;background:rgba(255,255,255,.02)}
-.live-check b{font-size:12px}
-.live-ok{color:#79d6a1}.live-bad{color:#ff8b96}.live-note{color:var(--admin-muted);font-size:11px}
-@media(max-width:800px){
-  header{padding:12px 14px;align-items:stretch}
-  header strong{width:100%;margin-right:0}
-  .admin-site-links{width:100%;order:2;flex-wrap:nowrap;gap:6px;padding-bottom:3px}
-  .tabs{width:100%;order:3}
-  .wrap{padding:12px}
-  .panel{padding:14px;border-radius:12px}
-  .grid{grid-template-columns:1fr}
-  .form-2col{grid-template-columns:1fr}
-  .news-row{display:grid;grid-template-columns:56px minmax(0,1fr);gap:10px;align-items:start}
-  .news-row>.row{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr}
-  .news-row>.row .btn{width:100%}
-  .msg-header{align-items:flex-start}
-  .msg-date{font-size:10px;white-space:normal;text-align:right}
-  #slotList>div,#videoList>div{grid-template-columns:1fr!important}
-  #videoList>div img{width:100%!important;max-width:100%}
-  #videoList input{width:100%;min-height:44px}
-  .row{gap:8px}
-  .row>input,.row>select,.row>.btn{flex:1 1 160px}
-  .live-check{align-items:flex-start;flex-direction:column}
-}
-@media(max-width:480px){
-  .row>input,.row>select,.row>.btn{flex-basis:100%}
-  .news-row>.row{grid-template-columns:1fr}
-  .drop{padding:22px 12px}
-}
- </style>
-<link rel="stylesheet" href="/uiux-pro-max.css"></head>
+</style></head>
 <body>
 <header>
   <strong>BTMEDYA / ADMIN</strong>
-  <nav class="admin-site-links" aria-label="Yayın sitesi bağlantıları">
-    <a href="/" target="_blank" rel="noopener">Siteyi aç ↗</a>
-    <a href="/haberler/" target="_blank" rel="noopener">Haberler ↗</a>
-    <a href="/iletisim/" target="_blank" rel="noopener">İletişim ↗</a>
-    <a href="/#medya" target="_blank" rel="noopener">Medya ↗</a>
-    <a href="/#portfoy" target="_blank" rel="noopener">Portföy ↗</a>
-    <a href="/#ai-lab" target="_blank" rel="noopener">AI LAB ↗</a>
-    <a href="/kaynak-masasi/" target="_blank" rel="noopener">Kaynak Masası ↗</a>
-    <a href="/#digital" target="_blank" rel="noopener">Dijital ↗</a>
-  </nav>
   <div class="tabs" id="tabBar" style="display:none">
     <button class="tab active" data-tab="durum">Site Durumu</button>
     <button class="tab" data-tab="media">Medya Kasası</button>
     <button class="tab" data-tab="news">Haberler</button>
     <button class="tab" data-tab="social">Sosyal İçerik</button>
-    <button class="tab" data-tab="videos">Videolar</button><button class="tab" data-tab="automation">Otomasyon</button><button class="tab" data-tab="finder">Haber Bulucu</button>
+    <button class="tab" data-tab="videos">Videolar</button>
     <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button><button class="tab" data-tab="control">Control Center</button>
   </div>
   <button class="btn" id="logoutBtn" style="display:none">Çıkış</button>
@@ -173,7 +89,7 @@ a{color:#e8c06a}
 <div id="loginSection" class="panel login-box">
   <h2>Yönetici Girişi</h2>
   <p class="muted" style="margin-bottom:14px">BTMedya yönetim paneline giriş yapın.</p>
-  <input id="user" type="text" autocomplete="username" placeholder="Kullanıcı adı" value="BTmedyaajans" style="width:100%;margin-bottom:10px">
+  <input id="user" type="text" autocomplete="username" placeholder="Kullanıcı adı" value="BTMEDYA" style="width:100%;margin-bottom:10px">
   <input id="pw" type="password" autocomplete="current-password" placeholder="Şifre" style="width:100%;margin-bottom:10px">
   <button class="btn primary" id="loginBtn" style="width:100%">Giriş yap</button>
   <p id="loginMsg" class="status" style="color:#f88"></p>
@@ -261,15 +177,8 @@ a{color:#e8c06a}
             <input id="nAuthor" style="width:100%" placeholder="Buse Tuncay">
           </div>
         </div>
-        <label>KAPAK GÖRSELI</label>
-        <div class="row">
-          <input id="nCoverUrl" style="width:100%;flex:1" placeholder="https://... veya /assets/...">
-          <button class="btn" type="button" id="coverSuggestBtn">Arşiv kapağını öner</button>
-        </div>
-        <div id="coverSuggestion" class="cover-suggestion" hidden>
-          <div class="cover-suggestion-copy"><b>BTMEDYA editoryal kapak</b><span>Haberin kendi slug'ına ait metinsiz gerçek çekim karesi. Paylaşım kapağı başlık + kırmızı künyeyle üretilen ayrı versiyondur.</span></div>
-          <button class="btn sm primary" type="button" id="coverUseBtn">Bu kapağı kullan</button>
-        </div>
+        <label>KAPAK GÖRSELI URL'si</label>
+        <input id="nCoverUrl" style="width:100%" placeholder="https://... veya /assets/...">
         <img id="coverPreview" class="cover-preview" alt="Kapak önizleme">
         <label>VIDEO URL</label>
         <input id="nVideoUrl" style="width:100%" placeholder="YouTube bağlantısı yapıştırın (watch, youtu.be, shorts)">
@@ -346,35 +255,7 @@ a{color:#e8c06a}
     <div class="panel"><div id="videoList"></div></div>
   </div>
 
-  
-<div class="tab-content" id="tab-finder">
-  <div class="panel">
-    <h2>Haber Bulucu</h2>
-    <p class="muted">Kaynaklardan yalnızca başlık, özet, tarih ve bağlantı alınır. Tam metin otomatik kopyalanmaz. Bulunanlar <b>TASLAK</b> olarak D1'e düşer ve editör onayı olmadan yayınlanmaz.</p>
-    <div id="finderSources" class="grid" style="margin:14px 0"></div>
-    <div class="row">
-      <button class="btn primary" id="finderScan">Kaynakları şimdi tara</button>
-      <span id="finderStatus" class="status"></span>
-    </div>
-  </div>
-  <div class="panel">
-    <h2>AI İçerik Oluşturucu</h2>
-    <p class="muted">Seçtiğin taslak için başlık, özet, haber gövdesi ve sosyal medya metni üretir. <b>Otomatik yayın yapmaz.</b> OPENAI_API_KEY yapılandırılmışsa aktif olur.</p>
-    <div class="form-2col">
-      <div><label>BAŞLIK</label><input id="aiTitle" style="width:100%" placeholder="Haber başlığı"></div>
-      <div><label>KAYNAK URL</label><input id="aiSource" style="width:100%" placeholder="https://..."></div>
-    </div>
-    <label>KAYNAK METNİ / ÖZET</label>
-    <textarea id="aiText" style="width:100%;min-height:150px" placeholder="Kaynak metnini veya editoryal notları buraya ekleyin"></textarea>
-    <div class="row" style="margin-top:12px">
-      <button class="btn primary" id="aiGenerate">AI taslak oluştur</button>
-      <button class="btn" id="aiUseNews">Seçili haberi getir</button>
-      <span id="aiStatus" class="status"></span>
-    </div>
-    <div id="aiResult" class="panel" style="margin-top:14px;display:none"></div>
-  </div>
-</div>
-<div class="tab-content" id="tab-automation">
+  <div class="tab-content" id="tab-automation">
   <div class="panel">
     <h2>BTMEDYA Otomasyon Merkezi</h2>
     <p class="muted">D1'deki gerçek haberleri seçip sosyal içerik kuyruğuna otomatik taslak olarak aktarır. AI LAB içeriği ayrı tutulur; kaynak olarak gerçek haber metni kullanılır.</p>
@@ -415,34 +296,13 @@ a{color:#e8c06a}
     <p class="muted">Cloudflare, D1, R2, sosyal bağlantılar, iZap ve CMS Open Data iş akışının tek durum ekranı.</p>
     <div id="controlSummary" class="status">Yükleniyor…</div>
   </div>
-
-    <div class="panel">
-      <div class="row" style="margin-bottom:10px">
-        <h2 style="margin:0;flex:1">Canlı yayın doğrulaması</h2>
-        <button class="btn sm" id="liveVerifyBtn">Şimdi denetle</button>
-      </div>
-      <div id="liveVerify" class="status">Kontrol bekleniyor…</div>
-    </div>
   <div class="panel">
     <h2>Bağlantılar</h2>
     <div id="controlIntegrations"></div>
   </div>
   <div class="panel">
-    <h2>Arşiv / R2 eşleşmesi</h2>
-    <div id="controlCatalog" class="status">Yükleniyor…</div>
-  </div>
-  <div class="panel">
     <h2>Bekleyen kurulumlar</h2>
     <div id="controlNext"></div>
-  </div>
-  <div class="panel">
-    <div class="row" style="margin-bottom:10px">
-      <h2 style="margin:0;flex:1">Onay kuyruğu ve denetim günlüğü</h2>
-      <button class="btn sm" id="operationsRefresh">Yenile</button>
-    </div>
-    <p class="muted">Dış sisteme yazan işlemler önce burada bekler. Onay yalnızca niyeti kaydeder; gerçek yürütücü bağlanmadan hiçbir sosyal hesap veya deploy hedefi değiştirilmez.</p>
-    <div id="operationsSummary" class="status">Yükleniyor…</div>
-    <div id="operationsList"></div>
   </div>
 </div>
 
@@ -488,8 +348,6 @@ function showApp(){
   $('#logoutBtn').style.display='block';
   loadSlots();   // giriste once "sitede ne eksik" gorunur
   loadMedia();
-  loadControlCenter();
-  loadLiveVerification();
 }
 async function init(){
   try{await req('/api/media');showApp()}catch(e){}
@@ -551,124 +409,16 @@ async function createAutomationPosts(){
 $('#autoLoadNews').onclick=loadAutomationNews;
 $('#autoCreate').onclick=createAutomationPosts;
 
-
-/* ---- Haber Bulucu + AI ---- */
-async function loadFinder(){
-  const box=$('#finderSources'), status=$('#finderStatus');
-  try{
-    const d=await req('/api/admin/news-finder');
-    box.innerHTML=(d.feeds||[]).map(x=>'<label class="card" style="padding:14px;display:block"><b>'+escStr(x.name)+'</b><small class="muted" style="display:block;margin-top:5px">'+escStr(x.category)+'</small></label>').join('');
-    status.textContent=d.openai?'AI üretici hazır.':'AI üretici için OPENAI_API_KEY bekleniyor.';
-  }catch(e){status.textContent='Haber kaynakları okunamadı.'}
-}
-$('#finderScan').onclick=async()=>{
-  const s=$('#finderStatus');s.textContent='Kaynaklar taranıyor…';
-  try{const d=await req('/api/admin/news-finder',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({})});s.textContent=d.count+' yeni haber taslağı bulundu.';loadNewsList()}catch(e){s.textContent='Tarama başarısız.'}
-};
-$('#aiGenerate').onclick=async()=>{
-  const s=$('#aiStatus'), box=$('#aiResult');s.textContent='AI taslağı hazırlanıyor…';box.style.display='none';
-  try{
-    const d=await req('/api/admin/ai-draft',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({title:$('#aiTitle').value,source:$('#aiSource').value,text:$('#aiText').value})});
-    const x=d.draft||{}; box.innerHTML='<b>'+escStr(x.title||'Taslak')+'</b><p style="white-space:pre-wrap;margin:10px 0">'+escStr(x.body||x.excerpt||'')+'</p><div class="muted">Sosyal metin: '+escStr(x.social_caption||'')+'</div>';box.style.display='block';s.textContent='Taslak hazır. Yayın öncesi editör kontrolü gerekli.';
-  }catch(e){s.textContent='AI taslağı oluşturulamadı. Secret veya içerik kontrolünü yapın.'}
-};
-$('#aiUseNews').onclick=()=>{
-  const n=autoNewsCache.find(x=>x.slug===$('#autoNews').value)||autoNewsCache[0];
-  if(!n){$('#aiStatus').textContent='Önce Otomasyon sekmesinden haberleri getir.';return}
-  $('#aiTitle').value=n.title||'';$('#aiSource').value=n.source_url||'';$('#aiText').value=n.body||n.excerpt||'';
-};
 /* ---- Tabs ---- */
 async function loadControlCenter(){
   const box=$('#controlSummary'), integrations=$('#controlIntegrations'), next=$('#controlNext');
   try{
     const d=await req('/api/admin/control-center');
-    box.innerHTML='<b>Site:</b> '+escStr(d.site.url)+' · <b>Worker:</b> '+escStr(d.site.worker)+'<br><b>D1:</b> '+(d.storage.d1?'✓':'✗')+' · <b>R2:</b> '+(d.storage.r2?'✓':'✗')+' · <b>Admin secrets:</b> '+(d.admin.configured?'✓':'Eksik')+' · <b>Media signing:</b> '+(d.admin.mediaSigning?'✓':'Eksik')+' · <b>Bekleyen işlemler:</b> '+Number(d.operations?.pending||0);
+    box.innerHTML='<b>Site:</b> '+escStr(d.site.url)+' · <b>Worker:</b> '+escStr(d.site.worker)+'<br><b>D1:</b> '+(d.storage.d1?'✓':'✗')+' · <b>R2:</b> '+(d.storage.r2?'✓':'✗')+' · <b>Admin secrets:</b> '+(d.admin.configured?'✓':'Eksik')+' · <b>Media signing:</b> '+(d.admin.mediaSigning?'✓':'Eksik');
     const labels={izap:'iZap / WhatsApp',cmsOpenData:'CMS Open Data',github:'GitHub → Cloudflare'};
     integrations.innerHTML=Object.entries(d.integrations).map(([k,v])=>'<div style="padding:12px 0;border-bottom:1px solid #222"><b>'+escStr(labels[k]||k)+'</b><div class="muted" style="margin-top:4px">'+escStr(v.status)+' · '+escStr(v.note)+'</div></div>').join('');
     next.innerHTML=d.nextActions?.length?'<ul style="margin:0;padding-left:20px;color:#ccc">'+d.nextActions.map(x=>'<li style="margin:7px 0">'+escStr(x)+'</li>').join('')+'</ul>':'<span style="color:#6c6">Şu an Worker tarafında bekleyen zorunlu secret görünmüyor.</span>';
-    const cat=d.catalog||{};
-    const missing=Array.isArray(d.audit?.staticNotInR2)?d.audit.staticNotInR2:[];
-    $('#controlCatalog').innerHTML='<div class="live-checks">'+
-      '<div class="live-check"><b>Statik medya kataloğu</b><span class="live-ok">'+Number(cat.staticRecords||0)+' kayıt</span></div>'+
-      '<div class="live-check"><b>Gerçek / AI</b><span>'+Number(cat.staticReal||0)+' gerçek · '+Number(cat.staticAi||0)+' AI</span></div>'+
-      '<div class="live-check"><b>Canlı R2</b><span>'+Number(cat.r2Objects||0)+' nesne</span></div>'+
-      '<div class="live-check"><b>D1 medya</b><span>'+Number(cat.d1MediaRecords||0)+' kayıt</span></div>'+
-      '<div class="live-check"><b>Haber</b><span>'+Number(cat.publishedNews||0)+' yayın · '+Number(cat.d1NewsRecords||0)+' toplam</span></div>'+
-      '<div class="live-check"><b>Statik → R2</b><span class="'+(missing.length?'live-note':'live-ok')+'">'+missing.length+' kayıt R2 dışında</span></div>'+
-      '</div>'+
-      '<div style="margin-top:14px;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:10px">'+
-      '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap">'+
-      '<b>R2 medya kasasına aktar</b>'+
-      '<button id="r2SyncBatch" class="btn sm" '+(missing.length?'':'disabled')+'>İlk '+Math.min(8,missing.length)+' kaydı aktar</button>'+
-      '</div>'+
-      '<p class="muted" style="margin:7px 0 9px">ASSETS yayını korunur. Seçilen gerçek/AI arşiv dosyası aynı anahtarla R2’ye kopyalanır ve D1 medya kaydı açılır.</p>'+
-      '<div id="r2SyncList" style="display:grid;gap:6px">'+
-      missing.slice(0,8).map(p=>'<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:7px 0;border-top:1px solid rgba(255,255,255,.05)"><code style="font-size:10px;word-break:break-all">'+escStr(p)+'</code><button class="btn sm" data-r2-sync="'+escStr(p)+'">R2’ye aktar</button></div>').join('')+
-      (missing.length>8?'<span class="muted" style="font-size:11px">İlk 8 gösteriliyor. Sonraki kayıtlar sonraki kontrolde sıraya alınır.</span>':'')+
-      '</div></div>'+
-      '<p class="live-note" style="margin-top:10px">'+escStr(cat.note||'')+'</p>';
-    const syncOne=async(path,btn)=>{
-      if(btn){btn.disabled=true;btn.textContent='Aktarılıyor…'}
-      try{
-        const r=await req('/api/admin/media-sync',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path})});
-        if(!r.ok||r.error) throw new Error(r.error||'Aktarım başarısız');
-        if(btn) btn.textContent=r.already?'R2’de mevcut ✓':'Aktarıldı ✓';
-      }catch(e){
-        if(btn){btn.disabled=false;btn.textContent='Tekrar dene'}
-        alert(path+'\n'+e.message);
-      }
-    };
-    document.querySelectorAll('[data-r2-sync]').forEach(btn=>btn.addEventListener('click',()=>syncOne(btn.dataset.r2Sync,btn)));
-    document.getElementById('r2SyncBatch')?.addEventListener('click',async()=>{
-      const buttons=[...document.querySelectorAll('[data-r2-sync]')];
-      for(const btn of buttons) await syncOne(btn.dataset.r2Sync,btn);
-      loadControlCenter();
-    });
-    await loadOperations();
   }catch(e){box.textContent='Control Center durumu alınamadı.'}
-}
-
-async function loadOperations(){
-  const summary=$('#operationsSummary'), list=$('#operationsList');
-  if(!summary||!list)return;
-  try{
-    const d=await req('/api/admin/operations?limit=30');
-    const pending=(d.items||[]).filter(x=>x.status==='pending').length;
-    const approved=(d.items||[]).filter(x=>x.status==='approved').length;
-    summary.textContent=`${pending} bekleyen · ${approved} onaylanmış · ${(d.audit||[]).length} son denetim kaydı`;
-    list.innerHTML=(d.items||[]).length?(d.items||[]).map(x=>`<div class="live-check" style="margin-top:7px;align-items:flex-start">
-      <div><b>${escStr(x.kind)}</b><div class="muted">${escStr(x.target||'—')} · ${escStr(fmtDate(x.created_at))}</div><div class="muted" style="font-size:11px">Durum: ${escStr(x.status)}</div></div>
-      <div class="row">${x.status==='pending'?`<button class="btn sm primary" data-op-approve="${escStr(x.id)}">Onayla</button>`:''}${!['succeeded','failed','cancelled'].includes(x.status)?`<button class="btn sm danger" data-op-cancel="${escStr(x.id)}">İptal</button>`:''}</div>
-    </div>`).join(''):'<p class="muted">İşlem kuyruğu boş.</p>';
-    document.querySelectorAll('[data-op-approve]').forEach(btn=>btn.onclick=async()=>{btn.disabled=true;await req('/api/admin/operations/'+encodeURIComponent(btn.dataset.opApprove)+'/approve',{method:'POST'});loadOperations();});
-    document.querySelectorAll('[data-op-cancel]').forEach(btn=>btn.onclick=async()=>{if(!confirm('Bu işlem iptal edilsin mi?'))return;btn.disabled=true;await req('/api/admin/operations/'+encodeURIComponent(btn.dataset.opCancel)+'/cancel',{method:'POST'});loadOperations();});
-  }catch(e){summary.textContent='İşlem kuyruğu henüz hazır değil; migration uygulanmamış olabilir.';list.innerHTML=''}
-}
-$('#operationsRefresh')?.addEventListener('click',loadOperations);
-
-
-async function loadLiveVerification(){
-  const box=$('#liveVerify');
-  if(!box)return;
-  box.innerHTML='<span class="live-note">Canlı uçlar kontrol ediliyor…</span>';
-  const check=async(label,fn)=>{
-    try{
-      const value=await fn();
-      return {label,ok:true,value};
-    }catch(e){
-      return {label,ok:false,value:e&&e.message?e.message:String(e)};
-    }
-  };
-  const results=await Promise.all([
-    check('API sağlık',async()=>{const r=await fetch('/api/health',{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();if(!d.ok)throw Error('ok=false');return 'Worker OK';}),
-    check('Haber akışı',async()=>{const r=await fetch('/api/news?limit=1',{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();return (d.items||[]).length+' kayıt döndü';}),
-    check('Medya akışı',async()=>{const r=await fetch('/api/public/media?limit=100',{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();const items=Array.isArray(d.items)?d.items:[];const real=items.filter(x=>x&&x.ai_generated===false).length;const ai=items.filter(x=>x&&x.ai_generated===true).length;const bad=items.filter(x=>/(^|\/)\.(?:trashed|tmp|temp)(?:-|\/|$)/i.test(String(x.key||''))||/(^|\/)thumbs\.db$/i.test(String(x.key||''))).length;if(bad)throw Error(bad+' geçici/çöp nesne sızıntısı');if(!items.length)throw Error('medya akışı boş');if(!real)throw Error('gerçek medya etiketi yok');return items.length+' kayıt · '+real+' gerçek · '+ai+' AI';}),
-    check('Kaynak Masası',async()=>{const r=await fetch('/kaynak-masasi/',{redirect:'manual',cache:'no-store'});if(!(r.ok||r.status===200))throw Error('HTTP '+r.status);return '200 OK';}),
-    check('Yönetim paneli',async()=>{const r=await fetch('/api/admin/control-center',{cache:'no-store'});if(r.status!==401 && !r.ok)throw Error('HTTP '+r.status);return r.status===401?'oturum koruması aktif':'oturum açık';})
-  ]);
-  const allOk=results.every(x=>x.ok);
-  box.innerHTML='<div><b class="'+(allOk?'live-ok':'live-bad')+'">'+(allOk?'YAYIN ZİNCİRİ SAĞLIKLI':'DÜZELTME GEREKİYOR')+'</b><span class="live-note"> · '+new Date().toLocaleString('tr-TR')+'</span></div>'+
-    '<div class="live-checks">'+results.map(x=>'<div class="live-check"><b>'+escStr(x.label)+'</b><span class="'+(x.ok?'live-ok':'live-bad')+'">'+(x.ok?'✓ ':'✗ ')+escStr(x.value)+'</span></div>').join('')+'</div>';
 }
 
 function showTab(name){
@@ -680,10 +430,7 @@ function showTab(name){
   if(name==='news'){loadNewsList()}
   if(name==='social'){loadSocial()}
   if(name==='videos'){loadVideos()}
-  if(name==='messages'){loadMessages()}
-  if(name==='automation'){loadAutomationNews()}
-  if(name==='finder'){loadFinder()}
-  if(name==='control'){loadControlCenter();loadLiveVerification()}
+  if(name==='messages'){loadMessages()}\n  if(name==='control'){loadControlCenter()}
 }
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
 
@@ -896,23 +643,13 @@ function slugify(s){return s.toLowerCase().replace(/ğ/g,'g').replace(/ü/g,'u')
 $('#nTitle').addEventListener('input',()=>{if(!$('#nSlug').dataset.touched)$('#nSlug').value=slugify($('#nTitle').value)});
 $('#nSlug').addEventListener('input',()=>{$('#nSlug').dataset.touched='1'});
 
-function coverPhotoPath(slug){return slug?'/assets/haber-kapak/'+encodeURIComponent(slug)+'-foto.webp':''}
-function updateCoverSuggestion(){
-  const slug=$('#nSlug').value.trim(), box=$('#coverSuggestion'), btn=$('#coverUseBtn');
-  if(!slug){box.hidden=true;return}
-  btn.dataset.url=coverPhotoPath(slug); box.hidden=false;
-}
 function updateCoverPreview(){
-  const url=$('#nCoverUrl').value.trim(), img=$('#coverPreview');
-  if(url){img.src=url;img.style.display='block'}else{img.style.display='none'}
+  const url=$('#nCoverUrl').value.trim();
+  const img=$('#coverPreview');
+  if(url){img.src=url;img.style.display='block'}
+  else{img.style.display='none'}
 }
 $('#nCoverUrl').addEventListener('input',updateCoverPreview);
-$('#nSlug').addEventListener('input',updateCoverSuggestion);
-$('#coverSuggestBtn').onclick=()=>{updateCoverSuggestion();$('#coverSuggestion').scrollIntoView({behavior:'smooth',block:'nearest'})};
-$('#coverUseBtn').onclick=()=>{
-  const url=$('#coverUseBtn').dataset.url||''; if(!url)return;
-  $('#nCoverUrl').value=url; updateCoverPreview(); $('#nStatus2').textContent='Arşiv kapağı seçildi ✓';
-};
 
 function clearNewsForm(){
   editingNewsId=null;
@@ -920,7 +657,7 @@ function clearNewsForm(){
   $('#nTitle').value='';delete $('#nSlug').dataset.touched;$('#nSlug').value='';
   $('#nCategory').value='';$('#nAuthor').value='';$('#nCoverUrl').value='';$('#nVideoUrl').value='';
   $('#nExcerpt').value='';$('#nBody').value='';$('#nDate').value='';$('#nStatus').value='published';
-  $('#coverPreview').style.display='none'; $('#coverSuggestion').hidden=true;
+  $('#coverPreview').style.display='none';
   $('#nCancelBtn').style.display='none';
   $('#nStatus2').textContent='';
 }
@@ -954,9 +691,10 @@ async function saveNews(forceStatus){
     }
     if(!r.ok||!d.ok){$('#nStatus2').textContent='Hata: '+(d.error||r.status);return}
     // Haber artik kendi adresinde yayinda; dogrudan acilabilsin.
-    $('#nStatus2').innerHTML=status==='published'
-      ? 'Yayınlandı ✓ <a href="/haberler/'+encodeURIComponent(b.slug)+'.html" target="_blank" rel="noopener" style="color:#e8c06a">haberi aç ↗</a>'
-      : 'Taslak kaydedildi ✓';
+    if(b.status==='published'){
+      $('#nStatus2').innerHTML='Yayınlandı ✓ <a href="/haberler/'+encodeURIComponent(b.slug)+'" target="_blank" style="color:#e8c06a">haberi aç ↗</a>';
+    }
+    $('#nStatus2').textContent=status==='published'?'Yayınlandı ✓':'Taslak kaydedildi ✓';
     loadNewsList();
   }catch(e){$('#nStatus2').textContent='Hata: '+e.message}
 }
@@ -991,7 +729,6 @@ async function loadNewsEdit(id){
   $('#nTitle').value=n.title||'';
   $('#nSlug').dataset.touched='1';
   $('#nSlug').value=n.slug||'';
-  updateCoverSuggestion();
   $('#nCategory').value=n.category||'';
   $('#nAuthor').value=n.author||'';
   $('#nCoverUrl').value=n.cover_url||'';
