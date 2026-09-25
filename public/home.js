@@ -213,7 +213,7 @@
   /* Haber kapaginin metinsiz kart varyanti. Uretici her kapagin yaninda
      bir de "-foto" dosyasi biraktigi icin yol turetmek yeterli. */
   const kartGorseli = (yol) => String(yol || '').replace(/(\/assets\/haber-kapak\/[^/]+)\.webp$/, '$1-foto.webp');
-  const cardMedia = n => {
+  const cardMedia = (n, featured = false) => {
     const cover = kapakYolu(n);
     const yt = String(n.video_url || '').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
     if (yt) return `<div class="news-media news-video"><img src="https://i.ytimg.com/vi/${yt[1]}/hqdefault.jpg" alt="${esc(n.title)} — video kapağı" loading="lazy"><div class="news-scrim"></div><span class="video-badge">▶ VİDEO</span></div>`;
@@ -229,8 +229,15 @@
     if (cover) {
       const kaynak = kapakKaynagi[n.slug] === 'ai' ? 'AI ÜRETİMİ'
         : kapakKaynagi[n.slug] === 'gercek' ? 'GERÇEK ÇEKİM'
-        : '';  /* Kayit yoksa rozet basilmaz: bilmedigimizi uydurmaktansa susariz. */
-      return `<div class="news-media"><img src="${esc(kartGorseli(cover))}" alt="${esc(n.title)}" loading="lazy" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div>${kaynak?`<span class="news-kaynak">${esc(kaynak)}</span>`:''}</div>`;
+        : '';
+      /* Öne çıkan haber sosyal/paylaşım kapağının tam kompozisyonunu kullanır:
+         BTMEDYA'nın kendi gerçek fotoğrafı + iri başlık + kırmızı künyesi.
+         Diğer kartlar metinsiz fotoğraf kullanır, böylece başlık iki kez
+         basılmaz. */
+      const src = featured ? cover : kartGorseli(cover);
+      const badge = kaynak ? `<span class="news-kaynak">${esc(kaynak)}</span>` : '';
+      const overlay = featured ? `<div class="news-cover-overlay"><span class="news-cover-category">${esc(n.category || 'HABER')}</span><strong>${esc(n.title || '')}</strong><span class="news-cover-meta">BTMEDYA · ${esc(dateText(n))}</span></div>` : '';
+      return `<div class="news-media${featured?' news-media-editorial':''}"><img src="${esc(src)}" alt="${esc(n.title)}" loading="${featured?'eager':'lazy'}" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div>${badge}${overlay}</div>`;
     }
     return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
   };
