@@ -8,8 +8,8 @@ Cloudflare Dashboard > Workers & Pages > btmedya-db > Settings > Variables and S
 
 ### Çekirdek Worker
 
-- ADMIN_PASSWORD: /admin giriş şifresi
-- ADMIN_SESSION_SECRET: admin oturum imzası
+- ADMIN_PASSWORD_SECRET: /admin giriş şifresi
+- ADMIN_SESSION_SECRET_SECRET: admin oturum imzası
 - MEDIA_SIGNING_SECRET: imzalı medya URL'leri
 
 ### Meta / Instagram / Facebook
