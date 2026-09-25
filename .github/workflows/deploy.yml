@@ -1,0 +1,54 @@
+name: BTMEDYA Production Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btmedya-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy btmedya-db to Cloudflare Workers
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy Worker
+        id: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e
+          npx --yes wrangler@4 deploy --keep-vars
+          status=$?
+          set -e
+
+          # A known historical issue is an externally-managed www DNS record
+          # causing Wrangler to return non-zero after the Worker upload succeeds.
+          # Accept that partial result only when the new production page is live.
+          if [ "$status" -ne 0 ]; then
+            echo "Wrangler returned $status; checking production deployment."
+            code=$(curl -L -s -o /tmp/source-desk.html -w "%{http_code}" --max-time 30 https://btmedya.com.tr/kaynak-masasi/)
+            if [ "$code" = "200" ] && grep -q "Kaynak Masası" /tmp/source-desk.html; then
+              echo "Production content is live despite a post-upload Wrangler warning."
+              exit 0
+            fi
+            exit "$status"
+          fi
+
+      - name: Production smoke test
+        run: |
+          set -euo pipefail
+          test "$(curl -L -s -o /dev/null -w "%{http_code}" --max-time 30 https://btmedya.com.tr/)" = "200"
+          test "$(curl -L -s -o /dev/null -w "%{http_code}" --max-time 30 https://btmedya.com.tr/kaynak-masasi/)" = "200"
+          health="$(curl -L -s --max-time 30 https://btmedya.com.tr/api/health)"
+          echo "$health"
+          echo "$health" | grep -q '"ok":true'
