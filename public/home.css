@@ -156,3 +156,26 @@ footer{padding:35px var(--pad);display:grid;grid-template-columns:1fr auto auto;
    public/data/haber-kapak-kaynagi.json'dan gelir, kodda sabit değildir. */
 .news-kaynak{position:absolute;top:12px;right:12px;z-index:2;font:700 9px/1 Jet,monospace;letter-spacing:.1em;color:#fff;background:rgba(4,7,11,.78);border:1px solid rgba(255,255,255,.26);border-radius:999px;padding:7px 11px;backdrop-filter:blur(6px)}
 @media(max-width:720px){.news-kaynak{top:10px;right:10px;padding:6px 9px;font-size:8px}}
+
+
+/* ===== SOCIAL DESK / METRICOOL SNAPSHOT ===== */
+.social-feed-section{background:#03070d;border-top:1px solid rgba(255,255,255,.07)}
+.social-profiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}
+.social-profile-card{min-height:96px;padding:18px;background:rgba(8,18,29,.82);border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;justify-content:space-between;gap:14px}
+.social-profile-card>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.social-platform-tag{font-size:11px;font-weight:900;letter-spacing:.12em}
+.social-profile-card small{font-size:8px;letter-spacing:.12em;color:#6fe4ff}
+.social-profile-card a,.social-profile-card .is-disabled{font-size:10px;letter-spacing:.08em;color:#9db0c0;text-decoration:none}
+.social-profile-card a:hover{color:#fff}
+.social-profile-card .is-disabled{opacity:.55}
+.social-feed-meta{margin:22px 0 12px;color:#65798b;font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.social-feed-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.social-feed-card{padding:22px;background:linear-gradient(160deg,rgba(17,31,46,.94),rgba(5,12,19,.98));border:1px solid rgba(255,255,255,.09)}
+.social-feed-card-top{display:flex;justify-content:space-between;gap:12px;color:#6fe4ff;font-size:8px;letter-spacing:.12em;text-transform:uppercase}
+.social-feed-card time{color:#7c8e9f}
+.social-feed-card h3{margin:20px 0 9px;font-size:20px;line-height:1.1;letter-spacing:-.02em}
+.social-feed-card p{margin:0 0 16px;color:#8296a7;font-size:11px}
+.social-feed-card>a{font-size:9px;letter-spacing:.12em;text-decoration:none;color:#fff}
+.social-feed-empty{padding:28px;border:1px dashed rgba(255,255,255,.12);color:#738698;font-size:11px;grid-column:1/-1}
+@media(max-width:900px){.social-profiles{grid-template-columns:1fr 1fr}.social-feed-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.social-profiles{grid-template-columns:1fr}.social-feed-card h3{font-size:18px}}
