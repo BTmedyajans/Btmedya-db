@@ -8,10 +8,6 @@
 <meta name="description" content="BTMEDYA Haber Merkezi: Balıkesir başta olmak üzere Türkiye ve dünyadan güncel haberler, saha haberleri, ekonomi, yaşam, spor ve teknoloji.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta property="og:type" content="website"><meta property="og:title" content="BTMEDYA Haber Merkezi"><meta property="og:description" content="Sahadan, kaynaktan, doğrudan. Balıkesir ve Türkiye gündemi."><meta property="og:url" content="https://btmedya.com.tr/haberler/">
-<meta property="og:image" content="https://btmedya.com.tr/assets/btmedya-emblem-derived.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="BTMEDYA Haber Merkezi">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://btmedya.com.tr/assets/btmedya-emblem-derived.png"><meta name="twitter:image:alt" content="BTMEDYA Haber Merkezi">
-<link rel="alternate" type="application/rss+xml" title="BTMEDYA Haber Akışı" href="https://btmedya.com.tr/rss.xml">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"BTMEDYA Haber Merkezi","url":"https://btmedya.com.tr/haberler/","inLanguage":"tr-TR","isPartOf":{"@type":"WebSite","name":"BTMEDYA","url":"https://btmedya.com.tr/"},"publisher":{"@type":"Organization","name":"BTMEDYA","logo":{"@type":"ImageObject","url":"https://btmedya.com.tr/assets/btmedya-emblem-derived.png"}}}</script>
 <link rel="preload" href="/assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/bricolage-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/fonts/fonts.css"><link rel="icon" href="/assets/favicon.png" type="image/png"><link rel="manifest" href="/site.webmanifest"><link rel="stylesheet" href="/styles.css">
@@ -50,7 +46,7 @@
 <div class="news-kicker"><i></i> BTMEDYA HABER MERKEZİ · EDITORIAL DESK</div>
 <h1 class="news-title">Haber.<br><span>Görüntüyle, kaynakla, sahadan.</span></h1>
 <p class="news-deck">Balıkesir merkezli BTMEDYA Haber Merkezi, saha görüntülerini, kaynaklı haber metnini ve dijital yayıncılığı aynı akışta buluşturuyor. Güncel içerik ile arşiv açıkça ayrılır; kaynak, tarih ve içerik türü görünür tutulur.</p>
-<nav class="news-nav" aria-label="Haber bölümleri"><a href="#son-dakika">Öne çıkan</a><a href="#balikesir">Balıkesir gündemi</a><a href="#arsiv">BTMEDYA arşivi</a></nav>
+<nav class="news-nav" aria-label="Haber bölümleri"><a href="#son-dakika">Öne çıkan</a><a href="#guncel">Güncel kaynak akışı</a><a href="#balikesir">Balıkesir gündemi</a><a href="#arsiv">BTMEDYA arşivi</a></nav>
 <div class="ticker"><strong><span class="live-dot"></span> HABER AKIŞI</strong><span>Yayınlanan haberlerde tarih, kaynak ve içerik türü açıkça gösterilir.</span></div>
 </section>
 
@@ -66,6 +62,9 @@
 <a class="latest-item" href="https://www.haberege.com.tr/balikesirde-dursunbeyde-ulasim-konforunu-artiriyor-1788868946-3741040" target="_blank" rel="noopener"><small>DURSUNBEY</small><h3>Yol çalışmaları ve ulaşım gündemi</h3><p>Dursunbey'deki güzergâh çalışmasına ilişkin haber.</p><div class="news-meta"><span class="source">Kaynak: Haber Ege</span></div></a>
 <a class="latest-item" href="https://balikesirulasim.com.tr/" target="_blank" rel="noopener"><small>RESMÎ DUYURU</small><h3>Toplu taşıma duyuruları</h3><p>Sefer, hat ve güzergâh değişiklikleri için doğrudan kurum kaynağı.</p><div class="news-meta"><span class="source">Kaynak: Balıkesir Ulaşım</span></div></a>
 </div></section>
+
+<section id="guncel"><div class="section-head"><div><h2>Güncel kaynak akışı</h2><p>Resmî kurum bağlantılarıyla doğrulanmış güncel içerikler</p></div><span class="news-meta">25 Eylül 2026 güncellemesi</span></div>
+<div class="latest-list" id="guncel-list"><a class="latest-item" href="https://balikesir.bel.tr/haberler/3-balikesir-tarim-ve-hayvancilik-fuari-kapilarini-acti" target="_blank" rel="noopener"><small>TARIM / EKONOMİ</small><h3>3. Balıkesir Tarım ve Hayvancılık Fuarı</h3><p>24-27 Eylül tarihleri arasında Ali Hikmet Paşa Spor Tesisleri’nde.</p><div class="news-meta"><span class="source">Kaynak: Balıkesir Büyükşehir Belediyesi</span></div></a></div></section>
 
 
 <section id="arsiv"><div class="section-head"><div><h2>BTMEDYA Arşivi</h2><p>2024 saha haberleri · güncel haberlerden ayrı</p></div></div><div class="archive-tools"><input id="archiveSearch" class="archive-search" type="search" placeholder="Arşivde ara: pazar, ekonomi, spor..." aria-label="Arşivde ara"><span class="news-meta">27 arşiv haberi</span></div><div class="archive-grid" id="archiveGrid">
@@ -87,13 +86,15 @@
 (async function(){
   const grid=document.querySelector('#son-dakika');
   const sections={
-    'Balıkesir':document.querySelector('#balikesir .latest-list')
+    'Balıkesir':document.querySelector('#balikesir .latest-list'),
+    'Güncel':document.querySelector('#guncel-list')
   };
   function kartGorseli(yol){return String(yol||'').replace(/(\/assets\/haber-kapak\/[^/]+)\.webp$/,'$1-foto.webp')}
   function esc(v){return String(v??'').replace(/[&<>"']/g,function(x){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]})}
   function card(n){
     const img=n.cover_url?'<span class="latest-kapak"><img src="'+esc(kartGorseli(n.cover_url))+'" alt="" loading="lazy" decoding="async"></span>':'';
-    return '<a class="latest-item'+(img?' kapakli':'')+'" href="/haberler/'+encodeURIComponent(n.slug)+'">'+img+'<span class="latest-metin"><small>'+esc(n.category||'HABER')+'</small><h3>'+esc(n.title)+'</h3><p>'+esc(n.excerpt||'')+'</p><span class="news-meta"><span class="source">BTMEDYA · '+esc(n.author||'Haber Merkezi')+'</span></span></span></a>';
+    let kaynak='BTMEDYA'; try{ kaynak=n.source_url?new URL(n.source_url).hostname.replace(/^www\./,''):'BTMEDYA'; }catch(e){}
+    return '<a class="latest-item'+(img?' kapakli':'')+'" href="/haberler/'+encodeURIComponent(n.slug)+'">'+img+'<span class="latest-metin"><small>'+esc(n.category||'HABER')+'</small><h3>'+esc(n.title)+'</h3><p>'+esc(n.excerpt||'')+'</p><span class="news-meta"><span class="source">Kaynak: '+esc(kaynak)+'</span></span></span></a>';
   }
   try{
     const r=await fetch('/api/news?limit=60',{headers:{'Accept':'application/json'}});
@@ -101,19 +102,20 @@
     const j=await r.json(), items=Array.isArray(j.items)?j.items:[];
     if(!items.length)return;
     const fresh=items.filter(n=>n.status==='published');
+    const current=fresh.filter(n=>/2026/.test(String(n.published_at||n.original_date||''))).slice(0,8);
     const feature=fresh.find(n=>n.video_url)||fresh[0];
     if(feature && grid){
       const old=grid.querySelector('.news-card:not(.featured):first-of-type');
       const hero=grid.querySelector('.news-card.featured');
       if(hero){
         hero.href='/haberler/'+encodeURIComponent(feature.slug);
-        hero.innerHTML=(feature.cover_url?'<img src="'+esc(feature.cover_url)+'" alt="'+esc(feature.title||'BTMEDYA haber kapağı')+'" loading="eager" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%;opacity:.9">':'')+
+        hero.innerHTML=(feature.cover_url?'<img src="'+esc(kartGorseli(feature.cover_url))+'" alt="" loading="eager" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 28%;opacity:.82">':'')+
           '<div class="veil"></div><div class="inner"><span class="news-tag">'+esc(feature.category||'SON DAKİKA')+'</span><h2>'+esc(feature.title)+'</h2><p>'+esc(feature.excerpt||'')+'</p><div class="news-meta">BTMEDYA · '+esc(feature.author||'Haber Merkezi')+'</div></div>';
       }
     }
     Object.keys(sections).forEach(function(cat){
       const el=sections[cat]; if(!el)return;
-      const list=fresh.filter(n=>String(n.category||'').toLocaleLowerCase('tr-TR').includes(cat.toLocaleLowerCase('tr-TR'))).slice(0,6);
+      const list=cat==='Güncel' ? current : fresh.filter(n=>String(n.category||'').toLocaleLowerCase('tr-TR').includes(cat.toLocaleLowerCase('tr-TR'))).slice(0,6);
       if(list.length)el.innerHTML=list.map(card).join('');
     });
   }catch(e){console.warn('Canlı haber akışı kullanılamadı',e)}
