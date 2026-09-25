@@ -549,7 +549,7 @@ async function mediaApi(request, env){
     if(!rate.allowed) return json({error:'Çok fazla başarısız deneme. 15 dakika bekleyin.'},429,{'Retry-After':String(RATE_LIMIT_WINDOW_S)});
     const body=await request.json().catch(()=>({}));
     const username=String(body.username||'').trim();
-    const expectedUsername=String(env.ADMIN_USERNAME||'BTmedyaajans').trim();
+    const expectedUsername=String(env.ADMIN_USERNAME||'BTMEDYA').trim();
     const usernameOk=username===expectedUsername;
     const primaryPassword=env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD;
     const primaryOk=!!primaryPassword && body.password===primaryPassword;

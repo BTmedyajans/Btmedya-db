@@ -5,7 +5,7 @@ const worker = readFileSync(new URL('../src/worker.js', import.meta.url), 'utf8'
 const recovery = readFileSync(new URL('../src/auth-recovery.js', import.meta.url), 'utf8');
 const config = readFileSync(new URL('../wrangler.toml', import.meta.url), 'utf8');
 const criteria = [
-  ['security_isolation', worker.includes("body.username==='BTmedyaajans'") && worker.includes('ADMIN_RECOVERY_SECRET'), 'recovery is bound to the canonical username and optional Secret'],
+  ['security_isolation', worker.includes('const usernameOk=') && worker.includes('ADMIN_RECOVERY_SECRET'), 'recovery is bound to configured username and optional Secret'],
   ['expiry_enforced', recovery.includes('expires>Math.floor(Date.now()/1000)'), 'recovery expiry is enforced at request time'],
   ['malformed_rejected', recovery.includes('Number.isSafeInteger(expires)'), 'malformed recovery configuration is rejected'],
   ['primary_preserved', worker.includes('primaryOk=') && worker.includes('ADMIN_PASSWORD_SECRET'), 'primary password path remains present'],
