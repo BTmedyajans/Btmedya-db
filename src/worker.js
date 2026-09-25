@@ -397,6 +397,39 @@ async function aiDraftApi(request,env,url){
   const output=String(data.output_text||data.output?.flatMap(x=>x.content||[]).map(x=>x.text||'').join('')||'').trim(); let parsed=null; try{parsed=JSON.parse(output.replace(/^```json|```$/g,'').trim())}catch{}
   return json({ok:true,draft:parsed||{title,excerpt:'',body:output,social_caption:''}});
 }
+/* ---------- Statik arşiv -> R2 eşitleme ---------- */
+async function mediaSyncApi(request, env, url){
+  if(url.pathname!=='/api/admin/media-sync' || request.method!=='POST') return null;
+  if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!env.MEDIA) return json({ok:false,error:'Üretim R2 bağlı değil'},503);
+  if(!env.ASSETS) return json({ok:false,error:'Statik ASSETS bağlı değil'},503);
+  const body=await request.json().catch(()=>({}));
+  const raw=String(body.path||'').replace(/^\\/+/, '');
+  if(!raw || raw.includes('..') || raw.length>500) return json({ok:false,error:'Geçersiz medya yolu'},400);
+  const origin=new URL(request.url).origin;
+  const catalog=await medyaListesi(env,origin);
+  const item=catalog.find(x=>String(x.path||'')===raw);
+  if(!item) return json({ok:false,error:'Bu dosya BTMEDYA statik kataloğunda yok'},404);
+  const existing=await env.MEDIA.head(raw).catch(()=>null);
+  if(existing) return json({ok:true,already:true,path:raw,source:'r2',message:'Dosya R2 içinde zaten var'});
+  const assetUrl=new URL('/assets/'+raw,origin);
+  const response=await env.ASSETS.fetch(new Request(assetUrl.toString(),{method:'GET'}));
+  if(!response.ok) return json({ok:false,error:'Statik medya okunamadı: HTTP '+response.status},502);
+  const mime=response.headers.get('content-type') || (/\\.(mp4|webm)$/i.test(raw)?'video/mp4':'image/webp');
+  const size=Number(response.headers.get('content-length')||0);
+  await env.MEDIA.put(raw,response.body,{httpMetadata:{contentType:mime}});
+  if(env.DB){
+    const id=crypto.randomUUID(), now=new Date().toISOString();
+    const category=String(item.category||'arsiv');
+    const title=String(item.baslik||raw.split('/').pop()||raw).replace(/\\.[^.]+$/,'').replace(/[-_]+/g,' ');
+    const ai=item.gercek===true ? 0 : 1;
+    const slot=category==='hero'?'hero':category==='video'?'medya':category==='portfoy'?'portfoy':'';
+    const tags=JSON.stringify(['BTMEDYA',ai?'ai-uretimi':'gercek','arsiv','r2']);
+    await env.DB.prepare('INSERT OR IGNORE INTO media (id,key,original_name,mime,size,category,tags,title,description,alt_text,published,slot,sort_order,created_at,updated_at,width,height,duration_s,has_audio,aspect,suggested,routed,posted,youtube_id,ai_generated) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(id,raw,raw.split('/').pop()||raw,mime,size,category,tags,title,ai?'BTMEDYA AI üretimi arşiv medyası':'BTMEDYA gerçek çekim arşiv medyası',ai?'BTMEDYA AI üretimi arşiv medyası':'BTMEDYA gerçek çekim arşiv medyası',1,slot,Number(item.sira||0),now,now,0,0,0,0,'', '[]','[]','[]','',ai).run().catch(()=>{});
+  }
+  return json({ok:true,already:false,path:raw,source:'r2',mime,size,message:'Statik medya R2 ve D1 medya kasasına aktarıldı'});
+}
 /* ---------- BTMEDYA Control Center ---------- */
 async function controlCenterApi(request, env, url){
   if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
@@ -987,6 +1020,8 @@ export default {
 
     const rnf = await newsFinderApi(request, env, url); if(rnf) return rnf;
     const rad = await aiDraftApi(request, env, url); if(rad) return rad;
+    const rms = await mediaSyncApi(request, env, url);
+    if(rms) return rms;
     const rcc = await controlCenterApi(request, env, url);
     if(rcc) return rcc;
     const r1 = await newsApi(request, env, url);
