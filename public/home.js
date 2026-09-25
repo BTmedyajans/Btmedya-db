@@ -38,8 +38,8 @@
     else if (!e.shiftKey && d.activeElement === last) { e.preventDefault(); first.focus(); }
   });
 
-  if (!reduced && hover) {
-    d.body.classList.add('parallax-ready');
+  if (!reduced) {
+    if (hover) d.body.classList.add('parallax-ready');
     /* ---------- PORTFÖY: YouTube kanalındaki gerçek işler ----------
      Veri public/data/youtube-portfoy.json dosyasından okunur; izlenme ve
      süre kanaldan alınmış sabit değerlerdir, uydurma yoktur. Önizleme
