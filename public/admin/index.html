@@ -435,6 +435,15 @@ a{color:#e8c06a}
     <h2>Bekleyen kurulumlar</h2>
     <div id="controlNext"></div>
   </div>
+  <div class="panel">
+    <div class="row" style="margin-bottom:10px">
+      <h2 style="margin:0;flex:1">Onay kuyruğu ve denetim günlüğü</h2>
+      <button class="btn sm" id="operationsRefresh">Yenile</button>
+    </div>
+    <p class="muted">Dış sisteme yazan işlemler önce burada bekler. Onay yalnızca niyeti kaydeder; gerçek yürütücü bağlanmadan hiçbir sosyal hesap veya deploy hedefi değiştirilmez.</p>
+    <div id="operationsSummary" class="status">Yükleniyor…</div>
+    <div id="operationsList"></div>
+  </div>
 </div>
 
 <div class="tab-content" id="tab-messages">
@@ -573,7 +582,7 @@ async function loadControlCenter(){
   const box=$('#controlSummary'), integrations=$('#controlIntegrations'), next=$('#controlNext');
   try{
     const d=await req('/api/admin/control-center');
-    box.innerHTML='<b>Site:</b> '+escStr(d.site.url)+' · <b>Worker:</b> '+escStr(d.site.worker)+'<br><b>D1:</b> '+(d.storage.d1?'✓':'✗')+' · <b>R2:</b> '+(d.storage.r2?'✓':'✗')+' · <b>Admin secrets:</b> '+(d.admin.configured?'✓':'Eksik')+' · <b>Media signing:</b> '+(d.admin.mediaSigning?'✓':'Eksik');
+    box.innerHTML='<b>Site:</b> '+escStr(d.site.url)+' · <b>Worker:</b> '+escStr(d.site.worker)+'<br><b>D1:</b> '+(d.storage.d1?'✓':'✗')+' · <b>R2:</b> '+(d.storage.r2?'✓':'✗')+' · <b>Admin secrets:</b> '+(d.admin.configured?'✓':'Eksik')+' · <b>Media signing:</b> '+(d.admin.mediaSigning?'✓':'Eksik')+' · <b>Bekleyen işlemler:</b> '+Number(d.operations?.pending||0);
     const labels={izap:'iZap / WhatsApp',cmsOpenData:'CMS Open Data',github:'GitHub → Cloudflare'};
     integrations.innerHTML=Object.entries(d.integrations).map(([k,v])=>'<div style="padding:12px 0;border-bottom:1px solid #222"><b>'+escStr(labels[k]||k)+'</b><div class="muted" style="margin-top:4px">'+escStr(v.status)+' · '+escStr(v.note)+'</div></div>').join('');
     next.innerHTML=d.nextActions?.length?'<ul style="margin:0;padding-left:20px;color:#ccc">'+d.nextActions.map(x=>'<li style="margin:7px 0">'+escStr(x)+'</li>').join('')+'</ul>':'<span style="color:#6c6">Şu an Worker tarafında bekleyen zorunlu secret görünmüyor.</span>';
@@ -615,8 +624,27 @@ async function loadControlCenter(){
       for(const btn of buttons) await syncOne(btn.dataset.r2Sync,btn);
       loadControlCenter();
     });
+    await loadOperations();
   }catch(e){box.textContent='Control Center durumu alınamadı.'}
 }
+
+async function loadOperations(){
+  const summary=$('#operationsSummary'), list=$('#operationsList');
+  if(!summary||!list)return;
+  try{
+    const d=await req('/api/admin/operations?limit=30');
+    const pending=(d.items||[]).filter(x=>x.status==='pending').length;
+    const approved=(d.items||[]).filter(x=>x.status==='approved').length;
+    summary.textContent=`${pending} bekleyen · ${approved} onaylanmış · ${(d.audit||[]).length} son denetim kaydı`;
+    list.innerHTML=(d.items||[]).length?(d.items||[]).map(x=>`<div class="live-check" style="margin-top:7px;align-items:flex-start">
+      <div><b>${escStr(x.kind)}</b><div class="muted">${escStr(x.target||'—')} · ${escStr(fmtDate(x.created_at))}</div><div class="muted" style="font-size:11px">Durum: ${escStr(x.status)}</div></div>
+      <div class="row">${x.status==='pending'?`<button class="btn sm primary" data-op-approve="${escStr(x.id)}">Onayla</button>`:''}${!['succeeded','failed','cancelled'].includes(x.status)?`<button class="btn sm danger" data-op-cancel="${escStr(x.id)}">İptal</button>`:''}</div>
+    </div>`).join(''):'<p class="muted">İşlem kuyruğu boş.</p>';
+    document.querySelectorAll('[data-op-approve]').forEach(btn=>btn.onclick=async()=>{btn.disabled=true;await req('/api/admin/operations/'+encodeURIComponent(btn.dataset.opApprove)+'/approve',{method:'POST'});loadOperations();});
+    document.querySelectorAll('[data-op-cancel]').forEach(btn=>btn.onclick=async()=>{if(!confirm('Bu işlem iptal edilsin mi?'))return;btn.disabled=true;await req('/api/admin/operations/'+encodeURIComponent(btn.dataset.opCancel)+'/cancel',{method:'POST'});loadOperations();});
+  }catch(e){summary.textContent='İşlem kuyruğu henüz hazır değil; migration uygulanmamış olabilir.';list.innerHTML=''}
+}
+$('#operationsRefresh')?.addEventListener('click',loadOperations);
 
 
 async function loadLiveVerification(){

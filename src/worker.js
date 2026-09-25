@@ -430,6 +430,68 @@ async function mediaSyncApi(request, env, url){
   }
   return json({ok:true,already:false,path:raw,source:'r2',mime,size,message:'Statik medya R2 ve D1 medya kasasına aktarıldı'});
 }
+/* ---------- Admin onay kuyruğu ve denetim günlüğü ---------- */
+async function adminOperationsApi(request, env, url){
+  if(!url.pathname.startsWith('/api/admin/operations')) return null;
+  if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
+
+  const audit=async (action,target,detail={},outcome='ok')=>{
+    await env.DB.prepare('INSERT INTO admin_audit_log(action,target,detail,outcome,created_at) VALUES(?,?,?,?,?)')
+      .bind(action,target,JSON.stringify(detail),outcome,new Date().toISOString()).run().catch(()=>{});
+  };
+
+  if(url.pathname==='/api/admin/operations' && request.method==='GET'){
+    const status=String(url.searchParams.get('status')||'').trim();
+    const limit=Math.min(Math.max(Number(url.searchParams.get('limit'))||50,1),200);
+    const rows=status
+      ? await env.DB.prepare('SELECT * FROM operation_queue WHERE status=? ORDER BY created_at DESC LIMIT ?').bind(status,limit).all()
+      : await env.DB.prepare('SELECT * FROM operation_queue ORDER BY created_at DESC LIMIT ?').bind(limit).all();
+    const logs=await env.DB.prepare('SELECT id,action,target,outcome,created_at FROM admin_audit_log ORDER BY created_at DESC LIMIT ?').bind(Math.min(limit,100)).all();
+    return json({ok:true,items:(rows.results||[]).map(x=>({...x,payload:JSON.parse(x.payload||'{}'),result:x.result?JSON.parse(x.result):null})),audit:logs.results||[]});
+  }
+
+  if(url.pathname==='/api/admin/operations' && request.method==='POST'){
+    const body=await request.json().catch(()=>null);
+    if(!body || typeof body!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
+    const kind=String(body.kind||'').trim().slice(0,80);
+    const target=String(body.target||'').trim().slice(0,240);
+    if(!kind) return json({ok:false,error:'İşlem türü zorunludur'},400);
+    const id=crypto.randomUUID(), now=new Date().toISOString();
+    const payload=JSON.stringify(body.payload&&typeof body.payload==='object'?body.payload:{});
+    await env.DB.prepare('INSERT INTO operation_queue(id,kind,target,payload,status,requested_by,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)')
+      .bind(id,kind,target,payload,'pending','admin',now,now).run();
+    await audit('operation.requested',target,{id,kind},'pending');
+    return json({ok:true,id,status:'pending',message:'İşlem onay kuyruğuna alındı; dış sisteme henüz yazılmadı.'},202);
+  }
+
+  const approval=url.pathname.match(/^\/api\/admin\/operations\/([^/]+)\/approve$/);
+  if(approval && request.method==='POST'){
+    const id=decodeURIComponent(approval[1]);
+    const row=await env.DB.prepare('SELECT * FROM operation_queue WHERE id=?').bind(id).first();
+    if(!row) return json({ok:false,error:'İşlem bulunamadı'},404);
+    if(row.status!=='pending') return json({ok:false,error:`Bu işlem onaylanamaz: ${row.status}`},409);
+    const now=new Date().toISOString();
+    await env.DB.prepare('UPDATE operation_queue SET status=?,approved_by=?,approved_at=?,updated_at=? WHERE id=?')
+      .bind('approved','admin',now,now,id).run();
+    await audit('operation.approved',row.target,{id,kind:row.kind},'ok');
+    return json({ok:true,id,status:'approved',message:'Onay kaydedildi. Yürütücü bağlanana kadar işlem dış sisteme yazılmayacak.'});
+  }
+
+  const cancel=url.pathname.match(/^\/api\/admin\/operations\/([^/]+)\/cancel$/);
+  if(cancel && request.method==='POST'){
+    const id=decodeURIComponent(cancel[1]);
+    const row=await env.DB.prepare('SELECT * FROM operation_queue WHERE id=?').bind(id).first();
+    if(!row) return json({ok:false,error:'İşlem bulunamadı'},404);
+    if(['succeeded','failed','cancelled'].includes(row.status)) return json({ok:false,error:`Bu işlem iptal edilemez: ${row.status}`},409);
+    const now=new Date().toISOString();
+    await env.DB.prepare('UPDATE operation_queue SET status=?,updated_at=?,finished_at=? WHERE id=?').bind('cancelled',now,now,id).run();
+    await audit('operation.cancelled',row.target,{id,kind:row.kind},'ok');
+    return json({ok:true,id,status:'cancelled'});
+  }
+  return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,POST'});
+}
+
 /* ---------- BTMEDYA Control Center ---------- */
 async function controlCenterApi(request, env, url){
   if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
@@ -438,15 +500,21 @@ async function controlCenterApi(request, env, url){
   const staticCatalog=await medyaListesi(env,origin);
   const r2Live=await listR2Media(env.MEDIA,'r2');
   const legacyLive=await listLegacyMedia(env);
-  let d1Media=0,d1News=0,d1Published=0;
+  let d1Media=0,d1News=0,d1Published=0,operationsPending=0,operationsApproved=0,auditEvents=0;
   if(env.DB){
     try{
-      const [m,n,p]=await Promise.all([
+      const [m,n,p,o,a]=await Promise.all([
         env.DB.prepare('SELECT COUNT(*) AS n FROM media').first(),
         env.DB.prepare('SELECT COUNT(*) AS n FROM news').first(),
-        env.DB.prepare("SELECT COUNT(*) AS n FROM news WHERE status='published'").first()
+        env.DB.prepare("SELECT COUNT(*) AS n FROM news WHERE status='published'").first(),
+        env.DB.prepare("SELECT COUNT(*) AS n FROM operation_queue WHERE status='pending'").first().catch(()=>null),
+        env.DB.prepare('SELECT COUNT(*) AS n FROM admin_audit_log').first().catch(()=>null)
       ]);
       d1Media=Number(m?.n||0); d1News=Number(n?.n||0); d1Published=Number(p?.n||0);
+      operationsPending=Number(o?.n||0);
+      const approved=await env.DB.prepare("SELECT COUNT(*) AS n FROM operation_queue WHERE status='approved'").first().catch(()=>null);
+      operationsApproved=Number(approved?.n||0);
+      auditEvents=Number(a?.n||0);
     }catch{}
   }
   const r2Keys=new Set(r2Live.map(x=>x.key));
@@ -475,6 +543,7 @@ async function controlCenterApi(request, env, url){
       lastChecked:new Date().toISOString()
     },
     admin:{configured:!!(env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD) && !!(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET),mediaSigning:!!env.MEDIA_SIGNING_SECRET},
+    operations:{pending:operationsPending,approved:operationsApproved,auditEvents},
     social:socialProviderStatus(env),
     socialLinks:[
       {key:'instagram',label:'Instagram @btmedya10',url:'https://www.instagram.com/btmedya10/',note:'Görsel profil ve Reels kanalı'},
@@ -1022,6 +1091,8 @@ export default {
     const rad = await aiDraftApi(request, env, url); if(rad) return rad;
     const rms = await mediaSyncApi(request, env, url);
     if(rms) return rms;
+    const roa = await adminOperationsApi(request, env, url);
+    if(roa) return roa;
     const rcc = await controlCenterApi(request, env, url);
     if(rcc) return rcc;
     const r1 = await newsApi(request, env, url);
