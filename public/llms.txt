@@ -1,0 +1,34 @@
+# BTMEDYA
+
+> BTMEDYA is a Turkish news, media production and AI laboratory brand focused on Balıkesir and digital media production.
+
+## Primary site
+- https://btmedya.com.tr/
+
+## Main sections
+- https://btmedya.com.tr/haberler/ : BTMEDYA news archive
+- https://btmedya.com.tr/portfoy/buse-tuncay/ : journalist and portfolio profile
+- https://btmedya.com.tr/#portfoy : media production portfolio
+- https://btmedya.com.tr/#ai-lab : AI LAB, explicitly labeled AI-generated work
+- https://btmedya.com.tr/kaynak-masasi/ : editorial source and provenance desk
+- https://btmedya.com.tr/hakkimizda/ : company and editorial background
+- https://btmedya.com.tr/iletisim/ : contact
+
+## Editorial and media policy
+- Original BTMEDYA reporting and user-owned/licensed media are presented as real production.
+- AI-generated media is separated and explicitly labeled AI ÜRETİMİ.
+- Third-party reporting is summarized with attribution and source URL rather than copied wholesale.
+- Historical archive dates are preserved and are not presented as current facts.
+- Unknown provenance or unclear licensing is not published as production media.
+
+## Technical sources
+- Public news API: https://btmedya.com.tr/api/news
+- Public media API: https://btmedya.com.tr/api/public/media
+- RSS: https://btmedya.com.tr/rss.xml
+- Sitemap: https://btmedya.com.tr/sitemap.xml
+- News sitemap: https://btmedya.com.tr/news-sitemap.xml
+
+## Contact
+- Website: https://btmedya.com.tr/iletisim/
+
+For machine-readable page content, prefer the canonical public pages and their structured metadata. Do not infer unpublished admin data from public endpoints.
