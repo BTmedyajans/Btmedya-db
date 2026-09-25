@@ -10,7 +10,6 @@ import { socialProviderStatus } from "./social-platforms.js";
  */
 
 const json = (data, status=200, headers={}) => new Response(JSON.stringify(data), {status, headers:{'content-type':'application/json; charset=utf-8', 'cache-control':'no-store', ...headers}});
-const publicJson = (data, ttl=60, headers={}) => json(data, 200, {'cache-control':`public, max-age=${ttl}, s-maxage=${ttl}`, ...headers});
 const text = (data, status=200, headers={}) => new Response(data, {status, headers:{'content-type':'text/plain; charset=utf-8', ...headers}});
 
 /* ---------- yardımcılar (medya kasası) ---------- */
@@ -60,10 +59,6 @@ function mediaCategoryFromKey(key){
   return 'arsiv';
 }
 
-function isHiddenR2Key(key){
-  const k=String(key||'');
-  return /(^|\/)\.(?:trashed|tmp|temp)(?:-|\/|$)/i.test(k) || /(^|\/)thumbs\.db$/i.test(k);
-}
 async function listR2Media(bucket, source, {q='',cat=''}={}){
   if(!bucket) return [];
   const allowed=/\.(?:jpe?g|png|webp|gif|mp4|webm|mov|m4v|mp3|wav|m4a)$/i;
@@ -74,7 +69,6 @@ async function listR2Media(bucket, source, {q='',cat=''}={}){
     if(!page) break;
     for(const x of (page.objects||[])){
       const key=String(x.key||'');
-      if(isHiddenR2Key(key)) continue;
       const mime=String(x.httpMetadata?.contentType||'');
       if(!allowed.test(key) && !/^(image|video|audio)\//i.test(mime)) continue;
       const category=mediaCategoryFromKey(key);
@@ -166,7 +160,7 @@ async function sendContactEmail(env, msg){
 /* ---------- Cloudflare Workflow API ---------- */
 async function workflowApi(request, env, url) {
   if (!url.pathname.startsWith('/api/workflow/')) return null;
-  if (!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) {
+  if (!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) {
     return json({ok:false,error:'Yetkisiz'},401);
   }
   if (!env.BTMEDYA_WORKFLOW) {
@@ -216,9 +210,6 @@ async function workflowApi(request, env, url) {
 /* ---------- Haber CMS API ---------- */
 async function newsApi(request, env, url){
   if(url.pathname==='/api/health'){
-    const healthKey=new Request(new URL('/api/health',url.origin).toString(),{method:'GET'});
-    const cachedHealth=await caches.default.match(healthKey).catch(()=>null);
-    if(cachedHealth) return cachedHealth;
     const [r2Probe,legacyProbe]=await Promise.all([
       env.MEDIA ? env.MEDIA.list({limit:200}).catch(()=>null) : null,
       env.LEGACY_MEDIA ? env.LEGACY_MEDIA.list({limit:200}).catch(()=>null) : null
@@ -227,16 +218,14 @@ async function newsApi(request, env, url){
     const mediaCount=(probe)=>Array.isArray(probe?.objects)?probe.objects.filter(o=>{
       const key=String(o.key||'');
       const mime=String(o.httpMetadata?.contentType||'');
-      return !isHiddenR2Key(key) && (mediaLike.test(key)||/^(image|video|audio)\//i.test(mime));
+      return mediaLike.test(key)||/^(image|video|audio)\//i.test(mime);
     }).length:0;
-    const health=publicJson({
+    return json({
       ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA,
       r2Objects:!!r2Probe?.objects?.length,legacyR2Objects:!!legacyProbe?.objects?.length,
       r2MediaObjects:mediaCount(r2Probe),legacyR2MediaObjects:mediaCount(legacyProbe),
-      admin:!!(env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD) && !!(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET),mail:!!env.RESEND_API_KEY
-    },30);
-    await caches.default.put(healthKey,health.clone()).catch(()=>{});
-    return health;
+      admin:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mail:!!env.RESEND_API_KEY
+    });
   }
 
   /* Public: haber listesi
@@ -253,7 +242,7 @@ async function newsApi(request, env, url){
     try{
       const req=new Request(new URL('/data/haberler.json',url.origin));
       const asset=await env.ASSETS.fetch(req);
-      if(!asset.ok) return publicJson({ok:true,source:d1Items.length?'d1':'static',items:d1Items.slice(0,limit)},60);
+      if(!asset.ok) return json({ok:true,source:d1Items.length?'d1':'static',items:d1Items.slice(0,limit)});
       const archive=await asset.json();
       const staticItems=archive.map((n,i)=>({
         id:n.id||i+1,
@@ -279,16 +268,16 @@ async function newsApi(request, env, url){
         const bd=Date.parse(b.published_at||b.original_date||'')||0;
         return bd-ad;
       }).slice(0,limit);
-      return publicJson({ok:true,source:d1Items.length?'d1+static-archive':'static-archive',items},60);
+      return json({ok:true,source:d1Items.length?'d1+static-archive':'static-archive',items});
     }catch(e){
       console.error('[news] static archive fallback failed:',e);
-      return publicJson({ok:true,source:'d1',items:d1Items.slice(0,limit)},60);
+      return json({ok:true,source:'d1',items:d1Items.slice(0,limit)});
     }
   }
 
   /* Admin: haber listesi */
   if(url.pathname==='/api/admin/news' && request.method==='GET'){
-    if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const status=url.searchParams.get('status');
     let sql='SELECT id,slug,title,excerpt,category,author,cover_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news';
@@ -301,7 +290,7 @@ async function newsApi(request, env, url){
 
   /* Admin: haber ekle / güncelle (slug ile upsert) */
   if(url.pathname==='/api/admin/news' && request.method==='POST'){
-    if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const b=await request.json().catch(()=>null);
     if(!b || typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
@@ -320,7 +309,7 @@ async function newsApi(request, env, url){
   /* Admin: haber güncelle / sil (ID ile) */
   const newsById=url.pathname.match(/^\/api\/admin\/news\/(\d+)$/);
   if(newsById){
-    if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const id=Number(newsById[1]);
     if(request.method==='GET'){
@@ -345,211 +334,16 @@ async function newsApi(request, env, url){
   return null;
 }
 
-/* ---------- BTMEDYA Haber Bulucu + AI İçerik Üretici ---------- */
-const NEWS_FEEDS = [
-  {id:'cumha-balikesir',name:'CUMHA / Balıkesir RSS',url:'https://cumha.com.tr/rss/lokasyon/balikesir',category:'Yerel'},
-  {id:'google-balikesir',name:'Google News / Balıkesir',url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir&hl=tr&gl=TR&ceid=TR:tr',category:'Gündem'},
-  {id:'google-ai',name:'Google News / Yapay Zekâ',url:'https://news.google.com/rss/search?q=yapay%20zeka%20AI&hl=tr&gl=TR&ceid=TR:tr',category:'AI'}
-];
-function stripTags(s){return String(s||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()}
-function xmlDecode(s){return String(s||'').replace(/<!\[CDATA\[|\]\]>/g,'').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>')}
-function rssItems(xml){
-  const out=[]; const blocks=xml.match(/<(?:item|entry)\b[\s\S]*?<\/(?:item|entry)>/gi)||[];
-  for(const b of blocks){
-    const pick=(tag)=>{const m=b.match(new RegExp('<'+tag+'(?:[^>]*)>([\\s\\S]*?)<\\/'+tag+'>','i'));return m?xmlDecode(m[1]).trim():''};
-    let title=stripTags(pick('title')); let link=stripTags(pick('link'));
-    if(!link){const m=b.match(/<link[^>]+href=["']([^"']+)["']/i);link=m?m[1]:''}
-    const description=stripTags(pick('description')||pick('summary')||pick('content'));
-    const date=stripTags(pick('pubDate')||pick('published')||pick('updated'));
-    if(title&&link) out.push({title:title.slice(0,240),link:link.slice(0,2000),description:description.slice(0,1800),date});
-  } return out;
-}
-function newsSlug(title,link){let base=String(title||'haber').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,100)||'haber';let h=0;for(const ch of String(link||'')){h=((h<<5)-h+ch.charCodeAt(0))|0}return base+'-'+Math.abs(h)}
-async function scanNewsSources(env,feedIds){
-  const feeds=NEWS_FEEDS.filter(x=>!feedIds||feedIds.includes(x.id)); const found=[];
-  if(!env.DB) return found;
-  for(const feed of feeds){try{
-    const r=await fetch(feed.url,{headers:{accept:'application/rss+xml, application/xml, text/xml, text/html','user-agent':'BTMEDYA-NewsFinder/1.0'},redirect:'follow'}); if(!r.ok) continue;
-    for(const item of rssItems(await r.text()).slice(0,20)){
-      const exists=await env.DB.prepare('SELECT id FROM news WHERE source_url=? LIMIT 1').bind(item.link).first(); if(exists) continue;
-      const slug=newsSlug(item.title,item.link); const duplicate=await env.DB.prepare('SELECT id FROM news WHERE slug=? LIMIT 1').bind(slug).first(); if(duplicate) continue;
-      const now=new Date().toISOString();
-      await env.DB.prepare('INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(slug,item.title,item.description,item.description,feed.category,'BTMEDYA Kaynak Masası','','','draft',null,item.link,item.date||null,'Kaynak Masası tarafından bulundu; editör onayı bekliyor.',now).run();
-      found.push({slug,title:item.title,source:item.link,category:feed.category,date:item.date||null});
-    }
-  }catch(e){}}
-  return found;
-}
-async function newsFinderApi(request,env,url){
-  if(!url.pathname.startsWith('/api/admin/news-finder')) return null;
-  if(!(await validSession(request,(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
-  if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
-  if(request.method==='GET') return json({ok:true,feeds:NEWS_FEEDS.map(x=>({id:x.id,name:x.name,category:x.category})),openai:!!env.OPENAI_API_KEY});
-  if(request.method!=='POST') return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,POST'});
-  const body=await request.json().catch(()=>({})); const feedIds=Array.isArray(body.feeds)&&body.feeds.length?body.feeds:NEWS_FEEDS.map(x=>x.id);
-  const found=await scanNewsSources(env,feedIds);
-  return json({ok:true,count:found.length,items:found});
-}
-async function aiDraftApi(request,env,url){
-  if(url.pathname!=='/api/admin/ai-draft') return null;
-  if(!(await validSession(request,(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
-  if(request.method!=='POST') return json({ok:false,error:'Method not allowed'},405);
-  if(!env.OPENAI_API_KEY) return json({ok:false,error:'OPENAI_API_KEY secret eksik'},503);
-  const b=await request.json().catch(()=>({})); const title=String(b.title||'').trim().slice(0,500); const source=String(b.source||'').trim().slice(0,2000); const textIn=String(b.text||'').trim().slice(0,12000);
-  if(!title&&!textIn) return json({ok:false,error:'Başlık veya metin gerekli'},400);
-  const prompt='BTMEDYA için editoryal TASLAK hazırla. Kaynak metni kopyalama. Yalnızca verilen bilgilerden hareket et, yeni olgu uydurma. Türkçe JSON üret: title, excerpt, body, social_caption. Kaynak linkini ve belirsizliği koru. Otomatik yayın yapma.\n\nBaşlık: '+title+'\nKaynak: '+source+'\nMetin: '+textIn;
-  const r=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+env.OPENAI_API_KEY},body:JSON.stringify({model:'gpt-5.6-luna',input:prompt,store:false})});
-  if(!r.ok) return json({ok:false,error:'AI servisi yanıt vermedi'},502); const data=await r.json();
-  const output=String(data.output_text||data.output?.flatMap(x=>x.content||[]).map(x=>x.text||'').join('')||'').trim(); let parsed=null; try{parsed=JSON.parse(output.replace(/^```json|```$/g,'').trim())}catch{}
-  return json({ok:true,draft:parsed||{title,excerpt:'',body:output,social_caption:''}});
-}
-/* ---------- Statik arşiv -> R2 eşitleme ---------- */
-async function mediaSyncApi(request, env, url){
-  if(url.pathname!=='/api/admin/media-sync' || request.method!=='POST') return null;
-  if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
-  if(!env.MEDIA) return json({ok:false,error:'Üretim R2 bağlı değil'},503);
-  if(!env.ASSETS) return json({ok:false,error:'Statik ASSETS bağlı değil'},503);
-  const body=await request.json().catch(()=>({}));
-  const raw=String(body.path||'').replace(/^\/+/, '');
-  if(!raw || raw.includes('..') || raw.length>500) return json({ok:false,error:'Geçersiz medya yolu'},400);
-  const origin=new URL(request.url).origin;
-  const catalog=await medyaListesi(env,origin);
-  const item=catalog.find(x=>String(x.path||'')===raw);
-  if(!item) return json({ok:false,error:'Bu dosya BTMEDYA statik kataloğunda yok'},404);
-  const existing=await env.MEDIA.head(raw).catch(()=>null);
-  if(existing) return json({ok:true,already:true,path:raw,source:'r2',message:'Dosya R2 içinde zaten var'});
-  const assetUrl=new URL('/assets/'+raw,origin);
-  const response=await env.ASSETS.fetch(new Request(assetUrl.toString(),{method:'GET'}));
-  if(!response.ok) return json({ok:false,error:'Statik medya okunamadı: HTTP '+response.status},502);
-  const mime=response.headers.get('content-type') || (/\.(mp4|webm)$/i.test(raw)?'video/mp4':'image/webp');
-  const size=Number(response.headers.get('content-length')||0);
-  await env.MEDIA.put(raw,response.body,{httpMetadata:{contentType:mime}});
-  if(env.DB){
-    const id=crypto.randomUUID(), now=new Date().toISOString();
-    const category=String(item.category||'arsiv');
-    const title=String(item.baslik||raw.split('/').pop()||raw).replace(/\.[^.]+$/,'').replace(/[-_]+/g,' ');
-    const ai=item.gercek===true ? 0 : 1;
-    const slot=category==='hero'?'hero':category==='video'?'medya':category==='portfoy'?'portfoy':'';
-    const tags=JSON.stringify(['BTMEDYA',ai?'ai-uretimi':'gercek','arsiv','r2']);
-    await env.DB.prepare('INSERT OR IGNORE INTO media (id,key,original_name,mime,size,category,tags,title,description,alt_text,published,slot,sort_order,created_at,updated_at,width,height,duration_s,has_audio,aspect,suggested,routed,posted,youtube_id,ai_generated) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
-      .bind(id,raw,raw.split('/').pop()||raw,mime,size,category,tags,title,ai?'BTMEDYA AI üretimi arşiv medyası':'BTMEDYA gerçek çekim arşiv medyası',ai?'BTMEDYA AI üretimi arşiv medyası':'BTMEDYA gerçek çekim arşiv medyası',1,slot,Number(item.sira||0),now,now,0,0,0,0,'', '[]','[]','[]','',ai).run().catch(()=>{});
-  }
-  return json({ok:true,already:false,path:raw,source:'r2',mime,size,message:'Statik medya R2 ve D1 medya kasasına aktarıldı'});
-}
-/* ---------- Admin onay kuyruğu ve denetim günlüğü ---------- */
-async function adminOperationsApi(request, env, url){
-  if(!url.pathname.startsWith('/api/admin/operations')) return null;
-  if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
-  if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
-
-  const audit=async (action,target,detail={},outcome='ok')=>{
-    await env.DB.prepare('INSERT INTO admin_audit_log(action,target,detail,outcome,created_at) VALUES(?,?,?,?,?)')
-      .bind(action,target,JSON.stringify(detail),outcome,new Date().toISOString()).run().catch(()=>{});
-  };
-
-  if(url.pathname==='/api/admin/operations' && request.method==='GET'){
-    const status=String(url.searchParams.get('status')||'').trim();
-    const limit=Math.min(Math.max(Number(url.searchParams.get('limit'))||50,1),200);
-    const rows=status
-      ? await env.DB.prepare('SELECT * FROM operation_queue WHERE status=? ORDER BY created_at DESC LIMIT ?').bind(status,limit).all()
-      : await env.DB.prepare('SELECT * FROM operation_queue ORDER BY created_at DESC LIMIT ?').bind(limit).all();
-    const logs=await env.DB.prepare('SELECT id,action,target,outcome,created_at FROM admin_audit_log ORDER BY created_at DESC LIMIT ?').bind(Math.min(limit,100)).all();
-    return json({ok:true,items:(rows.results||[]).map(x=>({...x,payload:JSON.parse(x.payload||'{}'),result:x.result?JSON.parse(x.result):null})),audit:logs.results||[]});
-  }
-
-  if(url.pathname==='/api/admin/operations' && request.method==='POST'){
-    const body=await request.json().catch(()=>null);
-    if(!body || typeof body!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
-    const kind=String(body.kind||'').trim().slice(0,80);
-    const target=String(body.target||'').trim().slice(0,240);
-    if(!kind) return json({ok:false,error:'İşlem türü zorunludur'},400);
-    const id=crypto.randomUUID(), now=new Date().toISOString();
-    const payload=JSON.stringify(body.payload&&typeof body.payload==='object'?body.payload:{});
-    await env.DB.prepare('INSERT INTO operation_queue(id,kind,target,payload,status,requested_by,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)')
-      .bind(id,kind,target,payload,'pending','admin',now,now).run();
-    await audit('operation.requested',target,{id,kind},'pending');
-    return json({ok:true,id,status:'pending',message:'İşlem onay kuyruğuna alındı; dış sisteme henüz yazılmadı.'},202);
-  }
-
-  const approval=url.pathname.match(/^\/api\/admin\/operations\/([^/]+)\/approve$/);
-  if(approval && request.method==='POST'){
-    const id=decodeURIComponent(approval[1]);
-    const row=await env.DB.prepare('SELECT * FROM operation_queue WHERE id=?').bind(id).first();
-    if(!row) return json({ok:false,error:'İşlem bulunamadı'},404);
-    if(row.status!=='pending') return json({ok:false,error:`Bu işlem onaylanamaz: ${row.status}`},409);
-    const now=new Date().toISOString();
-    await env.DB.prepare('UPDATE operation_queue SET status=?,approved_by=?,approved_at=?,updated_at=? WHERE id=?')
-      .bind('approved','admin',now,now,id).run();
-    await audit('operation.approved',row.target,{id,kind:row.kind},'ok');
-    return json({ok:true,id,status:'approved',message:'Onay kaydedildi. Yürütücü bağlanana kadar işlem dış sisteme yazılmayacak.'});
-  }
-
-  const cancel=url.pathname.match(/^\/api\/admin\/operations\/([^/]+)\/cancel$/);
-  if(cancel && request.method==='POST'){
-    const id=decodeURIComponent(cancel[1]);
-    const row=await env.DB.prepare('SELECT * FROM operation_queue WHERE id=?').bind(id).first();
-    if(!row) return json({ok:false,error:'İşlem bulunamadı'},404);
-    if(['succeeded','failed','cancelled'].includes(row.status)) return json({ok:false,error:`Bu işlem iptal edilemez: ${row.status}`},409);
-    const now=new Date().toISOString();
-    await env.DB.prepare('UPDATE operation_queue SET status=?,updated_at=?,finished_at=? WHERE id=?').bind('cancelled',now,now,id).run();
-    await audit('operation.cancelled',row.target,{id,kind:row.kind},'ok');
-    return json({ok:true,id,status:'cancelled'});
-  }
-  return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,POST'});
-}
-
 /* ---------- BTMEDYA Control Center ---------- */
 async function controlCenterApi(request, env, url){
   if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
-  if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
-  const origin=new URL(request.url).origin;
-  const staticCatalog=await medyaListesi(env,origin);
-  const r2Live=await listR2Media(env.MEDIA,'r2');
-  const legacyLive=await listLegacyMedia(env);
-  let d1Media=0,d1News=0,d1Published=0,operationsPending=0,operationsApproved=0,auditEvents=0;
-  if(env.DB){
-    try{
-      const [m,n,p,o,a]=await Promise.all([
-        env.DB.prepare('SELECT COUNT(*) AS n FROM media').first(),
-        env.DB.prepare('SELECT COUNT(*) AS n FROM news').first(),
-        env.DB.prepare("SELECT COUNT(*) AS n FROM news WHERE status='published'").first(),
-        env.DB.prepare("SELECT COUNT(*) AS n FROM operation_queue WHERE status='pending'").first().catch(()=>null),
-        env.DB.prepare('SELECT COUNT(*) AS n FROM admin_audit_log').first().catch(()=>null)
-      ]);
-      d1Media=Number(m?.n||0); d1News=Number(n?.n||0); d1Published=Number(p?.n||0);
-      operationsPending=Number(o?.n||0);
-      const approved=await env.DB.prepare("SELECT COUNT(*) AS n FROM operation_queue WHERE status='approved'").first().catch(()=>null);
-      operationsApproved=Number(approved?.n||0);
-      auditEvents=Number(a?.n||0);
-    }catch{}
-  }
-  const r2Keys=new Set(r2Live.map(x=>x.key));
-  const staticPaths=staticCatalog.map(x=>String(x.path||x.key||'')).filter(Boolean);
-  const r2MissingStatic=staticPaths.filter(k=>!r2Keys.has(k)).slice(0,40);
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
   return json({
     ok:true,
     service:'BTMEDYA Control Center',
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db'},
     storage:{d1:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA},
-    catalog:{
-      staticRecords:staticCatalog.length,
-      staticReal:staticCatalog.filter(x=>x.gercek===true || x.ai_generated===false).length,
-      staticAi:staticCatalog.filter(x=>x.ai_generated===true || x.gercek===false).length,
-      r2Objects:r2Live.length,
-      legacyR2Objects:legacyLive.length,
-      d1MediaRecords:d1Media,
-      d1NewsRecords:d1News,
-      publishedNews:d1Published,
-      staticNotInR2:r2MissingStatic.length,
-      note:'Statik GitHub medya kayıtları ASSETS üzerinden canlı sunulur; R2 eksikliği tek başına yayın hatası değildir.'
-    },
-    audit:{
-      staticNotInR2:r2MissingStatic,
-      r2Sample:r2Live.slice(0,12).map(x=>x.key),
-      lastChecked:new Date().toISOString()
-    },
-    admin:{configured:!!(env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD) && !!(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET),mediaSigning:!!env.MEDIA_SIGNING_SECRET},
-    operations:{pending:operationsPending,approved:operationsApproved,auditEvents},
+    admin:{configured:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
     social:socialProviderStatus(env),
     socialLinks:[
       {key:'instagram',label:'Instagram @btmedya10',url:'https://www.instagram.com/btmedya10/',note:'Görsel profil ve Reels kanalı'},
@@ -564,13 +358,12 @@ async function controlCenterApi(request, env, url){
       github:{status:'deployment_pipeline',note:'main dalı üzerinden Cloudflare Workers Builds deploy zinciri kullanılır.'}
     },
     nextActions:[
-      !(env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD)?'Cloudflare Worker secret: ADMIN_PASSWORD_SECRET ekle':null,
-      !(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)?'Cloudflare Worker secret: ADMIN_SESSION_SECRET_SECRET ekle':null,
+      !env.ADMIN_PASSWORD_SECRET?'Cloudflare Worker secret: ADMIN_PASSWORD_SECRET ekle':null,
+      !env.ADMIN_SESSION_SECRET_SECRET?'Cloudflare Worker secret: ADMIN_SESSION_SECRET_SECRET ekle':null,
       !env.MEDIA_SIGNING_SECRET?'Cloudflare Worker secret: MEDIA_SIGNING_SECRET ekle':null,
       !env.META_ACCESS_TOKEN||!env.META_IG_USER_ID?'Instagram bağlantı secretlarını tamamla':null,
       !env.TIKTOK_ACCESS_TOKEN||!env.TIKTOK_OPEN_ID?'TikTok bağlantı secretlarını tamamla':null,
-      !env.YOUTUBE_CLIENT_ID||!env.YOUTUBE_CLIENT_SECRET||!env.YOUTUBE_REFRESH_TOKEN?'YouTube bağlantı secretlarını tamamla':null,
-      !env.OPENAI_API_KEY?'AI içerik üretici için OPENAI_API_KEY ekle':null
+      !env.YOUTUBE_CLIENT_ID||!env.YOUTUBE_CLIENT_SECRET||!env.YOUTUBE_REFRESH_TOKEN?'YouTube bağlantı secretlarını tamamla':null
     ].filter(Boolean)
   });
 }
@@ -606,18 +399,18 @@ async function contactApi(request, env, url, ctx){
     return json({ok:true,message:'Mesajınız alındı, teşekkürler!'});
   }
   if(url.pathname==='/api/admin/contact' && request.method==='GET'){
-    if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     const rows=await env.DB.prepare('SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 200').all();
     return json({ok:true,items:rows.results});
   }
   const contactById=url.pathname.match(/^\/api\/admin\/contact\/(\d+)$/);
   if(contactById && request.method==='PATCH'){
-    if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     await env.DB.prepare('UPDATE contact_messages SET read=1 WHERE id=?').bind(Number(contactById[1])).run();
     return json({ok:true});
   }
   if(contactById && request.method==='DELETE'){
-    if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     await env.DB.prepare('DELETE FROM contact_messages WHERE id=?').bind(Number(contactById[1])).run();
     return json({ok:true});
   }
@@ -630,7 +423,7 @@ const SOCIAL_FORMAT = new Set(['9:16','4:5','1:1','16:9']);
 
 async function socialApi(request, env, url){
   if(!url.pathname.startsWith('/api/admin/social')) return null;
-  if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
   if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
 
   if(url.pathname==='/api/admin/social/providers' && request.method==='GET'){
@@ -706,7 +499,7 @@ async function mediaApi(request, env){
   const u=new URL(request.url); const path=u.pathname;
   if(request.method==='OPTIONS') return new Response(null,{status:204,headers:{'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,PATCH,DELETE,PUT,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'}});
 
-  const sess=(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET);
+  const sess=env.ADMIN_SESSION_SECRET_SECRET;
   const mediaSec=env.MEDIA_SIGNING_SECRET;
 
   if(path==='/api/login' && request.method==='POST'){
@@ -714,7 +507,9 @@ async function mediaApi(request, env){
     const rate=await checkRateLimit(env,ip);
     if(!rate.allowed) return json({error:'Çok fazla başarısız deneme. 15 dakika bekleyin.'},429,{'Retry-After':String(RATE_LIMIT_WINDOW_S)});
     const body=await request.json().catch(()=>({}));
-    if(!(env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD) || !sess || body.password!==(env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD))
+    const username=String(body.username||'').trim().toUpperCase();
+    const expectedUsername=String(env.ADMIN_USERNAME||'BTMEDYA').trim().toUpperCase();
+    if(username!==expectedUsername || !env.ADMIN_PASSWORD_SECRET || !sess || body.password!==env.ADMIN_PASSWORD_SECRET)
       return json({error:'Geçersiz kimlik bilgisi',remaining:rate.remaining},401);
     await clearRateLimit(env,ip);
     const token=await sessionToken(sess);
@@ -731,14 +526,11 @@ async function mediaApi(request, env){
 
   if(path==='/api/public/media' && request.method==='GET') {
     const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'};
-    const mediaCacheKey=new Request(request.url,{method:'GET'});
-    const cachedMedia=await caches.default.match(mediaCacheKey).catch(()=>null);
-    if(cachedMedia) return cachedMedia;
     const q=(u.searchParams.get('q')||'').toLowerCase(); const cat=u.searchParams.get('category')||'';
     const staticItems=(await medyaListesi(env,u.origin))
       .filter(x=>!cat || x.category===cat)
       .filter(x=>!q || x.path.toLowerCase().includes(q))
-      .map((x,i)=>({id:x.id,key:'static/'+x.path,original_name:x.path.split('/').pop(),mime:/\.(mp4|webm)$/i.test(x.path)?'video/'+(x.path.endsWith('.webm')?'webm':'mp4'):'image/webp',size:0,category:x.category,tags:['BTMEDYA',x.gercek?'gercek':'ai-uretimi','arsiv'],title:x.baslik||x.path.split('/').pop().replace(/\.[^.]+$/,'').replace(/[-_]+/g,' '),description:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',alt_text:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',slot:x.category==='hero'?'hero':x.category==='video'?'medya':x.category==='portfoy'?'portfoy':'haber',sort_order:i,created_at:null,updated_at:null,url:'/assets/'+x.path,source:'github-static',ai_generated:!x.gercek,vitrin:x.vitrin!==false,sira:x.sira,poster:x.poster?'/assets/'+x.poster:null}));
+      .map((x,i)=>({id:x.id,key:'static/'+x.path,original_name:x.path.split('/').pop(),mime:/\.(mp4|webm)$/i.test(x.path)?'video/'+(x.path.endsWith('.webm')?'webm':'mp4'):'image/webp',size:0,category:x.category,tags:['BTMEDYA',x.gercek?'gercek':'ai-uretimi','arsiv'],title:x.path.split('/').pop().replace(/\.[^.]+$/,'').replace(/[-_]+/g,' '),description:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',alt_text:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',slot:x.category==='hero'?'hero':x.category==='video'?'medya':x.category==='portfoy'?'portfoy':'haber',sort_order:i,created_at:null,updated_at:null,url:'/assets/'+x.path,source:'github-static',ai_generated:!x.gercek}));
     let r2Items=[];
     if(env.DB && env.MEDIA && mediaSec){
       let sql='SELECT id,key,original_name,mime,size,category,tags,title,description,alt_text,slot,sort_order,created_at,updated_at FROM media WHERE published=1'; const args=[];
@@ -753,11 +545,6 @@ async function mediaApi(request, env){
       const direct=await listR2Media(env.MEDIA,'r2-direct',{q,cat});
       const known=new Set(r2Items.map(x=>x.key));
       for(const x of direct){
-        /* R2'de telefon/Drive gibi kaynaklardan kalan çöp ve geçici nesneler
-           public medya kataloğuna girmemeli. Silme/taşıma yapmıyoruz, yalnızca
-           vitrinde ve API'de görünmesini engelliyoruz. */
-        const key=String(x.key||'');
-        if(/(^|\/).(?:trashed|tmp|temp)(?:-|\/|$)/i.test(key) || /(^|\/)thumbs\.db$/i.test(key)) continue;
         if(known.has(x.key)) continue;
         x.url=await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600));
         r2Items.push(x);
@@ -773,37 +560,15 @@ async function mediaApi(request, env){
         r2Items.push(x);
       }
     }
-    // GitHub katalog metadatasini ayni anahtar adina sahip R2 nesnesine miras ver.
-    // Böylece poster, vitrin sirasi ve gercek/AI etiketi R2 tarafinda tekrar elle girilmez.
-    const staticByPath=new Map();
-    for(const x of staticItems){
-      const p=String(x.key||'').replace(/^static\//,'');
-      staticByPath.set(p,x);
-      staticByPath.set(String(x.original_name||''),x);
-    }
-    for(const x of r2Items){
-      const match=staticByPath.get(String(x.key||'')) || staticByPath.get(String(x.original_name||''));
-      if(!match) continue;
-      if(!x.title || /^BTMEDYA gerçek R2/.test(String(x.title))) x.title=match.title;
-      if(!x.category || x.category==='arsiv') x.category=match.category;
-      if(!x.slot) x.slot=match.slot||'';
-      if(match.poster) x.poster=match.poster;
-      if(typeof match.vitrin==='boolean') x.vitrin=match.vitrin;
-      if(typeof match.sira==='number') x.sira=match.sira;
-      if(match.ai_generated===true) x.ai_generated=true;
-    }
-    const r2Keys=new Set(r2Items.map(x=>String(x.key||'').replace(/^static\//,'')));
     const seen=new Set(r2Items.map(x=>x.url));
-    const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url) && !r2Keys.has(String(x.key||'').replace(/^static\//,'')))];
-    const mediaResponse=publicJson({brand:'BTMedya',generated_at:new Date().toISOString(),source:r2Items.length?'r2+legacy-r2+github-static':'github-static',items},60,cors);
-    await caches.default.put(mediaCacheKey,mediaResponse.clone()).catch(()=>{});
-    return mediaResponse;
+    const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url))];
+    return json({brand:'BTMedya',generated_at:new Date().toISOString(),source:r2Items.length?'r2+legacy-r2+github-static':'github-static',items},200,cors);
   }
 
   const aiToken=env.AI_READ_TOKEN;
   const bearer=(request.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
   const aiRead=(aiToken && bearer===aiToken);
-  const auth=aiRead || await validSession(request,(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET));
+  const auth=aiRead || await validSession(request,env.ADMIN_SESSION_SECRET_SECRET);
   if(!auth) return json({error:'Yetkisiz'},401);
 
   /* DEPO PLANI — her dosyanin teknik ozelligi, onerilen hedefler, secilen
@@ -1039,12 +804,7 @@ function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
   return {aspect,uygun,uygunsuz,siteUyarisi};
 }
 
-export default {
-  async scheduled(event, env, ctx){
-    const task=scanNewsSources(env,NEWS_FEEDS.map(x=>x.id));
-    if(ctx?.waitUntil) ctx.waitUntil(task); else await task;
-  },
-  async fetch(request, env, ctx){
+export default { async fetch(request, env, ctx){
   const url = new URL(request.url);
 
   if(url.hostname.startsWith('www.')){
@@ -1086,24 +846,10 @@ export default {
     return new Response(obj.body,{headers:{'content-type':obj.httpMetadata?.contentType||'application/octet-stream','cache-control':'public, max-age=86400'}});
   }
 
-  if(url.pathname === '/news-sitemap.xml' && (request.method === 'GET' || request.method === 'HEAD')){
-    return dinamikNewsSitemap(request, env);
-  }
-
-  if(url.pathname === '/sitemap.xml' && (request.method === 'GET' || request.method === 'HEAD')){
-    return dinamikSitemap(request, env);
-  }
-
   if(url.pathname.startsWith('/api/')){
     const rw = await workflowApi(request, env, url);
     if(rw) return rw;
 
-    const rnf = await newsFinderApi(request, env, url); if(rnf) return rnf;
-    const rad = await aiDraftApi(request, env, url); if(rad) return rad;
-    const rms = await mediaSyncApi(request, env, url);
-    if(rms) return rms;
-    const roa = await adminOperationsApi(request, env, url);
-    if(roa) return roa;
     const rcc = await controlCenterApi(request, env, url);
     if(rcc) return rcc;
     const r1 = await newsApi(request, env, url);
@@ -1248,85 +994,6 @@ function onbellek(pathname) {
   if (/\.(?:css|js)$/i.test(pathname))
     return 'public, max-age=3600, must-revalidate';
   return 'public, max-age=300, must-revalidate';
-}
-
-async function dinamikSitemap(request, env) {
-  const url = new URL(request.url);
-  try {
-    const fallback = await env.ASSETS.fetch(new Request(new URL('/sitemap.xml', url.origin)));
-    if (!env.DB || !fallback.ok) return fallback;
-    const rows = await env.DB.prepare(
-      "SELECT slug, published_at, updated_at, cover_url FROM news WHERE status='published' ORDER BY published_at DESC"
-    ).all();
-    const escXml = value => String(value ?? '')
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-    const xml = await fallback.text();
-    const known = new Set([...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => match[1]));
-    const additions = (rows.results || []).filter(row => row.slug).filter(row => {
-      const loc = `${url.origin}/haberler/${encodeURIComponent(row.slug)}`;
-      if (known.has(loc)) return false;
-      known.add(loc);
-      return true;
-    }).map(row => {
-      const loc = `${url.origin}/haberler/${encodeURIComponent(row.slug)}`;
-      const date = String(row.updated_at || row.published_at || '').slice(0, 10);
-      const cover = String(row.cover_url || '').trim();
-      const image = cover ? `<image:image><image:loc>${escXml(/^https?:\/\//i.test(cover) ? cover : `${url.origin}${cover.startsWith('/') ? cover : `/${cover}`}`)}</image:loc></image:image>` : '';
-      return `  <url><loc>${escXml(loc)}</loc>${/^\d{4}-\d{2}-\d{2}$/.test(date) ? `<lastmod>${date}</lastmod>` : ''}${image}</url>`;
-    });
-    const body = additions.length
-      ? (additions.some(addition => addition.includes('<image:image>')) && !xml.includes('xmlns:image=')
-          ? xml.replace('<urlset', '<urlset xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"')
-          : xml).replace('</urlset>', `${additions.join('\n')}\n</urlset>`)
-      : xml;
-    return new Response(body, { status: 200, headers: {
-      'content-type': 'application/xml; charset=utf-8',
-      'cache-control': 'public, max-age=300, must-revalidate'
-    }});
-  } catch (error) {
-    console.error('[sitemap] dynamic merge failed:', error);
-    return env.ASSETS.fetch(new Request(new URL('/sitemap.xml', url.origin)));
-  }
-}
-
-async function dinamikNewsSitemap(request, env) {
-  const url = new URL(request.url);
-  const escXml = value => String(value ?? '')
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-  const headers = {
-    'content-type': 'application/xml; charset=utf-8',
-    'cache-control': 'public, max-age=300, must-revalidate'
-  };
-  const empty = '<?xml version="1.0" encoding="UTF-8"?>\n' +
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
-    'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"></urlset>';
-  if (!env.DB) return new Response(empty, { status: 503, headers });
-  try {
-    const cutoff = Date.now() - (2 * 24 * 60 * 60 * 1000);
-    const rows = await env.DB.prepare(
-      "SELECT slug, title, published_at FROM news WHERE status='published' AND published_at IS NOT NULL ORDER BY published_at DESC LIMIT 1000"
-    ).all();
-    const items = (rows.results || []).filter(row => {
-      const publishedMs = Date.parse(String(row.published_at || ''));
-      return row.slug && row.title && Number.isFinite(publishedMs) && publishedMs >= cutoff;
-    }).map(row => {
-      const rawDate = String(row.published_at).trim();
-      const publishedDate = /^\d{4}-\d{2}-\d{2}$/.test(rawDate)
-        ? rawDate
-        : new Date(rawDate).toISOString();
-      const loc = `${url.origin}/haberler/${encodeURIComponent(row.slug)}`;
-      return `  <url><loc>${escXml(loc)}</loc><news:news><news:publication><news:name>BTMEDYA</news:name><news:language>tr</news:language></news:publication><news:publication_date>${escXml(publishedDate)}</news:publication_date><news:title>${escXml(row.title)}</news:title></news:news></url>`;
-    });
-    const body = '<?xml version="1.0" encoding="UTF-8"?>\n' +
-      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">\n' +
-      `${items.join('\n')}\n</urlset>`;
-    return new Response(body, { status: 200, headers });
-  } catch (error) {
-    console.error('[news-sitemap] generation failed:', error);
-    return new Response(empty, { status: 503, headers });
-  }
 }
 
 async function servisEt(request, env) {
