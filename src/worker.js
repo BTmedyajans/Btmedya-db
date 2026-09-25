@@ -223,7 +223,7 @@ async function newsApi(request, env, url){
     const mediaCount=(probe)=>Array.isArray(probe?.objects)?probe.objects.filter(o=>{
       const key=String(o.key||'');
       const mime=String(o.httpMetadata?.contentType||'');
-      return mediaLike.test(key)||/^(image|video|audio)\//i.test(mime);
+      return !isHiddenR2Key(key) && (mediaLike.test(key)||/^(image|video|audio)\//i.test(mime));
     }).length:0;
     return json({
       ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA,
