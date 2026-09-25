@@ -16,7 +16,7 @@ public/              Yayınlanan her şey (assets binding bu klasörü servis ed
   data/haberler.json Haber arşivi verisi (tam metin, kaynak, yazar)
   admin/             Media Vault yönetim paneli (/admin/)
   social-studio/     İçerik → sosyal video üretim sayfası
-  robots.txt, sitemap.xml, rss.xml, site.webmanifest
+  robots.txt, sitemap.xml, news-sitemap.xml, rss.xml, site.webmanifest, llms.txt, llms-full.txt
 docs/                Yayına alma, Media Vault ve kaynak/provenance kılavuzları
 ```
 
@@ -70,12 +70,12 @@ seviyesinde bir **Redirect Rule** tanımlanabilir.
 tanımlanmalı (Cloudflare paneli > Worker > Settings > Variables and Secrets,
 ya da `wrangler secret put`):
 
-- `ADMIN_PASSWORD` — panel giriş şifresi
-- `ADMIN_SESSION_SECRET` — oturum imzalama anahtarı (rastgele uzun dizi)
+- `ADMIN_PASSWORD_SECRET` — panel giriş şifresi
+- `ADMIN_SESSION_SECRET_SECRET` — oturum imzalama anahtarı (rastgele uzun dizi)
 - `MEDIA_SIGNING_SECRET` — medya bağlantısı imzalama anahtarı (rastgele uzun dizi)
 
 Detaylı adımlar: `docs/CANLIYA-ALMA.md`
 
 ## Tek elden yönetim
 
-Cloudflare Workers Builds üzerinden `main` dalına yapılan her push production deployment zincirini tetikler. Bu README değişikliği yalnızca mevcut üretim kodunu yeniden yayınlama zincirini başlatmak için yapılmıştır; uygulama kaynak kodu değiştirilmemiştir.
+GitHub Actions üzerindeki `deploy.yml` artık tek kanonik production deploy kapısıdır. `main` push'unda Worker'ı deploy eder ve canlı release marker, health, media feed, sitemap ve gerçek/AI etiketlerini smoke-test eder. Eski yinelenen deploy/smoke akışları kaldırılmıştır.
