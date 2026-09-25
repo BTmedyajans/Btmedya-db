@@ -4,13 +4,10 @@ Video, fotoğraf ve haber girişlerini buradan yaparsınız. Kod bilmenize gerek
 
 **Adres:** https://btmedya.com.tr/admin/
 
-Panel siteye bağlantı verilmez, adresi bilen girer. Şifre Cloudflare tarafında
-`ADMIN_PASSWORD` olarak tanımlıdır.
+Panel siteye bağlantı verilmez, adresi bilen girer. Şifre Cloudflare tarafında `ADMIN_PASSWORD_SECRET` olarak tanımlıdır. Eski `ADMIN_PASSWORD` adı yalnızca geriye dönük uyumluluk için desteklenir.
 
 ---
 
-
-> **Kimlik doğrulama notu:** ADMIN_PASSWORD secret name is inconsistent with older documentation; support both names and prefer ADMIN_PASSWORD_SECRET in production.
 ## Giriş
 
 1. Adresi açın.
@@ -18,7 +15,7 @@ Panel siteye bağlantı verilmez, adresi bilen girer. Şifre Cloudflare tarafın
 3. Oturum çerezi 7 gün geçerlidir, her seferinde şifre girmeniz gerekmez.
 
 Şifreyi unutursanız Cloudflare panelinden değiştirilir:
-Workers & Pages > btmedya-db > Settings > Variables and Secrets > `ADMIN_PASSWORD`.
+Workers & Pages > btmedya-db > Settings > Variables and Secrets > `ADMIN_PASSWORD_SECRET`.
 
 ---
 
@@ -110,9 +107,6 @@ anlatın, ben değiştirip yayına alırım.
 
 ---
 
-## Bilinen eksik
+## Güncel durum
 
-Panelin haber formunda kapak görseli alanı sınırlı. Anasayfa haber kartları
-`cover_url` alanını destekliyor ve dolu olduğunda kapak görselini gösteriyor,
-ancak bu alanı panelden rahat doldurmak için küçük bir ekleme gerekir.
-İstenirse yapılır.
+Haber formu `cover_url` alanını destekler. Kapak girilmezse sistem haber slug'ına göre `/assets/haber-kapak/<slug>.webp` arşiv kapağına düşer; böylece boş/kırık kapak gösterilmez.
