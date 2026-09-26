@@ -5,7 +5,8 @@
   "kategori": "Tarım · Ekonomi",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "video": false,
-  "foto": "portre-03"
+  "foto": "portre-03",
+  "imza": "BTMEDYA HABER MERKEZİ"
  },
  {
   "slug": "btt-ogrenci-dostu-abonman-tarifelerini-duyurdu",
@@ -13,7 +14,8 @@
   "kategori": "Ulaşım · Eğitim",
   "altbilgi": "BTMEDYA · 25 Eylül 2026",
   "video": false,
-  "foto": "portre-01"
+  "foto": "portre-01",
+  "imza": "BTMEDYA HABER MERKEZİ"
  },
  {
   "slug": "balikesir-sehir-tiyatrosu-kanli-nigar-ile-sezonu-acti",
@@ -21,7 +23,8 @@
   "kategori": "Kültür · Sanat",
   "altbilgi": "BTMEDYA · 22 Eylül 2026",
   "video": false,
-  "foto": "portre-02"
+  "foto": "portre-02",
+  "imza": "BTMEDYA HABER MERKEZİ"
  },
  {
   "slug": "balikesir-itfaiyesine-8-yeni-arac-katildi",
@@ -29,7 +32,8 @@
   "kategori": "Gündem · Afet Hazırlığı",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "video": false,
-  "foto": "portre-05"
+  "foto": "portre-05",
+  "imza": "BTMEDYA HABER MERKEZİ"
  },
  {
   "slug": "karesi-kocaavsar-orman-yangini-kontrol-altina-alindi",
@@ -37,7 +41,8 @@
   "kategori": "Gündem · Yangın",
   "altbilgi": "BTMEDYA · 21 Eylül 2026",
   "video": false,
-  "foto": "kamera-arkasi"
+  "foto": "kamera-arkasi",
+  "imza": "BTMEDYA HABER MERKEZİ"
  },
  {
   "slug": "edremit-altinkum-kanalizasyon-altyapi-yatirimi",
@@ -45,7 +50,8 @@
   "kategori": "Yerel · Altyapı",
   "altbilgi": "BTMEDYA · 21 Eylül 2026",
   "video": false,
-  "foto": "portre-02"
+  "foto": "portre-02",
+  "imza": "BTMEDYA HABER MERKEZİ"
  },
  {
   "slug": "balikesir-emniyet-7-13-eylul-2026-faaliyetleri",
@@ -53,7 +59,8 @@
   "kategori": "Gündem · Asayiş",
   "altbilgi": "BTMEDYA · 15 Eylül 2026",
   "video": false,
-  "foto": "portre-sb"
+  "foto": "kamera-arkasi",
+  "imza": "BTMEDYA HABER MERKEZİ"
  },
  {
   "slug": "balikesir-de-kira-fiyatlarinda-30-artis-bekleniyor",
@@ -270,5 +277,340 @@
   "altbilgi": "BTMEDYA · 02 Mayıs 2024",
   "video": true,
   "foto": "portre-01"
+ },
+ {
+  "slug": "bandirma-yolunda-kaza-hamile-anne-3-yasindaki-kizi-ve-dogmamis-bebegi-hayatini-kaybetti",
+  "baslik": "Bandırma yolunda kaza: Hamile anne, 3 yaşındaki kızı ve doğmamış bebeği hayatını kaybetti",
+  "kategori": "Gündem",
+  "altbilgi": "BTMEDYA · 23 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ"
+ },
+ {
+  "slug": "balikesir-ticaret-odasi-2022-2026-donemini-kapatti",
+  "baslik": "Balıkesir Ticaret Odası 2022-2026 dönemini kapattı",
+  "kategori": "Gündem",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-01"
+ },
+ {
+  "slug": "ivrindi-ye-ikinci-acil-saglik-istasyonu-korucu-daki-yeni-bina-hizmete-girdi",
+  "baslik": "İvrindi'ye ikinci acil sağlık istasyonu: Korucu'daki yeni bina hizmete girdi",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 22 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-02"
+ },
+ {
+  "slug": "balikesirspor-ic-saha-maclarini-balikesir-e-tasimak-istiyor-tesis-sahasi-tff-kriterlerine",
+  "baslik": "Balıkesirspor iç saha maçlarını Balıkesir'e taşımak istiyor: Tesis sahası TFF kriterlerine uyarlanacak",
+  "kategori": "Spor",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-03"
+ },
+ {
+  "slug": "ayvalik-ta-uluslararasi-matematik-konferansi-34-ulkeden-259-yazar-133-sunum",
+  "baslik": "Ayvalık'ta uluslararası matematik konferansı: 34 ülkeden 259 yazar, 133 sunum",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-05"
+ },
+ {
+  "slug": "badavut-sahili-nde-kum-zambaklari-ahsap-kafeslerle-korumaya-alindi",
+  "baslik": "Badavut Sahili'nde kum zambakları ahşap kafeslerle korumaya alındı",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 25 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-04"
+ },
+ {
+  "slug": "balikesir-de-dort-ilce-milli-egitim-mudurunun-gorev-yeri-degisti",
+  "baslik": "Balıkesir'de dört ilçe milli eğitim müdürünün görev yeri değişti",
+  "kategori": "Gündem",
+  "altbilgi": "BTMEDYA · 23 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "kamera-arkasi"
+ },
+ {
+  "slug": "manyas-ta-ayciceginin-kilosu-37-tl-kooperatif-simdiye-kadar-1-600-ton-aldi",
+  "baslik": "Manyas'ta ayçiçeğinin kilosu 37 TL: Kooperatif şimdiye kadar 1.600 ton aldı",
+  "kategori": "Ekonomi",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-01"
+ },
+ {
+  "slug": "balikesir-in-ilk-kadin-oto-boya-ustasi-nisanur-eser-turkiye-nin-yilin-kalfasi-secildi",
+  "baslik": "Balıkesir'in ilk kadın oto boya ustası Nisanur Eser, Türkiye'nin 'Yılın Kalfası' seçildi",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 22 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-02"
+ },
+ {
+  "slug": "ayvalik-ta-kanalizasyondan-bir-cuval-komur-cikti",
+  "baslik": "Ayvalık'ta kanalizasyondan bir çuval kömür çıktı",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-03"
+ },
+ {
+  "slug": "karadenizliler-edremit-korfez-havalimani-ndan-karadeniz-e-sefer-istiyor",
+  "baslik": "Karadenizliler Edremit Körfez Havalimanı'ndan Karadeniz'e sefer istiyor",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-05"
+ },
+ {
+  "slug": "buyuksehir-ve-ilce-belediyeleri-imar-sorunlarini-uc-bolge-toplantisinda-ele-aldi",
+  "baslik": "Büyükşehir ve ilçe belediyeleri imar sorunlarını üç bölge toplantısında ele aldı",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 25 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-04"
+ },
+ {
+  "slug": "burhaniye-de-ortaokul-ogrencileri-oren-sahilini-temizledi",
+  "baslik": "Burhaniye'de ortaokul öğrencileri Ören sahilini temizledi",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "kamera-arkasi"
+ },
+ {
+  "slug": "balikesir-universitesi-hukuk-fakultesi-nin-acilis-dersini-ak-parti-genel-baskan",
+  "baslik": "Balıkesir Üniversitesi Hukuk Fakültesi'nin açılış dersini AK Parti Genel Başkan Yardımcısı Belgin Uygur verdi",
+  "kategori": "Gündem",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-01"
+ },
+ {
+  "slug": "ulusal-ajans-baskani-astarci-erasmus-butcesinde-ab-katkisi-yuzde-8-9-a-indi",
+  "baslik": "Ulusal Ajans Başkanı Astarcı: Erasmus bütçesinde AB katkısı yüzde 8-9'a indi",
+  "kategori": "Gündem",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-02"
+ },
+ {
+  "slug": "ayvalik-kurtulusunun-104-yilini-kutladi-rahvan-yarislari-ilk-cocuk-kosusu-ve-5-bin",
+  "baslik": "Ayvalık kurtuluşunun 104. yılını kutladı: Rahvan yarışları, ilk çocuk koşusu ve 5 bin kişilik konser",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 21 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-03"
+ },
+ {
+  "slug": "ayvalik-ta-34-engelliler-senligi-200-katilimciya-ucretsiz-dis-tedavisi",
+  "baslik": "Ayvalık'ta 34. Engelliler Şenliği: 200 katılımcıya ücretsiz diş tedavisi",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-05"
+ },
+ {
+  "slug": "ayvalik-ogrenci-kent-lokantalari-nda-fiyat-degismedi-uc-cesit-yemek-ve-meyve-50-tl",
+  "baslik": "Ayvalık Öğrenci Kent Lokantaları'nda fiyat değişmedi: Üç çeşit yemek ve meyve 50 TL",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 22 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-04"
+ },
+ {
+  "slug": "sarimsakli-da-24-trophy-festivali-5-ulkeden-300-dansci-sahne-aldi",
+  "baslik": "Sarımsaklı'da 24. Trophy Festivali: 5 ülkeden 300 dansçı sahne aldı",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 18 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "kamera-arkasi"
+ },
+ {
+  "slug": "ayvalik-in-tarihi-vural-sinemasi-yeniden-sinema-olacak-festivale-ab-destekli-hibe",
+  "baslik": "Ayvalık'ın tarihi Vural Sineması yeniden sinema olacak: Festivale AB destekli hibe",
+  "kategori": "Kültür",
+  "altbilgi": "BTMEDYA · 17 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-01"
+ },
+ {
+  "slug": "altieylul-de-dort-buyuk-projede-sona-gelindi-kapali-pazar-olimpik-havuz-sosyal-tesis",
+  "baslik": "Altıeylül'de dört büyük projede sona gelindi: Kapalı pazar, olimpik havuz, sosyal tesis",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 17 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-02"
+ },
+ {
+  "slug": "kirsal-kalkinma-desteginin-17-etabinda-balikesir-e-17-proje-toplam-yatirim-338-7-milyon-tl",
+  "baslik": "Kırsal kalkınma desteğinin 17. etabında Balıkesir'e 17 proje: Toplam yatırım 338,7 milyon TL",
+  "kategori": "Ekonomi",
+  "altbilgi": "BTMEDYA · 17 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-03"
+ },
+ {
+  "slug": "edremit-te-ogrenci-guzergahi-hamdibey-caddesi-yenilendi",
+  "baslik": "Edremit'te öğrenci güzergâhı Hamdibey Caddesi yenilendi",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 23 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-05"
+ },
+ {
+  "slug": "edremit-te-kaldirim-isgaline-denetim-menderes-bulvari-ve-cumhuriyet-meydani-nda",
+  "baslik": "Edremit'te kaldırım işgaline denetim: Menderes Bulvarı ve Cumhuriyet Meydanı'nda malzemeler toplandı",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 21 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-04"
+ },
+ {
+  "slug": "altieylul-de-okul-kantinleri-denetlendi",
+  "baslik": "Altıeylül'de okul kantinleri denetlendi",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 17 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "kamera-arkasi"
+ },
+ {
+  "slug": "ayvalik-ta-kadin-ureticilerin-urunleri-icin-cennet-tepesi-nde-yeni-satis-noktasi",
+  "baslik": "Ayvalık'ta kadın üreticilerin ürünleri için Cennet Tepesi'nde yeni satış noktası",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 21 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-01"
+ },
+ {
+  "slug": "ayvalik-ta-dunya-temizlik-gunu-uckuyular-dan-seyir-terasina-kadar-atik-toplandi",
+  "baslik": "Ayvalık'ta Dünya Temizlik Günü: Üçkuyular'dan seyir terasına kadar atık toplandı",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 21 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "portre-02"
+ },
+ {
+  "slug": "openai-in-yapay-zeka-ajani-avustralya-nin-saglik-portalina-sizdi-hukumet-inceleme-baslatti",
+  "baslik": "OpenAI'ın yapay zekâ ajanı Avustralya'nın sağlık portalına sızdı: Hükümet inceleme başlattı",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-01"
+ },
+ {
+  "slug": "openai-modellerinin-kontrolden-ciktigi-alti-vakayi-acikladi",
+  "baslik": "OpenAI, modellerinin 'kontrolden çıktığı' altı vakayı açıkladı",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 17 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-02"
+ },
+ {
+  "slug": "trump-tan-yapay-zeka-hamlesi-ai-force-kurulacak-adi-super-zeka-olsun",
+  "baslik": "Trump'tan yapay zekâ hamlesi: 'AI Force' kurulacak, adı 'süper zekâ' olsun",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-01"
+ },
+ {
+  "slug": "abd-cin-e-yapay-zeka-icin-acil-durum-hatti-onerdi",
+  "baslik": "ABD, Çin'e yapay zekâ için 'acil durum hattı' önerdi",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-02"
+ },
+ {
+  "slug": "microsoft-raporu-turkiye-de-uretken-yapay-zeka-kullananlarin-orani-yuzde-18-9-a-cikti",
+  "baslik": "Microsoft raporu: Türkiye'de üretken yapay zekâ kullananların oranı yüzde 18,9'a çıktı",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 25 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-01"
+ },
+ {
+  "slug": "arastirma-yapay-zeka-bobrek-nakli-kararlarinda-doktorlardan-farkli-oncelikler-belirliyor",
+  "baslik": "Araştırma: Yapay zekâ böbrek nakli kararlarında doktorlardan farklı öncelikler belirliyor",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 19 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-02"
+ },
+ {
+  "slug": "anthropic-claude-ajanlari-bakteri-viruslerinde-yeni-bir-dna-sistemi-tespit-etti",
+  "baslik": "Anthropic: Claude ajanları bakteri virüslerinde yeni bir DNA sistemi tespit etti",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 25 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-01"
+ },
+ {
+  "slug": "ingiltere-disisleri-bakani-miliband-bm-guvenlik-konseyi-ne-yapay-zeka-cagrisi-yapti",
+  "baslik": "İngiltere Dışişleri Bakanı Miliband, BM Güvenlik Konseyi'ne yapay zekâ çağrısı yaptı",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 23 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-02"
+ },
+ {
+  "slug": "meta-dan-yapay-zeka-ajani-icin-anahtarlik-boyutunda-cihaz-muse-charm",
+  "baslik": "Meta'dan yapay zekâ ajanı için anahtarlık boyutunda cihaz: Muse Charm",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 23 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-01"
+ },
+ {
+  "slug": "google-gemini-nin-sesli-asistanina-gercek-zamanli-avatar-ekledi",
+  "baslik": "Google, Gemini'nin sesli asistanına gerçek zamanlı avatar ekledi",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-02"
+ },
+ {
+  "slug": "google-in-uzayda-yapay-zeka-veri-merkezi-projesi-suncatcher-in-ilk-prototip-uydusu",
+  "baslik": "Google'ın uzayda yapay zekâ veri merkezi projesi Suncatcher'ın ilk prototip uydusu fırlatılıyor",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-01"
+ },
+ {
+  "slug": "bnp-paribas-ile-google-cloud-arasinda-bes-yillik-yapay-zeka-ortakligi",
+  "baslik": "BNP Paribas ile Google Cloud arasında beş yıllık yapay zekâ ortaklığı",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-02"
+ },
+ {
+  "slug": "kanada-dan-13-milyon-dolarlik-ucretsiz-yapay-zeka-okuryazarligi-programi",
+  "baslik": "Kanada'dan 13 milyon dolarlık ücretsiz yapay zekâ okuryazarlığı programı",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-01"
+ },
+ {
+  "slug": "antalya-havalimani-nin-yapay-zeka-asistani-talya-ai-454-bin-soruyu-yanitladi",
+  "baslik": "Antalya Havalimanı'nın yapay zekâ asistanı Talya AI 454 bin soruyu yanıtladı",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-02"
+ },
+ {
+  "slug": "kazakistan-da-yapay-zeka-ayi-basladi-openai-destekli-hackathon-astana-da-forum",
+  "baslik": "Kazakistan'da 'Yapay Zekâ Ayı' başladı: OpenAI destekli hackathon, Astana'da forum",
+  "kategori": "Yapay Zekâ",
+  "altbilgi": "BTMEDYA · 24 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "foto": "siber-01"
  }
 ]

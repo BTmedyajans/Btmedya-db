@@ -1,5 +1,13 @@
 name: BTMEDYA Cloudflare reconcile
 
+# Yalniz dogrulama. Uretim dagitimini Cloudflare Workers Builds yapar
+# (AGENTS.md: main -> Workers Builds -> npx wrangler deploy); ozel alan
+# adlari wrangler.toml [[routes]] ile o dagitimda uygulanir. Bu is akisi
+# eskiden ayni kodu ikinci kez "wrangler deploy" ile gonderiyordu: GitHub
+# secret'indaki token'in Workers yazma yetkisi olmadigi icin her push'ta
+# kirmizi yaniyordu ve yetki verilse Workers Builds ile yarisacak ikinci
+# bir dagitici olacakti. Token yalniz okuma icin kullanilir.
+
 on:
   push:
     branches: ["main"]
@@ -24,14 +32,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Reconcile Worker and Custom Domains
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: latest
-          command: deploy
 
       - name: Verify zone and DNS state
         env:

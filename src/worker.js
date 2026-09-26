@@ -1328,6 +1328,50 @@ function onbellek(pathname) {
   return 'public, max-age=300, must-revalidate';
 }
 
+/* Site haritasi, Google News haritasi ve RSS depoda elle tutulan statik
+   dosyalar. Panelden yayinlanan haberler (D1) bu dosyalara hic girmiyordu;
+   Google yeni haberleri haritadan bulamiyor, RSS okuyuculari gormuyordu.
+   Statik dosya oldugu gibi kalir, D1'de yayinda olup dosyada bulunmayan
+   haberler sona eklenir. Hata olursa statik dosya degismeden verilir. */
+const HARITALAR = new Set(['/sitemap.xml', '/news-sitemap.xml', '/rss.xml']);
+const xmlKac = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+async function haritayaPanelHaberleriniEkle(yol, metin, env, origin) {
+  const satirlar = (await env.DB.prepare(
+    "SELECT slug,title,excerpt,published_at,updated_at FROM news WHERE status='published' AND slug<>'' ORDER BY published_at DESC LIMIT 500"
+  ).all()).results || [];
+  // Yerelde http gelebilir; haritadaki adres her zaman kanonik https olmali.
+  const kok = 'https://' + new URL(origin).host;
+  const adres = s => `${kok}/haberler/${encodeURIComponent(s)}`;
+  // Statik dosyada zaten olan haber ikinci kez eklenmez.
+  const eksik = satirlar.filter(r => !metin.includes(`/haberler/${r.slug}<`) && !metin.includes(`/haberler/${encodeURIComponent(r.slug)}<`));
+  if (!eksik.length) return metin;
+  const tarih = r => { const d = new Date(r.published_at || r.updated_at || ''); return isNaN(d) ? null : d; };
+
+  if (yol === '/sitemap.xml') {
+    const ek = eksik.map(r => {
+      const d = tarih(r);
+      return `<url><loc>${xmlKac(adres(r.slug))}</loc>${d ? `<lastmod>${d.toISOString().slice(0, 10)}</lastmod>` : ''}<changefreq>weekly</changefreq><priority>0.7</priority></url>`;
+    }).join('\n');
+    return metin.replace('</urlset>', ek + '\n</urlset>');
+  }
+  if (yol === '/news-sitemap.xml') {
+    // Google News haritasi yalniz son iki gunde yayinlanan haberleri kabul eder.
+    const sinir = Date.now() - 2 * 86400 * 1000;
+    const ek = eksik.filter(r => { const d = tarih(r); return d && d.getTime() >= sinir; }).map(r =>
+      `<url><loc>${xmlKac(adres(r.slug))}</loc><news:news><news:publication><news:name>BTMEDYA</news:name><news:language>tr</news:language></news:publication><news:publication_date>${tarih(r).toISOString()}</news:publication_date><news:title>${xmlKac(r.title)}</news:title></news:news></url>`
+    ).join('\n');
+    return ek ? metin.replace('</urlset>', ek + '\n</urlset>') : metin;
+  }
+  // RSS: yeni ogeler kanalin basina, statik ogelerin onune girer.
+  const ek = eksik.slice(0, 50).map(r => {
+    const d = tarih(r);
+    return `<item><title>${xmlKac(r.title)}</title><link>${xmlKac(adres(r.slug))}</link><guid isPermaLink="true">${xmlKac(adres(r.slug))}</guid><description>${xmlKac(r.excerpt || '')}</description>${d ? `<pubDate>${d.toUTCString()}</pubDate>` : ''}</item>`;
+  }).join('\n');
+  const i = metin.indexOf('<item>');
+  return i >= 0 ? metin.slice(0, i) + ek + '\n' + metin.slice(i) : metin.replace('</channel>', ek + '\n</channel>');
+}
+
 async function servisEt(request, env) {
   const url = new URL(request.url);
   let res = await env.ASSETS.fetch(request);
@@ -1350,6 +1394,16 @@ async function servisEt(request, env) {
   }
   if (!h.has('cache-control') || res.status === 404) h.set('cache-control', onbellek(url.pathname));
   else h.set('cache-control', onbellek(url.pathname));
+
+  if (res.status === 200 && HARITALAR.has(url.pathname) && env.DB) {
+    const metin = await res.text();
+    const yeni = await haritayaPanelHaberleriniEkle(url.pathname, metin, env, url.origin).catch(e => {
+      console.error('[harita] panel haberleri eklenemedi:', e?.message || e);
+      return metin;
+    });
+    h.delete('content-length');
+    return new Response(yeni, { status: 200, headers: h });
+  }
 
   /* Panelden "Sosyal paylasim gorseli" yuvasina dosya atandiysa anasayfanin
      og:image ve twitter:image etiketleri sunucuda degistirilir. WhatsApp,
