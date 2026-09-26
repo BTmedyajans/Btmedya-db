@@ -226,7 +226,28 @@ async function workflowApi(request, env, url) {
 }
 
 /* ---------- Haber CMS API ---------- */
-async function newsApi(request, env, url){
+/* IndexNow: yayinlanan haberin adresini Bing, Yandex ve IndexNow'u kullanan
+   diger arama motorlarina aninda bildirir; tarayicinin site haritasini bir
+   sonraki ziyaretinde bulmasini beklemez. Anahtar kamuya aciktir (protokol
+   geregi public/57fb863171638cffa9cdfb3913627b57.txt olarak yayinda); gizli degil, alan adinin
+   sahipligini kanitlar. Google IndexNow kullanmaz; Google icin site haritasi
+   ve Search Console gecerlidir. Bildirim basarisiz olursa yayin etkilenmez. */
+const INDEXNOW_ANAHTAR = '57fb863171638cffa9cdfb3913627b57';
+function indexNowBildir(ctx, origin, slug){
+  if(!slug) return;
+  const host = new URL(origin).host;
+  if(host !== 'btmedya.com.tr') return; // yerel ve onizleme ortamlarindan bildirim gitmesin
+  const is = fetch('https://api.indexnow.org/indexnow', {
+    method:'POST', headers:{'content-type':'application/json; charset=utf-8'},
+    body: JSON.stringify({host, key:INDEXNOW_ANAHTAR, keyLocation:`https://${host}/${INDEXNOW_ANAHTAR}.txt`,
+      urlList:[`https://${host}/haberler/${encodeURIComponent(slug)}`]}),
+    signal: AbortSignal.timeout(5000)
+  }).then(r => { if(!r.ok && r.status!==202) console.error('[indexnow]', r.status); })
+    .catch(e => console.error('[indexnow]', e?.message || e));
+  if(ctx?.waitUntil) ctx.waitUntil(is);
+}
+
+async function newsApi(request, env, url, ctx){
   if(url.pathname==='/api/public/social-feed' && request.method==='GET'){
     const r=await env.ASSETS.fetch(new Request(new URL('/data/social-feed.json',url.origin)));
     if(!r.ok) return json({ok:false,error:'Sosyal akış snapshot bulunamadı'},404);
@@ -336,6 +357,7 @@ async function newsApi(request, env, url){
         VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(slug) DO UPDATE SET title=excluded.title,excerpt=excluded.excerpt,body=excluded.body,category=excluded.category,author=excluded.author,cover_url=excluded.cover_url,video_url=excluded.video_url,status=excluded.status,published_at=excluded.published_at,updated_at=excluded.updated_at`)
         .bind(slug,title,String(b.excerpt||'').slice(0,1000),String(b.body||'').slice(0,200000),String(b.category||'').slice(0,100),String(b.author||'').slice(0,160),String(b.cover_url||'').slice(0,2000),String(b.video_url||'').slice(0,2000),status,status==='published'?(b.published_at||now):null,now).run();
     }
+    if(status==='published') indexNowBildir(ctx, url.origin, slug);
     return json({ok:true,slug,status});
   }
 
@@ -360,6 +382,10 @@ async function newsApi(request, env, url){
       }catch(e){
         await env.DB.prepare('UPDATE news SET title=?,excerpt=?,body=?,category=?,author=?,cover_url=?,video_url=?,status=?,published_at=?,updated_at=? WHERE id=?')
           .bind(...values.slice(0,9),now,id).run();
+      }
+      if(status==='published'){
+        const r=await env.DB.prepare('SELECT slug FROM news WHERE id=?').bind(id).first().catch(()=>null);
+        indexNowBildir(ctx, url.origin, r?.slug);
       }
       return json({ok:true});
     }
@@ -1175,7 +1201,7 @@ export default { async scheduled(controller, env, ctx){
 
     const rcc = await controlCenterApi(request, env, url);
     if(rcc) return rcc;
-    const r1 = await newsApi(request, env, url);
+    const r1 = await newsApi(request, env, url, ctx);
     if(r1) return r1;
     if(env.DB){
       const rc = await contactApi(request, env, url, ctx);
