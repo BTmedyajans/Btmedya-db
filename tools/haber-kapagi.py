@@ -289,7 +289,11 @@ if __name__ == "__main__":
                       foto=foto, video=h.get("video", False),
                       ust=kare.get("ust", 0.30) if kare else 0.30,
                       kunye=kare.get("kunye", "BTMEDYA") if kare else "BTMEDYA",
-                      gercek=bool(kare and kare.get("gercek")))
+                      gercek=bool(kare and kare.get("gercek")),
+                      # Muhabir imzasi yalniz sahadaki haberlerde dogrudur;
+                      # ajans ve kurum kaynakli haberler plandan
+                      # "BTMEDYA HABER MERKEZİ" imzasi alir.
+                      imza=h.get("imza", "HABER: BUSE TUNCAY"))
         kb = ""
         if foto:
             fb = kart_fotografi(foto, os.path.join(hedef, h["slug"] + "-foto.webp"),
