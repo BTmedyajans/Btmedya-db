@@ -951,6 +951,22 @@ export default { async scheduled(controller, env, ctx){
     return Response.redirect(url.toString(), 301);
   }
 
+  /* security.txt (RFC 9116). robots.txt bu adresi gosteriyordu ama adres
+     404 donuyordu. Dosya public/.well-known/ altinda duruyor; Wrangler
+     Static Assets nokta ile baslayan klasorleri yuklemeyebildigi icin
+     icerik burada, Worker tarafinda veriliyor — boylece her kosulda
+     servis edilir. */
+  if(url.pathname === '/.well-known/security.txt'){
+    return new Response(
+      '# BTMEDYA guvenlik iletisimi (RFC 9116)\n\n' +
+      'Contact: mailto:busetuncay74@gmail.com\n' +
+      'Contact: https://btmedya.com.tr/iletisim/\n' +
+      'Expires: 2027-09-26T00:00:00.000Z\n' +
+      'Preferred-Languages: tr, en\n' +
+      'Canonical: https://btmedya.com.tr/.well-known/security.txt\n',
+      {headers:{'content-type':'text/plain; charset=utf-8','cache-control':'public, max-age=86400'}});
+  }
+
   // Eski haber URL'lerini mevcut statik haber sayfalarına taşı; eski backlink ve indeks sinyalleri kaybolmasın.
   if(url.pathname.startsWith('/haber/') && url.pathname.length > 7){
     const slug = url.pathname.slice('/haber/'.length).replace(/\/$/, '');
@@ -1095,17 +1111,26 @@ function nonceUret() {
   return btoa(String.fromCharCode(...b)).replace(/=+$/, '');
 }
 
+/* Cloudflare Web Analytics beacon'i zone tarafinda otomatik enjekte ediliyor.
+   CSP'de yeri olmadigi icin tarayici her sayfada betigi reddediyordu:
+   "Refused to load the script 'https://static.cloudflareinsights.com/beacon.min.js'".
+   Sonuc: olcum hic toplanmiyor ve her sayfa konsola hata yaziyor. Betigin
+   kendisi static.cloudflareinsights.com'dan geliyor, topladigi veriyi
+   cloudflareinsights.com'a POST ediyor; ikisi de tek tek aciliyor. */
+const CF_ANALYTICS_BETIK = 'https://static.cloudflareinsights.com';
+const CF_ANALYTICS_UC = 'https://cloudflareinsights.com';
+
 function cspKur(pathname, nonce) {
   const panel = pathname.startsWith('/admin');
   return [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    `script-src 'self' 'unsafe-inline' ${CF_ANALYTICS_BETIK}`,
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
     "img-src 'self' data: blob: https://i.ytimg.com",
     "media-src 'self' blob:",
     "frame-src https://www.youtube-nocookie.com",
-    "connect-src 'self'",
+    `connect-src 'self' ${CF_ANALYTICS_UC}`,
     "form-action 'self'",
     "frame-ancestors 'self'",
     "base-uri 'self'",
