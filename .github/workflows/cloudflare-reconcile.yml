@@ -45,13 +45,17 @@ jobs:
           test -n "$zone_id"
           echo "Cloudflare zone: $zone_id"
 
-          records="$(curl -fsS "${api}/zones/${zone_id}/dns_records?per_page=100&name=btmedya.com.tr" "${auth[@]}")"
-          echo "Apex records:"
-          jq -r '.result[] | [.type,.name,.content,.proxied] | @tsv' <<<"$records"
-
-          www="$(curl -fsS "${api}/zones/${zone_id}/dns_records?per_page=100&name=www.btmedya.com.tr" "${auth[@]}")"
-          echo "WWW records:"
-          jq -r '.result[] | [.type,.name,.content,.proxied] | @tsv' <<<"$www"
+          # DNS listesi bilgi amaclidir. GitHub secret'indaki token'in DNS
+          # okuma izni yoksa (403) uyari verilir; sitenin ayakta olup
+          # olmadigini asagidaki canli HTTP kontrolleri belirler.
+          for ad in btmedya.com.tr www.btmedya.com.tr; do
+            if kayit="$(curl -fsS "${api}/zones/${zone_id}/dns_records?per_page=100&name=${ad}" "${auth[@]}")"; then
+              echo "${ad} kayitlari:"
+              jq -r '.result[] | [.type,.name,.content,.proxied] | @tsv' <<<"$kayit"
+            else
+              echo "::warning::${ad} DNS kayitlari okunamadi; CLOUDFLARE_API_TOKEN'a Zone > DNS > Read izni verilmeli."
+            fi
+          done
 
           echo "Live HTTP checks:"
           curl -fsSIL --max-time 30 https://btmedya.com.tr/ | sed -n '1,12p'
