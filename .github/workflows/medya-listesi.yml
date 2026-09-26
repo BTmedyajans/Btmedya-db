@@ -24,6 +24,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: btmedya-medya-listesi
@@ -50,16 +51,14 @@ jobs:
       - name: Listeyi yeniden uret
         run: node tools/medya-listesi.mjs
 
-      - name: Degisiklik varsa isle
-        run: |
-          set -euo pipefail
-          if git diff --quiet -- public/data/medya-listesi.json; then
-            echo "Medya listesi zaten guncel."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/data/medya-listesi.json
-          adet="$(node -e "console.log(require('./public/data/medya-listesi.json').length)")"
-          git commit -m "chore: medya listesini guncelle (${adet} kayit)"
-          git push
+      - name: Degisiklik varsa PR ac
+        if: success()
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          add-paths: public/data/medya-listesi.json
+          commit-message: "chore: medya listesini guncelle"
+          branch: automation/update-media-list
+          delete-branch: true
+          title: "chore: medya listesini guncelle"
+          body: "Medya listesi otomatik olarak yeniden üretildi. Bu PR, korunan main dalına doğrudan push yerine inceleme akışı kullanır."
