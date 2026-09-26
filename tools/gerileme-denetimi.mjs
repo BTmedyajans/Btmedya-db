@@ -96,7 +96,10 @@ tara('public'); tara('src');
     const kaynak = JSON.parse(readFileSync(kaynakYol, 'utf8'));
     for (const h of plan) {
       const kare = havuz[h.foto || ''];
-      const olmasiGereken = kare && kare.gercek ? 'gercek' : 'ai';
+      // Vurgu alanı olan kapaklar fotoğraf değil bilgi kartıdır; üretici
+      // bunları "grafik" olarak kaydeder. Havuzda fotoğraf aramak bu
+      // kartların tamamını yanlışlıkla AI olarak raporlamamalıdır.
+      const olmasiGereken = h.vurgu ? 'grafik' : kare && kare.gercek ? 'gercek' : 'ai';
       if (kaynak[h.slug] !== olmasiGereken) {
         bulgular.push(`${kaynakYol}: "${h.slug}" ${kaynak[h.slug] ?? 'kayitsiz'} yaziyor, ` +
           `plandaki kare "${h.foto}" ise ${olmasiGereken}. ` +
