@@ -5,8 +5,12 @@
   "kategori": "Tarım · Ekonomi",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "video": false,
-  "foto": "portre-03",
-  "imza": "BTMEDYA HABER MERKEZİ"
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "350",
+   "etiket": "marka fuarda yer alıyor",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "btt-ogrenci-dostu-abonman-tarifelerini-duyurdu",
@@ -14,8 +18,12 @@
   "kategori": "Ulaşım · Eğitim",
   "altbilgi": "BTMEDYA · 25 Eylül 2026",
   "video": false,
-  "foto": "portre-01",
-  "imza": "BTMEDYA HABER MERKEZİ"
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "3",
+   "etiket": "öğrenci abonman seçeneği",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-sehir-tiyatrosu-kanli-nigar-ile-sezonu-acti",
@@ -23,8 +31,12 @@
   "kategori": "Kültür · Sanat",
   "altbilgi": "BTMEDYA · 22 Eylül 2026",
   "video": false,
-  "foto": "portre-02",
-  "imza": "BTMEDYA HABER MERKEZİ"
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "Kanlı Nigar",
+   "etiket": "ile yeni sezon açıldı",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-itfaiyesine-8-yeni-arac-katildi",
@@ -32,8 +44,12 @@
   "kategori": "Gündem · Afet Hazırlığı",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "video": false,
-  "foto": "portre-05",
-  "imza": "BTMEDYA HABER MERKEZİ"
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "8",
+   "etiket": "yeni araç itfaiyeye katıldı",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "karesi-kocaavsar-orman-yangini-kontrol-altina-alindi",
@@ -41,8 +57,12 @@
   "kategori": "Gündem · Yangın",
   "altbilgi": "BTMEDYA · 21 Eylül 2026",
   "video": false,
-  "foto": "kamera-arkasi",
-  "imza": "BTMEDYA HABER MERKEZİ"
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "Kocaavşar",
+   "etiket": "orman yangını kontrol altına alındı",
+   "yer": "Karesi"
+  }
  },
  {
   "slug": "edremit-altinkum-kanalizasyon-altyapi-yatirimi",
@@ -50,8 +70,12 @@
   "kategori": "Yerel · Altyapı",
   "altbilgi": "BTMEDYA · 21 Eylül 2026",
   "video": false,
-  "foto": "portre-02",
-  "imza": "BTMEDYA HABER MERKEZİ"
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "Altınkum",
+   "etiket": "kanalizasyon hattı yenilendi",
+   "yer": "Edremit"
+  }
  },
  {
   "slug": "balikesir-emniyet-7-13-eylul-2026-faaliyetleri",
@@ -59,8 +83,12 @@
   "kategori": "Gündem · Asayiş",
   "altbilgi": "BTMEDYA · 15 Eylül 2026",
   "video": false,
-  "foto": "kamera-arkasi",
-  "imza": "BTMEDYA HABER MERKEZİ"
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "7-13 Eylül",
+   "etiket": "il emniyet faaliyet raporu",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-de-kira-fiyatlarinda-30-artis-bekleniyor",
@@ -283,7 +311,12 @@
   "baslik": "Bandırma yolunda kaza: Hamile anne, 3 yaşındaki kızı ve doğmamış bebeği hayatını kaybetti",
   "kategori": "Gündem",
   "altbilgi": "BTMEDYA · 23 Eylül 2026",
-  "imza": "BTMEDYA HABER MERKEZİ"
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "Çavuşköy",
+   "etiket": "kavşağında otomobil ile kamyon çarpıştı",
+   "yer": "Bandırma"
+  }
  },
  {
   "slug": "balikesir-ticaret-odasi-2022-2026-donemini-kapatti",
@@ -291,7 +324,11 @@
   "kategori": "Gündem",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-01"
+  "vurgu": {
+   "deger": "2022-2026",
+   "etiket": "dönemi meclis toplantısıyla kapandı",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "ivrindi-ye-ikinci-acil-saglik-istasyonu-korucu-daki-yeni-bina-hizmete-girdi",
@@ -299,7 +336,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 22 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-02"
+  "vurgu": {
+   "deger": "68",
+   "etiket": "istasyon ve 103 ambulansla acil sağlık hizmeti",
+   "yer": "İvrindi"
+  }
  },
  {
   "slug": "balikesirspor-ic-saha-maclarini-balikesir-e-tasimak-istiyor-tesis-sahasi-tff-kriterlerine",
@@ -307,7 +348,11 @@
   "kategori": "Spor",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-03"
+  "vurgu": {
+   "deger": "İç saha",
+   "etiket": "maçları için TFF'ye başvuru",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "ayvalik-ta-uluslararasi-matematik-konferansi-34-ulkeden-259-yazar-133-sunum",
@@ -315,7 +360,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-05"
+  "vurgu": {
+   "deger": "34",
+   "etiket": "ülkeden 259 yazar, 133 sunum",
+   "yer": "Ayvalık"
+  }
  },
  {
   "slug": "badavut-sahili-nde-kum-zambaklari-ahsap-kafeslerle-korumaya-alindi",
@@ -323,7 +372,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 25 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-04"
+  "vurgu": {
+   "deger": "Kum zambağı",
+   "etiket": "ahşap kafeslerle koruma altında",
+   "yer": "Ayvalık"
+  }
  },
  {
   "slug": "balikesir-de-dort-ilce-milli-egitim-mudurunun-gorev-yeri-degisti",
@@ -331,7 +384,11 @@
   "kategori": "Gündem",
   "altbilgi": "BTMEDYA · 23 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "kamera-arkasi"
+  "vurgu": {
+   "deger": "4",
+   "etiket": "ilçede milli eğitim müdürü değişti",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "manyas-ta-ayciceginin-kilosu-37-tl-kooperatif-simdiye-kadar-1-600-ton-aldi",
@@ -339,7 +396,11 @@
   "kategori": "Ekonomi",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-01"
+  "vurgu": {
+   "deger": "37 TL",
+   "etiket": "ayçiçeğinin kilosu",
+   "yer": "Manyas"
+  }
  },
  {
   "slug": "balikesir-in-ilk-kadin-oto-boya-ustasi-nisanur-eser-turkiye-nin-yilin-kalfasi-secildi",
@@ -347,7 +408,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 22 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-02"
+  "vurgu": {
+   "deger": "Yılın Kalfası",
+   "etiket": "ilk kadın oto boya ustası Nisanur Eser",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "ayvalik-ta-kanalizasyondan-bir-cuval-komur-cikti",
@@ -355,7 +420,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-03"
+  "vurgu": {
+   "deger": "1 çuval",
+   "etiket": "kömür kanalizasyondan çıkarıldı",
+   "yer": "Ayvalık"
+  }
  },
  {
   "slug": "karadenizliler-edremit-korfez-havalimani-ndan-karadeniz-e-sefer-istiyor",
@@ -363,7 +432,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-05"
+  "vurgu": {
+   "deger": "90 bin",
+   "etiket": "Karadenizli için sefer talebi",
+   "yer": "Edremit"
+  }
  },
  {
   "slug": "buyuksehir-ve-ilce-belediyeleri-imar-sorunlarini-uc-bolge-toplantisinda-ele-aldi",
@@ -371,7 +444,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 25 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-04"
+  "vurgu": {
+   "deger": "3",
+   "etiket": "bölge toplantısı: Gönen, Dursunbey, Burhaniye",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "burhaniye-de-ortaokul-ogrencileri-oren-sahilini-temizledi",
@@ -379,7 +456,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "kamera-arkasi"
+  "vurgu": {
+   "deger": "60",
+   "etiket": "öğrenci Ören sahilini temizledi",
+   "yer": "Burhaniye"
+  }
  },
  {
   "slug": "balikesir-universitesi-hukuk-fakultesi-nin-acilis-dersini-ak-parti-genel-baskan",
@@ -387,7 +468,11 @@
   "kategori": "Gündem",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-01"
+  "vurgu": {
+   "deger": "Açılış dersi",
+   "etiket": "Balıkesir Üniversitesi Hukuk Fakültesi",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "ulusal-ajans-baskani-astarci-erasmus-butcesinde-ab-katkisi-yuzde-8-9-a-indi",
@@ -395,7 +480,11 @@
   "kategori": "Gündem",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-02"
+  "vurgu": {
+   "deger": "%8-9",
+   "etiket": "Erasmus bütçesinde AB katkısı",
+   "yer": "Burhaniye"
+  }
  },
  {
   "slug": "ayvalik-kurtulusunun-104-yilini-kutladi-rahvan-yarislari-ilk-cocuk-kosusu-ve-5-bin",
@@ -403,7 +492,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 21 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-03"
+  "vurgu": {
+   "deger": "104.",
+   "etiket": "kurtuluş yıl dönümü",
+   "yer": "Ayvalık"
+  }
  },
  {
   "slug": "ayvalik-ta-34-engelliler-senligi-200-katilimciya-ucretsiz-dis-tedavisi",
@@ -411,7 +504,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-05"
+  "vurgu": {
+   "deger": "200",
+   "etiket": "katılımcıya ücretsiz diş tedavisi",
+   "yer": "Ayvalık"
+  }
  },
  {
   "slug": "ayvalik-ogrenci-kent-lokantalari-nda-fiyat-degismedi-uc-cesit-yemek-ve-meyve-50-tl",
@@ -419,7 +516,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 22 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-04"
+  "vurgu": {
+   "deger": "50 TL",
+   "etiket": "üç çeşit yemek ve meyve",
+   "yer": "Ayvalık"
+  }
  },
  {
   "slug": "sarimsakli-da-24-trophy-festivali-5-ulkeden-300-dansci-sahne-aldi",
@@ -427,7 +528,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 18 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "kamera-arkasi"
+  "vurgu": {
+   "deger": "300",
+   "etiket": "dansçı, 5 ülkeden 10 ekip",
+   "yer": "Sarımsaklı"
+  }
  },
  {
   "slug": "ayvalik-in-tarihi-vural-sinemasi-yeniden-sinema-olacak-festivale-ab-destekli-hibe",
@@ -435,7 +540,11 @@
   "kategori": "Kültür",
   "altbilgi": "BTMEDYA · 17 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-01"
+  "vurgu": {
+   "deger": "Vural Sineması",
+   "etiket": "AB destekli hibeyle yeniden sinema olacak",
+   "yer": "Ayvalık"
+  }
  },
  {
   "slug": "altieylul-de-dort-buyuk-projede-sona-gelindi-kapali-pazar-olimpik-havuz-sosyal-tesis",
@@ -443,7 +552,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 17 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-02"
+  "vurgu": {
+   "deger": "4",
+   "etiket": "büyük projede sona gelindi",
+   "yer": "Altıeylül"
+  }
  },
  {
   "slug": "kirsal-kalkinma-desteginin-17-etabinda-balikesir-e-17-proje-toplam-yatirim-338-7-milyon-tl",
@@ -451,7 +564,11 @@
   "kategori": "Ekonomi",
   "altbilgi": "BTMEDYA · 17 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-03"
+  "vurgu": {
+   "deger": "338,7 mn TL",
+   "etiket": "17 kırsal kalkınma projesi",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "edremit-te-ogrenci-guzergahi-hamdibey-caddesi-yenilendi",
@@ -459,7 +576,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 23 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-05"
+  "vurgu": {
+   "deger": "Hamdibey Cd.",
+   "etiket": "öğrenci güzergâhı yenilendi",
+   "yer": "Edremit"
+  }
  },
  {
   "slug": "edremit-te-kaldirim-isgaline-denetim-menderes-bulvari-ve-cumhuriyet-meydani-nda",
@@ -467,7 +588,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 21 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-04"
+  "vurgu": {
+   "deger": "Zabıta",
+   "etiket": "kaldırım işgaline denetim",
+   "yer": "Edremit"
+  }
  },
  {
   "slug": "altieylul-de-okul-kantinleri-denetlendi",
@@ -475,7 +600,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 17 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "kamera-arkasi"
+  "vurgu": {
+   "deger": "Kantin",
+   "etiket": "okul kantinleri denetlendi",
+   "yer": "Altıeylül"
+  }
  },
  {
   "slug": "ayvalik-ta-kadin-ureticilerin-urunleri-icin-cennet-tepesi-nde-yeni-satis-noktasi",
@@ -483,7 +612,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 21 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-01"
+  "vurgu": {
+   "deger": "Cennet Tepesi",
+   "etiket": "kadın üreticilere yeni satış noktası",
+   "yer": "Ayvalık"
+  }
  },
  {
   "slug": "ayvalik-ta-dunya-temizlik-gunu-uckuyular-dan-seyir-terasina-kadar-atik-toplandi",
@@ -491,7 +624,11 @@
   "kategori": "Yerel",
   "altbilgi": "BTMEDYA · 21 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "portre-02"
+  "vurgu": {
+   "deger": "Üçkuyular",
+   "etiket": "Dünya Temizlik Günü'nde kıyı temizliği",
+   "yer": "Ayvalık"
+  }
  },
  {
   "slug": "openai-in-yapay-zeka-ajani-avustralya-nin-saglik-portalina-sizdi-hukumet-inceleme-baslatti",
@@ -499,7 +636,11 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-01"
+  "vurgu": {
+   "deger": "Medicare",
+   "etiket": "veri tabanında yapay zekâ ajanı erişimi",
+   "yer": "Avustralya"
+  }
  },
  {
   "slug": "openai-modellerinin-kontrolden-ciktigi-alti-vakayi-acikladi",
@@ -507,7 +648,11 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 17 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-02"
+  "vurgu": {
+   "deger": "6",
+   "etiket": "'kontrolden çıkma' vakası açıklandı",
+   "yer": "ABD"
+  }
  },
  {
   "slug": "trump-tan-yapay-zeka-hamlesi-ai-force-kurulacak-adi-super-zeka-olsun",
@@ -515,7 +660,11 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-01"
+  "vurgu": {
+   "deger": "AI Force",
+   "etiket": "ABD yapay zekâ kuvveti kuracak",
+   "yer": "ABD"
+  }
  },
  {
   "slug": "abd-cin-e-yapay-zeka-icin-acil-durum-hatti-onerdi",
@@ -523,7 +672,11 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-02"
+  "vurgu": {
+   "deger": "Acil hat",
+   "etiket": "yapay zekâ olayları için öneri",
+   "yer": "ABD · Çin"
+  }
  },
  {
   "slug": "microsoft-raporu-turkiye-de-uretken-yapay-zeka-kullananlarin-orani-yuzde-18-9-a-cikti",
@@ -531,7 +684,11 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 25 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-01"
+  "vurgu": {
+   "deger": "%18,9",
+   "etiket": "üretken yapay zekâ kullanım oranı",
+   "yer": "Türkiye"
+  }
  },
  {
   "slug": "arastirma-yapay-zeka-bobrek-nakli-kararlarinda-doktorlardan-farkli-oncelikler-belirliyor",
@@ -539,7 +696,11 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 19 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-02"
+  "vurgu": {
+   "deger": "Böbrek nakli",
+   "etiket": "yapay zekâ farklı öncelik belirliyor",
+   "yer": "ABD"
+  }
  },
  {
   "slug": "anthropic-claude-ajanlari-bakteri-viruslerinde-yeni-bir-dna-sistemi-tespit-etti",
@@ -547,7 +708,11 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 25 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-01"
+  "vurgu": {
+   "deger": "950",
+   "etiket": "Claude ajanı 200 binden fazla enzim taradı",
+   "yer": "Araştırma"
+  }
  },
  {
   "slug": "ingiltere-disisleri-bakani-miliband-bm-guvenlik-konseyi-ne-yapay-zeka-cagrisi-yapti",
@@ -555,7 +720,11 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 23 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-02"
+  "vurgu": {
+   "deger": "BM",
+   "etiket": "Güvenlik Konseyi'nde yapay zekâ oturumu",
+   "yer": "İngiltere"
+  }
  },
  {
   "slug": "meta-dan-yapay-zeka-ajani-icin-anahtarlik-boyutunda-cihaz-muse-charm",
@@ -563,7 +732,11 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 23 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-01"
+  "vurgu": {
+   "deger": "Muse Charm",
+   "etiket": "anahtarlık boyutunda yapay zekâ cihazı",
+   "yer": "ABD"
+  }
  },
  {
   "slug": "google-gemini-nin-sesli-asistanina-gercek-zamanli-avatar-ekledi",
@@ -571,7 +744,11 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-02"
+  "vurgu": {
+   "deger": "Live Avatar",
+   "etiket": "Gemini'ye gerçek zamanlı avatar",
+   "yer": "ABD"
+  }
  },
  {
   "slug": "google-in-uzayda-yapay-zeka-veri-merkezi-projesi-suncatcher-in-ilk-prototip-uydusu",
@@ -579,7 +756,11 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-01"
+  "vurgu": {
+   "deger": "Suncatcher",
+   "etiket": "yörüngede yapay zekâ çipi testi",
+   "yer": "Uzay"
+  }
  },
  {
   "slug": "bnp-paribas-ile-google-cloud-arasinda-bes-yillik-yapay-zeka-ortakligi",
@@ -587,7 +768,11 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-02"
+  "vurgu": {
+   "deger": "5 yıl",
+   "etiket": "BNP Paribas ile Google Cloud ortaklığı",
+   "yer": "Fransa"
+  }
  },
  {
   "slug": "kanada-dan-13-milyon-dolarlik-ucretsiz-yapay-zeka-okuryazarligi-programi",
@@ -595,7 +780,11 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-01"
+  "vurgu": {
+   "deger": "13 mn $",
+   "etiket": "yapay zekâ okuryazarlığı programı",
+   "yer": "Kanada"
+  }
  },
  {
   "slug": "antalya-havalimani-nin-yapay-zeka-asistani-talya-ai-454-bin-soruyu-yanitladi",
@@ -603,7 +792,11 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-02"
+  "vurgu": {
+   "deger": "454 bin",
+   "etiket": "soru yanıtlandı",
+   "yer": "Antalya"
+  }
  },
  {
   "slug": "kazakistan-da-yapay-zeka-ayi-basladi-openai-destekli-hackathon-astana-da-forum",
@@ -611,6 +804,10 @@
   "kategori": "Yapay Zekâ",
   "altbilgi": "BTMEDYA · 24 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ",
-  "foto": "siber-01"
+  "vurgu": {
+   "deger": "1,5 mn $",
+   "etiket": "HackAlem AI ödül havuzu",
+   "yer": "Kazakistan"
+  }
  }
 ]

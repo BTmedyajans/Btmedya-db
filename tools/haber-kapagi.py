@@ -43,6 +43,12 @@ FONT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fontlar")
 SG = os.path.join(FONT_DIR, "space-grotesk-tam.ttf")
 MR = os.path.join(FONT_DIR, "manrope-tam.ttf")
 
+def buyuk(metin):
+    """Turkce buyuk harf: Python'un upper()'i "i"yi "I" yapar, "Ekonomi"
+    kapakta "EKONOMI" diye basiliyordu."""
+    return str(metin).replace("i", "İ").replace("ı", "I").upper()
+
+
 def f_sg(b): return ImageFont.truetype(SG, b)
 def f_mr(b): return ImageFont.truetype(MR, b)
 
@@ -164,7 +170,7 @@ def kapak(baslik, kategori, altbilgi, cikti, foto=None, video=False, ust=0.30,
 
     # Kirmizi kategori etiketi, sol ust.
     kf = f_mr(19)
-    kt = kategori.upper()
+    kt = buyuk(kategori)
     ARA = 2.6
     kw = olcu_aralikli(d, kt, kf, ARA)
     d.rectangle([KEN, 44, KEN + kw + 38, 85], fill=KIRMIZI)
@@ -239,6 +245,166 @@ def kart_fotografi(foto_yolu, cikti, ust=0.30):
     return os.path.getsize(cikti)
 
 
+# Bilgi karti: ajans ve kurum kaynakli haberler icin fotografsiz kapak.
+#
+# NEDEN
+# BTMEDYA'nin bu haberlerde kendi karesi yok. Onceden kapaga muhabirin
+# portresi yada AI uretimi bir yuz konuyordu; bu hem haberle ilgisizdi hem
+# de muhabir olay yerindeymis gibi yanlis bir izlenim veriyordu. Bilgi
+# karti haberin kendi temel rakamini (plandaki "vurgu") ve yerini gosterir;
+# rakam haber metninden aynen alinir, arac hicbir sey hesaplamaz.
+#
+# Renkler kategoriye gore sabittir ve sitedeki kart vurgu renkleriyle
+# (public/cinematic-overrides.css) ayni aileden secildi; boylece okur
+# kapaga bakinca bolumu taniyabilir.
+KATEGORI_RENK = [
+    ("yapay", (139, 124, 255)),     # mor: yapay zeka
+    ("gundem", (255, 64, 56)),      # kirmizi: gundem / asayis / yangin
+    ("ekonomi", (242, 193, 78)),    # altin: ekonomi
+    ("tarim", (242, 193, 78)),
+    ("kultur", (199, 125, 255)),    # eflatun: kultur / sanat
+    ("spor", (101, 230, 164)),      # yesil: spor
+    ("saglik", (255, 122, 107)),
+    ("ulasim", (80, 214, 200)),     # camgobegi-yesil: ulasim / egitim
+    ("yerel", (100, 228, 255)),     # camgobegi: yerel
+]
+
+
+def duz(s):
+    s = str(s or "").lower().replace("ı", "i").replace("i̇", "i")
+    for a, b in zip("şğüöçâîû", "sguocaiu"):
+        s = s.replace(a, b)
+    return s
+
+
+def kategori_rengi(kategori):
+    k = duz(kategori)
+    for anahtar, renk in KATEGORI_RENK:
+        if anahtar in k:
+            return renk
+    return (100, 228, 255)
+
+
+def yazi_rengi(zemin):
+    """Acik renkli etiket zemininde beyaz yazi okunmaz (altin, camgobegi)."""
+    r, g, b = zemin
+    return (8, 12, 18) if (0.299 * r + 0.587 * g + 0.114 * b) > 150 else INK
+
+
+def bilgi_zemini(w, h, renk, cx, cy):
+    im = Image.new("RGB", (w, h), (7, 11, 18))
+    isik = Image.new("RGB", (w, h), (0, 0, 0))
+    d = ImageDraw.Draw(isik)
+    for i in range(24, 0, -1):
+        r = i * max(w, h) // 34
+        t = (i / 24) ** 2
+        d.ellipse([cx - r, cy - r, cx + r, cy + r],
+                  fill=tuple(int(c * 0.30 * (1 - t)) for c in renk))
+    isik = isik.filter(ImageFilter.GaussianBlur(max(w, h) // 14))
+    im = Image.blend(im, isik, 0.5).point(lambda v: min(255, int(v * 2)))
+    # Ince nokta izgarasi: duz degrade "bos" gorunmesin, veri grafigi dili.
+    d = ImageDraw.Draw(im)
+    for y in range(24, h, 32):
+        for x in range(24, w, 32):
+            d.point((x, y), fill=(34, 46, 62))
+    return im
+
+
+def sigdir(d, metin, font_fn, genislik, en_buyuk, en_kucuk=40):
+    punto = en_buyuk
+    while punto > en_kucuk and d.textlength(metin, font=font_fn(punto)) > genislik:
+        punto -= 4
+    return font_fn(punto)
+
+
+def bilgi_karti(h, cikti):
+    renk = kategori_rengi(h["kategori"])
+    vurgu = h.get("vurgu") or {}
+    im = bilgi_zemini(W, H, renk, int(W * 0.80), int(H * 0.42))
+    d = ImageDraw.Draw(im)
+
+    # Kategori etiketi: kategori renginde, okunur yazi rengiyle.
+    kf = f_mr(19)
+    kt = buyuk(h["kategori"])
+    kw = olcu_aralikli(d, kt, kf, 2.6)
+    d.rectangle([KEN, 44, KEN + kw + 38, 85], fill=renk)
+    aralikli(d, (KEN + 19, 53), kt, kf, yazi_rengi(renk), 2.6)
+
+    # Sag panel: yer, iri vurgu, aciklama.
+    px, pw = 760, W - 760 - KEN
+    d.line([(px - 36, 118), (px - 36, H - BANT - 70)], fill=tuple(int(c * .55) for c in renk), width=2)
+    yer = buyuk(vurgu.get("yer") or "")
+    if yer:
+        d.ellipse([px, 132, px + 12, 144], fill=renk)
+        aralikli(d, (px + 24, 126), yer, f_mr(18), GRI, 2.4)
+    deger = vurgu.get("deger", "")
+    if deger:
+        vf = sigdir(d, deger, f_sg, pw, 150, 44)
+        by = 176 + max(0, (150 - vf.size) // 2)
+        d.text((px - 4, by), deger, font=vf, fill=renk)
+        ey = by + int(vf.size * 1.12) + 8
+        for s in sar(d, vurgu.get("etiket", ""), f_mr(27), pw)[:3]:
+            d.text((px, ey), s, font=f_mr(27), fill=INK)
+            ey += 36
+
+    # Baslik: sol sutun, en fazla bes satir.
+    metin_gen = px - 36 - KEN - 30
+    punto = 76
+    while punto > 40:
+        bf = f_sg(punto)
+        if len(sar(d, h["baslik"], bf, metin_gen)) <= 5:
+            break
+        punto -= 3
+    bf = f_sg(punto)
+    satirlar = sar(d, h["baslik"], bf, metin_gen)[:5]
+    sat_y = int(punto * 1.06)
+    y = H - BANT - 64 - len(satirlar) * sat_y
+    for s in satirlar:
+        d.text((KEN, y), s, font=bf, fill=INK)
+        y += sat_y
+    # Bu kapak fotograf degil grafik: "AI URETIMI" yazmak da "GERCEK CEKIM"
+    # yazmak da yanlis beyan olurdu.
+    d.text((KEN, y + 14), f"{h['altbilgi']} · BTMEDYA GRAFİK", font=f_mr(21), fill=GRI)
+
+    d.rectangle([0, H - BANT, W, H], fill=KIRMIZI)
+    aralikli(d, (KEN, H - BANT + 19), h.get("imza", "BTMEDYA HABER MERKEZİ"), f_mr(19), INK, 2.2)
+    sf = f_sg(21)
+    d.text((W - KEN - d.textlength("BTMEDYA.COM.TR", font=sf), H - BANT + 17), "BTMEDYA.COM.TR", font=sf, fill=INK)
+    os.makedirs(os.path.dirname(cikti), exist_ok=True)
+    im.save(cikti, "WEBP", quality=92, method=6)
+    return os.path.getsize(cikti)
+
+
+def bilgi_karti_foto(h, cikti):
+    """Metinsiz kart gorselinin bilgi karti karsiligi: baslik yok (kartin
+    kendi basligi HTML'de), yalniz yer + vurgu. Kare kaynak mobil kutuda
+    ve masaustu genis kartta kirpildigi icin her sey ortada toplanir."""
+    renk = kategori_rengi(h["kategori"])
+    vurgu = h.get("vurgu") or {}
+    im = bilgi_zemini(FOTO, FOTO, renk, FOTO // 2, FOTO // 2)
+    d = ImageDraw.Draw(im)
+    gen = 780
+    deger = vurgu.get("deger") or h["kategori"]
+    vf = sigdir(d, deger, f_sg, gen, 250, 70)
+    yer = buyuk(vurgu.get("yer") or "")
+    etiket = sar(d, vurgu.get("etiket", ""), f_mr(44), gen)[:2]
+    toplam = vf.size + 30 + len(etiket) * 58 + (70 if yer else 0)
+    y = (FOTO - toplam) // 2
+    if yer:
+        yf = f_mr(32)
+        yw = olcu_aralikli(d, yer, yf, 4)
+        aralikli(d, ((FOTO - yw) // 2, y), yer, yf, GRI, 4)
+        y += 70
+    d.text(((FOTO - d.textlength(deger, font=vf)) // 2, y - vf.size * 0.12), deger, font=vf, fill=renk)
+    y += vf.size + 30
+    for s in etiket:
+        d.text(((FOTO - d.textlength(s, font=f_mr(44))) // 2, y), s, font=f_mr(44), fill=INK)
+        y += 58
+    os.makedirs(os.path.dirname(cikti), exist_ok=True)
+    im.save(cikti, "WEBP", quality=84, method=6)
+    return os.path.getsize(cikti)
+
+
 def plan():
     p = os.path.join(KOK, "public", "data", "haber-kapak-plani.json")
     with open(p, encoding="utf-8") as f:
@@ -263,7 +429,10 @@ def kaynak_dosyasi(kareler, plan_kayitlari):
     kayit = {}
     for h in plan_kayitlari:
         kare = kareler.get(h.get("foto") or "")
-        kayit[h["slug"]] = "gercek" if (kare and kare.get("gercek")) else "ai"
+        # Bilgi karti fotograf icermeyen bir grafiktir; ne AI uretimi ne
+        # gercek cekim diye etiketlenebilir.
+        kayit[h["slug"]] = ("grafik" if h.get("vurgu")
+                            else "gercek" if (kare and kare.get("gercek")) else "ai")
     yol = os.path.join(KOK, "public", "data", "haber-kapak-kaynagi.json")
     with open(yol, "w", encoding="utf-8") as f:
         json.dump(kayit, f, ensure_ascii=False, indent=1, sort_keys=True)
@@ -279,6 +448,12 @@ if __name__ == "__main__":
     kareler = havuz()
     for h in plan():
         if istenen and h["slug"] not in istenen:
+            continue
+        if h.get("vurgu"):
+            boyut = bilgi_karti(h, os.path.join(hedef, h["slug"] + ".webp"))
+            fb = bilgi_karti_foto(h, os.path.join(hedef, h["slug"] + "-foto.webp"))
+            n += 1
+            print(f"  B {h['slug'][:40]:42} {boyut/1024:>5.0f} KB + kart {fb/1024:>4.0f} KB")
             continue
         kare = kareler.get(h.get("foto") or "")
         if h.get("foto") and not kare:
@@ -302,7 +477,7 @@ if __name__ == "__main__":
         n += 1
         if foto: fotolu += 1
         print(f"  {'F' if foto else ' '} {h['slug'][:40]:42} {boyut/1024:>5.0f} KB{kb}")
-    print(f"\n  {n} kapak uretildi ({fotolu} fotografli, {n-fotolu} editoryal).")
+    print(f"\n  {n} kapak uretildi ({fotolu} fotografli, {n-fotolu} bilgi karti/editoryal).")
     print(f"  {fotolu} metinsiz kart gorseli uretildi.")
     toplam, gercek = kaynak_dosyasi(kareler, plan())
     print(f"  haber-kapak-kaynagi.json: {toplam} kayit ({gercek} gercek cekim).")
