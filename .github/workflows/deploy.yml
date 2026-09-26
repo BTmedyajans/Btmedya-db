@@ -91,10 +91,14 @@ jobs:
           echo "$media" | grep -q '"items"'
           ! echo "$media" | grep -Eiq '\.(trashed|tmp|temp)(-|/)|thumbs\.db'
 
+          social="$(curl -L -s --max-time 30 "https://btmedya.com.tr/api/public/social-feed")"
+          echo "$social" | grep -q '"items"'
+
           home="$(curl -L -s --max-time 30 https://btmedya.com.tr/)"
           echo "$home" | grep -q 'GERÇEK ÇEKİM'
           echo "$home" | grep -q 'AI ÜRETİMİ'
           echo "$home" | grep -q 'Kaynak Masası'
+          echo "$home" | grep -q 'https://www.instagram.com/btmedyajans/'
 
           www_status="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 https://www.btmedya.com.tr/)"
           test "$www_status" = "301"
