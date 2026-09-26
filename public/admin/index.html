@@ -92,6 +92,19 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   .news-row>.row{width:100%;margin-left:62px}
   .news-row>.row .btn{flex:1}
 }
+/* Site Durumu satirlari. Once satir "1fr 300px" izgaraydi: 390 px ekranda
+   sag sutun sabit 300 px aldigi icin aciklama sutununa ~50 px kaliyor,
+   secim kutusu ve dugme sagdan kesiliyordu. Dar ekranda alt alta. */
+.slot-satir{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:14px;padding:15px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.slot-bilgi{min-width:0}
+.slot-islem{display:flex;flex-direction:column;gap:6px;min-width:0}
+.slot-islem select,.slot-islem .btn{width:100%;max-width:100%;min-height:40px}
+.slot-rozet{font-size:9.5px;letter-spacing:.1em;padding:2px 7px;border:1px solid}
+.slot-onizleme{display:block;margin-top:8px;max-width:220px;max-height:124px;width:auto;border:1px solid rgba(255,255,255,.12);object-fit:cover;background:#000}
+@media(max-width:760px){
+  .slot-satir{grid-template-columns:minmax(0,1fr)}
+  .slot-onizleme{max-width:100%}
+}
 </style></head>
 <body>
 <header>
@@ -113,10 +126,14 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 <div id="loginSection" class="panel login-box">
   <h2>Yönetici Girişi</h2>
   <p class="muted" style="margin-bottom:14px">BTMedya yönetim paneline giriş yapın.</p>
-  <input id="user" type="text" autocomplete="username" placeholder="Kullanıcı adı" value="BTMEDYA" style="width:100%;margin-bottom:10px">
-  <input id="pw" type="password" autocomplete="current-password" placeholder="Şifre" style="width:100%;margin-bottom:10px">
-  <button class="btn primary" id="loginBtn" style="width:100%">Giriş yap</button>
-  <p id="loginMsg" class="status" style="color:#f88"></p>
+  <!-- form: sifre yoneticisi (iPhone/Android anahtarligi) alanlari ancak bir
+       form icindeyse kaydedip dolduruyor. Gonderim JS ile yapilir, sayfa yenilenmez. -->
+  <form id="loginForm" autocomplete="on">
+  <input id="user" name="username" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Kullanıcı adı" value="BTMEDYA" style="width:100%;margin-bottom:10px">
+  <input id="pw" name="password" type="password" autocomplete="current-password" placeholder="Şifre" style="width:100%;margin-bottom:10px">
+  <button class="btn primary" id="loginBtn" type="submit" style="width:100%">Giriş yap</button>
+  </form>
+  <p id="loginMsg" class="status" style="color:#f88" role="alert"></p>
 </div>
 
 <!-- APP -->
@@ -127,7 +144,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <div class="panel">
       <h2>Sitede ne eksik</h2>
       <p class="status" id="durumOzet">Yükleniyor…</p>
-      <p class="status">Her satır sitedeki bir yeri gösterir. Eksik olanı doldurmak için dosyayı Medya Kasası'na yükleyip aşağıdan o yuvaya bağlayın.</p>
+      <p class="status">Her satır anasayfadaki bir yeri gösterir. Değiştirmek için listeden sitenin arşivinden bir dosya seçin ya da Medya Kasası'na yükleyip seçin, sonra “Bu yere bağla”ya basın. Gerçek çekim atadığınızda sitedeki etiket kendiliğinden “GERÇEK ÇEKİM” olur.</p>
     </div>
     <div class="panel"><div id="slotList"></div></div>
   </div>
@@ -406,13 +423,27 @@ function showApp(){
 async function init(){
   try{await req('/api/media');showApp()}catch(e){}
 }
-$('#loginBtn').onclick=async()=>{
-  $('#loginMsg').textContent='';
-  const r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:$('#user').value.trim(),password:$('#pw').value})});
-  if(r.ok){showApp()}else{$('#loginMsg').textContent='Şifre hatalı.'}
+/* Giris. Once her basarisizlikta "Sifre hatali." yaziyordu: 5 yanlis
+   denemeden sonra sunucu 15 dakika kilitliyor (429) ama ekran yine "Sifre
+   hatali" diyordu; dogru sifre girilse bile. Artik sunucunun kendi mesaji
+   ve kalan deneme sayisi gosterilir. */
+$('#loginForm').onsubmit=async e=>{
+  e.preventDefault();
+  const btn=$('#loginBtn'), msg=$('#loginMsg');
+  msg.textContent=''; btn.disabled=true; btn.textContent='Giriş yapılıyor…';
+  try{
+    const r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:$('#user').value.trim(),password:$('#pw').value})});
+    if(r.ok){showApp();return}
+    const j=await r.json().catch(()=>({}));
+    if(r.status===429) msg.textContent=j.error||'Çok fazla başarısız deneme. 15 dakika bekleyin.';
+    else if(r.status===401) msg.textContent='Kullanıcı adı veya şifre hatalı.'+(typeof j.remaining==='number'?` Kalan deneme: ${j.remaining}.`:'');
+    else msg.textContent=`Sunucu hatası (${r.status}). Birazdan tekrar deneyin.`;
+  }catch{
+    msg.textContent='Bağlantı kurulamadı. İnternet bağlantınızı kontrol edin.';
+  }finally{
+    btn.disabled=false; btn.textContent='Giriş yap';
+  }
 };
-$('#user').onkeydown=e=>{if(e.key==='Enter')$('#pw').focus()};
-$('#pw').onkeydown=e=>{if(e.key==='Enter')$('#loginBtn').click()};
 $('#logoutBtn').onclick=()=>fetch('/api/logout').then(()=>location.reload());
 
 /* ---- BTMEDYA Otomasyon Merkezi ---- */
@@ -637,39 +668,76 @@ async function clearOwnVideo(id){
   loadVideos();
 }
 /* ---- Site Durumu: yuvalari ve eksikleri gosterir ---- */
+/* Site Durumu. Once yalnizca panel atamalarini sayiyordu: site dolu oldugu
+   halde "13 yer, 0 dolu" diyor, secim kutusu bos kasadan beslendigi icin de
+   hicbir sey atanamiyordu. Artik her yuvada sitenin su an kullandigi dosya
+   gorunur, secim listesinde kasa ile sitenin kendi arsivi birlikte durur ve
+   atama anasayfada gercekten degisir (/api/public/slots). */
+const ETIKET={
+  panel:['PANELDEN','#5fba8c','rgba(95,186,140,.5)'],
+  site:['SİTEDE','#9fb3c8','rgba(159,179,200,.45)'],
+  yok:['EKSİK','#e0a45c','rgba(224,164,92,.5)'],
+};
+const rozet=(yazi,renk,kenar)=>`<span class="slot-rozet" style="color:${renk};border-color:${kenar}">${yazi}</span>`;
 async function loadSlots(){
   const d=await req('/api/site/slots');
-  $('#durumOzet').innerHTML=`<b>${d.ozet.toplam}</b> yer var, <b style="color:#5fba8c">${d.ozet.dolu}</b> dolu, <b style="color:#e0a45c">${d.ozet.eksik}</b> eksik.`;
-  const all=await req('/api/media?').catch(()=>({items:[]}));
-  const secenek=(all.items||[]).map(m=>`<option value="${escStr(m.id)}">${escStr((m.title||m.original_name).slice(0,54))}</option>`).join('');
-  $('#slotList').innerHTML=d.yuvalar.map(y=>`
-    <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;padding:15px 0;border-bottom:1px solid rgba(255,255,255,.08)">
-      <div>
+  const o=d.ozet;
+  $('#durumOzet').innerHTML=`<b>${o.toplam}</b> yer: <b style="color:#5fba8c">${o.panelden||0}</b> panelden atanmış, `+
+    `<b style="color:#9fb3c8">${o.sitede||0}</b> sitenin varsayılanı, <b style="color:#e0a45c">${o.eksik}</b> eksik.`+
+    `<br><span class="muted">Atadığınız dosya anasayfada en geç 1 dakika içinde görünür.</span>`;
+  const kasa=(await req('/api/media?').catch(()=>({items:[]}))).items||[];
+  const statik=d.statikSecenekler||[];
+  $('#slotList').innerHTML=d.yuvalar.map(y=>{
+    const video=y.tur==='video';
+    const kasaSec=kasa.filter(m=>String(m.mime||'').startsWith(video?'video/':'image/'))
+      .map(m=>`<option value="id:${escStr(m.id)}">${escStr((m.title||m.original_name).slice(0,54))}</option>`).join('');
+    const statikSec=statik.filter(s=>s.tur===y.tur)
+      .map(s=>`<option value="statik:${escStr(s.yol)}">${s.gercek?'● ':'◌ '}${escStr(s.ad.slice(0,50))}${s.gercek?'':' (AI)'}</option>`).join('');
+    const [yazi,renk,kenar]=ETIKET[y.kaynak]||ETIKET.yok;
+    const onizle=y.dosya&&y.dosya.url
+      // #t=0.1: iPhone Safari videonun ilk karesini oynatmadan gostermiyor, onizleme kara kaliyordu.
+      ? (video?`<video class="slot-onizleme" src="${escStr(y.dosya.url)}#t=0.1" muted playsinline preload="metadata"></video>`
+              :`<img class="slot-onizleme" src="${escStr(y.dosya.url)}" alt="" loading="lazy">`) : '';
+    return `
+    <div class="slot-satir">
+      <div class="slot-bilgi">
         <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
           <b style="font-size:14px">${escStr(y.bolum)}</b>
-          <span style="font-size:9.5px;letter-spacing:.1em;padding:2px 7px;border:1px solid ${y.dolu?'rgba(95,186,140,.5)':'rgba(224,164,92,.5)'};color:${y.dolu?'#5fba8c':'#e0a45c'}">${y.dolu?'DOLU':'EKSİK'}</span>
-          ${y.dosya&&y.dosya.yapayZeka?'<span style="font-size:9.5px;letter-spacing:.1em;padding:2px 7px;border:1px solid rgba(63,201,232,.45);color:#3fc9e8">YAPAY ZEKÂ</span>':''}
+          ${rozet(yazi,renk,kenar)}
+          ${y.dosya?(y.dosya.yapayZeka?rozet('AI ÜRETİMİ','#3fc9e8','rgba(63,201,232,.45)'):rozet('GERÇEK ÇEKİM','#5fba8c','rgba(95,186,140,.5)')):''}
         </div>
         <div class="muted" style="margin-top:5px;font-size:12px">${escStr(y.not)}</div>
+        ${y.dosya?`<div style="margin-top:6px;font-size:12px">Şu an: <b>${escStr(y.dosya.ad)}</b></div>`:''}
         <div class="muted" style="margin-top:4px;font-size:11px;font-family:ui-monospace,monospace">
-          ${escStr(y.tur==='video'?'video':'görsel')} · ${escStr(y.oran)} · önerilen ${escStr(y.onerilenOlcu)}
+          ${video?'video':'görsel'} · ${escStr(y.oran)} · önerilen ${escStr(y.onerilenOlcu)}
           ${y.dosya&&y.dosya.olcu?` · yüklenen ${escStr(y.dosya.olcu)}`:''}
         </div>
+        ${onizle}
       </div>
-      <div>
-        <select id="sel-${escStr(y.slug)}" style="width:100%;margin-bottom:6px"><option value="">— dosya seç —</option>${secenek}</select>
-        <button class="btn sm" style="width:100%" onclick="assignSlot('${escStr(y.slug)}')">Bu yere bağla</button>
-        ${y.dolu?`<button class="btn sm" style="width:100%;margin-top:5px" onclick="clearSlot('${escStr(y.dosya.id)}')">Bağlantıyı kaldır</button>`:''}
+      <div class="slot-islem">
+        <select id="sel-${escStr(y.slug)}" aria-label="${escStr(y.bolum)} için dosya">
+          <option value="">— dosya seç —</option>
+          ${kasaSec?`<optgroup label="Medya Kasası">${kasaSec}</optgroup>`:''}
+          ${statikSec?`<optgroup label="Sitenin arşivi (● gerçek, ◌ AI)">${statikSec}</optgroup>`:''}
+        </select>
+        <button class="btn sm" onclick="assignSlot('${escStr(y.slug)}')">Bu yere bağla</button>
+        ${y.kaynak==='panel'?`<button class="btn sm" onclick="clearSlot('${escStr(y.slug)}')">Varsayılana dön</button>`:''}
       </div>
-    </div>`).join('');
+    </div>`;}).join('');
 }
 async function assignSlot(slug){
-  const id=$('#sel-'+slug).value; if(!id){alert('Önce bir dosya seçin');return}
-  await req('/api/media/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({slot:slug,published:1})});
+  const v=$('#sel-'+slug).value; if(!v){alert('Önce bir dosya seçin');return}
+  const [tur,deger]=[v.slice(0,v.indexOf(':')),v.slice(v.indexOf(':')+1)];
+  const r=await fetch('/api/site/slots/'+encodeURIComponent(slug),{method:'PUT',headers:{'content-type':'application/json'},
+    body:JSON.stringify(tur==='statik'?{statik:deger}:{id:deger})});
+  if(r.status===401){showLogin();return}
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok||!j.ok){alert(j.error||'Atama yapılamadı.');return}
   loadSlots();
 }
-async function clearSlot(id){
-  await req('/api/media/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({slot:''})});
+async function clearSlot(slug){
+  if(!confirm('Bu yer sitenin varsayılan dosyasına dönsün mü?'))return;
+  await req('/api/site/slots/'+encodeURIComponent(slug),{method:'DELETE'});
   loadSlots();
 }
 /* Hedef secimi: kullanici oneriyi degistirebilir, secim kaydedilir. */
