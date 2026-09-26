@@ -391,18 +391,37 @@ function rssItems(xml){
     if(title&&link) out.push({title:title.slice(0,240),link:link.slice(0,2000),description:description.slice(0,1800),date});
   } return out;
 }
-function newsSlug(title,link){let base=String(title||'haber').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,100)||'haber';let h=0;for(const ch of String(link||'')){h=((h<<5)-h+ch.charCodeAt(0))|0}return base+'-'+Math.abs(h)}
+/* NFKD, Türkçe ı/İ harfini ayrıştırmaz; eski sürüm "Balıkesir"i
+   "bal-kesir" yapıyordu. Harfler önce elle çevrilir. */
+const TR_HARF={'ı':'i','İ':'i','ş':'s','Ş':'s','ğ':'g','Ğ':'g','ü':'u','Ü':'u','ö':'o','Ö':'o','ç':'c','Ç':'c'};
+function newsSlug(title,link){let base=String(title||'haber').replace(/[ıİşŞğĞüÜöÖçÇ]/g,h=>TR_HARF[h]).toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,100).replace(/-+$/,'')||'haber';let h=0;for(const ch of String(link||'')){h=((h<<5)-h+ch.charCodeAt(0))|0}return base+'-'+Math.abs(h)}
+/* Google News başlığa " - Yayın Adı" ekler. Bu ek hem taslak başlığına hem
+   haber adresine başka yayının adını taşıyordu. Yalnız Google akışlarında
+   temizlenir; CUMHA başlıklarında tire başlığın parçası olabilir. */
+function kaynakEkiniAt(title){return String(title||'').replace(/\s+-\s+[^-]{2,80}$/,'').trim()||String(title||'')}
+/* Kaynak Masası bir bağlantıyı yalnızca bir kez içeri alır. Editör taslağı
+   özgün metne çevirip adresini ya da kaynak bağlantısını değiştirdiğinde,
+   hatta işlenen taslağı sildiğinde bile aynı RSS öğesi yeniden gelmesin diye
+   görülen bağlantılar ayrı tabloda tutulur. Tablo kendini kurar ve her
+   taramada mevcut haberlerin kaynaklarıyla tamamlanır (IF NOT EXISTS / OR IGNORE). */
+async function gorulenTablosu(env){
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS kaynak_gorulen (link TEXT PRIMARY KEY, created_at TEXT NOT NULL)').run();
+  await env.DB.prepare("INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) SELECT source_url,created_at FROM news WHERE source_url<>''").run();
+}
 async function scanNewsSources(env,feedIds){
   const feeds=NEWS_FEEDS.filter(x=>!feedIds||feedIds.includes(x.id)); const found=[];
   if(!env.DB) return found;
+  await gorulenTablosu(env);
   for(const feed of feeds){try{
     const r=await fetch(feed.url,{headers:{accept:'application/rss+xml, application/xml, text/xml, text/html','user-agent':'BTMEDYA-NewsFinder/1.0'},redirect:'follow'}); if(!r.ok) continue;
     for(const item of rssItems(await r.text()).slice(0,20)){
-      const exists=await env.DB.prepare('SELECT id FROM news WHERE source_url=? LIMIT 1').bind(item.link).first(); if(exists) continue;
-      const slug=newsSlug(item.title,item.link); const duplicate=await env.DB.prepare('SELECT id FROM news WHERE slug=? LIMIT 1').bind(slug).first(); if(duplicate) continue;
+      const gorulmus=await env.DB.prepare('SELECT 1 FROM kaynak_gorulen WHERE link=? LIMIT 1').bind(item.link).first(); if(gorulmus) continue;
+      const baslik=feed.id.startsWith('google-')?kaynakEkiniAt(item.title):item.title;
+      const slug=newsSlug(baslik,item.link); const duplicate=await env.DB.prepare('SELECT id FROM news WHERE slug=? LIMIT 1').bind(slug).first(); if(duplicate) continue;
       const now=new Date().toISOString();
-      await env.DB.prepare('INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(slug,item.title,item.description,item.description,feed.category,'BTMEDYA Kaynak Masası','','','draft',null,item.link,item.date||null,'Kaynak Masası tarafından bulundu; editör onayı bekliyor.',now).run();
-      found.push({slug,title:item.title,source:item.link,category:feed.category,date:item.date||null});
+      await env.DB.prepare('INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(slug,baslik,item.description,item.description,feed.category,'BTMEDYA Kaynak Masası','','','draft',null,item.link,item.date||null,'Kaynak Masası tarafından bulundu; editör onayı bekliyor.',now).run();
+      await env.DB.prepare('INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) VALUES(?,?)').bind(item.link,now).run();
+      found.push({slug,title:baslik,source:item.link,category:feed.category,date:item.date||null});
     }
   }catch(e){}}
   return found;
