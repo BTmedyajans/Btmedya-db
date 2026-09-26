@@ -117,9 +117,30 @@ tara('public'); tara('src');
     bulgular.push('public/home.js arsivDisi() dosya adi sabitlemis. ' +
       'Vitrin disi kayitlar public/data/medya-ozel.json vitrinDisi listesinden gelmeli.');
   }
-  if (worker.includes("source:'github-static'") && !worker.includes('title:x.baslik||')) {
-    bulgular.push("src/worker.js statik besleyicide baslik yalnizca dosya adindan turuyor. " +
-      'Elle yazilmis baslik medya-ozel.json baslik haritasindan gelmeli (x.baslik).');
+  /* 25-26 Eylul 2026: worker.js'in statik besleyici satiri iki kez bastan
+     yazildi ve her seferinde alan kaybetti. Once x.baslik dustu (19b747e
+     geri koydu), sonra vitrin, sira ve poster dustu. Hicbiri hata vermedi:
+     home.js undefined okuyup sessizce eski davranisa donuyor, vitrin
+     alfabetik siralanip ayni cekimden bes portre yan yana diziliyor, video
+     karti siyah kaliyor. Bu yuzden kontrol tek alana degil, arayuzun
+     okudugu her alana bakar. */
+  // Besleyici tek satirda duruyor; satirin tamami alinir. source:'...' den
+  // sonrasini almak yetmez, title alani o isaretin oncesinde geliyor.
+  const besleyici = (worker.split('\n').find((l) => l.includes("source:'github-static'")) || '');
+  const alanlar = [
+    ['baslik', /\bo?\.?baslik\b|x\.baslik/, 'title:x.baslik||', 'elle yazilmis baslik'],
+    ['vitrin', /\bo\.vitrin\b/, 'vitrin:', 'vitrin disi birakma'],
+    ['sira', /\bx\.sira\b/, 'sira:', 'vitrin sirasi'],
+    ['poster', /\bo\.poster\b/, 'poster:', 'video kapak karesi'],
+  ];
+  if (worker.includes("source:'github-static'")) {
+    for (const [ad, arayuzKalibi, workerKalibi, ne] of alanlar) {
+      if (arayuzKalibi.test(home) && !besleyici.includes(workerKalibi)) {
+        bulgular.push(`src/worker.js statik besleyicisi "${ad}" alanini gondermiyor ` +
+          `ama public/home.js onu okuyor (${ne}). Alan dustugunde hata cikmaz, ` +
+          'arayuz sessizce eski davranisa doner.');
+      }
+    }
   }
 }
 
