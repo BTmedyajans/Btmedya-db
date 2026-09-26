@@ -1124,3 +1124,12 @@ button,a{touch-action:manipulation}
     padding:22px;
   }
 }
+
+/* ===== GAZETECİ PORTFÖYÜ — MOBİL DOKUNMA HEDEFLERİ =====
+   cv-hero, cv-proof ve cv-bottom bağlantıları mobilde 22 px yüksekliğindeydi;
+   WCAG 2.5.8 alt sınırı 24, HIG/Material eşiği 44 px. */
+@media(max-width:900px){
+  .cv-hero-actions a,
+  .cv-proof-card a,
+  .cv-bottom a{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+}

@@ -152,7 +152,10 @@ def olcu_aralikli(d, metin, font, ara):
 
 
 def kapak(baslik, kategori, altbilgi, cikti, foto=None, video=False, ust=0.30,
-          kunye="BTMEDYA", gercek=False):
+          kunye="BTMEDYA", gercek=False, imza="HABER: BUSE TUNCAY"):
+    """imza: alt banttaki sol yazi. Haber kapaklarinda muhabirin adi dogru
+    kunyedir; bolum sayfalarinin paylasim kartinda "HABER:" yanlis beyan
+    olur, o yuzden cagiran taraf degistirebilir."""
     im = perde(zemin(foto, ust), bool(foto))
     d = ImageDraw.Draw(im)
 
@@ -201,7 +204,7 @@ def kapak(baslik, kategori, altbilgi, cikti, foto=None, video=False, ust=0.30,
     # Alt kunye bandi: muhabir solda, alan adi sagda.
     d.rectangle([0, H - BANT, W, H], fill=KIRMIZI)
     bf2 = f_mr(19)
-    aralikli(d, (KEN, H - BANT + 19), "HABER: BUSE TUNCAY", bf2, INK, 2.2)
+    aralikli(d, (KEN, H - BANT + 19), imza, bf2, INK, 2.2)
     sf = f_sg(21)
     sag = "BTMEDYA.COM.TR" if kunye == "BTMEDYA" else kunye
     d.text((W - KEN - d.textlength(sag, font=sf), H - BANT + 17), sag, font=sf, fill=INK)

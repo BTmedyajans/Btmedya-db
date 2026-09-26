@@ -2,6 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /api/
+Disallow: /social-studio/
 Sitemap: https://btmedya.com.tr/sitemap.xml
 Sitemap: https://btmedya.com.tr/news-sitemap.xml
 Contact: https://btmedya.com.tr/.well-known/security.txt
