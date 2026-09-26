@@ -195,3 +195,7 @@ footer{padding:35px var(--pad);display:grid;grid-template-columns:1fr auto auto;
 /* Kurulus portresine panelden AI gorsel atanirsa kaynak rozeti. */
 .founder-photo{position:relative}
 .portre-kaynak{position:absolute;top:22px;right:22px;font:700 9px/1 Jet,monospace;letter-spacing:.1em;color:#fff;background:rgba(4,7,11,.78);border:1px solid rgba(255,255,255,.26);border-radius:999px;padding:7px 11px}
+/* Öne çıkan haber iki satır yüksekliğinde; görsel sabit 390px kalınca kartın alt yarısı boş kalıyordu. Geniş ekranda görsel kalan yüksekliği doldurur, metin kendi boyunda kalır. */
+@media(min-width:981px){.news-card.featured .news-media{height:auto;min-height:390px;flex:1 1 390px}.news-card.featured .news-body{flex:none}}
+/* Bilgi kartı (BTMEDYA GRAFİK) kapaklarında rakam karenin ortasında durur; fotoğraf için ayarlı üst kırpma ve alt karartma rakamı kesiyordu. */
+.news-media-grafik img{object-position:50% 50%!important;filter:none!important}.news-media-grafik .news-scrim{display:none}

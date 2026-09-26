@@ -188,15 +188,25 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   } else lazy.forEach(loadVideo);
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const norm = s => String(s || '').toLowerCase().replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ş/g,'s').replace(/ç/g,'c').replace(/ö/g,'o').replace(/ü/g,'u');
+  /* NFD: "Zekâ" ve "İ" gibi isaretli harfler de duz harfe iner; yoksa filtre "yapay zeka" ile eslesmez. */
+  const norm = s => String(s || '').toLowerCase().replace(/ı/g,'i').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  /* Filtre dugmeleri veriden degil bu sabit listeden gelir: panelde
+     "Ekonomi · Emlak", "Gündem · Yangın" gibi alt basliklar serbest
+     yaziliyor ve veriden turetilen dugmeler ayni konuyu uc dugmeye
+     boluyordu. Her ana baslik kendi alt basliklarini da yakalar. */
+  const ANA_KATEGORILER = [
+    ['yerel', 'BALIKESİR', /(yerel|pazar|alisveris|altyapi|balikesir)/],
+    ['gundem', 'GÜNDEM', /(gundem|asayis|yangin|afet)/],
+    ['yapay-zeka', 'YAPAY ZEKÂ', /(yapay zeka|^ai\b)/],
+    ['ekonomi', 'EKONOMİ', /(ekonomi|emlak|tarim|esnaf)/],
+    ['kultur', 'KÜLTÜR', /(kultur|zanaat|moda|sanat|gastronomi|dugun|insan)/],
+    ['saglik', 'SAĞLIK', /(saglik|bakim|beslenme|estetik)/],
+    ['spor', 'SPOR', /(spor|muay)/]
+  ];
   const catMatch = (cat, wanted) => {
     if (wanted === 'all') return true;
-    const c = norm(cat);
-    return wanted === 'kultur' ? /(kultur|zanaat|moda)/.test(c) :
-           wanted === 'yerel' ? /(yerel|pazar)/.test(c) :
-           wanted === 'ekonomi' ? /(ekonomi|emlak|tarim|esnaf)/.test(c) :
-           wanted === 'spor' ? /spor|muay/.test(c) :
-           wanted === 'saglik' ? /(saglik|bakim|beslenme)/.test(c) : true;
+    const ana = ANA_KATEGORILER.find(k => k[0] === wanted);
+    return ana ? ana[2].test(norm(cat)) : true;
   };
 
   const staticReference = {
@@ -241,15 +251,17 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     if (cover) {
       const kaynak = kapakKaynagi[n.slug] === 'ai' ? 'AI ÜRETİMİ'
         : kapakKaynagi[n.slug] === 'gercek' ? 'GERÇEK ÇEKİM'
+        : kapakKaynagi[n.slug] === 'grafik' ? 'BTMEDYA GRAFİK'
         : '';
-      /* Öne çıkan haber sosyal/paylaşım kapağının tam kompozisyonunu kullanır:
-         BTMEDYA'nın kendi gerçek fotoğrafı + iri başlık + kırmızı künyesi.
-         Diğer kartlar metinsiz fotoğraf kullanır, böylece başlık iki kez
-         basılmaz. */
-      const src = featured ? cover : kartGorseli(cover);
+      /* Öne çıkan kart da metinsiz kart görselini kullanır. Başlıklı
+         paylaşım kapağı burada kartın kendi başlığıyla iki kez basılıyor ve
+         geniş kutuda kırpılınca kategori etiketi kesiliyordu. Başlıklı kapak
+         og:image ve makale sayfası künyesi olarak kalır. */
+      const src = kartGorseli(cover);
       const badge = kaynak ? `<span class="news-kaynak">${esc(kaynak)}</span>` : '';
-      const overlay = featured ? `<div class="news-cover-overlay"><span class="news-cover-category">${esc(n.category || 'HABER')}</span><strong>${esc(n.title || '')}</strong><span class="news-cover-meta">BTMEDYA · ${esc(dateText(n))}</span></div>` : '';
-      return `<div class="news-media${featured?' news-media-editorial':''}"><img src="${esc(src)}" alt="${esc(n.title)}" loading="${featured?'eager':'lazy'}" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div>${badge}${overlay}</div>`;
+      const overlay = '';
+      const grafik = kapakKaynagi[n.slug] === 'grafik' ? ' news-media-grafik' : '';
+      return `<div class="news-media${featured?' news-media-editorial':''}${grafik}"><img src="${esc(src)}" alt="${esc(n.title)}" loading="${featured?'eager':'lazy'}" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div>${badge}${overlay}</div>`;
     }
     return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
   };
@@ -323,13 +335,11 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
         allNews = [];
       }
     }
-    const categories = [...new Set(allNews.map(n => String(n.category || '').trim()).filter(Boolean))].slice(0, 10);
+    const categories = ANA_KATEGORILER.filter(k => allNews.some(n => k[2].test(norm(n.category))));
     if (filterBar) {
-      const labels = {yerel:'YEREL', ekonomi:'EKONOMİ', kultur:'KÜLTÜR', spor:'SPOR', saglik:'SAĞLIK', gundem:'GÜNDEM'};
-      filterBar.innerHTML = ['all', ...categories].map((cat, i) => {
-        const label = cat === 'all' ? 'TÜMÜ' : (labels[norm(cat)] || cat.toUpperCase());
-        return '<button class="filter' + (i === 0 ? ' active' : '') + '" type="button" role="tab" aria-selected="' + (i === 0 ? 'true' : 'false') + '" data-cat="' + esc(cat) + '">' + esc(label) + '</button>';
-      }).join('');
+      filterBar.innerHTML = [['all', 'TÜMÜ'], ...categories].map(([cat, label], i) =>
+        '<button class="filter' + (i === 0 ? ' active' : '') + '" type="button" role="tab" aria-selected="' + (i === 0 ? 'true' : 'false') + '" data-cat="' + esc(cat) + '">' + esc(label) + '</button>'
+      ).join('');
     }
     render(allNews);
     renderStoryLab(allNews);
