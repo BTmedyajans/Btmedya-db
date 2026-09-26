@@ -1,3 +1,14 @@
+/* PANEL -> SITE BAGLANTISI
+   Yonetim panelindeki "Site Durumu" ekraninda bir yuvaya atanan dosya
+   anasayfada burada devreye girer. Once panel ve site birbirinden
+   habersizdi: "Bu yere bagla" dugmesi canli sitede hicbir seyi
+   degistirmiyordu. Tek istek, sayfanin geri kalanini bekletmez; basarisiz
+   olursa bos nesne doner ve sayfa kendi varsayilanlariyla kalir. */
+window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json'}})
+  .then(r => r.ok ? r.json() : {})
+  .then(j => (j && j.yuvalar) || {})
+  .catch(() => ({}));
+
 (() => {
   const d = document;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -541,6 +552,20 @@
     },180);
   }
   activate(tabs[0]);
+  /* Panelden "Sahada calisirken kare" yuvasina atanan gorsel 01/HABER
+     sekmesine gecer. Kaynak satiri da atanan dosyanin kaydindan turer. */
+  window.btYuvalar && window.btYuvalar.then(y=>{
+    tabs.forEach(tab=>{
+      const a=tab.dataset.slotImage && y[tab.dataset.slotImage];
+      if(!a || a.tur!=='image') return;
+      tab.dataset.image=a.url;
+      tab.dataset.source=(a.gercek?'GERÇEK ÇEKİM':'AI ÜRETİMİ')+' · BUSE TUNCAY';
+      if(tab.classList.contains('is-active')){
+        frame.style.backgroundImage='url("'+a.url+'")';
+        source.textContent=tab.dataset.source;
+      }
+    });
+  });
   tabs.forEach(tab=>{
     tab.addEventListener('mouseenter',()=>activate(tab));
     tab.addEventListener('focus',()=>activate(tab));
@@ -568,13 +593,36 @@
   const label=root.querySelector('[data-cinematic-label]');
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const mobile=()=>window.innerWidth<=720;
+  /* Sahne rozeti sahnenin videosunun kendi kaynagini gosterir.
+     Varsayilan dort video (hero-story, state-haber, state-medya,
+     state-produksiyon) yapay zeka uretimi: medya-ozel.json gercek listesinde
+     yoklar ve karelerine bakildi (robot zirh, patlama, sehir ustunde ucus).
+     a3e79e2 dosyalara dokunmadan bu etiketleri "GERCEK CEKIM" yapmisti.
+     Panelden bir sahneye gercek cekim atanirsa etiket asagidaki kancayla
+     kendiliginden degisir; elle yazilmaz. */
   const scenes=[
-    {key:'hero',k:'01 / GİRİŞ',kaynak:'GERÇEK ÇEKİM',t:'GERÇEK<br><span>GÖRÜNTÜ.</span>',d:'Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.'},
-    {key:'haber',k:'02 / HABER · SAHA',kaynak:'GERÇEK ÇEKİM',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
-    {key:'medya',k:'03 / MEDYA · İÇERİK',kaynak:'GERÇEK ÇEKİM',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için gerçek üretim.'},
-    {key:'produksiyon',k:'04 / PRODÜKSİYON',kaynak:'GERÇEK ÇEKİM',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
+    {key:'hero',yuva:'hero-video',k:'01 / GİRİŞ',kaynak:'AI ÜRETİMİ',t:'GERÇEK<br><span>GÖRÜNTÜ.</span>',d:'Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.'},
+    {key:'haber',yuva:'kategori-haber',k:'02 / HABER · SAHA',kaynak:'AI ÜRETİMİ',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
+    {key:'medya',yuva:'kategori-medya',k:'03 / MEDYA · İÇERİK',kaynak:'AI ÜRETİMİ',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için gerçek üretim.'},
+    {key:'produksiyon',yuva:'kategori-prod',k:'04 / PRODÜKSİYON',kaynak:'AI ÜRETİMİ',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
     {key:'ai',k:'05 / AI LAB · AÇIK ETİKET',kaynak:'AI ÜRETİMİ',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI üretimi ayrı, açık ve şeffaf bir laboratuvar olarak konumlanıyor.'}
   ];
+  /* Panel atamalari: sahnenin videosunu ve rozetini degistirir. Atama yoksa
+     hicbir sey yapilmaz, sayfa kendi varsayilanlariyla kalir. */
+  window.btYuvalar && window.btYuvalar.then(y=>{
+    scenes.forEach((s,i)=>{
+      const a=s.yuva && y[s.yuva]; if(!a || a.tur!=='video') return;
+      s.kaynak=a.gercek?'GERÇEK ÇEKİM':'AI ÜRETİMİ';
+      const el=videos[i] && videos[i].querySelector('video'); if(!el) return;
+      el.dataset.src=a.url; delete el.dataset.mobile;
+      // Varsayilan poster eski videonun karesi; yeni videoyla uyusmaz.
+      if(i>0) el.removeAttribute('poster');
+      if(el.dataset.loaded){ el.src=a.url; el.load(); if(i===active && i>0) el.play().catch(()=>{}); }
+      if(i===active && kaynakEl) kaynakEl.textContent=s.kaynak;
+    });
+    const poster=y['hero-poster'], hv=videos[0] && videos[0].querySelector('video');
+    if(poster && poster.tur==='image' && hv) hv.setAttribute('poster',poster.url);
+  });
   let active=-1, raf=0;
   function loadVideo(v){
     if(!v) return;
@@ -591,7 +639,8 @@
       active=i;
       root.classList.remove('beat-haber','beat-medya','beat-produksiyon','beat-ai');
       if(scene.key!=='hero') root.classList.add('beat-'+scene.key);
-      if(kaynakEl) kaynakEl.textContent=scene.kaynak||'GERÇEK ÇEKİM';
+      // Varsayilan AI URETIMI (AGENTS.md): kaynagi bilinmeyen kare gercek sayilmaz.
+      if(kaynakEl) kaynakEl.textContent=scene.kaynak||'AI ÜRETİMİ';
       if(title){title.innerHTML=scene.t;title.animate([{opacity:.35,transform:'translateY(16px)'},{opacity:1,transform:'translateY(0)'}],{duration:420,easing:'cubic-bezier(.2,.75,.2,1)'})}
       if(kicker) kicker.textContent=scene.k;
       if(lead) lead.textContent=scene.d;
@@ -648,4 +697,23 @@
   }
   setScene(0,0);
   request();
+})();
+
+/* Kurulus hikayesi portresi (panel yuvasi: portre-buse).
+   Varsayilan gorsel gercek fotograf. Panelden AI uretimi bir gorsel atanirsa
+   AGENTS.md geregi uzerinde AI URETIMI etiketi gorunur; etiketsiz kalmaz. */
+(function(){
+  const img=document.querySelector('img[data-slot="portre-buse"]');
+  if(!img || !window.btYuvalar) return;
+  window.btYuvalar.then(y=>{
+    const a=y['portre-buse']; if(!a || a.tur!=='image') return;
+    img.src=a.url;
+    const kutu=img.parentElement;
+    const eski=kutu.querySelector('.portre-kaynak'); if(eski) eski.remove();
+    if(!a.gercek){
+      const r=document.createElement('span');
+      r.className='portre-kaynak'; r.textContent='AI ÜRETİMİ';
+      kutu.appendChild(r);
+    }
+  });
 })();

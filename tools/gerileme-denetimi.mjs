@@ -144,6 +144,60 @@ tara('public'); tara('src');
   }
 }
 
+/* 8) Giris filmi sahne rozetleri dosyanin gercek kaynagini gostermeli.
+      24 Eylul 2026 (a3e79e2): dort sahnenin etiketi, videolar degismeden
+      "GERCEK CEKIM" yapildi. Videolar yapay zeka uretimi (robot zirh,
+      patlama, sehir ustunde ucus); medya-ozel.json gercek listesinde yoklar.
+      Kural: bir sahne GERCEK CEKIM diyorsa videosu gercek listesinde olmali. */
+{
+  const home = existsSync('public/home.js') ? readFileSync('public/home.js', 'utf8') : '';
+  const index = existsSync('public/index.html') ? readFileSync('public/index.html', 'utf8') : '';
+  const ozel = existsSync('public/data/medya-ozel.json') ? JSON.parse(readFileSync('public/data/medya-ozel.json', 'utf8')) : {};
+  const gercek = new Set(ozel.gercek || []);
+  // Sahne -> yuva, yuva -> index.html'deki data-src
+  const sahneler = [...home.matchAll(/\{key:'([a-z]+)',yuva:'([a-z-]+)',k:'[^']*',kaynak:'([^']*)'/g)];
+  for (const [, key, yuva, kaynak] of sahneler) {
+    const m = index.match(new RegExp(`data-slot="${yuva}"[^>]*data-src="/assets/([^"]+)"`));
+    const dosya = m && m[1];
+    if (kaynak === 'GERÇEK ÇEKİM' && (!dosya || !gercek.has(dosya))) {
+      bulgular.push(`public/home.js giris filmi "${key}" sahnesi GERCEK CEKIM diyor ama videosu ` +
+        `(${dosya || 'bulunamadi'}) medya-ozel.json gercek listesinde yok. Gercek cekim panelden ` +
+        'yuvaya atanirsa rozet kendiliginden degisir; etiketi elle yazmayin.');
+    }
+  }
+  if (/scene\.kaynak\s*\|\|\s*'GERÇEK ÇEKİM'/.test(home)) {
+    bulgular.push("public/home.js sahne rozetinin varsayilani GERCEK CEKIM. AGENTS.md: varsayilan AI URETIMI.");
+  }
+  const ilk = sahneler[0] && sahneler[0][3];
+  const htmlRozet = (index.match(/data-cinematic-kaynak>([^<]*)</) || [])[1];
+  if (ilk && htmlRozet && ilk !== htmlRozet) {
+    bulgular.push(`index.html giris rozeti "${htmlRozet}" ama ilk sahne "${ilk}" diyor; sayfa acilirken yanlis etiket gorunur.`);
+  }
+}
+
+/* 9) Panel yuvalari sitede gercek bir yere bagli olmali.
+      26 Eylul 2026: bes yuva eski tasarimdan kalmisti, sitede yeri yoktu;
+      "Bu yere bagla" hicbir sey degistirmiyordu. Varsayilan dosyalar da
+      index.html ile ayni olmali, yoksa panel sitenin kullanmadigi bir dosyayi
+      "su an" diye gosterir. og-image sunucuda (HTMLRewriter) uygulanir. */
+{
+  const index = existsSync('public/index.html') ? readFileSync('public/index.html', 'utf8') : '';
+  const slotBlok = (worker.match(/const SITE_SLOTS=\[([\s\S]*?)\];/) || [, ''])[1];
+  const sluglar = [...slotBlok.matchAll(/\['([a-z0-9-]+)'/g)].map((m) => m[1]);
+  for (const slug of sluglar) {
+    if (slug === 'og-image') continue;
+    if (!new RegExp(`data-slot(?:-[a-z]+)?="${slug}"`).test(index)) {
+      bulgular.push(`panel yuvasi "${slug}" public/index.html'de hicbir yere bagli degil (data-slot yok); atama sitede hicbir sey degistirmez.`);
+    }
+  }
+  const varsBlok = (worker.match(/const SITE_SLOT_VARSAYILAN=\{([\s\S]*?)\};/) || [, ''])[1];
+  for (const [, slug, yol] of varsBlok.matchAll(/'([a-z0-9-]+)':\s*'([^']+)'/g)) {
+    if (!index.includes('/assets/' + yol)) {
+      bulgular.push(`SITE_SLOT_VARSAYILAN["${slug}"] = ${yol} ama index.html bu dosyayi kullanmiyor; panel yanlis "su an" gosterir.`);
+    }
+  }
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
@@ -151,4 +205,4 @@ if (bulgular.length) {
 }
 console.log('Gerileme denetimi temiz: medya listesi uretilen dosyadan okunuyor, ' +
   'regex kacislari dogru, kaynak etiketi oge basina turuyor, TikTok hesabi guncel, ' +
-  'GERCEK CEKIM etiketleri gercek karelere basiyor.');
+  'GERCEK CEKIM etiketleri gercek karelere basiyor, panel yuvalari siteye bagli.');

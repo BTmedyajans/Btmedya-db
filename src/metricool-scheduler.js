@@ -44,7 +44,32 @@ function cleanText(row){
 async function publicMediaUrl(env, key){
   if(!key) return null;
   const origin=String(env.BTMEDYA_PUBLIC_ORIGIN||"https://btmedya.com.tr").replace(/\/$/,"");
-  return `${origin}/pub/${encodeURIComponent(String(key))}`;
+  const k=String(key);
+  // static/ kayitlarin R2 nesnesi yok; /pub/ yonlendirir ama Metricool'un
+  // indiricisine dogrudan dosya adresini vermek daha saglam.
+  if(k.startsWith("static/")) return `${origin}/assets/${k.slice(7)}`;
+  return `${origin}/pub/${encodeURIComponent(k)}`;
+}
+
+/* Gonderinin gorseli/videosu AI uretimi mi? Medya kasasindaki kaydin
+   ai_generated alanindan okunur. Kayit yoksa ya da medya yoksa AI sayilir
+   (AGENTS.md: varsayilan AI URETIMI). Ilk surum her Instagram gonderisini
+   sabit "isAiGenerated:false" ile, TikTok'u da hic etiketsiz gonderiyordu. */
+async function yapayZekaMi(env, key){
+  if(!key || !env.DB) return true;
+  const r=await env.DB.prepare("SELECT ai_generated FROM media WHERE key=?").bind(String(key)).first().catch(()=>null);
+  return r ? Boolean(r.ai_generated) : true;
+}
+
+/* Metricool gonderim kaydi ayri bir tabloda tutulur. Ilk surum
+   social_posts uzerinde metricool_* sutunlari ariyordu; canli tabloda bu
+   sutunlar yok ve depodaki goc dosyalari canlidaki goc gecmisiyle
+   uyusmadigi icin yeni bir goc guvenle uygulanamiyor. Tablo ilk calismada
+   kendini kurar (IF NOT EXISTS, idempotent). */
+async function takipTablosu(env){
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS metricool_gonderim (
+    post_id TEXT PRIMARY KEY, metricool_id TEXT NOT NULL DEFAULT '',
+    durum TEXT NOT NULL DEFAULT '', hata TEXT NOT NULL DEFAULT '', updated_at TEXT NOT NULL)`).run();
 }
 
 function youtubeDataFor(providers,row){
@@ -67,6 +92,7 @@ export async function scheduleToMetricool(env,row){
   if(!providers.length) return {ok:false,error:"Geçerli sosyal platformu yok"};
 
   const mediaUrl=await publicMediaUrl(env,row.media_key);
+  const ai=await yapayZekaMi(env,row.media_key);
   const body={
     publicationDate:{dateTime,timezone},
     text:cleanText(row),
@@ -81,13 +107,15 @@ export async function scheduleToMetricool(env,row){
   const ig=providers.find(x=>x.network==="instagram");
   const fb=providers.find(x=>x.network==="facebook");
   const tt=providers.find(x=>x.network==="tiktok");
-  if(ig) body.instagramData={...ig.data,isAiGenerated:false};
+  if(ig) body.instagramData={...ig.data,isAiGenerated:ai};
   if(fb) body.facebookData={...fb.data};
-  if(tt) body.tiktokData={...tt.data};
+  if(tt) body.tiktokData={...tt.data,isAigc:ai};
   const yt=youtubeDataFor(providers,row);
   if(yt) body.youtubeData=yt;
 
-  const endpoint=`https://app.metricool.com/api/v2/scheduler/posts?blogId=${encodeURIComponent(blogId)}&userId=${encodeURIComponent(userId)}`;
+  // Test icin degistirilebilir; uretimde varsayilan Metricool API'si.
+  const taban=String(env.METRICOOL_API_BASE||"https://app.metricool.com").replace(/\/$/,"");
+  const endpoint=`${taban}/api/v2/scheduler/posts?blogId=${encodeURIComponent(blogId)}&userId=${encodeURIComponent(userId)}`;
   const res=await fetch(endpoint,{
     method:"POST",
     headers:{"X-Mc-Auth":String(env.METRICOOL_USER_TOKEN),"Content-Type":"application/json"},
@@ -100,38 +128,56 @@ export async function scheduleToMetricool(env,row){
   return {ok:true,id:id?String(id):null,response:data};
 }
 
+/* Panelde durumu "Planlandı" yapilmis ve zamani gelecekte olan gonderileri
+   Metricool'a birakir. Yayini Metricool yapar; Worker yalnizca teslim eder.
+   Anahtar (METRICOOL_USER_TOKEN) yoksa hicbir sey yapmaz: bu, otomatik
+   paylasimin kullanici tarafindan bilincli olarak acilmasi demektir.
+   Bir gonderi yalnizca bir kez teslim edilir; hata alan tekrar denenmez,
+   hata metni panelde gorunsun diye kaydedilir. */
 export async function processMetricoolQueue(env,limit=10){
   const result={enabled:Boolean(env.METRICOOL_USER_TOKEN),processed:0,scheduled:0,failed:0,skipped:0,items:[]};
   if(!env.DB || !env.METRICOOL_USER_TOKEN) return result;
+  await takipTablosu(env);
   const now=new Date().toISOString();
   const rows=(await env.DB.prepare(
-    "SELECT * FROM social_posts WHERE status='planlandi' AND scheduled_at IS NOT NULL AND scheduled_at>? AND (metricool_scheduled_id IS NULL OR metricool_scheduled_id='') ORDER BY scheduled_at ASC LIMIT ?"
+    `SELECT p.* FROM social_posts p LEFT JOIN metricool_gonderim g ON g.post_id=p.id
+     WHERE p.status='planlandi' AND p.scheduled_at IS NOT NULL AND p.scheduled_at>? AND g.post_id IS NULL
+     ORDER BY p.scheduled_at ASC LIMIT ?`
   ).bind(now,Number(limit)||10).all()).results||[];
+  const yaz=(id,metricoolId,durum,hata)=>env.DB.prepare(
+    `INSERT INTO metricool_gonderim(post_id,metricool_id,durum,hata,updated_at) VALUES(?,?,?,?,?)
+     ON CONFLICT(post_id) DO UPDATE SET metricool_id=excluded.metricool_id,durum=excluded.durum,hata=excluded.hata,updated_at=excluded.updated_at`
+  ).bind(String(id),String(metricoolId||""),durum,String(hata||"").slice(0,2000),new Date().toISOString()).run();
   for(const row of rows){
     result.processed++;
     try{
       const out=await scheduleToMetricool(env,row);
       if(out.ok){
-        await env.DB.prepare(
-          "UPDATE social_posts SET metricool_scheduled_id=?, metricool_status='scheduled', metricool_error='', updated_at=? WHERE id=?"
-        ).bind(out.id||"submitted",new Date().toISOString(),row.id).run();
+        await yaz(row.id,out.id||"submitted","planlandi","");
         result.scheduled++;
         result.items.push({id:row.id,status:"scheduled",metricoolId:out.id||null});
       }else{
-        await env.DB.prepare(
-          "UPDATE social_posts SET metricool_status='error', metricool_error=?, updated_at=? WHERE id=?"
-        ).bind(String(out.error||"Metricool scheduling failed").slice(0,2000),new Date().toISOString(),row.id).run();
+        await yaz(row.id,"","hata",out.error||"Metricool planlamasi basarisiz");
         result.failed++;
         result.items.push({id:row.id,status:"error",error:String(out.error||"").slice(0,300)});
       }
     }catch(e){
-      const msg=String(e?.message||e).slice(0,2000);
-      await env.DB.prepare(
-        "UPDATE social_posts SET metricool_status='error', metricool_error=?, updated_at=? WHERE id=?"
-      ).bind(msg,new Date().toISOString(),row.id).run().catch(()=>{});
+      const msg=String(e?.message||e);
+      await yaz(row.id,"","hata",msg).catch(()=>{});
       result.failed++;
       result.items.push({id:row.id,status:"error",error:msg.slice(0,300)});
     }
   }
   return result;
+}
+
+/* Kontrol merkezi icin: son gonderimlerin durumu. Tablo henuz yoksa bos. */
+export async function metricoolDurumu(env){
+  const d={yapilandirildi:Boolean(env.METRICOOL_USER_TOKEN),planlanan:0,hatali:0,sonHata:""};
+  if(!env.DB) return d;
+  const r=await env.DB.prepare(
+    "SELECT SUM(CASE WHEN durum='planlandi' THEN 1 ELSE 0 END) AS p, SUM(CASE WHEN durum='hata' THEN 1 ELSE 0 END) AS h, (SELECT hata FROM metricool_gonderim WHERE durum='hata' ORDER BY updated_at DESC LIMIT 1) AS son FROM metricool_gonderim"
+  ).first().catch(()=>null);
+  if(r){ d.planlanan=Number(r.p||0); d.hatali=Number(r.h||0); d.sonHata=String(r.son||"").slice(0,300); }
+  return d;
 }

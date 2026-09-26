@@ -3,6 +3,9 @@ import { WorkflowStatusDO } from "./workflow-status-do.js";
 import { renderNewsPage } from "./news-page.js";
 import { socialProviderStatus } from "./social-platforms.js";
 import { recoveryPasswordValid } from "./auth-recovery.js";
+// Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
+// src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
+import { processMetricoolQueue, metricoolDurumu } from "./metricool-scheduler.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
  * 2) Medya Kasası (D1 tablo: media, R2) — /api/media*, /api/public/media, /api/export, /media/*, /api/login, /api/logout
@@ -469,9 +472,14 @@ async function controlCenterApi(request, env, url){
     const raw=await env.KV.get('automation:heartbeat').catch(()=>null);
     if(raw) try{ automation={...automation,...JSON.parse(raw)}; }catch{}
   }
+  const metricool=await metricoolDurumu(env).catch(()=>({yapilandirildi:!!env.METRICOOL_USER_TOKEN}));
   return json({
     ok:true,
     service:'BTMEDYA Control Center',
+    /* Calisan sosyal yayin yolu Metricool: TikTok gonderileri oradan
+       yayinlandi. Tek anahtar Instagram, Facebook, TikTok ve YouTube'u
+       birlikte kapsar; asagidaki dogrudan API anahtarlari alternatiftir. */
+    metricool,
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db'},
     storage:{d1:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA},
     admin:{configured:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
@@ -493,9 +501,11 @@ async function controlCenterApi(request, env, url){
       !env.ADMIN_PASSWORD_SECRET?'Cloudflare Worker secret: ADMIN_PASSWORD_SECRET ekle':null,
       !env.ADMIN_SESSION_SECRET_SECRET?'Cloudflare Worker secret: ADMIN_SESSION_SECRET_SECRET ekle':null,
       !env.MEDIA_SIGNING_SECRET?'Cloudflare Worker secret: MEDIA_SIGNING_SECRET ekle':null,
-      !env.META_ACCESS_TOKEN||!env.META_IG_USER_ID?'Instagram bağlantı secretlarını tamamla':null,
-      !env.TIKTOK_ACCESS_TOKEN||!env.TIKTOK_OPEN_ID?'TikTok bağlantı secretlarını tamamla':null,
-      !env.YOUTUBE_CLIENT_ID||!env.YOUTUBE_CLIENT_SECRET||!env.YOUTUBE_REFRESH_TOKEN?'YouTube bağlantı secretlarını tamamla':null
+      /* Once burada dort ayri gelistirici hesabi (Meta, TikTok, Google)
+         isteniyordu. Metricool hepsini tek anahtarla kapsiyor ve TikTok
+         yayinlari zaten oradan calisti; oncelik o. */
+      !env.METRICOOL_USER_TOKEN?'Metricool: Cloudflare Worker secret METRICOOL_USER_TOKEN ekle (Metricool > Hesap > API). Tek anahtar Instagram, Facebook, TikTok ve YouTube paylaşımını açar.':null,
+      metricool.hatali?`Metricool: ${metricool.hatali} gönderi teslim edilemedi — ${metricool.sonHata||'ayrıntı için Sosyal İçerik'}`:null
     ].filter(Boolean)
   });
 }
@@ -639,8 +649,14 @@ async function mediaApi(request, env){
     const rate=await checkRateLimit(env,ip);
     if(!rate.allowed) return json({error:'Çok fazla başarısız deneme. 15 dakika bekleyin.'},429,{'Retry-After':String(RATE_LIMIT_WINDOW_S)});
     const body=await request.json().catch(()=>({}));
-    const username=String(body.username||'').trim();
-    const expectedUsername=String(env.ADMIN_USERNAME||'BTMEDYA').trim();
+    /* Kullanici adi buyuk/kucuk harfe duyarsiz. Telefonda "btmedya" yazilinca
+       klavye ilk harfi buyutup "Btmedya" yapiyor; eslesme kati oldugu icin
+       dogru sifreyle bile giris reddediliyordu ve panel "Sifre hatali"
+       diyordu. Kullanici adi sir degil, markanin adi; guvenligi sifre tasir.
+       tr-TR: iki taraf da ayni kurala gore buyutulsun (i/İ, ı/I). */
+    const buyut=s=>String(s||'').trim().toLocaleUpperCase('tr-TR');
+    const username=buyut(body.username);
+    const expectedUsername=buyut(env.ADMIN_USERNAME||'BTMEDYA');
     const usernameOk=username===expectedUsername;
     const primaryPassword=env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD;
     const primaryOk=!!primaryPassword && body.password===primaryPassword;
@@ -659,6 +675,14 @@ async function mediaApi(request, env){
     return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`});
   }
 
+
+  /* Anasayfa panelden atanan dosyalari buradan okur. Yalnizca panel
+     atamalari doner; atama yoksa bos nesne, sayfa kendi varsayilanlarini
+     kullanir. gercek alani sahnedeki AI URETIMI / GERCEK CEKIM rozetini
+     belirler: etiket elle yazilmaz, dosyanin kendi kaydindan turer. */
+  if(path==='/api/public/slots' && request.method==='GET'){
+    return json({ok:true,yuvalar:await panelYuvaAtamalari(env)},200,{'cache-control':'public, max-age=60'});
+  }
 
   if(path==='/api/public/media' && request.method==='GET') {
     const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'};
@@ -712,19 +736,83 @@ async function mediaApi(request, env){
      Metricool'a gonderim buradan planlanir. */
   /* SITE DURUMU — hangi yuva dolu, hangisi bos, ne yuklenmeli. */
   if(path==='/api/site/slots' && request.method==='GET'){
-    const origin=new URL(request.url).origin;
     const r=await env.DB.prepare("SELECT * FROM media WHERE slot!='' ").all();
     const bySlot={}; for(const x of (r.results||[])) bySlot[x.slot]=x;
+    const liste=await medyaListesi(env,u.origin);
+    const kayit=Object.fromEntries(liste.map(x=>[x.path,x]));
+    /* kaynak: panel = panelden atanmis, site = sitenin varsayilan dosyasi,
+       yok = sitede bu yerde hicbir sey yok. Once yalnizca panel
+       atamalarina bakiliyordu ve dolu site "0 dolu" gorunuyordu. */
     const yuvalar=SITE_SLOTS.map(([slug,bolum,tur,oran,olcu,not])=>{
-      const m=bySlot[slug];
-      return {slug,bolum,tur,oran,onerilenOlcu:olcu,not,
-        dolu:!!m,
-        dosya:m?{id:m.id,ad:m.title||m.original_name,olcu:(m.width&&m.height)?`${m.width}x${m.height}`:'',
-                 enBoy:m.aspect,saniye:m.duration_s,yapayZeka:!!m.ai_generated,
-                 url:m.published?`${origin}/pub/${encodeURIComponent(m.key)}`:null}:null};
+      const m=bySlot[slug], vars=SITE_SLOT_VARSAYILAN[slug], vk=vars&&kayit[vars];
+      let kaynak='yok', dosya=null;
+      if(m){
+        kaynak='panel';
+        dosya={id:m.id,ad:m.title||m.original_name,olcu:(m.width&&m.height)?`${m.width}x${m.height}`:'',
+               enBoy:m.aspect,saniye:m.duration_s,yapayZeka:!!m.ai_generated,
+               url:m.published?medyaAdresi(m.key):null};
+      }else if(vars){
+        kaynak='site';
+        dosya={id:null,ad:(vk&&vk.baslik)||vars.split('/').pop(),yapayZeka:!(vk&&vk.gercek),url:'/assets/'+vars};
+      }
+      return {slug,bolum,tur,oran,onerilenOlcu:olcu,not,dolu:!!dosya,kaynak,dosya};
     });
-    const eksik=yuvalar.filter(y=>!y.dolu);
-    return json({ozet:{toplam:yuvalar.length,dolu:yuvalar.length-eksik.length,eksik:eksik.length},yuvalar});
+    // Kasa bos oldugunda da secilebilsin diye sitenin kendi arsivi.
+    // Haber kapaklari basligi ustune basili kompozisyonlar; yuvaya uymaz.
+    const statikSecenekler=liste
+      .filter(x=>!x.path.startsWith('haber-kapak/') && !/\.webm$/i.test(x.path))
+      .map(x=>({yol:x.path,ad:x.baslik||x.path.split('/').pop(),
+        tur:/\.(mp4|mov|m4v)$/i.test(x.path)?'video':'image',gercek:!!x.gercek}));
+    const say=k=>yuvalar.filter(y=>y.kaynak===k).length;
+    return json({ozet:{toplam:yuvalar.length,dolu:yuvalar.filter(y=>y.dolu).length,
+      panelden:say('panel'),sitede:say('site'),eksik:say('yok')},yuvalar,statikSecenekler});
+  }
+
+  /* Yuvaya dosya ata / atamayi kaldir.
+     Kasadaki bir kayit ({id}) ya da sitenin kendi arsivinden bir dosya
+     ({statik}) atanabilir. Kasa R2 esitlemesi calismadigi icin bos kalinca
+     panel hicbir sey atayamiyordu; statik dosya icin kasaya static/ onekli
+     bir kayit acilir, R2'ye bir sey yazilmaz. Yuva basina tek dosya: once
+     o yuvayi tutan kayit bosaltilir, ikisi tek batch'te. */
+  const yuvaYol=path.match(/^\/api\/site\/slots\/([a-z0-9-]+)$/);
+  if(yuvaYol && (request.method==='PUT'||request.method==='DELETE')){
+    if(aiRead) return json({error:'AI token salt okunur'},403);
+    const slug=yuvaYol[1], tanim=SITE_SLOTS.find(s=>s[0]===slug);
+    if(!tanim) return json({ok:false,error:'Böyle bir yuva yok'},404);
+    const bosalt=env.DB.prepare("UPDATE media SET slot='' WHERE slot=?").bind(slug);
+    if(request.method==='DELETE'){
+      await bosalt.run(); yuvaOnbellek.t=0;
+      return json({ok:true});
+    }
+    const body=await request.json().catch(()=>({}));
+    const now=new Date().toISOString();
+    const turUyar=video=>(tanim[2]==='video')!==video
+      ? json({ok:false,error:tanim[2]==='video'?'Bu yuva video bekliyor.':'Bu yuva görsel bekliyor.'},400) : null;
+    if(body.statik){
+      const liste=await medyaListesi(env,u.origin);
+      const x=liste.find(i=>i.path===String(body.statik) && !i.path.startsWith('haber-kapak/'));
+      if(!x) return json({ok:false,error:'Bu dosya sitenin arşivinde yok.'},400);
+      const hata=turUyar(/\.(mp4|webm|mov|m4v)$/i.test(x.path)); if(hata) return hata;
+      await env.DB.batch([
+        bosalt,
+        env.DB.prepare(`INSERT INTO media(id,key,original_name,mime,category,title,published,slot,ai_generated,created_at,updated_at)
+          VALUES(?,?,?,?,?,?,1,?,?,?,?)
+          ON CONFLICT(key) DO UPDATE SET slot=excluded.slot,published=1,ai_generated=excluded.ai_generated,updated_at=excluded.updated_at`)
+          .bind(crypto.randomUUID(),STATIK_ONEK+x.path,x.path.split('/').pop(),uzantiMime(x.path),
+                x.category||'arsiv',x.baslik||'',slug,x.gercek?0:1,now,now),
+      ]);
+      yuvaOnbellek.t=0;
+      return json({ok:true,kaynak:'statik'});
+    }
+    if(body.id){
+      const row=await env.DB.prepare('SELECT id,mime FROM media WHERE id=?').bind(String(body.id)).first();
+      if(!row) return json({ok:false,error:'Dosya kasada bulunamadı.'},404);
+      const hata=turUyar(String(row.mime||'').startsWith('video/')); if(hata) return hata;
+      await env.DB.batch([bosalt, env.DB.prepare('UPDATE media SET slot=?,published=1,updated_at=? WHERE id=?').bind(slug,now,row.id)]);
+      yuvaOnbellek.t=0;
+      return json({ok:true,kaynak:'kasa'});
+    }
+    return json({ok:false,error:'Bir dosya seçin.'},400);
   }
 
   /* VIDEO KUTUPHANESI — tek anahtar noktasi.
@@ -795,7 +883,9 @@ async function mediaApi(request, env){
     if(q){sql+=' AND (original_name LIKE ? OR title LIKE ? OR description LIKE ? OR tags LIKE ?)'; const x=`%${q}%`; args.push(x,x,x,x);}
     if(cat){sql+=' AND category=?';args.push(cat);} if(pub!==null){sql+=' AND published=?';args.push(pub==='1'?1:0);} sql+=' ORDER BY created_at DESC LIMIT 500';
     const r=await env.DB.prepare(sql).bind(...args).all();
-    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||86400))})));
+    // static/ kayitlarin R2 nesnesi yok; imzali R2 adresi 404 olurdu.
+    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),
+      url:String(x.key).startsWith(STATIK_ONEK)?medyaAdresi(x.key):await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||86400))})));
     return json({items});
   }
   if(path==='/api/media' && request.method==='POST'){
@@ -827,7 +917,10 @@ async function mediaApi(request, env){
   const del=path.match(/^\/api\/media\/([^/]+)$/);
   if(del && request.method==='DELETE'){
     if(aiRead) return json({error:'AI token salt okunur'},403);
-    const id=del[1]; const row=await env.DB.prepare('SELECT key FROM media WHERE id=?').bind(id).first(); if(!row)return json({error:'Bulunamadı'},404); await env.MEDIA.delete(row.key); await env.DB.prepare('DELETE FROM media WHERE id=?').bind(id).run(); return json({ok:true});
+    const id=del[1]; const row=await env.DB.prepare('SELECT key FROM media WHERE id=?').bind(id).first(); if(!row)return json({error:'Bulunamadı'},404);
+    // static/ kaydi yalnizca bir isaret; dosya depoda durur, R2'de silinecek bir sey yok.
+    if(!String(row.key).startsWith(STATIK_ONEK)) await env.MEDIA.delete(row.key);
+    await env.DB.prepare('DELETE FROM media WHERE id=?').bind(id).run(); yuvaOnbellek.t=0; return json({ok:true});
   }
   const upd=path.match(/^\/api\/media\/([^/]+)$/);
   if(upd && request.method==='PATCH'){
@@ -845,6 +938,8 @@ async function mediaApi(request, env){
             JSON.stringify(pick('posted',JSON.parse(cur.posted||'[]'))),
             String(pick('youtube_id',cur.youtube_id)||''),pick('ai_generated',cur.ai_generated)?1:0,
             now,id).run();
+    // Yuva, yayin durumu ya da AI isareti degismis olabilir; anasayfa yeni hali gorsun.
+    yuvaOnbellek.t=0;
     return json({ok:true});
   }
   if(path==='/api/export' && request.method==='GET'){
@@ -870,22 +965,68 @@ async function mediaApi(request, env){
  * Panel bu listeyi okuyup eksikleri kendisi gosterir; elle takip gerekmez.
  * Yeni bir yuva acilacaksa yalnizca buraya eklenir.
  */
+/* 26 Eylul 2026: bes yuva (hizmet-haber, hizmet-belgesel, hizmet-tanitim,
+   hizmet-dugun, siyah-oda) eski tasarimdan kalmisti; mevcut sitede yerleri
+   yoktu. Panelde "Bu yere bagla" deyince hicbir sey degismiyordu. Kaldirildi.
+   Kalan her yuva anasayfada gercek bir yere baglidir (bkz. data-slot). */
 const SITE_SLOTS=[
   // slug              bolum                       tur     oran    onerilen      notu
-  ['hero-video',      'Giriş filmi',              'video','16:9','1920x1080','En fazla 30 sn. Sayfanın ilk gördüğü şey.'],
-  ['hero-poster',     'Giriş kapak karesi',       'image','16:9','1920x1080','Video inmeden önce görünen kare.'],
-  ['portre-buse',     'Buse Tuncay portresi',     'image','4:5', '1200x1500','Gerçek fotoğraf. Şu anki görsel yapay zekâ üretimi.'],
-  ['saha-buse',       'Sahada çalışırken kare',   'image','16:9','1600x900', 'Mikrofonlu, iş başında. Muhabir kimliğini taşır.'],
-  ['hizmet-haber',    'Haber & Röportaj kartı',   'image','16:9','1600x900', 'Çekim sırasından kare.'],
-  ['hizmet-belgesel', 'Belgesel & Kısa Film',     'image','16:9','1600x900', 'Set ya da kamera arkası.'],
-  ['hizmet-tanitim',  'Tanıtım Filmi kartı',      'image','16:9','1600x900', 'Yayınlanmış bir işten kare.'],
-  ['hizmet-dugun',    'Düğün & Özel Gün kartı',   'image','16:9','1600x900', 'İzin alınmış bir çekimden.'],
-  ['siyah-oda',       'Siyah Oda kapağı',         'image','16:9','1600x900', 'Gerçek stüdyo. Şu anki görsel yapay zekâ konsepti.'],
-  ['kategori-haber',  'Kategori: Haber',          'video','9:16','1080x1920','Saha görüntüsü. Şu an yapay zekâ videosu var.'],
-  ['kategori-medya',  'Kategori: Medya',          'video','9:16','1080x1920','Sosyal içerik üretiminden.'],
-  ['kategori-prod',   'Kategori: Prodüksiyon',    'video','9:16','1080x1920','Kamera, kurgu, set.'],
-  ['og-image',        'Sosyal paylaşım görseli',  'image','16:9','1200x630', 'WhatsApp ve X paylaşımında görünen kapak.'],
+  ['hero-video',      'Giriş filmi',              'video','16:9','1920x1080','Anasayfanın ilk sahnesi. En fazla 30 sn.'],
+  ['hero-poster',     'Giriş kapak karesi',       'image','16:9','1920x1080','Film inmeden önce görünen kare.'],
+  ['kategori-haber',  'Giriş filmi: Haber sahnesi','video','9:16','1080x1920','Kaydırınca 2. sahne. Saha görüntüsü.'],
+  ['kategori-medya',  'Giriş filmi: Medya sahnesi','video','9:16','1080x1920','Kaydırınca 3. sahne. Sosyal içerik üretiminden.'],
+  ['kategori-prod',   'Giriş filmi: Prodüksiyon sahnesi','video','9:16','1080x1920','Kaydırınca 4. sahne. Kamera, kurgu, set.'],
+  ['saha-buse',       'Sahada çalışırken kare',   'image','16:9','1600x900', '01 / HABER sekmesi. Mikrofonlu, iş başında.'],
+  ['portre-buse',     'Buse Tuncay portresi',     'image','4:5', '1200x1500','Kuruluş hikâyesi bölümü. Gerçek fotoğraf.'],
+  ['og-image',        'Sosyal paylaşım görseli',  'image','16:9','1200x630', 'Anasayfa WhatsApp, X ve Facebook paylaşım kapağı.'],
 ];
+
+/* Panelden atama yapilmamis yuvada sitenin su an kullandigi dosya. Panel
+   "13 yer, 0 dolu" diyordu; oysa site doluydu, yalnizca bu dosyalari
+   bilmiyordu. Bu yollar public/index.html ile ayni kalmali;
+   tools/gerileme-denetimi.mjs bunu denetler. Kaynak (gercek/AI) burada
+   yazmaz, medya-listesi.json'daki gercek alanindan turer. */
+const SITE_SLOT_VARSAYILAN={
+  'hero-video':     'media/web/hero-story.mp4',
+  'hero-poster':    'media/web/hero-story-poster.jpg',
+  'kategori-haber': 'media/web/state-haber.mp4',
+  'kategori-medya': 'media/web/state-medya.mp4',
+  'kategori-prod':  'media/web/state-produksiyon.mp4',
+  'saha-buse':      'media/portfoy/buse-tuncay-saha-roportaj.webp',
+  'portre-buse':    'media/portfoy/buse-tuncay-portre-01.webp',
+  'og-image':       'media/web/hero-story-poster.jpg',
+};
+
+/* Kasa kaydinin sitede nereden servis edildigi. static/ onekli kayitlar
+   depodaki public/assets dosyalarina isaret eder; R2'de nesneleri yoktur. */
+const STATIK_ONEK='static/';
+function medyaAdresi(key){
+  const k=String(key||'');
+  return k.startsWith(STATIK_ONEK) ? '/assets/'+k.slice(STATIK_ONEK.length) : '/pub/'+encodeURIComponent(k);
+}
+function uzantiMime(yol){
+  const e=(String(yol).match(/\.([a-z0-9]+)$/i)||[])[1]?.toLowerCase();
+  return {mp4:'video/mp4',webm:'video/webm',mov:'video/quicktime',m4v:'video/mp4',
+    webp:'image/webp',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png'}[e]||'application/octet-stream';
+}
+
+/* Panelden atanmis yuvalar. Anasayfa her acilista soruyor; D1'e her
+   ziyaretci icin gitmemek icin isolate icinde 60 sn tutulur. Atama
+   yapilinca ayni isolate'te hemen sifirlanir. */
+let yuvaOnbellek={t:0,v:null};
+async function panelYuvaAtamalari(env){
+  if(yuvaOnbellek.v && Date.now()-yuvaOnbellek.t<60000) return yuvaOnbellek.v;
+  const gecerli=new Set(SITE_SLOTS.map(s=>s[0]));
+  const v={};
+  if(env.DB){
+    const r=await env.DB.prepare("SELECT key,slot,mime,ai_generated FROM media WHERE slot!='' AND published=1").all().catch(()=>({results:[]}));
+    for(const x of (r.results||[])) if(gecerli.has(x.slot)){
+      v[x.slot]={url:medyaAdresi(x.key),gercek:!x.ai_generated,tur:String(x.mime||'').startsWith('video/')?'video':'image'};
+    }
+  }
+  yuvaOnbellek={t:Date.now(),v};
+  return v;
+}
 
 const PLATFORM_RULES=[
   // slug              etiket                 kind    en-boy        max sn   ses
@@ -942,7 +1083,13 @@ function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
 
 export default { async scheduled(controller, env, ctx){
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
-  if(ctx?.waitUntil) ctx.waitUntil(task); else await task;
+  /* Metricool teslimi. METRICOOL_USER_TOKEN yoksa hicbir sey yapmaz; hata
+     nabzi durdurmasin diye ayri yakalanir. */
+  const metricool=processMetricoolQueue(env)
+    .then(x=>{ if(x.processed) console.log('[btmedya] metricool',x.scheduled,'teslim',x.failed,'hata'); })
+    .catch(e=>console.error('[btmedya] metricool kuyrugu:',e?.message||e));
+  const hepsi=Promise.all([task,metricool]);
+  if(ctx?.waitUntil) ctx.waitUntil(hepsi); else await hepsi;
 }, async fetch(request, env, ctx){
   const url = new URL(request.url);
 
@@ -979,6 +1126,8 @@ export default { async scheduled(controller, env, ctx){
      dosya aninda 404'e doner. */
   if(url.pathname.startsWith('/pub/')){
     const key=decodeURIComponent(url.pathname.slice('/pub/'.length));
+    // static/ kayit depodaki dosyaya isaret eder; R2'ye gitmeden oraya yonlendir.
+    if(key.startsWith(STATIK_ONEK)) return Response.redirect(url.origin+medyaAdresi(key),302);
     if(!env.DB||!env.MEDIA) return text('Medya deposu yapılandırılmadı',503);
     const row=await env.DB.prepare('SELECT key FROM media WHERE key=? AND published=1').bind(key).first();
     if(!row) return text('Bu dosya yayında değil',404);
@@ -1182,6 +1331,30 @@ async function servisEt(request, env) {
   }
   if (!h.has('cache-control') || res.status === 404) h.set('cache-control', onbellek(url.pathname));
   else h.set('cache-control', onbellek(url.pathname));
+
+  /* Panelden "Sosyal paylasim gorseli" yuvasina dosya atandiysa anasayfanin
+     og:image ve twitter:image etiketleri sunucuda degistirilir. WhatsApp,
+     Facebook ve X tarayicilari JavaScript calistirmaz; istemci tarafinda
+     yapilan degisikligi hic gormezler. Atama yoksa sayfaya dokunulmaz. */
+  if (url.pathname === '/' && res.status === 200 && contentType.toLowerCase().startsWith('text/html')) {
+    const og = (await panelYuvaAtamalari(env).catch(() => ({})))['og-image'];
+    if (og && og.url) {
+      // Her zaman https: paylasim tarayicilari http gorseli reddedebiliyor.
+      const mutlak = 'https://' + url.host + og.url;
+      const icerik = { element(e) { e.setAttribute('content', mutlak); } };
+      const sil = { element(e) { e.remove(); } };
+      const yeni = new HTMLRewriter()
+        .on('meta[property="og:image"]', icerik)
+        .on('meta[property="og:image:secure_url"]', icerik)
+        .on('meta[name="twitter:image"]', icerik)
+        .on('meta[property="og:image:type"]', { element(e) { e.setAttribute('content', uzantiMime(og.url)); } })
+        // Yeni gorselin olcusu bilinmiyor; yanlis olcu bildirmektense hic bildirme.
+        .on('meta[property="og:image:width"]', sil)
+        .on('meta[property="og:image:height"]', sil)
+        .transform(new Response(res.body, { status: res.status, statusText: res.statusText, headers: h }));
+      return yeni;
+    }
+  }
 
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
 }
