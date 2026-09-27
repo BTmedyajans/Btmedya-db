@@ -41,7 +41,7 @@ require_success() {
 echo "BTMEDYA Cloudflare control-plane"
 echo "zone=$ZONE_NAME mode=$MODE"
 
-zone=$(cf GET "/zones?name=$ZONE_NAME&status=active")
+zone=$(cf GET "/zones?name=$ZONE_NAME")
 zone_success=$(jq -r '.success // false' <<<"$zone")
 if [[ "$zone_success" != "true" ]]; then
   echo "WARNING: Cloudflare zone API okunamadı (token scope/izin olabilir)."
@@ -53,7 +53,9 @@ if [[ "$zone_success" != "true" ]]; then
   exit 1
 fi
 zone_id=$(jq -r '.result[0].id // empty' <<<"$zone")
-[[ -n "$zone_id" ]] || { echo "ERROR: Cloudflare zone bulunamadı: $ZONE_NAME"; exit 1; }
+zone_status=$(jq -r '.result[0].status // empty' <<<"$zone")
+[[ -n "$zone_id" ]] || { echo "ERROR: Cloudflare zone bulunamadı: $ZONE_NAME"; echo "Token bu zone'u görmüyor veya zone farklı Cloudflare hesabında."; exit 1; }
+echo "zone_status=$zone_status"
 
 echo "zone_id=$zone_id"
 
