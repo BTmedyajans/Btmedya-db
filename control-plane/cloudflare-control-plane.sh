@@ -42,6 +42,16 @@ echo "BTMEDYA Cloudflare control-plane"
 echo "zone=$ZONE_NAME mode=$MODE"
 
 zone=$(cf GET "/zones?name=$ZONE_NAME&status=active")
+zone_success=$(jq -r '.success // false' <<<"$zone")
+if [[ "$zone_success" != "true" ]]; then
+  echo "WARNING: Cloudflare zone API okunamadı (token scope/izin olabilir)."
+  jq -c '{errors,messages}' <<<"$zone" || true
+  if [[ "$MODE" == "audit" ]]; then
+    echo "AUDIT ONLY: zone erişimi olmayan token ile mutasyon yapılmadan çıkılıyor."
+    exit 0
+  fi
+  exit 1
+fi
 zone_id=$(jq -r '.result[0].id // empty' <<<"$zone")
 [[ -n "$zone_id" ]] || { echo "ERROR: Cloudflare zone bulunamadı: $ZONE_NAME"; exit 1; }
 
