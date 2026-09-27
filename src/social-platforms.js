@@ -1,40 +1,30 @@
-/* BTMEDYA sosyal medya kimlikleri.
- * Secret değerleri kesinlikle source'a yazılmaz. Cloudflare Worker env'den okunur.
- * Yayın API'leri için gerekli OAuth/API kimliklerinin isimleri burada tek yerde tutulur.
+/* BTMEDYA sosyal medya bağlantı katmanı.
+ * Üretimde sosyal yayınların tek geçidi Metricool'dur.
+ * Böylece Worker içinde Instagram/Facebook/TikTok/YouTube için ayrı OAuth
+ * tokenları tutulmaz. Hesap yetkilendirmesi Metricool'da bir kez yapılır.
  */
 export const SOCIAL_PROVIDERS = {
-  instagram: {
-    label: "Instagram",
-    required: ["META_ACCESS_TOKEN", "META_IG_USER_ID"],
-    api: "Meta Graph API"
-  },
-  facebook: {
-    label: "Facebook",
-    required: ["META_ACCESS_TOKEN", "META_PAGE_ID"],
-    api: "Meta Graph API"
-  },
-  tiktok: {
-    label: "TikTok",
-    required: ["TIKTOK_ACCESS_TOKEN", "TIKTOK_OPEN_ID"],
-    api: "TikTok Content Posting API"
-  },
-  youtube: {
-    label: "YouTube",
-    required: ["YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET", "YOUTUBE_REFRESH_TOKEN"],
-    api: "YouTube Data API v3"
-  }
+  instagram: { label: "Instagram", managedBy: "Metricool" },
+  facebook: { label: "Facebook", managedBy: "Metricool" },
+  tiktok: { label: "TikTok", managedBy: "Metricool" },
+  youtube: { label: "YouTube", managedBy: "Metricool" }
 };
 
 export function socialProviderStatus(env) {
+  const metricool = Boolean(String(env?.METRICOOL_USER_TOKEN ?? "").trim());
   return Object.fromEntries(
-    Object.entries(SOCIAL_PROVIDERS).map(([key, p]) => {
-      const missing = p.required.filter(name => !String(env?.[name] ?? "").trim());
-      return [key, {
+    Object.entries(SOCIAL_PROVIDERS).map(([key, p]) => [
+      key,
+      {
         label: p.label,
-        api: p.api,
-        configured: missing.length === 0,
-        missing
-      }];
-    })
+        api: "Metricool",
+        managedBy: p.managedBy,
+        configured: metricool,
+        missing: metricool ? [] : ["METRICOOL_USER_TOKEN"],
+        note: metricool
+          ? "Yayın Metricool üzerinden yönetiliyor."
+          : "Metricool Worker bağlantısı henüz kurulmadı."
+      }
+    ])
   );
 }
