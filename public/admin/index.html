@@ -1,4 +1,4 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>BTMedya Admin</title><style>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BTMedya Admin — İçerik Yönetimi</title><link rel="stylesheet" href="/admin/admin-overrides.css"><style>
 *{box-sizing:border-box}
 body{font-family:Inter,system-ui,sans-serif;margin:0;background:#090909;color:#eee;font-size:14px}
 a{color:#7dd}
@@ -92,19 +92,6 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   .news-row>.row{width:100%;margin-left:62px}
   .news-row>.row .btn{flex:1}
 }
-/* Site Durumu satirlari. Once satir "1fr 300px" izgaraydi: 390 px ekranda
-   sag sutun sabit 300 px aldigi icin aciklama sutununa ~50 px kaliyor,
-   secim kutusu ve dugme sagdan kesiliyordu. Dar ekranda alt alta. */
-.slot-satir{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:14px;padding:15px 0;border-bottom:1px solid rgba(255,255,255,.08)}
-.slot-bilgi{min-width:0}
-.slot-islem{display:flex;flex-direction:column;gap:6px;min-width:0}
-.slot-islem select,.slot-islem .btn{width:100%;max-width:100%;min-height:40px}
-.slot-rozet{font-size:9.5px;letter-spacing:.1em;padding:2px 7px;border:1px solid}
-.slot-onizleme{display:block;margin-top:8px;max-width:220px;max-height:124px;width:auto;border:1px solid rgba(255,255,255,.12);object-fit:cover;background:#000}
-@media(max-width:760px){
-  .slot-satir{grid-template-columns:minmax(0,1fr)}
-  .slot-onizleme{max-width:100%}
-}
 </style></head>
 <body>
 <header>
@@ -114,8 +101,9 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <button class="tab" data-tab="media">Medya Kasası</button>
     <button class="tab" data-tab="news">Haberler</button>
     <button class="tab" data-tab="social">Sosyal İçerik</button>
+    <button class="tab" data-tab="automation">Otomasyon</button>
     <button class="tab" data-tab="videos">Videolar</button>
-    <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button><button class="tab" data-tab="control">Control Center</button><button class="tab" data-tab="trends">Trendler & Kaynaklar</button>
+    <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button><button class="tab" data-tab="control">Control Center</button>
   </div>
   <button class="btn" id="logoutBtn" style="display:none">Çıkış</button>
 </header>
@@ -126,34 +114,56 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 <div id="loginSection" class="panel login-box">
   <h2>Yönetici Girişi</h2>
   <p class="muted" style="margin-bottom:14px">BTMedya yönetim paneline giriş yapın.</p>
-  <!-- form: sifre yoneticisi (iPhone/Android anahtarligi) alanlari ancak bir
-       form icindeyse kaydedip dolduruyor. Gonderim JS ile yapilir, sayfa yenilenmez. -->
-  <form id="loginForm" autocomplete="on">
-  <input id="user" name="username" type="text" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Kullanıcı adı" value="BTMEDYA" style="width:100%;margin-bottom:10px">
-  <input id="pw" name="password" type="password" autocomplete="current-password" placeholder="Şifre" style="width:100%;margin-bottom:10px">
-  <button class="btn primary" id="loginBtn" type="submit" style="width:100%">Giriş yap</button>
-  </form>
-  <p id="loginMsg" class="status" style="color:#f88" role="alert"></p>
+  <input id="user" type="text" autocomplete="username" placeholder="Kullanıcı adı" value="BTMEDYA" style="width:100%;margin-bottom:10px">
+  <input id="pw" type="password" autocomplete="current-password" placeholder="Şifre" style="width:100%;margin-bottom:10px">
+  <button class="btn primary" id="loginBtn" style="width:100%">Giriş yap</button>
+  <p id="loginMsg" class="status" style="color:#f88"></p>
 </div>
 
 <!-- APP -->
 <div id="appSection" style="display:none">
+  <section class="admin-guide" aria-labelledby="adminGuideTitle">
+    <div class="guide-hero">
+      <div class="guide-kicker">BTMEDYA İÇERİK MASASI</div>
+      <h1 id="adminGuideTitle">İçeriği seç, düzenle, yayınla.</h1>
+      <p>Fotoğraf, video ve haberleri tek akışta yönetin. Önce dosyayı yükleyin, sonra haber kapağına veya sitenin doğru alanına bağlayın.</p>
+      <div class="guide-actions">
+        <button class="btn primary" type="button" onclick="showTab('media')">+ Medya yükle</button>
+        <button class="btn" type="button" onclick="showTab('news');clearNewsForm()">+ Haber yaz</button>
+        <button class="btn" type="button" onclick="showTab('durum')">Eksikleri gör</button>
+      </div>
+    </div>
+    <div class="guide-side" aria-label="Panel özeti">
+      <div class="guide-stat"><b id="guideMissing">—</b><span>eksik site alanı</span></div>
+      <div class="guide-stat"><b id="guideMedia">—</b><span>medya kaydı</span></div>
+      <div class="guide-stat"><b id="guideNews">—</b><span>haber</span></div>
+      <div class="guide-stat"><b>4</b><span>adımda yayın</span></div>
+    </div>
+  </section>
+  <section class="workflow" aria-label="Yayın akışı">
+    <div class="workflow-step"><strong><i>1</i> Dosyayı seç</strong><p>Fotoğraf veya videoyu sürükleyin.</p></div>
+    <div class="workflow-step"><strong><i>2</i> Bilgiyi tamamla</strong><p>Kategori, alt metin ve kapak.</p></div>
+    <div class="workflow-step"><strong><i>3</i> Alanı bağla</strong><p>Hero, haber kapağı veya sosyal.</p></div>
+    <div class="workflow-step"><strong><i>4</i> Yayınla</strong><p>Önizle, kaydet ve paylaş.</p></div>
+  </section>
 
   <!-- TAB: MEDYA KASASI -->
   <div class="tab-content active" id="tab-durum">
     <div class="panel">
       <h2>Sitede ne eksik</h2>
       <p class="status" id="durumOzet">Yükleniyor…</p>
-      <p class="status">Her satır anasayfadaki bir yeri gösterir. Değiştirmek için listeden sitenin arşivinden bir dosya seçin ya da Medya Kasası'na yükleyip seçin, sonra “Bu yere bağla”ya basın. Gerçek çekim atadığınızda sitedeki etiket kendiliğinden “GERÇEK ÇEKİM” olur.</p>
+      <p class="status">Her satır sitedeki bir yeri gösterir. Eksik olanı doldurmak için dosyayı Medya Kasası'na yükleyip aşağıdan o yuvaya bağlayın.</p>
     </div>
     <div class="panel"><div id="slotList"></div></div>
   </div>
 
   <div class="tab-content" id="tab-media">
     <div class="panel">
-      <h2>Toplu medya yükle</h2>
+      <h2>1. Medya yükle</h2>
+      <p class="help-text">Birden fazla görsel/video seçebilirsiniz. Sistem boyut, oran ve video süresini otomatik ölçer.</p>
       <div class="drop" id="drop">Dosyaları buraya bırak ya da seç — <input id="files" type="file" multiple accept="image/*,video/*,audio/*,.pdf"></div>
-      <div class="row" style="margin-top:12px">
+      <div id="fileQueue" class="file-queue" aria-live="polite"></div>
+      <div class="upload-toolbar" style="margin-top:12px">
         <select id="category">
           <option value="arsiv">Arşiv</option>
           <option value="haber">Haber</option>
@@ -166,7 +176,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
         <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:#9fb2c2">
           <input type="checkbox" id="aiFlag"> Yapay zekâ ile üretildi
         </label>
-        <button class="btn primary" id="uploadBtn">Yüklemeyi başlat</button>
+        <button class="btn primary" id="uploadBtn">Seçilenleri yükle</button>
       </div>
       <p class="status" style="margin-top:6px">Dosyanın en-boy oranı ve süresi yüklenirken ölçülür; hangi platforma uygun olduğu buna göre önerilir.</p>
       <p id="uploadStatus" class="status"></p>
@@ -194,7 +204,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   <div class="tab-content" id="tab-news">
     <div class="panel">
       <div class="row" style="margin-bottom:10px">
-        <h2 style="margin:0;flex:1" id="newsFormTitle">Yeni haber ekle</h2>
+        <h2 style="margin:0;flex:1" id="newsFormTitle">2. Haber oluştur</h2>
         <button class="btn sm" id="newNewsBtn">+ Yeni haber</button>
       </div>
       <div id="newsForm">
@@ -218,23 +228,15 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
             <input id="nAuthor" style="width:100%" placeholder="Buse Tuncay">
           </div>
         </div>
-        <label>KAPAK GÖRSELI URL'si</label>
-        <input id="nCoverUrl" style="width:100%" placeholder="https://... veya /assets/...">
-        <img id="coverPreview" class="cover-preview" alt="Kapak önizleme">
-        <label>VIDEO URL</label>
-        <input id="nVideoUrl" style="width:100%" placeholder="YouTube bağlantısı yapıştırın (watch, youtu.be, shorts)">
-        <div class="form-2col">
-          <div>
-            <label>KAYNAK URL *</label>
-            <input id="nSourceUrl" style="width:100%" placeholder="https://kurum.gov.tr/aciklama veya özgün yayın">
-          </div>
-          <div>
-            <label>ÖZGÜN TARİH</label>
-            <input id="nOriginalDate" type="date" style="width:100%">
+        <div class="form-section">
+          <div class="form-section-title">KAPAK VE MEDYA</div>
+          <div class="cover-picker">
+            <div><label>KAPAK GÖRSELİ URL'Sİ</label><input id="nCoverUrl" style="width:100%" placeholder="Medya Kasası'ndan kapak seçin veya URL yapıştırın"><p class="help-text">Medya Kasası'ndaki “Habere kapak yap” düğmesi bu alanı otomatik doldurur.</p></div>
+            <img id="coverPreview" class="cover-preview" alt="Kapak önizleme">
           </div>
         </div>
-        <label>ARŞİV / KAYNAK NOTU</label>
-        <input id="nArchiveNote" style="width:100%" placeholder="Kaynağın niteliği, izin veya arşiv bağlamı">
+        <label>VIDEO URL</label>
+        <input id="nVideoUrl" style="width:100%" placeholder="YouTube bağlantısı yapıştırın (watch, youtu.be, shorts)">
         <label>ÖZET</label>
         <textarea id="nExcerpt" style="width:100%;min-height:70px" placeholder="Kısa özet (anasayfada görünür)"></textarea>
         <label>İÇERİK</label>
@@ -359,24 +361,6 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   </div>
 </div>
 
-<div class="tab-content" id="tab-trends">
-  <div class="panel">
-    <h2>BTMEDYA Trend ve Kaynak Masası</h2>
-    <p class="muted">Platform önerileri resmi kaynaklardan türetilmiş dört haftalık pilotlardır; otomatik yayın garantisi değildir. Her içerik kaynak, izin, tarih ve AI/gerçek çekim kontrolünden geçer.</p>
-    <div id="trendPolicy" class="status">Yükleniyor…</div>
-  </div>
-  <div class="panel"><div id="trendCards" class="grid"><p class="muted">Trend verisi yükleniyor…</p></div></div>
-  <div class="panel">
-    <h2>Sosyal profil güncelleme kiti</h2>
-    <div class="news-list">
-      <div class="news-row"><div class="news-row-info"><b>Instagram · @btmedyajans</b><small>BTMEDYA | Haber & İçerik Stüdyosu · Reels / Carousel / Stories</small></div><a class="btn sm" href="/sosyal-medya-kit/" target="_blank">Metni aç ↗</a></div>
-      <div class="news-row"><div class="news-row-info"><b>TikTok · @btmedya1010</b><small>BTMEDYA | Haber & Video · yer + olay + kaynak</small></div><a class="btn sm" href="/sosyal-medya-kit/" target="_blank">Metni aç ↗</a></div>
-      <div class="news-row"><div class="news-row-info"><b>YouTube · @BTmedyaAjans</b><small>BTMEDYA | Buse Tuncay · Shorts + açıklayıcı + playlist</small></div><a class="btn sm" href="/sosyal-medya-kit/" target="_blank">Metni aç ↗</a></div>
-      <div class="news-row"><div class="news-row-info"><b>WhatsApp Business</b><small>Profil + katalog + beş bilgilik brief</small></div><a class="btn sm" href="/whatsapp-katalog/" target="_blank">Kataloğu aç ↗</a></div>
-    </div>
-  </div>
-</div>
-
 <div class="tab-content" id="tab-messages">
     <div class="panel">
       <div class="row" style="margin-bottom:10px">
@@ -387,6 +371,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     </div>
   </div>
 
+<div id="adminToast" class="toast" role="status" aria-live="polite"></div>
 </div><!-- /appSection -->
 </div><!-- /wrap -->
 
@@ -423,27 +408,13 @@ function showApp(){
 async function init(){
   try{await req('/api/media');showApp()}catch(e){}
 }
-/* Giris. Once her basarisizlikta "Sifre hatali." yaziyordu: 5 yanlis
-   denemeden sonra sunucu 15 dakika kilitliyor (429) ama ekran yine "Sifre
-   hatali" diyordu; dogru sifre girilse bile. Artik sunucunun kendi mesaji
-   ve kalan deneme sayisi gosterilir. */
-$('#loginForm').onsubmit=async e=>{
-  e.preventDefault();
-  const btn=$('#loginBtn'), msg=$('#loginMsg');
-  msg.textContent=''; btn.disabled=true; btn.textContent='Giriş yapılıyor…';
-  try{
-    const r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:$('#user').value.trim(),password:$('#pw').value})});
-    if(r.ok){showApp();return}
-    const j=await r.json().catch(()=>({}));
-    if(r.status===429) msg.textContent=j.error||'Çok fazla başarısız deneme. 15 dakika bekleyin.';
-    else if(r.status===401) msg.textContent='Kullanıcı adı veya şifre hatalı.'+(typeof j.remaining==='number'?` Kalan deneme: ${j.remaining}.`:'');
-    else msg.textContent=`Sunucu hatası (${r.status}). Birazdan tekrar deneyin.`;
-  }catch{
-    msg.textContent='Bağlantı kurulamadı. İnternet bağlantınızı kontrol edin.';
-  }finally{
-    btn.disabled=false; btn.textContent='Giriş yap';
-  }
+$('#loginBtn').onclick=async()=>{
+  $('#loginMsg').textContent='';
+  const r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:$('#user').value.trim(),password:$('#pw').value})});
+  if(r.ok){showApp()}else{$('#loginMsg').textContent='Şifre hatalı.'}
 };
+$('#user').onkeydown=e=>{if(e.key==='Enter')$('#pw').focus()};
+$('#pw').onkeydown=e=>{if(e.key==='Enter')$('#loginBtn').click()};
 $('#logoutBtn').onclick=()=>fetch('/api/logout').then(()=>location.reload());
 
 /* ---- BTMEDYA Otomasyon Merkezi ---- */
@@ -464,9 +435,7 @@ function autoPlatforms(){
 function autoText(n,prefix){
   const clean=String(n.excerpt||n.body||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
   const lead=clean.slice(0,500);
-  const source=n.source_url||('https://btmedya.com.tr/haberler/'+n.slug+'.html');
-  const note=n.archive_note?('\n\nArşiv notu: '+n.archive_note):'';
-  return (prefix?prefix+'\n\n':'')+n.title+'\n\n'+lead+note+'\n\nKaynak: '+source;
+  return (prefix?prefix+'\n\n':'')+n.title+'\n\n'+lead+'\n\nKaynak: https://btmedya.com.tr/haberler/'+n.slug+'.html';
 }
 async function createAutomationPosts(){
   const status=$('#autoStatus'), mode=$('#autoMode').value, platforms=autoPlatforms();
@@ -519,23 +488,15 @@ function showTab(name){
   if(name==='videos'){loadVideos()}
   if(name==='messages'){loadMessages()}
   if(name==='control'){loadControlCenter()}
-  if(name==='trends'){loadTrends()}
 }
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
 
-async function loadTrends(){
-  const policy=$('#trendPolicy'), box=$('#trendCards');
-  try{
-    const d=await fetch('/data/editorial-trends.json').then(r=>r.json());
-    policy.textContent=(d.generated_at||'')+' · '+(d.policy||'');
-    box.innerHTML=(d.platforms||[]).map(p=>`<article class="card"><div class="meta"><b>${escStr(p.name)}</b><p class="muted">${escStr(p.pilot)}</p><p><strong>Formatlar:</strong> ${escStr((p.formats||[]).join(' · '))}</p><p><strong>Seriler:</strong> ${escStr((p.series||[]).join(' · '))}</p><p>${(p.official_sources||[]).slice(0,3).map(u=>'<a href="'+escStr(u)+'" target="_blank" rel="noopener">Resmi kaynak ↗</a>').join(' · ')}</p></div></article>`).join('');
-  }catch(e){policy.textContent='Trend verisi alınamadı.';box.innerHTML=''}
-}
-
 /* ---- Medya Kasası ---- */
-$('#files').onchange=e=>{selectedFiles=[...e.target.files];$('#drop').querySelector('input').after(document.createTextNode(` (${selectedFiles.length} dosya seçildi)`))};
+function renderFileQueue(){const q=$('#fileQueue');if(!q)return;q.innerHTML=selectedFiles.length?selectedFiles.map(f=>`<div class=\"file-queue-item\"><b>${escStr(f.name)}</b><small>${(f.size/1024/1024).toFixed(1)} MB · ${escStr(f.type||'dosya')}</small></div>`).join(''):''}
+function toast(msg){const t=$('#adminToast');if(!t)return;t.textContent=msg;t.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.remove('show'),2600)}
+$('#files').onchange=e=>{selectedFiles=[...e.target.files];renderFileQueue();$('#uploadStatus').textContent=`${selectedFiles.length} dosya seçildi`};
 $('#drop').ondragover=e=>e.preventDefault();
-$('#drop').ondrop=e=>{e.preventDefault();selectedFiles=[...e.dataTransfer.files];$('#uploadStatus').textContent=`${selectedFiles.length} dosya seçildi`};
+$('#drop').ondrop=e=>{e.preventDefault();selectedFiles=[...e.dataTransfer.files];renderFileQueue();$('#uploadStatus').textContent=`${selectedFiles.length} dosya seçildi`};
 /* Dosyanin en-boy orani ve suresi tarayicida okunur: Worker'da ffmpeg yok.
    Ses tespiti tarayiciya gore degisir, bu yuzden kesin degil, yalnizca ipucu. */
 function readMeta(file){
@@ -583,15 +544,15 @@ $('#uploadBtn').onclick=async()=>{
     }
     await req(`/api/upload/${encodeURIComponent(meta.key)}/complete?uploadId=${encodeURIComponent(meta.uploadId)}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({parts})});
   }
-  selectedFiles=[];
-  $('#uploadStatus').textContent='Yükleme tamamlandı ✓';
+  selectedFiles=[];renderFileQueue();$('#files').value='';
+  $('#uploadStatus').textContent='Yükleme tamamlandı ✓';toast('Medya başarıyla yüklendi. Şimdi site alanına bağlayabilirsiniz.');
   loadMedia();
 };
 async function loadMedia(){
   const qs=new URLSearchParams();
   if($('#q').value)qs.set('q',$('#q').value);
   if($('#filter').value)qs.set('category',$('#filter').value);
-  const d=await req('/api/media?'+qs);
+  const d=await req('/api/media?'+qs); if($('#guideMedia')&&!qs.toString())$('#guideMedia').textContent=d.items?.length||0;
   vaultPlan=await req('/api/vault/plan').catch(()=>({items:[]}));
   const planOf=id=>(vaultPlan.items||[]).find(i=>i.id===id)||{};
   $('#mediaGrid').innerHTML=d.items.map(x=>{
@@ -668,76 +629,39 @@ async function clearOwnVideo(id){
   loadVideos();
 }
 /* ---- Site Durumu: yuvalari ve eksikleri gosterir ---- */
-/* Site Durumu. Once yalnizca panel atamalarini sayiyordu: site dolu oldugu
-   halde "13 yer, 0 dolu" diyor, secim kutusu bos kasadan beslendigi icin de
-   hicbir sey atanamiyordu. Artik her yuvada sitenin su an kullandigi dosya
-   gorunur, secim listesinde kasa ile sitenin kendi arsivi birlikte durur ve
-   atama anasayfada gercekten degisir (/api/public/slots). */
-const ETIKET={
-  panel:['PANELDEN','#5fba8c','rgba(95,186,140,.5)'],
-  site:['SİTEDE','#9fb3c8','rgba(159,179,200,.45)'],
-  yok:['EKSİK','#e0a45c','rgba(224,164,92,.5)'],
-};
-const rozet=(yazi,renk,kenar)=>`<span class="slot-rozet" style="color:${renk};border-color:${kenar}">${yazi}</span>`;
 async function loadSlots(){
   const d=await req('/api/site/slots');
-  const o=d.ozet;
-  $('#durumOzet').innerHTML=`<b>${o.toplam}</b> yer: <b style="color:#5fba8c">${o.panelden||0}</b> panelden atanmış, `+
-    `<b style="color:#9fb3c8">${o.sitede||0}</b> sitenin varsayılanı, <b style="color:#e0a45c">${o.eksik}</b> eksik.`+
-    `<br><span class="muted">Atadığınız dosya anasayfada en geç 1 dakika içinde görünür.</span>`;
-  const kasa=(await req('/api/media?').catch(()=>({items:[]}))).items||[];
-  const statik=d.statikSecenekler||[];
-  $('#slotList').innerHTML=d.yuvalar.map(y=>{
-    const video=y.tur==='video';
-    const kasaSec=kasa.filter(m=>String(m.mime||'').startsWith(video?'video/':'image/'))
-      .map(m=>`<option value="id:${escStr(m.id)}">${escStr((m.title||m.original_name).slice(0,54))}</option>`).join('');
-    const statikSec=statik.filter(s=>s.tur===y.tur)
-      .map(s=>`<option value="statik:${escStr(s.yol)}">${s.gercek?'● ':'◌ '}${escStr(s.ad.slice(0,50))}${s.gercek?'':' (AI)'}</option>`).join('');
-    const [yazi,renk,kenar]=ETIKET[y.kaynak]||ETIKET.yok;
-    const onizle=y.dosya&&y.dosya.url
-      // #t=0.1: iPhone Safari videonun ilk karesini oynatmadan gostermiyor, onizleme kara kaliyordu.
-      ? (video?`<video class="slot-onizleme" src="${escStr(y.dosya.url)}#t=0.1" muted playsinline preload="metadata"></video>`
-              :`<img class="slot-onizleme" src="${escStr(y.dosya.url)}" alt="" loading="lazy">`) : '';
-    return `
-    <div class="slot-satir">
-      <div class="slot-bilgi">
+  $('#durumOzet').innerHTML=`<b>${d.ozet.toplam}</b> yer var, <b style="color:#5fba8c">${d.ozet.dolu}</b> dolu, <b style="color:#e0a45c">${d.ozet.eksik}</b> eksik.`; if($('#guideMissing'))$('#guideMissing').textContent=d.ozet.eksik;
+  const all=await req('/api/media?').catch(()=>({items:[]}));
+  const secenek=(all.items||[]).map(m=>`<option value="${escStr(m.id)}">${escStr((m.title||m.original_name).slice(0,54))}</option>`).join('');
+  $('#slotList').innerHTML=d.yuvalar.map(y=>`
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;padding:15px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+      <div>
         <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
           <b style="font-size:14px">${escStr(y.bolum)}</b>
-          ${rozet(yazi,renk,kenar)}
-          ${y.dosya?(y.dosya.yapayZeka?rozet('AI ÜRETİMİ','#3fc9e8','rgba(63,201,232,.45)'):rozet('GERÇEK ÇEKİM','#5fba8c','rgba(95,186,140,.5)')):''}
+          <span style="font-size:9.5px;letter-spacing:.1em;padding:2px 7px;border:1px solid ${y.dolu?'rgba(95,186,140,.5)':'rgba(224,164,92,.5)'};color:${y.dolu?'#5fba8c':'#e0a45c'}">${y.dolu?'DOLU':'EKSİK'}</span>
+          ${y.dosya&&y.dosya.yapayZeka?'<span style="font-size:9.5px;letter-spacing:.1em;padding:2px 7px;border:1px solid rgba(63,201,232,.45);color:#3fc9e8">YAPAY ZEKÂ</span>':''}
         </div>
         <div class="muted" style="margin-top:5px;font-size:12px">${escStr(y.not)}</div>
-        ${y.dosya?`<div style="margin-top:6px;font-size:12px">Şu an: <b>${escStr(y.dosya.ad)}</b></div>`:''}
         <div class="muted" style="margin-top:4px;font-size:11px;font-family:ui-monospace,monospace">
-          ${video?'video':'görsel'} · ${escStr(y.oran)} · önerilen ${escStr(y.onerilenOlcu)}
+          ${escStr(y.tur==='video'?'video':'görsel')} · ${escStr(y.oran)} · önerilen ${escStr(y.onerilenOlcu)}
           ${y.dosya&&y.dosya.olcu?` · yüklenen ${escStr(y.dosya.olcu)}`:''}
         </div>
-        ${onizle}
       </div>
-      <div class="slot-islem">
-        <select id="sel-${escStr(y.slug)}" aria-label="${escStr(y.bolum)} için dosya">
-          <option value="">— dosya seç —</option>
-          ${kasaSec?`<optgroup label="Medya Kasası">${kasaSec}</optgroup>`:''}
-          ${statikSec?`<optgroup label="Sitenin arşivi (● gerçek, ◌ AI)">${statikSec}</optgroup>`:''}
-        </select>
-        <button class="btn sm" onclick="assignSlot('${escStr(y.slug)}')">Bu yere bağla</button>
-        ${y.kaynak==='panel'?`<button class="btn sm" onclick="clearSlot('${escStr(y.slug)}')">Varsayılana dön</button>`:''}
+      <div>
+        <select id="sel-${escStr(y.slug)}" style="width:100%;margin-bottom:6px"><option value="">— dosya seç —</option>${secenek}</select>
+        <button class="btn sm" style="width:100%" onclick="assignSlot('${escStr(y.slug)}')">Bu yere bağla</button>
+        ${y.dolu?`<button class="btn sm" style="width:100%;margin-top:5px" onclick="clearSlot('${escStr(y.dosya.id)}')">Bağlantıyı kaldır</button>`:''}
       </div>
-    </div>`;}).join('');
+    </div>`).join('');
 }
 async function assignSlot(slug){
-  const v=$('#sel-'+slug).value; if(!v){alert('Önce bir dosya seçin');return}
-  const [tur,deger]=[v.slice(0,v.indexOf(':')),v.slice(v.indexOf(':')+1)];
-  const r=await fetch('/api/site/slots/'+encodeURIComponent(slug),{method:'PUT',headers:{'content-type':'application/json'},
-    body:JSON.stringify(tur==='statik'?{statik:deger}:{id:deger})});
-  if(r.status===401){showLogin();return}
-  const j=await r.json().catch(()=>({}));
-  if(!r.ok||!j.ok){alert(j.error||'Atama yapılamadı.');return}
+  const id=$('#sel-'+slug).value; if(!id){alert('Önce bir dosya seçin');return}
+  await req('/api/media/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({slot:slug,published:1})});
   loadSlots();
 }
-async function clearSlot(slug){
-  if(!confirm('Bu yer sitenin varsayılan dosyasına dönsün mü?'))return;
-  await req('/api/site/slots/'+encodeURIComponent(slug),{method:'DELETE'});
+async function clearSlot(id){
+  await req('/api/media/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({slot:''})});
   loadSlots();
 }
 /* Hedef secimi: kullanici oneriyi degistirebilir, secim kaydedilir. */
@@ -790,7 +714,7 @@ function clearNewsForm(){
   editingNewsId=null;
   $('#newsFormTitle').textContent='Yeni haber ekle';
   $('#nTitle').value='';delete $('#nSlug').dataset.touched;$('#nSlug').value='';
-  $('#nCategory').value='';$('#nAuthor').value='';$('#nCoverUrl').value='';$('#nVideoUrl').value='';$('#nSourceUrl').value='';$('#nOriginalDate').value='';$('#nArchiveNote').value='';
+  $('#nCategory').value='';$('#nAuthor').value='';$('#nCoverUrl').value='';$('#nVideoUrl').value='';
   $('#nExcerpt').value='';$('#nBody').value='';$('#nDate').value='';$('#nStatus').value='published';
   $('#coverPreview').style.display='none';
   $('#nCancelBtn').style.display='none';
@@ -808,16 +732,12 @@ async function saveNews(forceStatus){
     author:$('#nAuthor').value.trim(),
     cover_url:$('#nCoverUrl').value.trim(),
     video_url:$('#nVideoUrl').value.trim(),
-    source_url:$('#nSourceUrl').value.trim(),
-    original_date:$('#nOriginalDate').value,
-    archive_note:$('#nArchiveNote').value.trim(),
     excerpt:$('#nExcerpt').value.trim(),
     body:$('#nBody').value.trim(),
     status,
     published_at:$('#nDate').value ? new Date($('#nDate').value).toISOString() : null
   };
   if(!b.title||!b.slug){$('#nStatus2').textContent='Başlık ve slug zorunlu';return}
-  if(status==='published'&&!b.source_url){$('#nStatus2').textContent='Yayın için kaynak URL zorunlu';return}
   $('#nStatus2').textContent='Kaydediliyor…';
   try{
     let r,d;
@@ -841,7 +761,7 @@ $('#nSaveBtn').onclick=()=>saveNews('published');
 $('#nDraftBtn').onclick=()=>saveNews('draft');
 
 async function loadNewsList(){
-  const d=await req('/api/admin/news');
+  const d=await req('/api/admin/news'); if($('#guideNews'))$('#guideNews').textContent=d.items?.length||0;
   const list=$('#newsList');
   if(!d.items?.length){list.innerHTML='<p class="muted">Henüz haber yok.</p>';return}
   list.innerHTML='<div class="news-list">'+d.items.map(n=>`
@@ -872,9 +792,6 @@ async function loadNewsEdit(id){
   $('#nAuthor').value=n.author||'';
   $('#nCoverUrl').value=n.cover_url||'';
   $('#nVideoUrl').value=n.video_url||'';
-  $('#nSourceUrl').value=n.source_url||'';
-  $('#nOriginalDate').value=n.original_date ? String(n.original_date).slice(0,10) : '';
-  $('#nArchiveNote').value=n.archive_note||'';
   $('#nExcerpt').value=n.excerpt||'';
   $('#nBody').value=n.body||'';
   $('#nStatus').value=n.status||'draft';
