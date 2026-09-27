@@ -614,7 +614,7 @@ async function controlCenterApi(request, env, url){
       /* Once burada dort ayri gelistirici hesabi (Meta, TikTok, Google)
          isteniyordu. Metricool hepsini tek anahtarla kapsiyor ve TikTok
          yayinlari zaten oradan calisti; oncelik o. */
-      !env.METRICOOL_USER_TOKEN?'Metricool: Cloudflare Worker secret METRICOOL_USER_TOKEN ekle (Metricool > Hesap > API). Tek anahtar Instagram, Facebook, TikTok ve YouTube paylaşımını açar.':null,
+      !metricool.yapilandirildi?'Metricool: Yönetim → Control Center üzerinden tek seferlik bağlantıyı kur ve tokenı güvenli kasaya kaydet.':null,
       metricool.hatali?`Metricool: ${metricool.hatali} gönderi teslim edilemedi — ${metricool.sonHata||'ayrıntı için Sosyal İçerik'}`:null
     ].filter(Boolean)
   });
