@@ -60,6 +60,13 @@ jobs:
           grep -q 'Control Center' public/admin/index.html
           grep -q '/api/admin/control-center' public/admin/index.html
           grep -q '/kaynak-masasi' wrangler.toml
+          grep -q '/rss.xml' wrangler.toml
+          grep -q '/news-sitemap.xml' wrangler.toml
+          grep -q '/.well-known/*' wrangler.toml
+          grep -q 'Sitemap: https://btmedya.com.tr/sitemap.xml' public/robots.txt
+          grep -q 'Sitemap: https://btmedya.com.tr/news-sitemap.xml' public/robots.txt
+          test -s public/.well-known/security.txt
+          test -s public/site.webmanifest
           test ! -e .github/workflows/media-smoke.yml
           test ! -e .github/workflows/storage-audit.yml
 
