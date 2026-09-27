@@ -48,6 +48,16 @@ Yorum, *ne* yaptığını değil **neden** öyle yapıldığını anlatır.
 public/ **olduğu gibi servis edilir.** Oraya koyduğunuz her dosya herkese
 açıktır. Backend dosyaları bu klasörün dışında kalır.
 
+## AI geliştirme istemcileri
+
+Bu repository üzerinde geliştirme iki istemciyle yapılabilir: **ChatGPT + GitHub bağlantısı** ve **Claude Code**.
+
+İkisinin de kaynak gerçeği aynıdır: `main` branch ve bu repository. Bir istemci başka bir production backend'i, Manus projesi veya ayrı bir Cloudflare Worker oluşturmaz.
+
+ChatGPT/GitHub bağlantısı dosya inceleme ve hedefli repository değişiklikleri için kullanılabilir. Claude Code yerel çalışma kopyasında test, refactor ve commit/PR için kullanılabilir. Her iki istemci de mevcut mimariyi değiştirmeden önce bu dosyayı ve `docs/BTMEDYA-TEK-ZINCIR.md` dosyasını okumalıdır.
+
+Gizli anahtarlar sohbet mesajlarına, kaynak dosyalara veya commit'e yazılmaz. GitHub Actions secrets ve Cloudflare Worker Secrets kullanılır.
+
 ## Yayına alma
 
 main dalına push production dağıtımını tetikler. Cloudflare Builds üzerinde
