@@ -57,10 +57,12 @@ jobs:
       - name: Verify Cloudflare API token
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN eksik."; exit 1; }
-          verify="$(curl -fsS --retry 2 --connect-timeout 10 --max-time 30             "https://api.cloudflare.com/client/v4/user/tokens/verify"             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN")"
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID eksik."; exit 1; }
+          verify="$(curl -fsS --retry 2 --connect-timeout 10 --max-time 30             "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/tokens/verify"             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN")"
           echo "$verify" | jq -c '{success,result:{status:(.result.status // null)}}'
           test "$(jq -r '.success // false' <<<"$verify")" = "true"
           test "$(jq -r '.result.status // ""' <<<"$verify")" = "active"
