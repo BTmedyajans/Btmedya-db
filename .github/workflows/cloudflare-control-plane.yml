@@ -35,6 +35,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify Cloudflare credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ZONE_NAME: btmedya.com.tr
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::CLOUDFLARE_API_TOKEN secret eksik."; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "::error::CLOUDFLARE_ACCOUNT_ID secret eksik."; exit 1; }
+
+          echo "Cloudflare zone erişimi doğrulanıyor..."
+          response="$(curl -sS --retry 2 --connect-timeout 15 --max-time 45 \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            "https://api.cloudflare.com/client/v4/zones?name=$ZONE_NAME")"
+
+          success="$(jq -r '.success // false' <<<"$response")"
+          zone_id="$(jq -r '.result[0].id // empty' <<<"$response")"
+          if [[ "$success" != "true" || -z "$zone_id" ]]; then
+            echo "::error::Cloudflare token zone erişim kontrolünden geçemedi."
+            jq -c '{success,errors,messages}' <<<"$response"
+            exit 1
+          fi
+
+          echo "Cloudflare API erişimi OK; zone_id=$zone_id"
+          echo "Account-owned token ile Page Rules erişimi denenmeyecek; bu endpoint desteklenmiyor."
+
       - name: Audit / apply Cloudflare configuration
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
