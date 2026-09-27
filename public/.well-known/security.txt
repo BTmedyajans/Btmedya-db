@@ -1,4 +1,7 @@
+# BTMEDYA guvenlik iletisimi (RFC 9116)
+
 Contact: mailto:busetuncay74@gmail.com
+Contact: https://btmedya.com.tr/iletisim/
+Expires: 2027-09-26T00:00:00.000Z
 Preferred-Languages: tr, en
 Canonical: https://btmedya.com.tr/.well-known/security.txt
-Policy: https://btmedya.com.tr/gizlilik/
