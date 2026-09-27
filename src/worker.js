@@ -608,7 +608,7 @@ async function contactApi(request, env, url, ctx){
 const SOCIAL_STATUS = new Set(['fikir','hazirlaniyor','onayda','planlandi','yayinlandi']);
 const SOCIAL_FORMAT = new Set(['9:16','4:5','1:1','16:9']);
 
-async function socialApi(request, env, url){
+async function socialApi(request, env, url, ctx){
   if(!url.pathname.startsWith('/api/admin/social')) return null;
   if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
   if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
@@ -657,6 +657,13 @@ async function socialApi(request, env, url){
       await env.DB.prepare('INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
         .bind(id,title,body,JSON.stringify(platforms),format,mediaKey,sourceSlug,status,scheduledAt,now,now).run();
     }
+    if(status==='planlandi' && ctx?.waitUntil){
+      ctx.waitUntil(
+        processMetricoolQueue(env,10)
+          .then(x=>console.log('[btmedya] immediate Metricool handoff',JSON.stringify(x)))
+          .catch(e=>console.error('[btmedya] immediate Metricool handoff:',e?.message||e))
+      );
+    }
     return json({ok:true,id,status});
   }
 
@@ -668,6 +675,13 @@ async function socialApi(request, env, url){
     if(!SOCIAL_STATUS.has(status)) return json({ok:false,error:'Geçersiz durum'},400);
     const r=await env.DB.prepare('UPDATE social_posts SET status=?,updated_at=? WHERE id=?')
       .bind(status,new Date().toISOString(),id).run();
+    if(status==='planlandi' && ctx?.waitUntil && (r.meta?.changes||0)>0){
+      ctx.waitUntil(
+        processMetricoolQueue(env,10)
+          .then(x=>console.log('[btmedya] immediate Metricool handoff',JSON.stringify(x)))
+          .catch(e=>console.error('[btmedya] immediate Metricool handoff:',e?.message||e))
+      );
+    }
     return json({ok:true,changed:(r.meta?.changes||0)>0});
   }
   if(byId && request.method==='DELETE'){
@@ -1206,7 +1220,7 @@ export default { async scheduled(controller, env, ctx){
     if(env.DB){
       const rc = await contactApi(request, env, url, ctx);
       if(rc) return rc;
-    const rs = await socialApi(request, env, url);
+    const rs = await socialApi(request, env, url, ctx);
     if(rs) return rs;
     }
     if(env.DB && env.MEDIA){
