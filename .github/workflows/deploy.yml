@@ -16,7 +16,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Verify Cloudflare Workers Build and production
+    name: Deploy Cloudflare Worker and verify production
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,32 +46,21 @@ jobs:
           test ! -e .github/workflows/media-smoke.yml
           test ! -e .github/workflows/storage-audit.yml
 
-      - name: Wait for Cloudflare Workers Build
-        uses: actions/github-script@v7
+      - name: Apply remote D1 migrations
+        uses: cloudflare/wrangler-action@v3
         with:
-          script: |
-            const target = 'Workers Builds: btmedya-db';
-            const sha = context.sha;
-            const deadline = Date.now() + 10 * 60 * 1000;
-            while (Date.now() < deadline) {
-              const { data } = await github.rest.checks.listForRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: sha,
-                per_page: 100
-              });
-              const check = data.check_runs.find(x => x.name === target && x.head_sha === sha);
-              if (check?.status === 'completed') {
-                if (check.conclusion !== 'success') {
-                  core.setFailed(`Cloudflare Workers Build başarısız: ${check.conclusion || 'bilinmiyor'}`);
-                } else {
-                  core.notice('Cloudflare Workers Build başarılı.');
-                }
-                return;
-              }
-              await new Promise(r => setTimeout(r, 10000));
-            }
-            core.setFailed('Cloudflare Workers Build 10 dakika içinde sonuçlanmadı.');
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: latest
+          command: d1 migrations apply btmedya-media --remote
+
+      - name: Deploy Worker and Assets
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: latest
+          command: deploy --config wrangler.toml
 
       - name: Production smoke test
         run: |
