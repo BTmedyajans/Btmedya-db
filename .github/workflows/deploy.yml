@@ -19,10 +19,10 @@ jobs:
     name: Deploy Cloudflare Worker and verify production
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Source preflight
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -65,11 +65,11 @@ jobs:
           fi
 
       - name: Deploy Worker and Assets
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: latest
+          wranglerVersion: "4.142.0"
           command: deploy --config wrangler.toml
 
       - name: Production smoke test
