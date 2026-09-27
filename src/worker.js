@@ -6,7 +6,6 @@ import { recoveryPasswordValid } from "./auth-recovery.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu } from "./metricool-scheduler.js";
-import { readMetricoolCredential, saveMetricoolCredential, deleteMetricoolCredential, verifyMetricoolCredential, maskMetricoolToken } from "./metricool-credentials.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
  * 2) Medya Kasası (D1 tablo: media, R2) — /api/media*, /api/public/media, /api/export, /media/*, /api/login, /api/logout
@@ -509,70 +508,6 @@ async function mediaSyncApi(request, env, url){
   }
   return json({ok:true,already:false,path:raw,source:'r2',mime,size,message:'Statik medya R2 ve D1 medya kasasına aktarıldı'});
 }
-/* ---------- Metricool secure connection ---------- */
-async function metricoolConnectionApi(request, env, url){
-  if(!url.pathname.startsWith('/api/admin/metricool')) return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
-
-  if(url.pathname==='/api/admin/metricool' && request.method==='GET'){
-    const cfg=await readMetricoolCredential(env);
-    return json({
-      ok:true,
-      configured:Boolean(cfg?.token),
-      source:env.METRICOOL_USER_TOKEN?'worker_secret':'secure_vault',
-      userId:cfg?.userId||'5278969',
-      brandId:cfg?.brandId||'6858384',
-      timezone:cfg?.timezone||'Europe/Istanbul',
-      creatorEmail:cfg?.creatorEmail||'',
-      token:cfg?.token?maskMetricoolToken(cfg.token):'',
-      updatedAt:cfg?.updatedAt||null
-    });
-  }
-
-  if(url.pathname==='/api/admin/metricool' && request.method==='POST'){
-    const body=await request.json().catch(()=>({}));
-    const token=String(body.token||'').trim();
-    const userId=String(body.userId||'5278969').trim();
-    const brandId=String(body.brandId||'6858384').trim();
-    const timezone=String(body.timezone||'Europe/Istanbul').trim();
-    const creatorEmail=String(body.creatorEmail||'').trim();
-    if(token.length<8) return json({ok:false,error:'Metricool API token eksik veya çok kısa'},400);
-    const check=await verifyMetricoolCredential({
-      token,userId,brandId,
-      apiBase:env.METRICOOL_API_BASE||'https://app.metricool.com'
-    }).catch(e=>({ok:false,status:0,error:String(e?.message||e)}));
-    if(!check.ok) return json({
-      ok:false,
-      error:`Metricool doğrulaması başarısız (HTTP ${check.status||'?'})`,
-      detail:String(check.error||'Token veya kullanıcı bilgilerini kontrol edin.').slice(0,800)
-    },400);
-    if(check.brandFound===false) return json({
-      ok:false,
-      error:'Token geçerli ancak verilen Brand ID bu Metricool hesabında bulunamadı.',
-      userId,brandId,
-      brands:check.brands||[]
-    },400);
-
-    const saved=await saveMetricoolCredential(env,{token,userId,brandId,timezone,creatorEmail});
-    return json({
-      ok:true,
-      configured:true,
-      source:'secure_vault',
-      userId,brandId,timezone,creatorEmail,
-      token:maskMetricoolToken(token),
-      updatedAt:saved.updatedAt,
-      message:'Metricool bağlantısı doğrulandı ve güvenli kasaya kaydedildi.'
-    });
-  }
-
-  if(url.pathname==='/api/admin/metricool' && request.method==='DELETE'){
-    const result=await deleteMetricoolCredential(env);
-    return json({...result,configured:false,message:'Kaydedilmiş Metricool bağlantısı kaldırıldı.'});
-  }
-
-  return json({ok:false,error:'Not found'},404);
-}
-
 /* ---------- BTMEDYA Control Center ---------- */
 async function controlCenterApi(request, env, url){
   if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
@@ -614,7 +549,7 @@ async function controlCenterApi(request, env, url){
       /* Once burada dort ayri gelistirici hesabi (Meta, TikTok, Google)
          isteniyordu. Metricool hepsini tek anahtarla kapsiyor ve TikTok
          yayinlari zaten oradan calisti; oncelik o. */
-      !metricool.yapilandirildi?'Metricool: Yönetim → Control Center üzerinden tek seferlik bağlantıyı kur ve tokenı güvenli kasaya kaydet.':null,
+      !env.METRICOOL_USER_TOKEN?'Metricool: Cloudflare Worker secret METRICOOL_USER_TOKEN ekle (Metricool > Hesap > API). Tek anahtar Instagram, Facebook, TikTok ve YouTube paylaşımını açar.':null,
       metricool.hatali?`Metricool: ${metricool.hatali} gönderi teslim edilemedi — ${metricool.sonHata||'ayrıntı için Sosyal İçerik'}`:null
     ].filter(Boolean)
   });
@@ -1278,8 +1213,6 @@ export default { async scheduled(controller, env, ctx){
     const rw = await workflowApi(request, env, url);
     if(rw) return rw;
 
-    const rmc = await metricoolConnectionApi(request, env, url);
-    if(rmc) return rmc;
     const rcc = await controlCenterApi(request, env, url);
     if(rcc) return rcc;
     const r1 = await newsApi(request, env, url, ctx);
