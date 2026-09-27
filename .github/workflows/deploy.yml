@@ -35,6 +35,7 @@ jobs:
           test -s public/robots.txt
           test -s public/sitemap.xml
           node --check src/worker.js
+          node --check src/metricool-scheduler.js
           node --check public/home.js
           python3 tools/validate-assets.py
           grep -q 'mobile-fixes.css' public/index.html
