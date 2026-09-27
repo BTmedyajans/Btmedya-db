@@ -140,6 +140,7 @@ else
       t=$i
       gsub(/^["\047]+|["\047]+$/, "", t)
       if (t=="v=spf1" || t=="~all" || t=="-all" || t=="+all" || t=="?all") continue
+      if (t=="include:_spf.mx.cloudflare.net") continue
       if (!seen[t]++) order[++n]=t
     }
   }
@@ -176,7 +177,15 @@ address_verified=$(jq -r --arg email "$DEST_EMAIL" '.result[]? | select(.email =
 if [[ -z "$address_id" ]]; then
   echo "Creating Email Routing destination: $DEST_EMAIL"
   out=$(cf POST "/accounts/$ACCOUNT_ID/email/routing/addresses" "$(jq -n --arg email "$DEST_EMAIL" '{email:$email}')")
-  require_success "Email Routing hedef adresi oluşturulamadı" "$out"
+  if [[ "$(jq -r '.success // false' <<<"$out")" != "true" ]]; then
+    code="$(jq -r '.errors[0].code // ""' <<<"$out")"
+    message="$(jq -r '.errors[0].message // ""' <<<"$out")"
+    if [[ "$code" == "10000" && "$message" == "Authentication error" ]]; then
+      echo "ACTION REQUIRED: Cloudflare API tokenında Account > Email Routing Addresses > Write (Email Routing Addresses Write) yetkisi gerekli."
+      echo "Bu yetki /accounts/$ACCOUNT_ID/email/routing/addresses hedef adres oluşturma API'si içindir."
+    fi
+    require_success "Email Routing hedef adresi oluşturulamadı" "$out"
+  fi
   address_id=$(jq -r '.result.id // empty' <<<"$out")
   address_verified=$(jq -r '.result.verified // ""' <<<"$out")
   echo "Verification email sent to $DEST_EMAIL."
