@@ -68,8 +68,16 @@ async function yapayZekaMi(env, key){
    kendini kurar (IF NOT EXISTS, idempotent). */
 async function takipTablosu(env){
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS metricool_gonderim (
-    post_id TEXT PRIMARY KEY, metricool_id TEXT NOT NULL DEFAULT '',
-    durum TEXT NOT NULL DEFAULT '', hata TEXT NOT NULL DEFAULT '', updated_at TEXT NOT NULL)`).run();
+    post_id TEXT PRIMARY KEY,
+    metricool_id TEXT NOT NULL DEFAULT '',
+    durum TEXT NOT NULL DEFAULT '',
+    hata TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0
+  )`).run();
+
+  // Canlı tablo eski sürümden geldiyse yeni alanı yerinde ve idempotent ekle.
+  try { await env.DB.prepare("ALTER TABLE metricool_gonderim ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0").run(); } catch {}
 }
 
 function youtubeDataFor(providers,row){
@@ -81,17 +89,27 @@ function youtubeDataFor(providers,row){
 }
 
 export async function scheduleToMetricool(env,row){
-  if(!env.METRICOOL_USER_TOKEN) return {ok:false,skipped:true,error:"METRICOOL_USER_TOKEN eksik"};
+  if(!env.METRICOOL_USER_TOKEN) return {ok:false,skipped:true,retryable:false,error:"METRICOOL_USER_TOKEN eksik"};
   const userId=String(env.METRICOOL_USER_ID||"5278969");
   const blogId=String(env.METRICOOL_BRAND_ID||"6858384");
   const timezone=String(env.METRICOOL_TIMEZONE||"Europe/Istanbul");
+  const scheduledMs=new Date(row.scheduled_at||"").getTime();
   const dateTime=localDateTime(row.scheduled_at,timezone);
-  if(!dateTime) return {ok:false,error:"scheduled_at geçersiz"};
-  if(new Date(row.scheduled_at).getTime()<=Date.now()+30000) return {ok:false,error:"Planlanan zaman Metricool'a gönderim için çok yakın/geçmiş"};
+  if(!dateTime || Number.isNaN(scheduledMs)) return {ok:false,retryable:false,error:"scheduled_at geçersiz"};
+  if(scheduledMs<=Date.now()+15000) return {ok:false,retryable:false,error:"Planlanan zaman geçmiş veya Metricool için artık çok yakın"};
   const providers=providersFrom(row);
-  if(!providers.length) return {ok:false,error:"Geçerli sosyal platformu yok"};
+  if(!providers.length) return {ok:false,retryable:false,error:"Geçerli sosyal platformu yok"};
 
   const mediaUrl=await publicMediaUrl(env,row.media_key);
+  const hasMedia=Boolean(mediaUrl);
+  const needsMedia=providers.some(p =>
+    p.network==="instagram" ||
+    p.network==="tiktok" ||
+    p.network==="youtube" ||
+    (p.network==="facebook" && ["REEL","STORY"].includes(String(p.data?.type||"")))
+  );
+  if(needsMedia && !hasMedia) return {ok:false,retryable:false,error:"Seçilen platform için görsel/video zorunlu; media_key eksik"};
+
   const ai=await yapayZekaMi(env,row.media_key);
   const body={
     publicationDate:{dateTime,timezone},
@@ -123,7 +141,11 @@ export async function scheduleToMetricool(env,row){
   });
   const raw=await res.text();
   let data=null; try{ data=JSON.parse(raw); }catch{}
-  if(!res.ok) return {ok:false,status:res.status,error:typeof data==="object"&&data?JSON.stringify(data):raw.slice(0,1200)};
+  if(!res.ok) {
+    const detail=typeof data==="object"&&data?JSON.stringify(data):raw.slice(0,1200);
+    const retryable=res.status===429 || res.status>=500;
+    return {ok:false,status:res.status,retryable,error:detail||`Metricool HTTP ${res.status}`};
+  }
   const id=data?.id ?? data?.data?.id ?? data?.uuid ?? data?.data?.uuid ?? null;
   return {ok:true,id:id?String(id):null,response:data};
 }
@@ -135,37 +157,71 @@ export async function scheduleToMetricool(env,row){
    Bir gonderi yalnizca bir kez teslim edilir; hata alan tekrar denenmez,
    hata metni panelde gorunsun diye kaydedilir. */
 export async function processMetricoolQueue(env,limit=10){
-  const result={enabled:Boolean(env.METRICOOL_USER_TOKEN),processed:0,scheduled:0,failed:0,skipped:0,items:[]};
+  const result={enabled:Boolean(env.METRICOOL_USER_TOKEN),processed:0,scheduled:0,failed:0,retried:0,skipped:0,items:[]};
   if(!env.DB || !env.METRICOOL_USER_TOKEN) return result;
   await takipTablosu(env);
-  const now=new Date().toISOString();
+
+  const now=new Date();
+  const nowIso=now.toISOString();
+  // Hatalı teslimler 5 dakika sonra tekrar denenir; kalıcı hatalar 5 denemede durur.
+  const retryBefore=new Date(now.getTime()-5*60*1000).toISOString();
   const rows=(await env.DB.prepare(
-    `SELECT p.* FROM social_posts p LEFT JOIN metricool_gonderim g ON g.post_id=p.id
-     WHERE p.status='planlandi' AND p.scheduled_at IS NOT NULL AND p.scheduled_at>? AND g.post_id IS NULL
-     ORDER BY p.scheduled_at ASC LIMIT ?`
-  ).bind(now,Number(limit)||10).all()).results||[];
-  const yaz=(id,metricoolId,durum,hata)=>env.DB.prepare(
-    `INSERT INTO metricool_gonderim(post_id,metricool_id,durum,hata,updated_at) VALUES(?,?,?,?,?)
-     ON CONFLICT(post_id) DO UPDATE SET metricool_id=excluded.metricool_id,durum=excluded.durum,hata=excluded.hata,updated_at=excluded.updated_at`
-  ).bind(String(id),String(metricoolId||""),durum,String(hata||"").slice(0,2000),new Date().toISOString()).run();
+    `SELECT p.*, g.durum AS metricool_durum, g.attempts AS metricool_attempts
+       FROM social_posts p
+       LEFT JOIN metricool_gonderim g ON g.post_id=p.id
+      WHERE p.status='planlandi'
+        AND p.scheduled_at IS NOT NULL
+        AND p.scheduled_at > ?
+        AND (
+          g.post_id IS NULL
+          OR (g.durum='hata' AND g.updated_at <= ? AND COALESCE(g.attempts,0) < 5)
+        )
+      ORDER BY p.scheduled_at ASC LIMIT ?`
+  ).bind(nowIso,retryBefore,Number(limit)||10).all()).results||[];
+
+  const claim=async(id,attempts)=>{
+    const stamp=new Date().toISOString();
+    const r=await env.DB.prepare(
+      `INSERT INTO metricool_gonderim(post_id,metricool_id,durum,hata,updated_at,attempts)
+       VALUES(?,?,?,?,?,?)
+       ON CONFLICT(post_id) DO UPDATE SET
+         durum=excluded.durum,hata=excluded.hata,updated_at=excluded.updated_at,attempts=excluded.attempts`
+    ).bind(String(id),"","gonderiliyor","",stamp,attempts).run();
+    return Number(r.meta?.changes||0)>0;
+  };
+  const yaz=(id,metricoolId,durum,hata,attempts)=>env.DB.prepare(
+    `INSERT INTO metricool_gonderim(post_id,metricool_id,durum,hata,updated_at,attempts)
+     VALUES(?,?,?,?,?,?)
+     ON CONFLICT(post_id) DO UPDATE SET metricool_id=excluded.metricool_id,durum=excluded.durum,hata=excluded.hata,updated_at=excluded.updated_at,attempts=excluded.attempts`
+  ).bind(String(id),String(metricoolId||""),durum,String(hata||"").slice(0,2000),new Date().toISOString(),attempts);
+
   for(const row of rows){
     result.processed++;
+    const attempts=Number(row.metricool_attempts||0)+1;
+    // Aynı kaydı iki cron/Worker örneği aynı anda almaya çalışırsa gonderiliyor kilidi korur.
+    if(row.metricool_durum==="gonderiliyor" && row.metricool_attempts>=attempts-1){
+      result.skipped++;
+      continue;
+    }
+    await claim(row.id,attempts);
+
     try{
       const out=await scheduleToMetricool(env,row);
       if(out.ok){
-        await yaz(row.id,out.id||"submitted","planlandi","");
+        await yaz(row.id,out.id||"submitted","planlandi","",attempts);
         result.scheduled++;
-        result.items.push({id:row.id,status:"scheduled",metricoolId:out.id||null});
+        if(attempts>1) result.retried++;
+        result.items.push({id:row.id,status:"scheduled",metricoolId:out.id||null,attempts});
       }else{
-        await yaz(row.id,"","hata",out.error||"Metricool planlamasi basarisiz");
+        await yaz(row.id,"","hata",out.error||"Metricool planlamasi basarisiz",attempts);
         result.failed++;
-        result.items.push({id:row.id,status:"error",error:String(out.error||"").slice(0,300)});
+        result.items.push({id:row.id,status:"error",retryable:Boolean(out.retryable),error:String(out.error||"").slice(0,300),attempts});
       }
     }catch(e){
       const msg=String(e?.message||e);
-      await yaz(row.id,"","hata",msg).catch(()=>{});
+      await yaz(row.id,"","hata",msg,attempts).catch(()=>{});
       result.failed++;
-      result.items.push({id:row.id,status:"error",error:msg.slice(0,300)});
+      result.items.push({id:row.id,status:"error",retryable:true,error:msg.slice(0,300),attempts});
     }
   }
   return result;
