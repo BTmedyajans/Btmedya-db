@@ -77,37 +77,62 @@ jobs:
         run: |
           set -euo pipefail
 
+          resolve_ip() {
+            local host="$1"
+            local ip
+            ip="$(dig +short A "$host" @1.1.1.1 | head -n1)"
+            if [ -z "$ip" ]; then
+              echo "DNS_RESOLVE_FAILED $host" >&2
+              return 1
+            fi
+            echo "$ip"
+          }
+
+          HOME_IP="$(resolve_ip btmedya.com.tr)"
+          WWW_IP="$(resolve_ip www.btmedya.com.tr)"
+          echo "SMOKE DNS: btmedya.com.tr -> $HOME_IP"
+          echo "SMOKE DNS: www.btmedya.com.tr -> $WWW_IP"
+
+          curl_url() {
+            local host="$1"
+            local ip="$2"
+            local url="$3"
+            curl --resolve "$host:443:$ip" -L -sS --max-time 30 "$url"
+          }
+
           check_http() {
             local label="$1"
-            local url="$2"
-            local expected="$3"
+            local host="$2"
+            local ip="$3"
+            local url="$4"
+            local expected="$5"
             local actual
-            actual="$(curl -L -sS -o /dev/null -w "%{http_code}" --max-time 30 "$url")"
+            actual="$(curl --resolve "$host:443:$ip" -L -sS -o /dev/null -w "%{http_code}" --max-time 30 "$url")"
             echo "SMOKE $label: HTTP $actual (expected $expected)"
             test "$actual" = "$expected"
           }
 
-          check_http "home" "https://btmedya.com.tr/" "200"
-          check_http "kaynak-masasi" "https://btmedya.com.tr/kaynak-masasi/" "200"
-          check_http "robots" "https://btmedya.com.tr/robots.txt" "200"
-          check_http "sitemap" "https://btmedya.com.tr/sitemap.xml" "200"
+          check_http "home" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/" "200"
+          check_http "kaynak-masasi" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/kaynak-masasi/" "200"
+          check_http "robots" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/robots.txt" "200"
+          check_http "sitemap" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/sitemap.xml" "200"
 
-          health="$(curl -L -sS --max-time 30 https://btmedya.com.tr/api/health)"
+          health="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/api/health)"
           echo "SMOKE health: $health"
           echo "$health" | grep -q '"ok":true'
           echo "$health" | grep -q '"cms":true'
           echo "$health" | grep -q '"r2":true'
 
-          media="$(curl -L -sS --max-time 30 "https://btmedya.com.tr/api/public/media")"
+          media="$(curl_url btmedya.com.tr "$HOME_IP" "https://btmedya.com.tr/api/public/media")"
           echo "SMOKE media: $(printf '%s' "$media" | head -c 500)"
           echo "$media" | grep -q '"items"'
-          ! echo "$media" | grep -Eiq '\.(trashed|tmp|temp)(-|/)|thumbs\.db'
+          ! echo "$media" | grep -Eiq '\\.(trashed|tmp|temp)(-|/)|thumbs\\.db'
 
-          social="$(curl -L -sS --max-time 30 "https://btmedya.com.tr/api/public/social-feed")"
+          social="$(curl_url btmedya.com.tr "$HOME_IP" "https://btmedya.com.tr/api/public/social-feed")"
           echo "SMOKE social: $(printf '%s' "$social" | head -c 500)"
           echo "$social" | grep -q '"items"'
 
-          home="$(curl -L -sS --max-time 30 https://btmedya.com.tr/)"
+          home="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/)"
           for marker in 'GERÇEK ÇEKİM' 'AI ÜRETİMİ' 'Kaynak Masası' 'https://www.instagram.com/btmedyajans/'; do
             if grep -q "$marker" <<<"$home"; then
               echo "SMOKE home marker OK: $marker"
@@ -117,6 +142,6 @@ jobs:
             fi
           done
 
-          www_status="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 https://www.btmedya.com.tr/)"
+          www_status="$(curl --resolve "www.btmedya.com.tr:443:$WWW_IP" -sS -o /dev/null -w "%{http_code}" --max-time 30 https://www.btmedya.com.tr/)"
           echo "SMOKE www: HTTP $www_status (expected 301)"
           test "$www_status" = "301"
