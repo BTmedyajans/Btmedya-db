@@ -36,11 +36,8 @@ jobs:
 
       - name: Setup Wrangler
         if: steps.preflight.outputs.configured == 'true'
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: latest
+        shell: bash
+        run: npm install --global wrangler@latest
 
       - name: Sync static media
         if: steps.preflight.outputs.configured == 'true'
