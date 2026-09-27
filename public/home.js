@@ -252,6 +252,9 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       const kaynak = kapakKaynagi[n.slug] === 'ai' ? 'AI ÜRETİMİ'
         : kapakKaynagi[n.slug] === 'gercek' ? 'GERÇEK ÇEKİM'
         : kapakKaynagi[n.slug] === 'grafik' ? 'BTMEDYA GRAFİK'
+        : kapakKaynagi[n.slug] === 'temsili' ? 'TEMSİLİ FOTOĞRAF'
+        : kapakKaynagi[n.slug] === 'arsiv' ? 'ARŞİV FOTOĞRAFI'
+        : kapakKaynagi[n.slug] === 'harita' ? 'HARİTA'
         : '';
       /* Öne çıkan kart da metinsiz kart görselini kullanır. Başlıklı
          paylaşım kapağı burada kartın kendi başlığıyla iki kez basılıyor ve
