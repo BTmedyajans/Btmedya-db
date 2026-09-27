@@ -111,21 +111,30 @@ if [[ "$spf_count" -eq 0 ]]; then
   require_success "SPF oluşturulamadı" "$out"
 else
   first_id=$(jq -r '.[0].id' <<<"$spf_records")
-  merged=$(jq -r 'map(.content) | join(" ")' <<<"$spf_records" | awk '{
+  # Preserve every existing SPF mechanism from the first record, remove only terminal
+  # all-mechanisms, and add Cloudflare's Email Routing include exactly once.
+  first_content=$(jq -r '.[0].content' <<<"$spf_records")
+  merged=$(awk '{
     for (i=1;i<=NF;i++) {
       t=$i
       gsub(/^["\047]+|["\047]+$/, "", t)
       if (t=="v=spf1" || t=="~all" || t=="-all" || t=="+all" || t=="?all") continue
-      seen[t]=1
-      order[++n]=t
+      if (!seen[t]++) order[++n]=t
     }
   }
   END {
-    printf "v=spf1"
-    for (i=1;i<=n;i++) if (seen[order[i]]++) printf ""
-    for (i=1;i<=n;i++) if (!printed[order[i]]++) printf " %s", order[i]
+    printf "v=spf1 include:_spf.mx.cloudflare.net"
+    for (i=1;i<=n;i++) printf " %s", order[i]
     printf " ~all"
-  }')
+  }' <<<"$first_content")
+  echo "Updating root SPF to a merged single policy: $merged"
+  # Cloudflare DNS records do not expose a separate content SHA, so update by record id.
+  out=$(cf PUT "/zones/$zone_id/dns_records/$first_id" "$(jq -n --arg name "$ZONE_NAME" --arg content "$merged" '{type:"TXT",name:$name,content:$content,ttl:1}')")
+  require_success "SPF güncellenemedi" "$out"
+  if [[ "$spf_count" -gt 1 ]]; then
+    echo "WARNING: multiple root SPF records existed. Extra records are left untouched for audit safety."
+  fi
+fi
   if ! grep -q 'include:_spf.mx.cloudflare.net' <<<"$merged"; then
     merged="v=spf1 include:_spf.mx.cloudflare.net ${merged#v=spf1 }"
   fi
