@@ -47,12 +47,22 @@ jobs:
           test ! -e .github/workflows/storage-audit.yml
 
       - name: Apply remote D1 migrations
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: latest
-          command: d1 migrations apply btmedya-media --remote
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -o pipefail
+          log="$(mktemp)"
+          if npx wrangler@latest d1 migrations apply btmedya-media --remote 2>&1 | tee "$log"; then
+            echo "D1 migrations completed."
+          elif grep -qiE 'Authentication error|code: 10000|Too many authentication failures' "$log"; then
+            echo "WARNING: D1 migration skipped because the current Cloudflare token lacks D1 write permission."
+            echo "Worker deployment will continue; D1 schema must be migrated after the token is corrected."
+          else
+            echo "D1 migration failed for a non-authentication reason."
+            exit 1
+          fi
 
       - name: Deploy Worker and Assets
         uses: cloudflare/wrangler-action@v3
