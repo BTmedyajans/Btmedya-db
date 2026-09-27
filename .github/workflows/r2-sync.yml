@@ -8,6 +8,7 @@ on:
       - "public/assets/**"
       - "public/media/**"
       - "public/data/medya-listesi.json"
+      - ".github/workflows/r2-sync.yml"
 
 permissions:
   contents: read
