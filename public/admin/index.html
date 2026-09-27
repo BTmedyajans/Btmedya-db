@@ -355,40 +355,23 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap">
       <div>
         <h2 style="margin-bottom:4px">Metricool otomatik yayın bağlantısı</h2>
-        <p class="muted" style="margin:0">Tokenı bir kez buraya yapıştırın. BTMEDYA doğrular, şifreli olarak saklar ve sonraki yayınlarda yeniden istemez.</p>
+        <p class="muted" style="margin:0">Token yalnızca bir kez GitHub Actions Secret olarak eklenir. Sonrasında BTMEDYA yayın zinciri bunu otomatik kullanır.</p>
       </div>
       <span id="metricoolBadge" class="pill">Kontrol ediliyor…</span>
     </div>
-
-    <div id="metricoolConnected" style="display:none;margin-top:14px">
-      <div style="padding:14px;border:1px solid rgba(95,186,140,.35);background:rgba(95,186,140,.05);border-radius:12px">
-        <b>✓ Metricool bağlı</b>
-        <div id="metricoolConnectedMeta" class="muted" style="margin-top:6px"></div>
+    <div style="margin-top:14px;padding:15px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.025)">
+      <div style="font-weight:700;margin-bottom:8px">Telefondan yapacağınız tek kurulum</div>
+      <div class="muted" style="font-size:12px;line-height:1.6">
+        <b>1.</b> Metricool'a giriş yapın → Menü → Account Settings → API → <b>REST API Access token</b> → tokenı kopyalayın.<br>
+        <b>2.</b> GitHub bağlantısını açın → <b>New repository secret</b> → Name: <code>BTMEDYA_METRICOOL_USER_TOKEN</code> → Value: Metricool tokenı → kaydet.<br>
+        <b>3.</b> Devamını BTMEDYA'nın GitHub → Cloudflare senkronizasyonu yapar. User ID / Brand ID zaten tanımlı: <b>5278969</b> / <b>6858384</b>.
       </div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn sm" type="button" onclick="testMetricoolConnection()">Bağlantıyı yeniden test et</button>
-        <button class="btn sm danger" type="button" onclick="removeMetricoolConnection()">Bağlantıyı kaldır</button>
+      <div class="row" style="margin-top:12px">
+        <a class="btn sm" href="https://app.metricool.com/" target="_blank" rel="noopener">1 · Metricool'u aç ↗</a>
+        <a class="btn primary sm" href="https://github.com/BTmedyajans/Btmedya-db/settings/secrets/actions" target="_blank" rel="noopener">2 · GitHub Secret ekle ↗</a>
+        <a class="btn sm" href="https://help.metricool.com/api-access-export-your-metricool-data-to-other-tools-and-automate-tasks-x8ln5" target="_blank" rel="noopener">API yardım ↗</a>
       </div>
-    </div>
-
-    <div id="metricoolSetup" style="margin-top:14px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <label style="display:block">Metricool User ID<input id="metricoolUserId" type="text" value="5278969" readonly></label>
-        <label style="display:block">Metricool Brand ID<input id="metricoolBrandId" type="text" value="6858384" readonly></label>
-      </div>
-      <label style="display:block;margin-top:10px">REST API Access Token
-        <input id="metricoolToken" type="password" autocomplete="new-password" placeholder="Metricool Account Settings → API bölümündeki tokenı buraya yapıştırın">
-      </label>
-      <div class="muted" style="font-size:12px;line-height:1.5;margin-top:9px">
-        <b>Telefondan yapacağınız tek işlem:</b> Metricool'a giriş → Menü → Account Settings → API → REST API Access token → Kopyala → buraya yapıştır.
-        Token bu sayfada gösterilmez veya kaydedilmez; doğrulama sonrası sunucuda şifreli kasaya alınır.
-      </div>
-      <div class="row" style="margin-top:10px">
-        <a class="btn sm" href="https://app.metricool.com/" target="_blank" rel="noopener">Metricool'u aç ↗</a>
-        <a class="btn sm" href="https://help.metricool.com/api-access-export-your-metricool-data-to-other-tools-and-automate-tasks-x8ln5" target="_blank" rel="noopener">API yolunu gör ↗</a>
-        <button class="btn primary sm" id="metricoolSaveBtn" type="button" onclick="saveMetricoolConnection()">Test et ve güvenli kaydet</button>
-      </div>
-      <div id="metricoolStatus" class="status" style="margin-top:8px"></div>
+      <div class="muted" style="font-size:11px;line-height:1.5;margin-top:10px">Tokenı bu sohbete veya site koduna yapıştırmayın. Metricool API tokenı sunucu tarafında <code>X-Mc-Auth</code> başlığında kullanılmalıdır.</div>
     </div>
   </div>
 
@@ -507,81 +490,16 @@ $('#autoLoadNews').onclick=loadAutomationNews;
 $('#autoCreate').onclick=createAutomationPosts;
 
 /* ---- Tabs ---- */
-async function loadMetricoolConnection(){
-  const badge=$('#metricoolBadge'), setup=$('#metricoolSetup'), connected=$('#metricoolConnected'), meta=$('#metricoolConnectedMeta'), status=$('#metricoolStatus');
-  if(!badge)return;
-  try{
-    const d=await req('/api/admin/metricool');
-    if(d.configured){
-      badge.textContent='BAĞLI';
-      badge.className='pill pub';
-      connected.style.display='block';
-      setup.style.display='none';
-      meta.textContent='User '+d.userId+' · Brand '+d.brandId+' · '+d.timezone+(d.updatedAt?' · son güncelleme '+fmtDate(d.updatedAt):'');
-    }else{
-      badge.textContent='BAĞLI DEĞİL';
-      badge.className='pill';
-      connected.style.display='none';
-      setup.style.display='block';
-    }
-  }catch(e){
-    badge.textContent='KONTROL EDİLEMEDİ';
-    badge.className='pill';
-    status.textContent='Metricool bağlantı durumu alınamadı.';
-  }
-}
-async function saveMetricoolConnection(){
-  const status=$('#metricoolStatus'), btn=$('#metricoolSaveBtn');
-  const token=$('#metricoolToken').value.trim();
-  if(!token){status.textContent='Önce Metricool tokenını yapıştırın.';return}
-  btn.disabled=true; status.textContent='Token doğrulanıyor ve güvenli kasaya kaydediliyor…';
-  try{
-    const r=await fetch('/api/admin/metricool',{
-      method:'POST',
-      headers:{'content-type':'application/json'},
-      body:JSON.stringify({
-        token,
-        userId:$('#metricoolUserId').value.trim(),
-        brandId:$('#metricoolBrandId').value.trim(),
-        timezone:'Europe/Istanbul'
-      })
-    });
-    const d=await r.json();
-    if(!r.ok||!d.ok){
-      status.textContent=(d.error||'Metricool bağlantısı kurulamadı')+(d.detail?' · '+d.detail:'');
-      return;
-    }
-    $('#metricoolToken').value='';
-    status.textContent='✓ Bağlantı doğrulandı ve güvenli olarak kaydedildi. Bundan sonra tekrar token istemeyecek.';
-    await loadMetricoolConnection();
-    await loadControlCenter();
-  }catch(e){status.textContent='Hata: '+(e.message||e)}
-  finally{btn.disabled=false}
-}
-async function testMetricoolConnection(){
-  const status=$('#metricoolStatus'); status.textContent='Metricool bağlantısı kontrol ediliyor…';
-  await loadMetricoolConnection();
-  status.textContent='Kontrol tamamlandı.';
-}
-async function removeMetricoolConnection(){
-  if(!confirm('Kaydedilmiş Metricool bağlantısı kaldırılsın mı?'))return;
-  const status=$('#metricoolStatus'); status.textContent='Kaldırılıyor…';
-  try{
-    const d=await req('/api/admin/metricool',{method:'DELETE'});
-    status.textContent=d.message||'Bağlantı kaldırıldı.';
-    await loadMetricoolConnection();
-    await loadControlCenter();
-  }catch(e){status.textContent='Hata: '+(e.message||e)}
-}
 async function loadControlCenter(){
   const box=$('#controlSummary'), integrations=$('#controlIntegrations'), next=$('#controlNext');
   try{
     const d=await req('/api/admin/control-center');
-    box.innerHTML='<b>Site:</b> '+escStr(d.site.url)+' · <b>Worker:</b> '+escStr(d.site.worker)+'<br><b>D1:</b> '+(d.storage.d1?'✓':'✗')+' · <b>R2:</b> '+(d.storage.r2?'✓':'✗')+' · <b>Admin secrets:</b> '+(d.admin.configured?'✓':'Eksik')+' · <b>Media signing:</b> '+(d.admin.mediaSigning?'✓':'Eksik');
+    box.innerHTML='<b>Site:</b> '+escStr(d.site.url)+' · <b>Worker:</b> '+escStr(d.site.worker)+'<br><b>D1:</b> '+(d.storage.d1?'✓':'✗')+' · <b>R2:</b> '+(d.storage.r2?'✓':'✗')+' · <b>Admin secrets:</b> '+(d.admin.configured?'✓':'Eksik')+' · <b>Media signing:</b> '+(d.admin.mediaSigning?'✓':'Eksik')+' · <b>Metricool:</b> '+(d.metricool?.yapilandirildi?'✓ Bağlı':'Kurulum bekliyor');
+    const badge=$('#metricoolBadge');
+    if(badge){badge.textContent=d.metricool?.yapilandirildi?'BAĞLI':'KURULUM BEKLİYOR';badge.className=d.metricool?.yapilandirildi?'pill pub':'pill'}
     const labels={izap:'iZap / WhatsApp',cmsOpenData:'CMS Open Data',github:'GitHub → Cloudflare'};
     integrations.innerHTML=Object.entries(d.integrations).map(([k,v])=>'<div style="padding:12px 0;border-bottom:1px solid #222"><b>'+escStr(labels[k]||k)+'</b><div class="muted" style="margin-top:4px">'+escStr(v.status)+' · '+escStr(v.note)+'</div></div>').join('');
     next.innerHTML=d.nextActions?.length?'<ul style="margin:0;padding-left:20px;color:#ccc">'+d.nextActions.map(x=>'<li style="margin:7px 0">'+escStr(x)+'</li>').join('')+'</ul>':'<span style="color:#6c6">Şu an Worker tarafında bekleyen zorunlu secret görünmüyor.</span>';
-    await loadMetricoolConnection();
   }catch(e){box.textContent='Control Center durumu alınamadı.'}
 }
 
