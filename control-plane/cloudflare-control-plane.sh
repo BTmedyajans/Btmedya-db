@@ -54,7 +54,16 @@ if [[ "$zone_success" != "true" ]]; then
 fi
 zone_id=$(jq -r '.result[0].id // empty' <<<"$zone")
 zone_status=$(jq -r '.result[0].status // empty' <<<"$zone")
-[[ -n "$zone_id" ]] || { echo "ERROR: Cloudflare zone bulunamadı: $ZONE_NAME"; echo "Token bu zone'u görmüyor veya zone farklı Cloudflare hesabında."; exit 1; }
+if [[ -z "$zone_id" ]]; then
+  echo "WARNING: Cloudflare zone bulunamadı: $ZONE_NAME"
+  echo "Token bu zone'u görmüyor veya zone farklı Cloudflare hesabında."
+  if [[ "$MODE" == "audit" ]]; then
+    echo "AUDIT ONLY: zone erişimi olmadan DNS/Email Routing mutasyonu yapılmadan çıkılıyor."
+    exit 0
+  fi
+  echo "APPLY: zone erişimi olmadan güvenli şekilde durduruluyor."
+  exit 1
+fi
 echo "zone_status=$zone_status"
 
 echo "zone_id=$zone_id"
