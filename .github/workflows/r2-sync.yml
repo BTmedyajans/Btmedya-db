@@ -12,6 +12,12 @@ on:
 permissions:
   contents: read
 
+# Secrets are exposed through env so GitHub Actions conditionals can safely test
+# whether they exist; the secret values themselves never enter the repository.
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -20,16 +26,18 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Wrangler
-        if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+        if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: latest
 
       - name: Cloudflare credential preflight
-        if: ${{ secrets.CLOUDFLARE_API_TOKEN == '' || secrets.CLOUDFLARE_ACCOUNT_ID == '' }}
-        run: echo "WARNING: CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID is not configured; R2 sync was skipped."
+        if: ${{ env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == '' }}
+        run: |
+          set -euo pipefail
+          echo "WARNING: CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID is not configured; R2 sync was skipped."
 
       - name: Sync static media
         if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
