@@ -1,3 +1,4 @@
+import { readMetricoolCredential } from "./metricool-credentials.js";
 const NETWORKS = new Set(["facebook","instagram","tiktok","youtube","linkedin","twitter","threads","pinterest","gmb","bluesky"]);
 
 function localDateTime(iso, timezone="Europe/Istanbul"){
@@ -89,10 +90,11 @@ function youtubeDataFor(providers,row){
 }
 
 export async function scheduleToMetricool(env,row){
-  if(!env.METRICOOL_USER_TOKEN) return {ok:false,skipped:true,retryable:false,error:"METRICOOL_USER_TOKEN eksik"};
-  const userId=String(env.METRICOOL_USER_ID||"5278969");
-  const blogId=String(env.METRICOOL_BRAND_ID||"6858384");
-  const timezone=String(env.METRICOOL_TIMEZONE||"Europe/Istanbul");
+  const cfg=await readMetricoolCredential(env);
+  if(!cfg?.token) return {ok:false,skipped:true,retryable:false,error:"Metricool bağlantısı kurulmamış"};
+  const userId=String(cfg.userId||"5278969");
+  const blogId=String(cfg.brandId||"6858384");
+  const timezone=String(cfg.timezone||"Europe/Istanbul");
   const scheduledMs=new Date(row.scheduled_at||"").getTime();
   const dateTime=localDateTime(row.scheduled_at,timezone);
   if(!dateTime || Number.isNaN(scheduledMs)) return {ok:false,retryable:false,error:"scheduled_at geçersiz"};
@@ -119,7 +121,7 @@ export async function scheduleToMetricool(env,row){
     draft:false,
     shortener:false,
     saveExternalMediaFiles:Boolean(mediaUrl),
-    creatorUserMail:env.METRICOOL_CREATOR_EMAIL||undefined
+    creatorUserMail:cfg.creatorEmail||undefined
   };
   if(mediaUrl) body.media=[mediaUrl];
   const ig=providers.find(x=>x.network==="instagram");
@@ -136,7 +138,7 @@ export async function scheduleToMetricool(env,row){
   const endpoint=`${taban}/api/v2/scheduler/posts?blogId=${encodeURIComponent(blogId)}&userId=${encodeURIComponent(userId)}`;
   const res=await fetch(endpoint,{
     method:"POST",
-    headers:{"X-Mc-Auth":String(env.METRICOOL_USER_TOKEN),"Content-Type":"application/json"},
+    headers:{"X-Mc-Auth":String(cfg.token),"Content-Type":"application/json"},
     body:JSON.stringify(body)
   });
   const raw=await res.text();
@@ -157,8 +159,9 @@ export async function scheduleToMetricool(env,row){
    Bir gonderi yalnizca bir kez teslim edilir; hata alan tekrar denenmez,
    hata metni panelde gorunsun diye kaydedilir. */
 export async function processMetricoolQueue(env,limit=10){
-  const result={enabled:Boolean(env.METRICOOL_USER_TOKEN),processed:0,scheduled:0,failed:0,retried:0,skipped:0,items:[]};
-  if(!env.DB || !env.METRICOOL_USER_TOKEN) return result;
+  const cfg=await readMetricoolCredential(env);
+  const result={enabled:Boolean(cfg?.token),processed:0,scheduled:0,failed:0,retried:0,skipped:0,items:[]};
+  if(!env.DB || !cfg?.token) return result;
   await takipTablosu(env);
 
   const now=new Date();
@@ -229,7 +232,8 @@ export async function processMetricoolQueue(env,limit=10){
 
 /* Kontrol merkezi icin: son gonderimlerin durumu. Tablo henuz yoksa bos. */
 export async function metricoolDurumu(env){
-  const d={yapilandirildi:Boolean(env.METRICOOL_USER_TOKEN),planlanan:0,hatali:0,sonHata:""};
+  const cfg=await readMetricoolCredential(env);
+  const d={yapilandirildi:Boolean(cfg?.token),planlanan:0,hatali:0,sonHata:""};
   if(!env.DB) return d;
   const r=await env.DB.prepare(
     "SELECT SUM(CASE WHEN durum='planlandi' THEN 1 ELSE 0 END) AS p, SUM(CASE WHEN durum='hata' THEN 1 ELSE 0 END) AS h, (SELECT hata FROM metricool_gonderim WHERE durum='hata' ORDER BY updated_at DESC LIMIT 1) AS son FROM metricool_gonderim"
