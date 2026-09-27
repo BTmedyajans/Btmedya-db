@@ -51,7 +51,15 @@ dns=$(cf GET "/zones/$zone_id/dns_records?per_page=100")
 require_success "DNS kayıtları okunamadı" "$dns"
 
 page_rules=$(cf GET "/zones/$zone_id/pagerules?per_page=100")
-require_success "Page Rules okunamadı" "$page_rules"
+# Page Rules uc noktasi hesaba ait (account-owned) token'lari kabul etmiyor
+# (hata 1011). Onceden bu okuma betigi burada durduruyordu ve e-posta
+# bolumune hic gelinmiyordu. Page Rules yalniz eski bir kurali silmek icin
+# okunuyor; okunamazsa o adim atlanir, gerisi calisir.
+if [[ "$(jq -r '.success // false' <<<"$page_rules")" != "true" ]]; then
+  echo "WARNING: Page Rules okunamadı; eski kural temizliği atlanıyor."
+  jq -c '{errors}' <<<"$page_rules" || true
+  page_rules='{"success":true,"result":[]}'
+fi
 
 routing=$(cf GET "/zones/$zone_id/email/routing")
 routing_dns=$(cf GET "/zones/$zone_id/email/routing/dns")
@@ -102,7 +110,10 @@ done < <(jq -r '.result[]?.id // empty' <<<"$page_rules")
 
 # 2) Merge the Cloudflare Email Routing SPF include into the single root SPF record.
 #    Existing includes such as Resend/Amazon SES are preserved.
-spf_records=$(jq -c '[.result[]? | select(.type == "TXT" and .name == $ARGS.positional[0] and (.content | startswith("v=spf1")))]' --args "$ZONE_NAME" <<<"$dns")
+# Cloudflare TXT icerigini tirnakli ("v=spf1 ...") dondurebiliyor; tirnak
+# soyulmadan bakilinca mevcut SPF gorunmuyor ve ikinci bir SPF aciliyordu.
+# Iki SPF kaydi RFC 7208'e gore permerror: tum giden posta dogrulamasi bozulur.
+spf_records=$(jq -c '[.result[]? | select(.type == "TXT" and .name == $ARGS.positional[0] and (.content | ltrimstr("\"") | startswith("v=spf1")))]' --args "$ZONE_NAME" <<<"$dns")
 spf_count=$(jq 'length' <<<"$spf_records")
 
 if [[ "$spf_count" -eq 0 ]]; then
@@ -211,11 +222,7 @@ create_rule() {
   local matcher_type="$2"
   local matcher_value="$3"
   local body
-  if [[ "$matcher_type" == "all" ]]; then
-    body=$(jq -n --arg name "$name" --arg dest "$DEST_EMAIL" '{name:$name,enabled:true,matchers:[{type:"all"}],actions:[{type:"forward",value:[$dest]}]}')
-  else
-    body=$(jq -n --arg name "$name" --arg value "$matcher_value" --arg dest "$DEST_EMAIL" '{name:$name,enabled:true,matchers:[{type:"literal",field:"to",value:$value}],actions:[{type:"forward",value:[$dest]}]}')
-  fi
+  body=$(jq -n --arg name "$name" --arg value "$matcher_value" --arg dest "$DEST_EMAIL" '{name:$name,enabled:true,matchers:[{type:"literal",field:"to",value:$value}],actions:[{type:"forward",value:[$dest]}]}')
   out=$(cf POST "/zones/$zone_id/email/routing/rules" "$body")
   require_success "Routing rule oluşturulamadı: $name" "$out"
 }
@@ -232,10 +239,14 @@ ensure_literal_rule() {
 ensure_literal_rule "info"
 ensure_literal_rule "admin"
 
-catchall_exists=$(jq -r '[.result[]? | select(any(.matchers[]?; .type=="all"))] | length' <<<"$rules_now")
-if [[ "$catchall_exists" == "0" ]]; then
-  echo "Creating catch-all routing rule -> $DEST_EMAIL"
-  create_rule "BTMEDYA Catch-all" "all" ""
+# Catch-all normal kural listesinde degil, kendi uc noktasinda tutuluyor;
+# POST /rules ile "all" eslestiricisi reddedilir.
+catchall=$(cf GET "/zones/$zone_id/email/routing/rules/catch_all")
+catchall_ok=$(jq -r --arg dest "$DEST_EMAIL" '(.result.enabled // false) and any(.result.actions[]?; .type=="forward" and ((.value // []) | index($dest)))' <<<"$catchall" 2>/dev/null || echo false)
+if [[ "$catchall_ok" != "true" ]]; then
+  echo "Setting catch-all routing rule -> $DEST_EMAIL"
+  out=$(cf PUT "/zones/$zone_id/email/routing/rules/catch_all" "$(jq -n --arg dest "$DEST_EMAIL" '{name:"BTMEDYA Catch-all",enabled:true,matchers:[{type:"all"}],actions:[{type:"forward",value:[$dest]}]}')")
+  require_success "Catch-all kuralı ayarlanamadı" "$out"
 fi
 
 echo ""

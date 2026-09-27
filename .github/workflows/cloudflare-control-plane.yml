@@ -41,7 +41,9 @@ jobs:
           MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'audit' }}
           APPLY_DMARC: ${{ github.event_name == 'workflow_dispatch' && inputs.apply_dmarc && '1' || '0' }}
           REMOVE_RESEND_RECORDS: ${{ github.event_name == 'workflow_dispatch' && inputs.remove_resend_records && '1' || '0' }}
+        # pipefail: "| tee" olmadan betik hatasi yutuluyor ve is yesil gorunuyordu.
         run: |
+          set -o pipefail
           chmod +x control-plane/cloudflare-control-plane.sh
           ./control-plane/cloudflare-control-plane.sh | tee cloudflare-control-plane.log
 
