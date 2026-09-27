@@ -3,6 +3,14 @@ name: BTMEDYA Production Deploy
 on:
   push:
     branches: [main]
+    paths:
+      - "wrangler.toml"
+      - "src/**"
+      - "public/**"
+      - "migrations/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 permissions:
@@ -11,7 +19,7 @@ permissions:
 
 concurrency:
   group: btmedya-production-deploy
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -46,31 +54,74 @@ jobs:
           test ! -e .github/workflows/media-smoke.yml
           test ! -e .github/workflows/storage-audit.yml
 
+      - name: Verify Cloudflare API token
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN eksik."; exit 1; }
+          verify="$(curl -fsS --retry 2 --connect-timeout 10 --max-time 30             "https://api.cloudflare.com/client/v4/user/tokens/verify"             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN")"
+          echo "$verify" | jq -c '{success,result:{status:(.result.status // null)}}'
+          test "$(jq -r '.success // false' <<<"$verify")" = "true"
+          test "$(jq -r '.result.status // ""' <<<"$verify")" = "active"
+
       - name: Apply remote D1 migrations
         shell: bash
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          set -o pipefail
+          set -euo pipefail
+          npm install --no-save --no-package-lock wrangler@4.142.0 >/dev/null
           log="$(mktemp)"
-          if npx wrangler@latest d1 migrations apply btmedya-media --remote 2>&1 | tee "$log"; then
-            echo "D1 migrations completed."
-          elif grep -qiE 'Authentication error|code: 10000|Too many authentication failures' "$log"; then
-            echo "WARNING: D1 migration skipped because the current Cloudflare token lacks D1 write permission."
-            echo "Worker deployment will continue; D1 schema must be migrated after the token is corrected."
-          else
-            echo "D1 migration failed for a non-authentication reason."
+          success=0
+          for attempt in 1 2 3 4; do
+            : > "$log"
+            if npx --no-install wrangler d1 migrations apply btmedya-media --remote 2>&1 | tee "$log"; then
+              success=1
+              break
+            fi
+            if grep -qiE 'Rate limited|code: 10429' "$log"; then
+              if [ "$attempt" -lt 4 ]; then
+                delay=$((15 * 2 ** (attempt - 1)))
+                echo "D1 rate limit (10429); retrying in " "$delay" "s..."
+                sleep "$delay"
+                continue
+              fi
+            fi
+            if grep -qiE 'Authentication error|Invalid access token|code: 10000|code: 9109' "$log"; then
+              echo "ERROR: Cloudflare token was rejected for D1. The token must be active and include D1 Edit/Write for btmedya-media."
+            else
+              echo "ERROR: D1 migration failed."
+            fi
             exit 1
-          fi
+          done
+          test "$success" = "1"
 
       - name: Deploy Worker and Assets
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: "4.142.0"
-          command: deploy --config wrangler.toml
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          success=0
+          for attempt in 1 2 3 4; do
+            log="$(mktemp)"
+            if npx --no-install wrangler deploy --config wrangler.toml 2>&1 | tee "$log"; then
+              success=1
+              break
+            fi
+            if grep -qiE 'Rate limited|code: 10429' "$log" && [ "$attempt" -lt 4 ]; then
+              delay=$((15 * 2 ** (attempt - 1)))
+              echo "Worker deploy rate limited (10429); retrying in " "$delay" "s..."
+              sleep "$delay"
+              continue
+            fi
+            cat "$log"
+            exit 1
+          done
+          test "$success" = "1"
 
       - name: Production smoke test
         run: |
