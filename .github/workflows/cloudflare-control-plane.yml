@@ -3,6 +3,9 @@ name: BTMEDYA Cloudflare Control Plane
 on:
   push:
     branches: [main]
+    paths:
+      - "control-plane/**"
+      - ".github/workflows/cloudflare-control-plane.yml"
   workflow_dispatch:
     inputs:
       mode:
