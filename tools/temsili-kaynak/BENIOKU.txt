@@ -1,0 +1,19 @@
+Temsili ve arsiv kapak fotograflari (kaynak kareler)
+
+Bu klasordeki fotograflar BTMEDYA'ya ait degildir. Hepsi ozgur lisansli
+(CC0, CC BY, CC BY-SA, kamu mali) gercek fotograflardir ve Wikimedia
+Commons / Flickr uzerinden Openverse ile bulunmustur.
+
+Her karenin yazari, lisansi ve kaynak sayfasi:
+  public/data/haber-kapak-plani.json  -> "temsili" alani
+  public/data/kapak-foto-kaynaklari.json (sitede yayinlanan atif kaydi)
+
+Kurallar
+- Kapak uzerinde yazar + kaynak + lisans satiri silinmez (CC BY / BY-SA
+  atif zorunlulugu).
+- CC BY-SA bir kareden turetilen kapak da CC BY-SA ile paylasilmis sayilir.
+- "TEMSİLİ FOTOĞRAF": olayin kendisi degil, konuyu anlatan genel kare.
+  "ARŞİV FOTOĞRAFI": haberde adi gecen kisi yada yerin kendi fotografi,
+  olay aninda cekilmemis. Etiket plandaki "rozet" alanindan gelir.
+- Ajans (AA, DHA, IHA) ve kurum fotograflari abonelik/izin olmadan
+  buraya konmaz.

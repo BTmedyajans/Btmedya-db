@@ -405,6 +405,174 @@ def bilgi_karti_foto(h, cikti):
     return os.path.getsize(cikti)
 
 
+# Kanal karti: ulusal haber kanallarinin paylasim karti duzeni.
+#
+# NEDEN
+# Bilgi karti haberin rakamini dogru veriyordu ama gorselsizdi; okur
+# kanallarin kartlarinda once fotografa bakar. BTMEDYA'nin bu haberlerde
+# kendi karesi yok ve ajans (AA, DHA, IHA) fotograflari abonelik olmadan
+# kullanilamaz. Bu yuzden ozgur lisansli (Wikimedia Commons / Flickr CC)
+# gercek fotograflar TEMSILI etiketiyle ve fotografcinin adi, lisansiyla
+# birlikte basilir. Fotograf olayin kendisi degildir; etiket bunu acikca
+# soyler. Yazar ve lisans bilgisi plandaki "temsili" alanindan gelir,
+# public/data/kapak-foto-kaynaklari.json dosyasina da yazilir.
+#
+# Duzen: tam kadraj fotograf, altta koyu gecis, kategori seridi ve iri
+# baslik sol altta, haberin rakami sag ustte kategori renginde kutuda,
+# en altta kirmizi kunye bandi.
+LISANS_ADI = {"by": "CC BY", "by-sa": "CC BY-SA", "cc0": "CC0", "pdm": "Kamu malı"}
+
+
+def lisans_metni(t):
+    ad = LISANS_ADI.get(t.get("lisans", ""), t.get("lisans", "").upper())
+    return ad if t.get("lisans") in ("cc0", "pdm") else f"{ad} {t.get('lisans_surum', '')}".strip()
+
+
+# Yazi tiplerinde Kiril harfi yok; fotografci adi kutu glifi olarak
+# basiliyordu. Ad silinmez, Latin harfle yazilir (atif zorunlu).
+KIRIL = dict(zip("абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
+                 ["a","b","v","g","d","e","yo","zh","z","i","y","k","l","m","n","o","p","r","s","t","u","f","kh","ts","ch","sh","shch","","y","","e","yu","ya",
+                  "A","B","V","G","D","E","Yo","Zh","Z","I","Y","K","L","M","N","O","P","R","S","T","U","F","Kh","Ts","Ch","Sh","Shch","","Y","","E","Yu","Ya"]))
+
+
+def kunye_satiri(t):
+    yazar = "".join(KIRIL.get(c, c) for c in (t.get("yazar") or "").strip()) or "anonim"
+    if len(yazar) > 34:
+        yazar = yazar[:32].rstrip() + "…"
+    # "TEMSILI" yalniz olayla ilgisi olmayan genel kareler icin dogrudur;
+    # haberde adi gecen kisi yada yerin kendi fotografi "ARSIV" olarak
+    # etiketlenir (plandaki "rozet" alani).
+    tur = {"arsiv": "ARŞİV FOTOĞRAFI", "harita": "HARİTA"}.get(t.get("rozet"), "TEMSİLİ FOTOĞRAF")
+    return f"{tur} · {yazar} / {t.get('kaynak', 'Wikimedia Commons')} · {lisans_metni(t)}"
+
+
+def alt_gecis(im, bas, guc=235):
+    w, h = im.size
+    maske = Image.new("L", (w, h), 0)
+    d = ImageDraw.Draw(maske)
+    for y in range(int(h * bas), h):
+        t = (y - h * bas) / (h * (1 - bas))
+        # Egri 1'in altinda: karartma basligin ust satirina erken ulassin;
+        # acik renkli fotograflarda (harita, beyaz ucak) baslik okunmuyordu.
+        d.line([(0, y), (w, y)], fill=int(guc * min(1.0, max(0.0, t)) ** 0.85))
+    return Image.composite(Image.new("RGB", (w, h), (5, 8, 13)), im, maske)
+
+
+def rakam_kutusu(d, x_sag, y, vurgu, renk, en_fazla=330):
+    deger = vurgu.get("deger", "")
+    if not deger:
+        return
+    vf = sigdir(d, deger, f_sg, en_fazla - 36, 66, 30)
+    ef = f_mr(19)
+    etiket = sar(d, vurgu.get("etiket", ""), ef, en_fazla - 36)[:2]
+    gen = max(d.textlength(deger, font=vf), *(d.textlength(s, font=ef) for s in etiket or [""])) + 36
+    yuk = int(vf.size * 1.08) + 20 + len(etiket) * 25 + 8
+    x = x_sag - gen
+    d.rectangle([x, y, x_sag, y + yuk], fill=renk)
+    yr = yazi_rengi(renk)
+    d.text((x + 18, y + 10), deger, font=vf, fill=yr)
+    ey = y + 14 + int(vf.size * 1.08)
+    for s in etiket:
+        d.text((x + 18, ey), s, font=ef, fill=yr)
+        ey += 25
+
+
+def kanal_karti(h, foto_yolu, cikti):
+    t = h["temsili"]
+    renk = kategori_rengi(h["kategori"])
+    im = kapla(Image.open(foto_yolu).convert("RGB"), W, H, t.get("odak", 0.45))
+    im = ImageEnhance.Contrast(im).enhance(1.05)
+    if t.get("rozet") == "harita":
+        # Haritada koyu yazi acik zemin uzerinde; baslik o yazilarla
+        # karisiyordu. Harita soluklastirilir, baslik one cikar.
+        im = ImageEnhance.Brightness(im).enhance(0.5)
+    im = alt_gecis(im, 0.26, 248)
+    d = ImageDraw.Draw(im)
+
+    # Sol ust: kanal imzasi. Kanallarin kartlarinda logo hep ayni kosede.
+    amb = Image.open(os.path.join(KOK, "public", "assets", "btmedya-emblem-derived.png")).convert("RGBA")
+    amb = amb.resize((62, 40), Image.LANCZOS)
+    d.rectangle([KEN - 12, 34, KEN + 186, 88], fill=(6, 10, 15))
+    im.paste(amb, (KEN, 41), amb)
+    d.text((KEN + 72, 44), "HABER", font=f_sg(30), fill=INK)
+
+    # Sag ust: haberin rakami.
+    rakam_kutusu(d, W - KEN, 34, h.get("vurgu") or {}, renk)
+
+    # Baslik bloku: sol alt. Genislik sag alttaki kunye satirina degmez.
+    metin_gen = W - 2 * KEN - 40
+    punto = 62
+    while punto > 38:
+        bf = f_sg(punto)
+        if len(sar(d, h["baslik"], bf, metin_gen)) <= 3:
+            break
+        punto -= 2
+    bf = f_sg(punto)
+    satirlar = sar(d, h["baslik"], bf, metin_gen)[:3]
+    sat_y = int(punto * 1.08)
+    alt = H - BANT - 44
+    y = alt - len(satirlar) * sat_y
+    # Kategori seridi basligin hemen ustunde: kanallarin "alt bant" dili.
+    kf = f_mr(18)
+    kt = buyuk(h["kategori"])
+    kw = olcu_aralikli(d, kt, kf, 2.4)
+    d.rectangle([KEN, y - 50, KEN + kw + 32, y - 14], fill=renk)
+    aralikli(d, (KEN + 16, y - 43), kt, kf, yazi_rengi(renk), 2.4)
+    for s in satirlar:
+        d.text((KEN, y), s, font=bf, fill=INK)
+        y += sat_y
+    d.text((KEN, alt + 8), h["altbilgi"], font=f_mr(19), fill=GRI)
+
+    # Fotograf kunyesi: yazar + lisans, gorselle birlikte dolassin diye karenin
+    # icinde. CC BY ve CC BY-SA bunu zorunlu tutuyor.
+    kf2 = f_mr(15)
+    ks = kunye_satiri(t)
+    d.text((W - KEN - d.textlength(ks, font=kf2), alt + 11), ks, font=kf2, fill=(196, 204, 214))
+
+    d.rectangle([0, H - BANT, W, H], fill=KIRMIZI)
+    aralikli(d, (KEN, H - BANT + 19), h.get("imza", "BTMEDYA HABER MERKEZİ"), f_mr(19), INK, 2.2)
+    sf = f_sg(21)
+    d.text((W - KEN - d.textlength("BTMEDYA.COM.TR", font=sf), H - BANT + 17), "BTMEDYA.COM.TR", font=sf, fill=INK)
+    os.makedirs(os.path.dirname(cikti), exist_ok=True)
+    im.save(cikti, "WEBP", quality=88, method=6)
+    return os.path.getsize(cikti)
+
+
+def kanal_karti_foto(h, foto_yolu, cikti):
+    """Metinsiz kart gorseli: fotograf + rakam kutusu + kunye. Baslik
+    HTML'de. Kart kutulari kareyi 16:9'a kadar kirpiyor; rakam ve kunye
+    bu yuzden karenin orta-alt bandinda tutulur."""
+    t = h["temsili"]
+    renk = kategori_rengi(h["kategori"])
+    im = kapla(Image.open(foto_yolu).convert("RGB"), FOTO, FOTO, t.get("odak", 0.45))
+    im = ImageEnhance.Contrast(im).enhance(1.04)
+    if t.get("rozet") == "harita":
+        im = ImageEnhance.Brightness(im).enhance(0.55)
+    im = alt_gecis(im, 0.42, 215)
+    d = ImageDraw.Draw(im)
+    vurgu = h.get("vurgu") or {}
+    if vurgu.get("deger"):
+        vf = sigdir(d, vurgu["deger"], f_sg, 520, 96, 44)
+        ef = f_mr(30)
+        etiket = sar(d, vurgu.get("etiket", ""), ef, 560)[:2]
+        gen = max(d.textlength(vurgu["deger"], font=vf), *(d.textlength(s, font=ef) for s in etiket or [""])) + 48
+        yuk = int(vf.size * 1.08) + 28 + len(etiket) * 38
+        y = 740 - yuk
+        d.rectangle([60, y, 60 + gen, y + yuk], fill=renk)
+        d.text((84, y + 12), vurgu["deger"], font=vf, fill=yazi_rengi(renk))
+        for j, s in enumerate(etiket):
+            d.text((84, y + 18 + int(vf.size * 1.08) + j * 38), s, font=ef, fill=yazi_rengi(renk))
+        kunye_y = max(752, y + yuk + 12)
+    else:
+        kunye_y = 752
+    ks = kunye_satiri(t)
+    kf = sigdir(d, ks, f_mr, FOTO - 120, 22, 14)
+    d.text((60, kunye_y), ks, font=kf, fill=(214, 220, 228))
+    os.makedirs(os.path.dirname(cikti), exist_ok=True)
+    im.save(cikti, "WEBP", quality=84, method=6)
+    return os.path.getsize(cikti)
+
+
 def plan():
     p = os.path.join(KOK, "public", "data", "haber-kapak-plani.json")
     with open(p, encoding="utf-8") as f:
@@ -431,7 +599,8 @@ def kaynak_dosyasi(kareler, plan_kayitlari):
         kare = kareler.get(h.get("foto") or "")
         # Bilgi karti fotograf icermeyen bir grafiktir; ne AI uretimi ne
         # gercek cekim diye etiketlenebilir.
-        kayit[h["slug"]] = ("grafik" if h.get("vurgu")
+        kayit[h["slug"]] = (h["temsili"].get("rozet", "temsili") if h.get("temsili")
+                            else "grafik" if h.get("vurgu")
                             else "gercek" if (kare and kare.get("gercek")) else "ai")
     yol = os.path.join(KOK, "public", "data", "haber-kapak-kaynagi.json")
     with open(yol, "w", encoding="utf-8") as f:
@@ -448,6 +617,13 @@ if __name__ == "__main__":
     kareler = havuz()
     for h in plan():
         if istenen and h["slug"] not in istenen:
+            continue
+        if h.get("temsili"):
+            foto = os.path.join(KOK, h["temsili"]["dosya"])
+            boyut = kanal_karti(h, foto, os.path.join(hedef, h["slug"] + ".webp"))
+            fb = kanal_karti_foto(h, foto, os.path.join(hedef, h["slug"] + "-foto.webp"))
+            n += 1
+            print(f"  T {h['slug'][:40]:42} {boyut/1024:>5.0f} KB + kart {fb/1024:>4.0f} KB")
             continue
         if h.get("vurgu"):
             boyut = bilgi_karti(h, os.path.join(hedef, h["slug"] + ".webp"))
@@ -480,4 +656,13 @@ if __name__ == "__main__":
     print(f"\n  {n} kapak uretildi ({fotolu} fotografli, {n-fotolu} bilgi karti/editoryal).")
     print(f"  {fotolu} metinsiz kart gorseli uretildi.")
     toplam, gercek = kaynak_dosyasi(kareler, plan())
+    # Temsili fotograflarin atif kaydi: sitede ve paylasimda kunyenin
+    # makine tarafindan okunabilir karsiligi.
+    atif = {h["slug"]: {k: h["temsili"].get(k) for k in
+                        ("baslik", "yazar", "kaynak", "kaynak_url", "lisans", "lisans_surum", "lisans_url", "rozet")}
+            for h in plan() if h.get("temsili")}
+    with open(os.path.join(KOK, "public", "data", "kapak-foto-kaynaklari.json"), "w", encoding="utf-8") as f:
+        json.dump(atif, f, ensure_ascii=False, indent=1, sort_keys=True)
+        f.write("\n")
+    print(f"  kapak-foto-kaynaklari.json: {len(atif)} temsili fotograf atfi.")
     print(f"  haber-kapak-kaynagi.json: {toplam} kayit ({gercek} gercek cekim).")
