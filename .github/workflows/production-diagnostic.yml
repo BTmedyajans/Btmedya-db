@@ -57,12 +57,25 @@ jobs:
           zones="$(curl -fsS "${api}/zones?name=btmedya.com.tr&per_page=50" "${auth[@]}")"
           zone_id="$(jq -r '.result[] | select(.name=="btmedya.com.tr") | .id' <<<"$zones" | head -n1)"
           echo "===== CLOUDFLARE RULESETS MATCHING API/NEWS =====" | tee -a btmedya-production-report.txt
-          rulesets="$(curl -fsS "${api}/zones/${zone_id}/rulesets" "${auth[@]}")"
+
+          if [ -z "$zone_id" ]; then
+            echo "UYARI: btmedya.com.tr zone ID bulunamadı; ruleset incelemesi atlandı." | tee -a btmedya-production-report.txt
+            exit 0
+          fi
+
+          if ! rulesets="$(curl -fsS "${api}/zones/${zone_id}/rulesets" "${auth[@]}")"; then
+            echo "UYARI: Cloudflare Rulesets API 403/erişim hatası verdi. Bu kontrol atlandı; ana production diagnostic devam edecek." | tee -a btmedya-production-report.txt
+            exit 0
+          fi
+
           jq -r '.result[] | [.id,.name,.kind,.phase] | @tsv' <<<"$rulesets" | tee -a btmedya-production-report.txt
           while IFS= read -r rid; do
             [ -z "$rid" ] && continue
-            curl -fsS "${api}/zones/${zone_id}/rulesets/${rid}" "${auth[@]}" | jq -c '.result.rules[]? | select((.expression // "") | test("api/news|/api/"; "i")) | {id,description,action,enabled,expression}' | tee -a btmedya-production-report.txt || true
+            curl -fsS "${api}/zones/${zone_id}/rulesets/${rid}" "${auth[@]}" |
+              jq -c '.result.rules[]? | select((.expression // "") | test("api/news|/api/"; "i")) | {id,description,action,enabled,expression}' |
+              tee -a btmedya-production-report.txt || true
           done < <(jq -r '.result[].id' <<<"$rulesets")
+
       - name: Run diagnostic
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
