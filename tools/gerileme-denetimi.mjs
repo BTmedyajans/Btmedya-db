@@ -97,9 +97,10 @@ tara('public'); tara('src');
     for (const h of plan) {
       const kare = havuz[h.foto || ''];
       // Vurgu alanı olan kapaklar fotoğraf değil bilgi kartıdır; üretici
-      // bunları "grafik" olarak kaydeder. Havuzda fotoğraf aramak bu
-      // kartların tamamını yanlışlıkla AI olarak raporlamamalıdır.
-      const olmasiGereken = h.vurgu ? 'grafik' : kare && kare.gercek ? 'gercek' : 'ai';
+      // bunları "grafik" olarak kaydeder. Temsili/arsiv fotoğraflarda ise
+      // doğruluk etiketi plan kaydındaki rozetten gelir; havuzdaki "gercek"
+      // alanı yalnızca ajansın kendi fotoğrafları için geçerlidir.
+      const olmasiGereken = h.temsili?.rozet || (h.vurgu ? 'grafik' : kare && kare.gercek ? 'gercek' : 'ai');
       if (kaynak[h.slug] !== olmasiGereken) {
         bulgular.push(`${kaynakYol}: "${h.slug}" ${kaynak[h.slug] ?? 'kayitsiz'} yaziyor, ` +
           `plandaki kare "${h.foto}" ise ${olmasiGereken}. ` +
