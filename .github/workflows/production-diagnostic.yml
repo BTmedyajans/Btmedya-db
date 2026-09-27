@@ -5,8 +5,6 @@ on:
     branches: ["main"]
     paths:
       - "wrangler.toml"
-      - "src/**"
-      - "public/**"
       - "migrations/**"
       - "control-plane/**"
       - ".github/workflows/production-diagnostic.yml"
