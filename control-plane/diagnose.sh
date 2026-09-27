@@ -99,15 +99,19 @@ fi
 section "R2"
 if npx wrangler r2 bucket list 2>&1 | grep -F "btmedya-media" >/dev/null; then
   ok "R2 bucket btmedya-media bulundu"
+elif [[ "$(jq -r '.r2 // false' <<<"$health_body" 2>/dev/null || echo false)" == "true" ]]; then
+  warn "R2 list endpointi bu token ile görünür değil; /api/health R2 bağlantısını doğruluyor"
 else
-  warn "R2 bucket btmedya-media listede bulunamadı"
+  warn "R2 bucket btmedya-media listede bulunamadı ve /api/health R2 bağlantısını doğrulamadı"
 fi
 
 section "D1"
 if npx wrangler d1 list 2>&1 | grep -F "btmedya-media" >/dev/null; then
   ok "D1 database btmedya-media bulundu"
+elif [[ "$(jq -r '.cms // false' <<<"$health_body" 2>/dev/null || echo false)" == "true" ]]; then
+  warn "D1 list endpointi bu token ile görünür değil; /api/health CMS/D1 bağlantısını doğruluyor"
 else
-  warn "D1 database btmedya-media listede bulunamadı"
+  warn "D1 database btmedya-media listede bulunamadı ve /api/health CMS/D1 bağlantısını doğrulamadı"
 fi
 
 section "CONFIG CONSISTENCY"
