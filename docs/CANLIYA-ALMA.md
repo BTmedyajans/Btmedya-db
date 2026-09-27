@@ -97,3 +97,5 @@ GitHub Actions → **BTMEDYA Cloudflare Control Plane** → **Run workflow**.
 - `remove_resend_records=false`: `send.*` Resend/Amazon SES kayıtlarını korur.
 
 > Production deploy yolu DNS'i doğrudan değiştirmez. Cloudflare değişiklikleri ayrı bir control-plane iş akışında tutulur.
+
+> Control-plane audit trigger: GitHub Actions secrets doğrulaması sonrası otomatik audit çalıştırıldı.
