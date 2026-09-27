@@ -98,4 +98,4 @@ GitHub Actions → **BTMEDYA Cloudflare Control Plane** → **Run workflow**.
 
 > Production deploy yolu DNS'i doğrudan değiştirmez. Cloudflare değişiklikleri ayrı bir control-plane iş akışında tutulur.
 
-> Control-plane audit trigger: GitHub Actions secrets doğrulaması sonrası otomatik audit çalıştırıldı.
+> Control-plane audit tetikleyici commit'i GitHub Actions'ın otomatik audit yolunu başlatmak için eklendi.
