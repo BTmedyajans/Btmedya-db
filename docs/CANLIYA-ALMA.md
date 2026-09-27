@@ -67,6 +67,19 @@ AI üretimleri ayrı `AI LAB` alanında açıkça etiketlenmelidir. Gerçek saha
 Secret'lar Cloudflare'da tanımlı değilse admin ve imzalı medya bağlantıları üretim için hazır kabul edilmez.
 
 
+## Cloudflare API token yetkileri
+
+Control-plane'ın `apply` modu için mevcut tokenın aşağıdaki yetkilere sahip olması gerekir:
+
+| Kapsam | Yetki | Kullanım |
+|---|---|---|
+| Zone: `btmedya.com.tr` | DNS Write | SPF ve legacy MX değişiklikleri |
+| Zone: `btmedya.com.tr` | Zone Settings Write | Email Routing'i etkinleştirme |
+| Zone: `btmedya.com.tr` | Email Routing Rules Write | `info@`, `admin@` ve catch-all kuralları |
+| Account | Email Routing Addresses Write | Doğrulama hedef adresini oluşturma |
+
+Mevcut Actions kaydında DNS yazma işlemi başarıyla çalıştı; eksik kalan ilk yetki `Account → Email Routing Addresses Write` oldu. Tekrar tekrar yetki döngüsüne girmemek için aynı API tokena tabloya giren üç Email Routing yetkisini birlikte eklemek gerekir.
+
 ## Cloudflare / Email control-plane
 
 Repository now includes `control-plane/cloudflare-control-plane.sh` and the GitHub Actions workflow `.github/workflows/cloudflare-control-plane.yml`.
