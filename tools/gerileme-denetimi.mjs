@@ -52,8 +52,15 @@ const tara = (dizin) => {
   for (const g of readdirSync(dizin, { withFileTypes: true })) {
     const y = join(dizin, g.name);
     if (g.isDirectory()) { if (g.name !== '.git' && g.name !== 'node_modules') tara(y); }
-    else if (/\.(html|js|json|md|toml)$/i.test(g.name) && readFileSync(y, 'utf8').includes('btcraft10')) {
-      bulgular.push(`${y} olu TikTok hesabini (@btcraft10) gosteriyor; dogrusu @btmedya1010.`);
+    else if (/\.(html|js|json|md|toml)$/i.test(g.name)) {
+      const icerik = readFileSync(y, 'utf8');
+      if (icerik.includes('btcraft10'))
+        bulgular.push(`${y} olu TikTok hesabini (@btcraft10) gosteriyor; dogrusu @btmedya1010.`);
+      /* Marka Instagram'i @btmedyajans (Instagram profilinden dogrulandi:
+         "BTMEDYA® | Haber • Medya • AI"). Haber sayfalari eski @btmedya10
+         adresini gosteriyordu; ana sayfa ve panel dogru hesabi. */
+      if (/instagram\.com\/btmedya10\b/.test(icerik))
+        bulgular.push(`${y} eski Instagram hesabini (@btmedya10) gosteriyor; marka hesabi @btmedyajans.`);
     }
   }
 };
@@ -208,5 +215,5 @@ if (bulgular.length) {
   process.exit(1);
 }
 console.log('Gerileme denetimi temiz: medya listesi uretilen dosyadan okunuyor, ' +
-  'regex kacislari dogru, kaynak etiketi oge basina turuyor, TikTok hesabi guncel, ' +
+  'regex kacislari dogru, kaynak etiketi oge basina turuyor, TikTok ve Instagram hesaplari guncel, ' +
   'GERCEK CEKIM etiketleri gercek karelere basiyor, panel yuvalari siteye bagli.');
