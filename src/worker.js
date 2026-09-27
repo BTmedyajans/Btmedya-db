@@ -140,7 +140,7 @@ async function recordAutomationHeartbeat(env){
       overdue=Number(row?.overdue||0);
     }catch(e){ console.warn('[automation] queue health skipped',e?.message||e); }
   }
-  const snapshot={ok:true,cron:'*/30 * * * *',heartbeatAt:now,queued,overdue,providers:socialProviderStatus(env)};
+  const snapshot={ok:true,cron:'*/5 * * * *',heartbeatAt:now,queued,overdue,providers:socialProviderStatus(env)};
   if(env.KV) await env.KV.put('automation:heartbeat',JSON.stringify(snapshot),{expirationTtl:86400}).catch(()=>{});
   return snapshot;
 }
@@ -512,7 +512,7 @@ async function mediaSyncApi(request, env, url){
 async function controlCenterApi(request, env, url){
   if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
   if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
-  let automation={configured:true,cron:'*/30 * * * *',lastHeartbeat:null};
+  let automation={configured:true,cron:'*/5 * * * *',lastHeartbeat:null};
   if(env.KV){
     const raw=await env.KV.get('automation:heartbeat').catch(()=>null);
     if(raw) try{ automation={...automation,...JSON.parse(raw)}; }catch{}
