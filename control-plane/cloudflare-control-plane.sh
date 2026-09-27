@@ -135,22 +135,6 @@ else
     echo "WARNING: multiple root SPF records existed. Extra records are left untouched for audit safety."
   fi
 fi
-  if ! grep -q 'include:_spf.mx.cloudflare.net' <<<"$merged"; then
-    merged="v=spf1 include:_spf.mx.cloudflare.net ${merged#v=spf1 }"
-  fi
-  # Normalize duplicate Cloudflare include produced by the simple merge above.
-  merged=$(tr ' ' '\n' <<<"$merged" | awk '!seen[$0]++' | paste -sd' ' -)
-  [[ "$merged" == *"~all" ]] || merged="$merged ~all"
-  echo "Updating root SPF to a merged single policy: $merged"
-  old_sha=$(jq -r '.result[] | select(.id == $ARGS.positional[0]) | .content' --args "$first_id" <<<"$dns" >/dev/null 2>&1; true)
-  # Cloudflare DNS records do not expose a separate content SHA, so update by record id.
-  out=$(cf PUT "/zones/$zone_id/dns_records/$first_id" "$(jq -n --arg name "$ZONE_NAME" --arg content "$merged" '{type:"TXT",name:$name,content:$content,ttl:1}')")
-  require_success "SPF güncellenemedi" "$out"
-  if [[ "$spf_count" -gt 1 ]]; then
-    echo "WARNING: multiple root SPF records existed. Extra records are left untouched for audit safety."
-  fi
-fi
-
 # 3) Optional DMARC change requested by the project brief. Off by default.
 if [[ "$APPLY_DMARC" == "1" ]]; then
   dmarc=$(jq -c '[.result[]? | select(.type == "TXT" and .name == ("_dmarc." + $ARGS.positional[0]))]' --args "$ZONE_NAME" <<<"$dns")
