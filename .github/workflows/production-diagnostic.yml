@@ -54,7 +54,10 @@ jobs:
           set -euo pipefail
           api="https://api.cloudflare.com/client/v4"
           auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
-          zones="$(curl -fsS "${api}/zones?name=btmedya.com.tr&per_page=50" "${auth[@]}")"
+          if ! zones="$(curl -fsS "${api}/zones?name=btmedya.com.tr&per_page=50" "${auth[@]}")"; then
+            echo "UYARI: Cloudflare zone API erişimi 403/erişim hatası verdi; ruleset incelemesi atlandı." | tee -a btmedya-production-report.txt
+            exit 0
+          fi
           zone_id="$(jq -r '.result[] | select(.name=="btmedya.com.tr") | .id' <<<"$zones" | head -n1)"
           echo "===== CLOUDFLARE RULESETS MATCHING API/NEWS =====" | tee -a btmedya-production-report.txt
 
