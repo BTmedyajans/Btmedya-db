@@ -27,42 +27,54 @@ fi
 auth=(-H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json")
 
 section "CLOUDFLARE ZONE"
-zones="$(curl -fsS "$API/zones?name=$BASE_DOMAIN&per_page=50" "${auth[@]}")"
-zone_id="$(jq -r '.result[] | select(.name=="'"$BASE_DOMAIN"'") | .id' <<<"$zones" | head -n1)"
-zone_status="$(jq -r '.result[] | select(.name=="'"$BASE_DOMAIN"'") | .status' <<<"$zones" | head -n1)"
-required_ns="$(jq -r '.result[] | select(.name=="'"$BASE_DOMAIN"'") | .name_servers[]?' <<<"$zones" | sort -u)"
-if [[ -n "$zone_id" && "$zone_id" != "null" ]]; then ok "Zone bulundu: $zone_id"; else fail "Zone bulunamadı"; exit 3; fi
-[[ "$zone_status" == "active" ]] && ok "Zone active" || fail "Zone status: $zone_status"
-printf "Cloudflare assigned nameservers:\n%s\n" "$required_ns"
+if ! zones="$(curl -fsS "$API/zones?name=$BASE_DOMAIN&per_page=50" "${auth[@]}")"; then
+  warn "Cloudflare zone API HTTP 403/erişim hatası verdi; token zone-scope taşımıyor olabilir. Zone-dependent kontroller atlanıyor."
+  zone_id=""
+  zone_status=""
+  required_ns=""
+else
+  zone_id="$(jq -r '.result[] | select(.name=="'"$BASE_DOMAIN"'") | .id' <<<"$zones" | head -n1)"
+  zone_status="$(jq -r '.result[] | select(.name=="'"$BASE_DOMAIN"'") | .status' <<<"$zones" | head -n1)"
+  required_ns="$(jq -r '.result[] | select(.name=="'"$BASE_DOMAIN"'") | .name_servers[]?' <<<"$zones" | sort -u)"
+  if [[ -n "$zone_id" && "$zone_id" != "null" ]]; then ok "Zone bulundu: $zone_id"; else warn "Zone Cloudflare API üzerinden görünmüyor"; zone_id=""; fi
+  if [[ -n "$zone_id" ]]; then
+    [[ "$zone_status" == "active" ]] && ok "Zone active" || warn "Zone status: $zone_status"
+    printf "Cloudflare assigned nameservers:\n%s\n" "$required_ns"
+  fi
+fi
 
 section "AUTHORITATIVE DNS DELEGATION"
 actual_ns="$(dig +short NS "$BASE_DOMAIN" @1.1.1.1 | sed 's/\.$//' | sort -u || true)"
 printf "Public NS:\n%s\n" "$actual_ns"
-if [[ -n "$actual_ns" ]] && diff -q <(printf '%s\n' "$required_ns") <(printf '%s\n' "$actual_ns") >/dev/null 2>&1; then
+if [[ -n "$required_ns" && -n "$actual_ns" ]] && diff -q <(printf '%s\n' "$required_ns") <(printf '%s\n' "$actual_ns") >/dev/null 2>&1; then
   ok "Registrar delegation Cloudflare nameserver'ları ile eşleşiyor"
 else
   warn "Public NS ile Cloudflare assigned NS eşleşmiyor veya henüz yayılmamış"
 fi
 
 section "DNS SAFETY CHECK"
-records_http="$(curl -sS -o /tmp/btmedya-dns-records.json -w '%{http_code}' "$API/zones/$zone_id/dns_records?per_page=5000" "${auth[@]}" || true)"
-if [[ "$records_http" == "200" ]]; then
-  records="$(cat /tmp/btmedya-dns-records.json)"
-  jq -r '.result[] | select(
-    (.name=="'"$BASE_DOMAIN"'" and .type=="AAAA" and .content=="100::")
-    or (.name=="chatgpt.'"$BASE_DOMAIN"'" and .type=="A" and .content=="192.0.2.1")
-    or (.name=="'"$WWW_DOMAIN"'" and .type=="CNAME" and .content=="public.r2.dev")
-  ) | [.type,.name,.content] | @tsv' <<<"$records" > /tmp/btmedya-conflicts
-  if [[ ! -s /tmp/btmedya-conflicts ]]; then
-    ok "Bilinen eski/placeholder web DNS çakışması yok"
-  else
-    warn "Bilinen eski/placeholder kayıt bulundu:"
-    cat /tmp/btmedya-conflicts
-  fi
-  printf "Web DNS kayıt özeti:\n"
-  jq -r '.result[] | select(.name=="'"$BASE_DOMAIN"'" or .name=="'"$WWW_DOMAIN"'" or .name=="chatgpt.'"$BASE_DOMAIN"'") | [.type,.name,.content,(.proxied|tostring)] | @tsv' <<<"$records" || true
+if [[ -z "$zone_id" ]]; then
+  warn "Zone ID yok; Cloudflare DNS record safety check atlandı."
 else
-  warn "DNS kayıt listesi Cloudflare API tarafından HTTP $records_http ile okunamadı; diagnostic DNS'i değiştirmeden devam ediyor."
+  records_http="$(curl -sS -o /tmp/btmedya-dns-records.json -w '%{http_code}' "$API/zones/$zone_id/dns_records?per_page=5000" "${auth[@]}" || true)"
+  if [[ "$records_http" == "200" ]]; then
+    records="$(cat /tmp/btmedya-dns-records.json)"
+    jq -r '.result[] | select(
+      (.name=="'"$BASE_DOMAIN"'" and .type=="AAAA" and .content=="100::")
+      or (.name=="chatgpt.'"$BASE_DOMAIN"'" and .type=="A" and .content=="192.0.2.1")
+      or (.name=="'"$WWW_DOMAIN"'" and .type=="CNAME" and .content=="public.r2.dev")
+    ) | [.type,.name,.content] | @tsv' <<<"$records" > /tmp/btmedya-conflicts
+    if [[ ! -s /tmp/btmedya-conflicts ]]; then
+      ok "Bilinen eski/placeholder web DNS çakışması yok"
+    else
+      warn "Bilinen eski/placeholder kayıt bulundu:"
+      cat /tmp/btmedya-conflicts
+    fi
+    printf "Web DNS kayıt özeti:\n"
+    jq -r '.result[] | select(.name=="'"$BASE_DOMAIN"'" or .name=="'"$WWW_DOMAIN"'" or .name=="chatgpt.'"$BASE_DOMAIN"'") | [.type,.name,.content,(.proxied|tostring)] | @tsv' <<<"$records" || true
+  else
+    warn "DNS kayıt listesi Cloudflare API tarafından HTTP $records_http ile okunamadı; diagnostic DNS'i değiştirmeden devam ediyor."
+  fi
 fi
 printf "Not: MX/TXT/SPF/DKIM/DMARC kayıtları bu diagnostic tarafından değiştirilmez.\n"
 
