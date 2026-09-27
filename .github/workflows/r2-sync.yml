@@ -40,7 +40,7 @@ jobs:
           echo "WARNING: CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID is not configured; R2 sync was skipped."
 
       - name: Sync static media
-        if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+        if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
         shell: bash
         run: |
           set -euo pipefail
