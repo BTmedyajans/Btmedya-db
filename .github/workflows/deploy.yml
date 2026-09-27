@@ -62,10 +62,21 @@ jobs:
           set -euo pipefail
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN eksik."; exit 1; }
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID eksik."; exit 1; }
-          verify="$(curl -fsS --retry 2 --connect-timeout 10 --max-time 30             "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/tokens/verify"             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN")"
-          echo "$verify" | jq -c '{success,result:{status:(.result.status // null)}}'
-          test "$(jq -r '.success // false' <<<"$verify")" = "true"
-          test "$(jq -r '.result.status // ""' <<<"$verify")" = "active"
+
+          verify=""
+          verify="$(curl -sS --retry 2 --connect-timeout 10 --max-time 30             "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify"             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" || true)"
+          if [ "$(jq -r '.success // false' <<<"$verify")" = "true" ] && [ "$(jq -r '.result.status // ""' <<<"$verify")" = "active" ]; then
+            echo "Cloudflare account-owned API token: active"
+          else
+            verify="$(curl -sS --retry 2 --connect-timeout 10 --max-time 30               "https://api.cloudflare.com/client/v4/user/tokens/verify"               -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" || true)"
+            if [ "$(jq -r '.success // false' <<<"$verify")" = "true" ] && [ "$(jq -r '.result.status // ""' <<<"$verify")" = "active" ]; then
+              echo "Cloudflare user API token: active"
+            else
+              echo "ERROR: CLOUDFLARE_API_TOKEN is not accepted as an active Cloudflare API token."
+              echo "Create/rotate a current token and replace the GitHub secret. Do not paste the token into chat."
+              exit 1
+            fi
+          fi
 
       - name: Apply remote D1 migrations
         shell: bash
