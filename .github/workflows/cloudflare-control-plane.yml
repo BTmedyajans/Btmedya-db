@@ -1,0 +1,54 @@
+name: BTMEDYA Cloudflare Control Plane
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "audit veya apply"
+        required: true
+        type: choice
+        options: [audit, apply]
+        default: audit
+      apply_dmarc:
+        description: "DMARC p=quarantine değişikliğini uygula"
+        required: true
+        type: boolean
+        default: false
+      remove_resend_records:
+        description: "send.* Resend/Amazon SES kayıtlarını sil (yalnızca bilinçli onay)"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  cloudflare-control-plane:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Audit / apply Cloudflare configuration
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ZONE_NAME: btmedya.com.tr
+          DEST_EMAIL: busetuncay74@gmail.com
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'audit' }}
+          APPLY_DMARC: ${{ github.event_name == 'workflow_dispatch' && inputs.apply_dmarc && '1' || '0' }}
+          REMOVE_RESEND_RECORDS: ${{ github.event_name == 'workflow_dispatch' && inputs.remove_resend_records && '1' || '0' }}
+        run: |
+          chmod +x control-plane/cloudflare-control-plane.sh
+          ./control-plane/cloudflare-control-plane.sh | tee cloudflare-control-plane.log
+
+      - name: Upload control-plane log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btmedya-cloudflare-control-plane
+          path: cloudflare-control-plane.log
+          if-no-files-found: ignore
