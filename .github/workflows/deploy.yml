@@ -46,6 +46,14 @@ jobs:
           node --check src/worker.js
           node --check src/metricool-scheduler.js
           node --check public/home.js
+          # 27 Sep 2026'da yaşanan home.js truncation regresyonunu tekrar
+          # üretime taşımamak için yalnızca sözdizimini değil, runtime'ın
+          # beklenen minimum bütünlüğünü de kapıdan kontrol ediyoruz.
+          test "$(wc -l < public/home.js)" -ge 400
+          grep -q 'btYuvalar' public/home.js
+          grep -q 'cinematic' public/home.js
+          grep -q 'story' public/home.js
+          grep -q 'social' public/home.js
           python3 tools/validate-assets.py
           grep -q 'mobile-fixes.css' public/index.html
           grep -q 'prefers-reduced-motion' public/mobile-fixes.css
