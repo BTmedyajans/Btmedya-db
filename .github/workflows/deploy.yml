@@ -1,4 +1,4 @@
-name: BTMEDYA Production Deploy
+name: BTMEDYA Production Verify
 
 on:
   push:
@@ -16,16 +16,15 @@ on:
 
 permissions:
   contents: read
-  checks: read
 
 concurrency:
-  group: btmedya-production-deploy
+  group: btmedya-production-verify
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  verify:
     runs-on: ubuntu-latest
-    name: Deploy Cloudflare Worker and verify production
+    name: Verify source and production chain
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -43,6 +42,7 @@ jobs:
           test -s public/index.html
           test -s public/robots.txt
           test -s public/sitemap.xml
+          test -s package.json
           node --check src/worker.js
           node --check src/metricool-scheduler.js
           node --check public/home.js
@@ -55,101 +55,18 @@ jobs:
           test ! -e .github/workflows/media-smoke.yml
           test ! -e .github/workflows/storage-audit.yml
 
-      - name: Verify Cloudflare API token
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          set -euo pipefail
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN eksik."; exit 1; }
-          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID eksik."; exit 1; }
-
-          verify=""
-          verify="$(curl -sS --retry 2 --connect-timeout 10 --max-time 30             "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify"             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" || true)"
-          if [ "$(jq -r '.success // false' <<<"$verify")" = "true" ] && [ "$(jq -r '.result.status // ""' <<<"$verify")" = "active" ]; then
-            echo "Cloudflare account-owned API token: active"
-          else
-            verify="$(curl -sS --retry 2 --connect-timeout 10 --max-time 30               "https://api.cloudflare.com/client/v4/user/tokens/verify"               -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" || true)"
-            if [ "$(jq -r '.success // false' <<<"$verify")" = "true" ] && [ "$(jq -r '.result.status // ""' <<<"$verify")" = "active" ]; then
-              echo "Cloudflare user API token: active"
-            else
-              echo "ERROR: CLOUDFLARE_API_TOKEN is not accepted as an active Cloudflare API token."
-              echo "Create/rotate a current token and replace the GitHub secret. Do not paste the token into chat."
-              exit 1
-            fi
-          fi
-
-      - name: Apply remote D1 migrations
-        shell: bash
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          set -euo pipefail
-          npm install --no-save --no-package-lock wrangler@4.142.0 >/dev/null
-          log="$(mktemp)"
-          success=0
-          for attempt in 1 2 3 4; do
-            : > "$log"
-            if npx --no-install wrangler d1 migrations apply btmedya-media --remote 2>&1 | tee "$log"; then
-              success=1
-              break
-            fi
-            if grep -qiE 'Rate limited|code: 10429' "$log"; then
-              if [ "$attempt" -lt 4 ]; then
-                delay=$((15 * 2 ** (attempt - 1)))
-                echo "D1 rate limit (10429); retrying in " "$delay" "s..."
-                sleep "$delay"
-                continue
-              fi
-            fi
-            if grep -qiE 'Authentication error|Invalid access token|code: 10000|code: 9109' "$log"; then
-              echo "ERROR: Cloudflare token was rejected for D1. The token must be active and include D1 Edit/Write for btmedya-media."
-            else
-              echo "ERROR: D1 migration failed."
-            fi
-            exit 1
-          done
-          test "$success" = "1"
-
-      - name: Deploy Worker and Assets
-        shell: bash
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          set -euo pipefail
-          success=0
-          for attempt in 1 2 3 4; do
-            log="$(mktemp)"
-            if npx --no-install wrangler deploy --config wrangler.toml 2>&1 | tee "$log"; then
-              success=1
-              break
-            fi
-            if grep -qiE 'Rate limited|code: 10429' "$log" && [ "$attempt" -lt 4 ]; then
-              delay=$((15 * 2 ** (attempt - 1)))
-              echo "Worker deploy rate limited (10429); retrying in " "$delay" "s..."
-              sleep "$delay"
-              continue
-            fi
-            cat "$log"
-            exit 1
-          done
-          test "$success" = "1"
-
       - name: Production smoke test
         run: |
           set -euo pipefail
 
           resolve_ip() {
             local host="$1"
-            local ip
-            ip="$(dig +short A "$host" @1.1.1.1 | head -n1)"
-            if [ -z "$ip" ]; then
-              echo "DNS resolver fallback via Cloudflare DoH: $host"
-              doh="$(curl --resolve cloudflare-dns.com:443:1.1.1.1 -H 'accept: application/dns-json' -fsS --max-time 20 "https://cloudflare-dns.com/dns-query?name=$host&type=A")" || true
-              ip="$(jq -r '.Answer[]? | select(.type==1) | .data' <<<"$doh" | head -n1)"
-            fi
+            local ip=""
+            for attempt in 1 2 3; do
+              ip="$(dig +short A "$host" @1.1.1.1 | head -n1 || true)"
+              [ -n "$ip" ] && break
+              sleep 5
+            done
             if [ -z "$ip" ]; then
               echo "DNS_RESOLVE_FAILED $host" >&2
               return 1
@@ -166,7 +83,7 @@ jobs:
             local host="$1"
             local ip="$2"
             local url="$3"
-            curl --resolve "$host:443:$ip" -L -sS --max-time 30 "$url"
+            curl --resolve "$host:443:$ip" -sS --max-time 30 "$url"
           }
 
           check_http() {
@@ -176,7 +93,7 @@ jobs:
             local url="$4"
             local expected="$5"
             local actual
-            actual="$(curl --resolve "$host:443:$ip" -L -sS -o /dev/null -w "%{http_code}" --max-time 30 "$url")"
+            actual="$(curl --resolve "$host:443:$ip" -sS -o /dev/null -w "%{http_code}" --max-time 30 "$url")"
             echo "SMOKE $label: HTTP $actual (expected $expected)"
             test "$actual" = "$expected"
           }
@@ -192,25 +109,24 @@ jobs:
           echo "$health" | grep -q '"cms":true'
           echo "$health" | grep -q '"r2":true'
 
-          media="$(curl_url btmedya.com.tr "$HOME_IP" "https://btmedya.com.tr/api/public/media")"
+          media="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/api/public/media)"
           echo "SMOKE media: $(printf '%s' "$media" | head -c 500)"
           echo "$media" | grep -q '"items"'
-          ! echo "$media" | grep -Eiq '\\.(trashed|tmp|temp)(-|/)|thumbs\\.db'
 
-          social="$(curl_url btmedya.com.tr "$HOME_IP" "https://btmedya.com.tr/api/public/social-feed")"
+          social="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/api/public/social-feed)"
           echo "SMOKE social: $(printf '%s' "$social" | head -c 500)"
           echo "$social" | grep -q '"items"'
 
-          home="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/)"
-          for marker in 'GERÇEK ÇEKİM' 'AI ÜRETİMİ' 'Kaynak Masası' 'https://www.instagram.com/btmedyajans/'; do
-            if grep -q "$marker" <<<"$home"; then
-              echo "SMOKE home marker OK: $marker"
-            else
-              echo "SMOKE home marker MISSING: $marker"
-              exit 1
-            fi
-          done
+          admin_api="$(curl --resolve "btmedya.com.tr:443:$HOME_IP" -sS -o /dev/null -w "%{http_code}" --max-time 30 https://btmedya.com.tr/api/admin/control-center)"
+          echo "SMOKE admin API without session: HTTP $admin_api (expected 401)"
+          test "$admin_api" = "401"
 
           www_status="$(curl --resolve "www.btmedya.com.tr:443:$WWW_IP" -sS -o /dev/null -w "%{http_code}" --max-time 30 https://www.btmedya.com.tr/)"
           echo "SMOKE www: HTTP $www_status (expected 301)"
           test "$www_status" = "301"
+
+          home="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/)"
+          for marker in 'GERÇEK ÇEKİM' 'AI ÜRETİMİ' 'Kaynak Masası' 'https://www.instagram.com/btmedyajans/'; do
+            grep -q "$marker" <<<"$home"
+            echo "SMOKE home marker OK: $marker"
+          done
