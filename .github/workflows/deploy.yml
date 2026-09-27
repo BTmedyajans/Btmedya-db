@@ -82,6 +82,11 @@ jobs:
             local ip
             ip="$(dig +short A "$host" @1.1.1.1 | head -n1)"
             if [ -z "$ip" ]; then
+              echo "DNS resolver fallback via Cloudflare DoH: $host"
+              doh="$(curl --resolve cloudflare-dns.com:443:1.1.1.1 -H 'accept: application/dns-json' -fsS --max-time 20 "https://cloudflare-dns.com/dns-query?name=$host&type=A")" || true
+              ip="$(jq -r '.Answer[]? | select(.type==1) | .data' <<<"$doh" | head -n1)"
+            fi
+            if [ -z "$ip" ]; then
               echo "DNS_RESOLVE_FAILED $host" >&2
               return 1
             fi
