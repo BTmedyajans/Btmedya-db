@@ -13,8 +13,6 @@ on:
 permissions:
   contents: read
 
-# Secrets are exposed through env so GitHub Actions conditionals can safely test
-# whether they exist; the secret values themselves never enter the repository.
 env:
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -33,6 +31,10 @@ jobs:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: latest
+
+      - name: Install Wrangler CLI for sync shell
+        if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
+        run: npm install --global wrangler@latest
 
       - name: Cloudflare credential preflight
         if: ${{ env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == '' }}
