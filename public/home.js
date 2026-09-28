@@ -428,7 +428,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       const data = await r.json();
       const ogeler = (Array.isArray(data.items) ? data.items : [])
         .filter(x => x && !x.ai_generated && !arsivDisi(x))
-        .filter(x => ['saha','haber','video','portfoy','hero','sosyal'].includes(String(x.category || '')))
+        .filter(x => ['saha','haber','video','portfoy','hero','sosyal','arsiv','medya'].includes(String(x.category || '')))
         .sort((a, b) => {
           /* Once medya-ozel.json'daki acik vitrin sirasi. Alfabetik dizilis
              ayni cekimden bes portreyi ust uste getiriyor, saha roportaji ve
