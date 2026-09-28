@@ -1140,6 +1140,49 @@ function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
   return {aspect,uygun,uygunsuz,siteUyarisi};
 }
 
+async function hydrateR2FromManifest(env, limit=3){
+  const result={enabled:Boolean(env.MEDIA&&env.ASSETS),processed:0,copied:0,skipped:0,failed:0,items:[]};
+  if(!result.enabled) return result;
+  let manifest;
+  try{
+    const res=await env.ASSETS.fetch(new Request('https://btmedya.internal/data/medya-listesi.json'));
+    if(!res.ok) return {...result,failed:1,items:[{error:'medya-listesi.json okunamadı'}]};
+    manifest=await res.json();
+  }catch(e){
+    return {...result,failed:1,items:[{error:String(e?.message||e).slice(0,240)}]};
+  }
+  const items=(Array.isArray(manifest)?manifest:[])
+    .filter(x=>x&&x.path&&typeof x.path==='string'&&!x.path.startsWith('static/'));
+  if(!items.length) return result;
+  let index=Number(await env.KV?.get('automation:r2-hydrate:index').catch(()=>null) || 0);
+  if(!Number.isFinite(index)||index<0||index>=items.length) index=0;
+  const mime=(key)=>{
+    const ext=key.toLowerCase().split('.').pop();
+    return ({jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',svg:'image/svg+xml',mp4:'video/mp4',webm:'video/webm',mov:'video/quicktime',m4v:'video/x-m4v',mp3:'audio/mpeg',wav:'audio/wav',m4a:'audio/mp4'})[ext]||'application/octet-stream';
+  };
+  const n=Math.max(1,Math.min(3,Number(limit)||3));
+  for(let i=0;i<n;i++){
+    const row=items[(index+i)%items.length];
+    const key=String(row.path).replace(/^\\/+/,"");
+    result.processed++;
+    const exists=await env.MEDIA.head(key).catch(()=>null);
+    if(exists){ result.skipped++; result.items.push({key,status:'exists'}); continue; }
+    try{
+      const asset=await env.ASSETS.fetch(new Request('https://btmedya.internal/'+key));
+      if(!asset.ok){ result.failed++; result.items.push({key,status:'asset-'+asset.status}); continue; }
+      await env.MEDIA.put(key,asset.body,{httpMetadata:{contentType:mime(key),cacheControl:'public, max-age=31536000'}});
+      result.copied++;
+      result.items.push({key,status:'copied'});
+    }catch(e){
+      result.failed++;
+      result.items.push({key,status:'error',error:String(e?.message||e).slice(0,240)});
+    }
+  }
+  const next=(index+n)%items.length;
+  if(env.KV) await env.KV.put('automation:r2-hydrate:index',String(next),{expirationTtl:604800}).catch(()=>{});
+  return result;
+}
+
 export default { async scheduled(controller, env, ctx){
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
   /* Metricool teslimi. METRICOOL_USER_TOKEN yoksa hicbir sey yapmaz; hata
@@ -1147,7 +1190,13 @@ export default { async scheduled(controller, env, ctx){
   const metricool=processMetricoolQueue(env)
     .then(x=>{ if(x.processed) console.log('[btmedya] metricool',x.scheduled,'teslim',x.failed,'hata'); })
     .catch(e=>console.error('[btmedya] metricool kuyrugu:',e?.message||e));
-  const hepsi=Promise.all([task,metricool]);
+  /* R2 arşiv köprüsü: GitHub Actions tokenı gerektirmeden, Worker'ın mevcut
+     ASSETS + R2 binding'leriyle manifestteki medya dosyalarını parça parça
+     üretim R2 arşivine taşır. Var olan nesneleri atlar. */
+  const archive=hydrateR2FromManifest(env,3)
+    .then(x=>{ if(x.processed) console.log('[btmedya] r2 archive',x.copied,'kopya',x.skipped,'mevcut',x.failed,'hata'); })
+    .catch(e=>console.error('[btmedya] r2 archive:',e?.message||e));
+  const hepsi=Promise.all([task,metricool,archive]);
   if(ctx?.waitUntil) ctx.waitUntil(hepsi); else await hepsi;
 }, async fetch(request, env, ctx){
   const url = new URL(request.url);
