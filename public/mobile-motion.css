@@ -1,0 +1,53 @@
+/* BTMEDYA Mobile Motion Layer — 2026-09-29
+   Mobile-first scroll choreography. Loaded after the base cinematic styles.
+   JS fallback owns scene selection; CSS owns cheap transform/opacity work. */
+@media (max-width:720px){
+  .cinematic-hero.bt-mobile-motion{--mm-progress:0;--mm-scene:0}
+  .cinematic-hero.bt-mobile-motion .cinematic-sticky{
+    position:sticky!important;
+    top:0;
+    min-height:100svh;
+    height:100svh;
+    overflow:clip;
+    isolation:isolate;
+  }
+  .cinematic-hero.bt-mobile-motion .cinematic-video{
+    will-change:opacity,transform;
+    transform:scale(var(--mm-scale,1));
+    transition:none!important;
+  }
+  .cinematic-hero.bt-mobile-motion .cinematic-copy{
+    will-change:transform,opacity;
+    transform:translate3d(0,var(--mm-copy-y,0px),0);
+    opacity:var(--mm-copy-opacity,1);
+    transition:none!important;
+  }
+  .cinematic-hero.bt-mobile-motion [data-cinematic-title]{
+    will-change:transform,opacity;
+  }
+  .cinematic-hero.bt-mobile-motion .cinematic-progress{
+    transform-origin:left center;
+    transform:scaleX(var(--mm-progress,0));
+  }
+  .cinematic-hero.bt-mobile-motion .cinematic-mobile-hint{
+    position:absolute;
+    left:50%;
+    bottom:max(18px,env(safe-area-inset-bottom));
+    transform:translateX(-50%);
+    z-index:8;
+    font:600 10px/1.2 Bricolage,system-ui,sans-serif;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    opacity:calc(1 - var(--mm-progress,0) * 4);
+    pointer-events:none;
+    white-space:nowrap;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  .cinematic-hero.bt-mobile-motion .cinematic-video,
+  .cinematic-hero.bt-mobile-motion .cinematic-copy,
+  .cinematic-hero.bt-mobile-motion [data-cinematic-title]{
+    transition:none!important;
+    transform:none!important;
+  }
+}
