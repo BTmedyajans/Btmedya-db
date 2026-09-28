@@ -51,14 +51,24 @@ jobs:
       - name: Listeyi yeniden uret
         run: node tools/medya-listesi.mjs
 
-      - name: Degisiklik varsa PR ac
-        if: success()
-        uses: peter-evans/create-pull-request@v7
+      - name: Liste farkini raporla
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- public/data/medya-listesi.json; then
+            echo "Medya katalogu guncel."
+          else
+            echo "::warning::Medya katalogu üreticiyle farkli. Üretilen liste artifact olarak saklaniyor; production statik assetleri etkilenmedi."
+            mkdir -p .artifacts
+            cp public/data/medya-listesi.json .artifacts/medya-listesi-generated.json
+          fi
+
+      - name: Generated media catalog artifact
+        if: always() && hashFiles('.artifacts/medya-listesi-generated.json') != ''
+        uses: actions/upload-artifact@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          add-paths: public/data/medya-listesi.json
-          commit-message: "chore: medya listesini guncelle"
-          branch: automation/update-media-list
-          delete-branch: true
-          title: "chore: medya listesini guncelle"
+          name: btmedya-generated-media-catalog
+          path: .artifacts/medya-listesi-generated.json
+          if-no-files-found: ignore
           body: "Medya listesi otomatik olarak yeniden üretildi. Bu PR, korunan main dalına doğrudan push yerine inceleme akışı kullanır."
