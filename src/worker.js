@@ -2,6 +2,10 @@ import { BtmedyaWorkflow } from "./btmedya-workflow.js";
 import { WorkflowStatusDO } from "./workflow-status-do.js";
 import { renderNewsPage } from "./news-page.js";
 import { socialProviderStatus } from "./social-platforms.js";
+import { recoveryPasswordValid } from "./auth-recovery.js";
+// Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
+// src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
+import { processMetricoolQueue, metricoolDurumu } from "./metricool-scheduler.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
  * 2) Medya Kasası (D1 tablo: media, R2) — /api/media*, /api/public/media, /api/export, /media/*, /api/login, /api/logout
@@ -136,7 +140,7 @@ async function recordAutomationHeartbeat(env){
       overdue=Number(row?.overdue||0);
     }catch(e){ console.warn('[automation] queue health skipped',e?.message||e); }
   }
-  const snapshot={ok:true,cron:'*/30 * * * *',heartbeatAt:now,queued,overdue,providers:socialProviderStatus(env)};
+  const snapshot={ok:true,cron:'*/5 * * * *',heartbeatAt:now,queued,overdue,providers:socialProviderStatus(env)};
   if(env.KV) await env.KV.put('automation:heartbeat',JSON.stringify(snapshot),{expirationTtl:86400}).catch(()=>{});
   return snapshot;
 }
@@ -151,7 +155,7 @@ async function sendContactEmail(env, msg){
     console.warn('[email] RESEND_API_KEY tanımlı değil, atlandı.');
     return false;
   }
-  const to=env.RESEND_TO||'busetuncay1029@gmail.com';
+  const to=env.RESEND_TO||'info@btmedya.com.tr';
   const from=env.RESEND_FROM||'BTMEDYA <noreply@btmedya.com.tr>';
   const subject=`[BTMEDYA] Yeni mesaj: ${msg.subject||'İletişim Formu'}`;
   const html=`<div style="font-family:sans-serif;max-width:600px;margin:auto"><h2 style="color:#111;border-bottom:2px solid #eee;padding-bottom:8px">Yeni İletişim Formu Mesajı</h2><table style="border-collapse:collapse;width:100%"><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px;width:110px">Ad Soyad</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.name)}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">E-posta</th><td style="padding:8px 12px;border-bottom:1px solid #eee"><a href="mailto:${esc(msg.email)}">${esc(msg.email)}</a></td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">Telefon</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.phone||'—')}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px">Konu</th><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(msg.subject||'—')}</td></tr><tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px;vertical-align:top">Mesaj</th><td style="padding:8px 12px;white-space:pre-wrap">${esc(msg.message)}</td></tr></table><p style="margin-top:24px;font-size:12px;color:#999">btmedya.com.tr iletişim formu · ${new Date().toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'})}</p></div>`;
@@ -222,7 +226,28 @@ async function workflowApi(request, env, url) {
 }
 
 /* ---------- Haber CMS API ---------- */
-async function newsApi(request, env, url){
+/* IndexNow: yayinlanan haberin adresini Bing, Yandex ve IndexNow'u kullanan
+   diger arama motorlarina aninda bildirir; tarayicinin site haritasini bir
+   sonraki ziyaretinde bulmasini beklemez. Anahtar kamuya aciktir (protokol
+   geregi public/57fb863171638cffa9cdfb3913627b57.txt olarak yayinda); gizli degil, alan adinin
+   sahipligini kanitlar. Google IndexNow kullanmaz; Google icin site haritasi
+   ve Search Console gecerlidir. Bildirim basarisiz olursa yayin etkilenmez. */
+const INDEXNOW_ANAHTAR = '57fb863171638cffa9cdfb3913627b57';
+function indexNowBildir(ctx, origin, slug){
+  if(!slug) return;
+  const host = new URL(origin).host;
+  if(host !== 'btmedya.com.tr') return; // yerel ve onizleme ortamlarindan bildirim gitmesin
+  const is = fetch('https://api.indexnow.org/indexnow', {
+    method:'POST', headers:{'content-type':'application/json; charset=utf-8'},
+    body: JSON.stringify({host, key:INDEXNOW_ANAHTAR, keyLocation:`https://${host}/${INDEXNOW_ANAHTAR}.txt`,
+      urlList:[`https://${host}/haberler/${encodeURIComponent(slug)}`]}),
+    signal: AbortSignal.timeout(5000)
+  }).then(r => { if(!r.ok && r.status!==202) console.error('[indexnow]', r.status); })
+    .catch(e => console.error('[indexnow]', e?.message || e));
+  if(ctx?.waitUntil) ctx.waitUntil(is);
+}
+
+async function newsApi(request, env, url, ctx){
   if(url.pathname==='/api/public/social-feed' && request.method==='GET'){
     const r=await env.ASSETS.fetch(new Request(new URL('/data/social-feed.json',url.origin)));
     if(!r.ok) return json({ok:false,error:'Sosyal akış snapshot bulunamadı'},404);
@@ -332,6 +357,7 @@ async function newsApi(request, env, url){
         VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(slug) DO UPDATE SET title=excluded.title,excerpt=excluded.excerpt,body=excluded.body,category=excluded.category,author=excluded.author,cover_url=excluded.cover_url,video_url=excluded.video_url,status=excluded.status,published_at=excluded.published_at,updated_at=excluded.updated_at`)
         .bind(slug,title,String(b.excerpt||'').slice(0,1000),String(b.body||'').slice(0,200000),String(b.category||'').slice(0,100),String(b.author||'').slice(0,160),String(b.cover_url||'').slice(0,2000),String(b.video_url||'').slice(0,2000),status,status==='published'?(b.published_at||now):null,now).run();
     }
+    if(status==='published') indexNowBildir(ctx, url.origin, slug);
     return json({ok:true,slug,status});
   }
 
@@ -357,6 +383,10 @@ async function newsApi(request, env, url){
         await env.DB.prepare('UPDATE news SET title=?,excerpt=?,body=?,category=?,author=?,cover_url=?,video_url=?,status=?,published_at=?,updated_at=? WHERE id=?')
           .bind(...values.slice(0,9),now,id).run();
       }
+      if(status==='published'){
+        const r=await env.DB.prepare('SELECT slug FROM news WHERE id=?').bind(id).first().catch(()=>null);
+        indexNowBildir(ctx, url.origin, r?.slug);
+      }
       return json({ok:true});
     }
     if(request.method==='DELETE'){
@@ -368,18 +398,133 @@ async function newsApi(request, env, url){
   return null;
 }
 
+/* ---------- BTMEDYA Haber Bulucu + AI İçerik Üretici ---------- */
+const NEWS_FEEDS = [
+  {id:'cumha-balikesir',name:'CUMHA / Balıkesir RSS',url:'https://cumha.com.tr/rss/lokasyon/balikesir',category:'Yerel'},
+  {id:'google-balikesir',name:'Google News / Balıkesir',url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir&hl=tr&gl=TR&ceid=TR:tr',category:'Gündem'},
+  {id:'google-ai',name:'Google News / Yapay Zekâ',url:'https://news.google.com/rss/search?q=yapay%20zeka%20AI&hl=tr&gl=TR&ceid=TR:tr',category:'Yapay Zekâ'}
+];
+function stripTags(s){return String(s||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()}
+function xmlDecode(s){return String(s||'').replace(/<!\[CDATA\[|\]\]>/g,'').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>')}
+function rssItems(xml){
+  const out=[]; const blocks=xml.match(/<(?:item|entry)\b[\s\S]*?<\/(?:item|entry)>/gi)||[];
+  for(const b of blocks){
+    const pick=(tag)=>{const m=b.match(new RegExp('<'+tag+'(?:[^>]*)>([\\s\\S]*?)<\\/'+tag+'>','i'));return m?xmlDecode(m[1]).trim():''};
+    let title=stripTags(pick('title')); let link=stripTags(pick('link'));
+    if(!link){const m=b.match(/<link[^>]+href=["']([^"']+)["']/i);link=m?m[1]:''}
+    const description=stripTags(pick('description')||pick('summary')||pick('content'));
+    const date=stripTags(pick('pubDate')||pick('published')||pick('updated'));
+    if(title&&link) out.push({title:title.slice(0,240),link:link.slice(0,2000),description:description.slice(0,1800),date});
+  } return out;
+}
+/* NFKD, Türkçe ı/İ harfini ayrıştırmaz; eski sürüm "Balıkesir"i
+   "bal-kesir" yapıyordu. Harfler önce elle çevrilir. */
+const TR_HARF={'ı':'i','İ':'i','ş':'s','Ş':'s','ğ':'g','Ğ':'g','ü':'u','Ü':'u','ö':'o','Ö':'o','ç':'c','Ç':'c'};
+function newsSlug(title,link){let base=String(title||'haber').replace(/[ıİşŞğĞüÜöÖçÇ]/g,h=>TR_HARF[h]).toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,100).replace(/-+$/,'')||'haber';let h=0;for(const ch of String(link||'')){h=((h<<5)-h+ch.charCodeAt(0))|0}return base+'-'+Math.abs(h)}
+/* Google News başlığa " - Yayın Adı" ekler. Bu ek hem taslak başlığına hem
+   haber adresine başka yayının adını taşıyordu. Yalnız Google akışlarında
+   temizlenir; CUMHA başlıklarında tire başlığın parçası olabilir. */
+function kaynakEkiniAt(title){return String(title||'').replace(/\s+-\s+[^-]{2,80}$/,'').trim()||String(title||'')}
+/* Kaynak Masası bir bağlantıyı yalnızca bir kez içeri alır. Editör taslağı
+   özgün metne çevirip adresini ya da kaynak bağlantısını değiştirdiğinde,
+   hatta işlenen taslağı sildiğinde bile aynı RSS öğesi yeniden gelmesin diye
+   görülen bağlantılar ayrı tabloda tutulur. Tablo kendini kurar ve her
+   taramada mevcut haberlerin kaynaklarıyla tamamlanır (IF NOT EXISTS / OR IGNORE). */
+async function gorulenTablosu(env){
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS kaynak_gorulen (link TEXT PRIMARY KEY, created_at TEXT NOT NULL)').run();
+  await env.DB.prepare("INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) SELECT source_url,created_at FROM news WHERE source_url<>''").run();
+}
+async function scanNewsSources(env,feedIds){
+  const feeds=NEWS_FEEDS.filter(x=>!feedIds||feedIds.includes(x.id)); const found=[];
+  if(!env.DB) return found;
+  await gorulenTablosu(env);
+  for(const feed of feeds){try{
+    const r=await fetch(feed.url,{headers:{accept:'application/rss+xml, application/xml, text/xml, text/html','user-agent':'BTMEDYA-NewsFinder/1.0'},redirect:'follow'}); if(!r.ok) continue;
+    for(const item of rssItems(await r.text()).slice(0,20)){
+      const gorulmus=await env.DB.prepare('SELECT 1 FROM kaynak_gorulen WHERE link=? LIMIT 1').bind(item.link).first(); if(gorulmus) continue;
+      const baslik=feed.id.startsWith('google-')?kaynakEkiniAt(item.title):item.title;
+      const slug=newsSlug(baslik,item.link); const duplicate=await env.DB.prepare('SELECT id FROM news WHERE slug=? LIMIT 1').bind(slug).first(); if(duplicate) continue;
+      const now=new Date().toISOString();
+      await env.DB.prepare('INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(slug,baslik,item.description,item.description,feed.category,'BTMEDYA Kaynak Masası','','','draft',null,item.link,item.date||null,'Kaynak Masası tarafından bulundu; editör onayı bekliyor.',now).run();
+      await env.DB.prepare('INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) VALUES(?,?)').bind(item.link,now).run();
+      found.push({slug,title:baslik,source:item.link,category:feed.category,date:item.date||null});
+    }
+  }catch(e){}}
+  return found;
+}
+async function newsFinderApi(request,env,url){
+  if(!url.pathname.startsWith('/api/admin/news-finder')) return null;
+  if(!(await validSession(request,(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
+  if(request.method==='GET') return json({ok:true,feeds:NEWS_FEEDS.map(x=>({id:x.id,name:x.name,category:x.category})),openai:!!env.OPENAI_API_KEY});
+  if(request.method!=='POST') return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,POST'});
+  const body=await request.json().catch(()=>({})); const feedIds=Array.isArray(body.feeds)&&body.feeds.length?body.feeds:NEWS_FEEDS.map(x=>x.id);
+  const found=await scanNewsSources(env,feedIds);
+  return json({ok:true,count:found.length,items:found});
+}
+async function aiDraftApi(request,env,url){
+  if(url.pathname!=='/api/admin/ai-draft') return null;
+  if(!(await validSession(request,(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(request.method!=='POST') return json({ok:false,error:'Method not allowed'},405);
+  if(!env.OPENAI_API_KEY) return json({ok:false,error:'OPENAI_API_KEY secret eksik'},503);
+  const b=await request.json().catch(()=>({})); const title=String(b.title||'').trim().slice(0,500); const source=String(b.source||'').trim().slice(0,2000); const textIn=String(b.text||'').trim().slice(0,12000);
+  if(!title&&!textIn) return json({ok:false,error:'Başlık veya metin gerekli'},400);
+  const prompt='BTMEDYA için editoryal TASLAK hazırla. Kaynak metni kopyalama. Yalnızca verilen bilgilerden hareket et, yeni olgu uydurma. Türkçe JSON üret: title, excerpt, body, social_caption. Kaynak linkini ve belirsizliği koru. Otomatik yayın yapma.\n\nBaşlık: '+title+'\nKaynak: '+source+'\nMetin: '+textIn;
+  const r=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+env.OPENAI_API_KEY},body:JSON.stringify({model:'gpt-5.6-luna',input:prompt,store:false})});
+  if(!r.ok) return json({ok:false,error:'AI servisi yanıt vermedi'},502); const data=await r.json();
+  const output=String(data.output_text||data.output?.flatMap(x=>x.content||[]).map(x=>x.text||'').join('')||'').trim(); let parsed=null; try{parsed=JSON.parse(output.replace(/^```json|```$/g,'').trim())}catch{}
+  return json({ok:true,draft:parsed||{title,excerpt:'',body:output,social_caption:''}});
+}
+/* ---------- Statik arşiv -> R2 eşitleme ---------- */
+async function mediaSyncApi(request, env, url){
+  if(url.pathname!=='/api/admin/media-sync' || request.method!=='POST') return null;
+  if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!env.MEDIA) return json({ok:false,error:'Üretim R2 bağlı değil'},503);
+  if(!env.ASSETS) return json({ok:false,error:'Statik ASSETS bağlı değil'},503);
+  const body=await request.json().catch(()=>({}));
+  const raw=String(body.path||'').replace(/^\/+/, '');
+  if(!raw || raw.includes('..') || raw.length>500) return json({ok:false,error:'Geçersiz medya yolu'},400);
+  const origin=new URL(request.url).origin;
+  const catalog=await medyaListesi(env,origin);
+  const item=catalog.find(x=>String(x.path||'')===raw);
+  if(!item) return json({ok:false,error:'Bu dosya BTMEDYA statik kataloğunda yok'},404);
+  const existing=await env.MEDIA.head(raw).catch(()=>null);
+  if(existing) return json({ok:true,already:true,path:raw,source:'r2',message:'Dosya R2 içinde zaten var'});
+  const assetUrl=new URL('/assets/'+raw,origin);
+  const response=await env.ASSETS.fetch(new Request(assetUrl.toString(),{method:'GET'}));
+  if(!response.ok) return json({ok:false,error:'Statik medya okunamadı: HTTP '+response.status},502);
+  const mime=response.headers.get('content-type') || (/\.(mp4|webm)$/i.test(raw)?'video/mp4':'image/webp');
+  const size=Number(response.headers.get('content-length')||0);
+  await env.MEDIA.put(raw,response.body,{httpMetadata:{contentType:mime}});
+  if(env.DB){
+    const id=crypto.randomUUID(), now=new Date().toISOString();
+    const category=String(item.category||'arsiv');
+    const title=String(item.baslik||raw.split('/').pop()||raw).replace(/\.[^.]+$/,'').replace(/[-_]+/g,' ');
+    const ai=item.gercek===true ? 0 : 1;
+    const slot=category==='hero'?'hero':category==='video'?'medya':category==='portfoy'?'portfoy':'';
+    const tags=JSON.stringify(['BTMEDYA',ai?'ai-uretimi':'gercek','arsiv','r2']);
+    await env.DB.prepare('INSERT OR IGNORE INTO media (id,key,original_name,mime,size,category,tags,title,description,alt_text,published,slot,sort_order,created_at,updated_at,width,height,duration_s,has_audio,aspect,suggested,routed,posted,youtube_id,ai_generated) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(id,raw,raw.split('/').pop()||raw,mime,size,category,tags,title,ai?'BTMEDYA AI üretimi arşiv medyası':'BTMEDYA gerçek çekim arşiv medyası',ai?'BTMEDYA AI üretimi arşiv medyası':'BTMEDYA gerçek çekim arşiv medyası',1,slot,Number(item.sira||0),now,now,0,0,0,0,'', '[]','[]','[]','',ai).run().catch(()=>{});
+  }
+  return json({ok:true,already:false,path:raw,source:'r2',mime,size,message:'Statik medya R2 ve D1 medya kasasına aktarıldı'});
+}
 /* ---------- BTMEDYA Control Center ---------- */
 async function controlCenterApi(request, env, url){
   if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
   if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
-  let automation={configured:true,cron:'*/30 * * * *',lastHeartbeat:null};
+  let automation={configured:true,cron:'*/5 * * * *',lastHeartbeat:null};
   if(env.KV){
     const raw=await env.KV.get('automation:heartbeat').catch(()=>null);
     if(raw) try{ automation={...automation,...JSON.parse(raw)}; }catch{}
   }
+  const metricool=await metricoolDurumu(env).catch(()=>({yapilandirildi:!!env.METRICOOL_USER_TOKEN}));
   return json({
     ok:true,
     service:'BTMEDYA Control Center',
+    /* Calisan sosyal yayin yolu Metricool: TikTok gonderileri oradan
+       yayinlandi. Tek anahtar Instagram, Facebook, TikTok ve YouTube'u
+       birlikte kapsar; asagidaki dogrudan API anahtarlari alternatiftir. */
+    metricool,
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db'},
     storage:{d1:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA},
     admin:{configured:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
@@ -401,9 +546,11 @@ async function controlCenterApi(request, env, url){
       !env.ADMIN_PASSWORD_SECRET?'Cloudflare Worker secret: ADMIN_PASSWORD_SECRET ekle':null,
       !env.ADMIN_SESSION_SECRET_SECRET?'Cloudflare Worker secret: ADMIN_SESSION_SECRET_SECRET ekle':null,
       !env.MEDIA_SIGNING_SECRET?'Cloudflare Worker secret: MEDIA_SIGNING_SECRET ekle':null,
-      !env.META_ACCESS_TOKEN||!env.META_IG_USER_ID?'Instagram bağlantı secretlarını tamamla':null,
-      !env.TIKTOK_ACCESS_TOKEN||!env.TIKTOK_OPEN_ID?'TikTok bağlantı secretlarını tamamla':null,
-      !env.YOUTUBE_CLIENT_ID||!env.YOUTUBE_CLIENT_SECRET||!env.YOUTUBE_REFRESH_TOKEN?'YouTube bağlantı secretlarını tamamla':null
+      /* Once burada dort ayri gelistirici hesabi (Meta, TikTok, Google)
+         isteniyordu. Metricool hepsini tek anahtarla kapsiyor ve TikTok
+         yayinlari zaten oradan calisti; oncelik o. */
+      !env.METRICOOL_USER_TOKEN?'Metricool: Cloudflare Worker secret METRICOOL_USER_TOKEN ekle (Metricool > Hesap > API). Tek anahtar Instagram, Facebook, TikTok ve YouTube paylaşımını açar.':null,
+      metricool.hatali?`Metricool: ${metricool.hatali} gönderi teslim edilemedi — ${metricool.sonHata||'ayrıntı için Sosyal İçerik'}`:null
     ].filter(Boolean)
   });
 }
@@ -461,7 +608,7 @@ async function contactApi(request, env, url, ctx){
 const SOCIAL_STATUS = new Set(['fikir','hazirlaniyor','onayda','planlandi','yayinlandi']);
 const SOCIAL_FORMAT = new Set(['9:16','4:5','1:1','16:9']);
 
-async function socialApi(request, env, url){
+async function socialApi(request, env, url, ctx){
   if(!url.pathname.startsWith('/api/admin/social')) return null;
   if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
   if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
@@ -510,6 +657,13 @@ async function socialApi(request, env, url){
       await env.DB.prepare('INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
         .bind(id,title,body,JSON.stringify(platforms),format,mediaKey,sourceSlug,status,scheduledAt,now,now).run();
     }
+    if(status==='planlandi' && ctx?.waitUntil){
+      ctx.waitUntil(
+        processMetricoolQueue(env,10)
+          .then(x=>console.log('[btmedya] immediate Metricool handoff',JSON.stringify(x)))
+          .catch(e=>console.error('[btmedya] immediate Metricool handoff:',e?.message||e))
+      );
+    }
     return json({ok:true,id,status});
   }
 
@@ -521,6 +675,13 @@ async function socialApi(request, env, url){
     if(!SOCIAL_STATUS.has(status)) return json({ok:false,error:'Geçersiz durum'},400);
     const r=await env.DB.prepare('UPDATE social_posts SET status=?,updated_at=? WHERE id=?')
       .bind(status,new Date().toISOString(),id).run();
+    if(status==='planlandi' && ctx?.waitUntil && (r.meta?.changes||0)>0){
+      ctx.waitUntil(
+        processMetricoolQueue(env,10)
+          .then(x=>console.log('[btmedya] immediate Metricool handoff',JSON.stringify(x)))
+          .catch(e=>console.error('[btmedya] immediate Metricool handoff:',e?.message||e))
+      );
+    }
     return json({ok:true,changed:(r.meta?.changes||0)>0});
   }
   if(byId && request.method==='DELETE'){
@@ -547,9 +708,19 @@ async function mediaApi(request, env){
     const rate=await checkRateLimit(env,ip);
     if(!rate.allowed) return json({error:'Çok fazla başarısız deneme. 15 dakika bekleyin.'},429,{'Retry-After':String(RATE_LIMIT_WINDOW_S)});
     const body=await request.json().catch(()=>({}));
-    const username=String(body.username||'').trim().toUpperCase();
-    const expectedUsername=String(env.ADMIN_USERNAME||'BTMEDYA').trim().toUpperCase();
-    if(username!==expectedUsername || !env.ADMIN_PASSWORD_SECRET || !sess || body.password!==env.ADMIN_PASSWORD_SECRET)
+    /* Kullanici adi buyuk/kucuk harfe duyarsiz. Telefonda "btmedya" yazilinca
+       klavye ilk harfi buyutup "Btmedya" yapiyor; eslesme kati oldugu icin
+       dogru sifreyle bile giris reddediliyordu ve panel "Sifre hatali"
+       diyordu. Kullanici adi sir degil, markanin adi; guvenligi sifre tasir.
+       tr-TR: iki taraf da ayni kurala gore buyutulsun (i/İ, ı/I). */
+    const buyut=s=>String(s||'').trim().toLocaleUpperCase('tr-TR');
+    const username=buyut(body.username);
+    const expectedUsername=buyut(env.ADMIN_USERNAME||'BTMEDYA');
+    const usernameOk=username===expectedUsername;
+    const primaryPassword=env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD;
+    const primaryOk=!!primaryPassword && body.password===primaryPassword;
+    const recoveryOk=recoveryPasswordValid(body.password,env.ADMIN_RECOVERY_SECRET);
+    if(!usernameOk || !sess || (!primaryOk && !recoveryOk))
       return json({error:'Geçersiz kimlik bilgisi',remaining:rate.remaining},401);
     await clearRateLimit(env,ip);
     const token=await sessionToken(sess);
@@ -564,13 +735,21 @@ async function mediaApi(request, env){
   }
 
 
+  /* Anasayfa panelden atanan dosyalari buradan okur. Yalnizca panel
+     atamalari doner; atama yoksa bos nesne, sayfa kendi varsayilanlarini
+     kullanir. gercek alani sahnedeki AI URETIMI / GERCEK CEKIM rozetini
+     belirler: etiket elle yazilmaz, dosyanin kendi kaydindan turer. */
+  if(path==='/api/public/slots' && request.method==='GET'){
+    return json({ok:true,yuvalar:await panelYuvaAtamalari(env)},200,{'cache-control':'public, max-age=60'});
+  }
+
   if(path==='/api/public/media' && request.method==='GET') {
     const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'};
     const q=(u.searchParams.get('q')||'').toLowerCase(); const cat=u.searchParams.get('category')||'';
     const staticItems=(await medyaListesi(env,u.origin))
       .filter(x=>!cat || x.category===cat)
       .filter(x=>!q || x.path.toLowerCase().includes(q))
-      .map((x,i)=>({id:x.id,key:'static/'+x.path,original_name:x.path.split('/').pop(),mime:/\.(mp4|webm)$/i.test(x.path)?'video/'+(x.path.endsWith('.webm')?'webm':'mp4'):'image/webp',size:0,category:x.category,tags:['BTMEDYA',x.gercek?'gercek':'ai-uretimi','arsiv'],title:x.path.split('/').pop().replace(/\.[^.]+$/,'').replace(/[-_]+/g,' '),description:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',alt_text:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',slot:x.category==='hero'?'hero':x.category==='video'?'medya':x.category==='portfoy'?'portfoy':'haber',sort_order:i,created_at:null,updated_at:null,url:'/assets/'+x.path,source:'github-static',ai_generated:!x.gercek}));
+      .map((x,i)=>({id:x.id,key:'static/'+x.path,original_name:x.path.split('/').pop(),mime:/\.(mp4|webm)$/i.test(x.path)?'video/'+(x.path.endsWith('.webm')?'webm':'mp4'):'image/webp',size:0,category:x.category,tags:['BTMEDYA',x.gercek?'gercek':'ai-uretimi','arsiv'],title:x.baslik||x.path.split('/').pop().replace(/\.[^.]+$/,'').replace(/[-_]+/g,' '),description:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',alt_text:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',slot:x.category==='hero'?'hero':x.category==='video'?'medya':x.category==='portfoy'?'portfoy':'haber',sort_order:i,created_at:null,updated_at:null,url:'/assets/'+x.path,source:'github-static',ai_generated:!x.gercek,vitrin:x.vitrin!==false,sira:x.sira,poster:x.poster?'/assets/'+x.poster:null}));
     let r2Items=[];
     if(env.DB && env.MEDIA && mediaSec){
       let sql='SELECT id,key,original_name,mime,size,category,tags,title,description,alt_text,slot,sort_order,created_at,updated_at FROM media WHERE published=1'; const args=[];
@@ -616,19 +795,83 @@ async function mediaApi(request, env){
      Metricool'a gonderim buradan planlanir. */
   /* SITE DURUMU — hangi yuva dolu, hangisi bos, ne yuklenmeli. */
   if(path==='/api/site/slots' && request.method==='GET'){
-    const origin=new URL(request.url).origin;
     const r=await env.DB.prepare("SELECT * FROM media WHERE slot!='' ").all();
     const bySlot={}; for(const x of (r.results||[])) bySlot[x.slot]=x;
+    const liste=await medyaListesi(env,u.origin);
+    const kayit=Object.fromEntries(liste.map(x=>[x.path,x]));
+    /* kaynak: panel = panelden atanmis, site = sitenin varsayilan dosyasi,
+       yok = sitede bu yerde hicbir sey yok. Once yalnizca panel
+       atamalarina bakiliyordu ve dolu site "0 dolu" gorunuyordu. */
     const yuvalar=SITE_SLOTS.map(([slug,bolum,tur,oran,olcu,not])=>{
-      const m=bySlot[slug];
-      return {slug,bolum,tur,oran,onerilenOlcu:olcu,not,
-        dolu:!!m,
-        dosya:m?{id:m.id,ad:m.title||m.original_name,olcu:(m.width&&m.height)?`${m.width}x${m.height}`:'',
-                 enBoy:m.aspect,saniye:m.duration_s,yapayZeka:!!m.ai_generated,
-                 url:m.published?`${origin}/pub/${encodeURIComponent(m.key)}`:null}:null};
+      const m=bySlot[slug], vars=SITE_SLOT_VARSAYILAN[slug], vk=vars&&kayit[vars];
+      let kaynak='yok', dosya=null;
+      if(m){
+        kaynak='panel';
+        dosya={id:m.id,ad:m.title||m.original_name,olcu:(m.width&&m.height)?`${m.width}x${m.height}`:'',
+               enBoy:m.aspect,saniye:m.duration_s,yapayZeka:!!m.ai_generated,
+               url:m.published?medyaAdresi(m.key):null};
+      }else if(vars){
+        kaynak='site';
+        dosya={id:null,ad:(vk&&vk.baslik)||vars.split('/').pop(),yapayZeka:!(vk&&vk.gercek),url:'/assets/'+vars};
+      }
+      return {slug,bolum,tur,oran,onerilenOlcu:olcu,not,dolu:!!dosya,kaynak,dosya};
     });
-    const eksik=yuvalar.filter(y=>!y.dolu);
-    return json({ozet:{toplam:yuvalar.length,dolu:yuvalar.length-eksik.length,eksik:eksik.length},yuvalar});
+    // Kasa bos oldugunda da secilebilsin diye sitenin kendi arsivi.
+    // Haber kapaklari basligi ustune basili kompozisyonlar; yuvaya uymaz.
+    const statikSecenekler=liste
+      .filter(x=>!x.path.startsWith('haber-kapak/') && !/\.webm$/i.test(x.path))
+      .map(x=>({yol:x.path,ad:x.baslik||x.path.split('/').pop(),
+        tur:/\.(mp4|mov|m4v)$/i.test(x.path)?'video':'image',gercek:!!x.gercek}));
+    const say=k=>yuvalar.filter(y=>y.kaynak===k).length;
+    return json({ozet:{toplam:yuvalar.length,dolu:yuvalar.filter(y=>y.dolu).length,
+      panelden:say('panel'),sitede:say('site'),eksik:say('yok')},yuvalar,statikSecenekler});
+  }
+
+  /* Yuvaya dosya ata / atamayi kaldir.
+     Kasadaki bir kayit ({id}) ya da sitenin kendi arsivinden bir dosya
+     ({statik}) atanabilir. Kasa R2 esitlemesi calismadigi icin bos kalinca
+     panel hicbir sey atayamiyordu; statik dosya icin kasaya static/ onekli
+     bir kayit acilir, R2'ye bir sey yazilmaz. Yuva basina tek dosya: once
+     o yuvayi tutan kayit bosaltilir, ikisi tek batch'te. */
+  const yuvaYol=path.match(/^\/api\/site\/slots\/([a-z0-9-]+)$/);
+  if(yuvaYol && (request.method==='PUT'||request.method==='DELETE')){
+    if(aiRead) return json({error:'AI token salt okunur'},403);
+    const slug=yuvaYol[1], tanim=SITE_SLOTS.find(s=>s[0]===slug);
+    if(!tanim) return json({ok:false,error:'Böyle bir yuva yok'},404);
+    const bosalt=env.DB.prepare("UPDATE media SET slot='' WHERE slot=?").bind(slug);
+    if(request.method==='DELETE'){
+      await bosalt.run(); yuvaOnbellek.t=0;
+      return json({ok:true});
+    }
+    const body=await request.json().catch(()=>({}));
+    const now=new Date().toISOString();
+    const turUyar=video=>(tanim[2]==='video')!==video
+      ? json({ok:false,error:tanim[2]==='video'?'Bu yuva video bekliyor.':'Bu yuva görsel bekliyor.'},400) : null;
+    if(body.statik){
+      const liste=await medyaListesi(env,u.origin);
+      const x=liste.find(i=>i.path===String(body.statik) && !i.path.startsWith('haber-kapak/'));
+      if(!x) return json({ok:false,error:'Bu dosya sitenin arşivinde yok.'},400);
+      const hata=turUyar(/\.(mp4|webm|mov|m4v)$/i.test(x.path)); if(hata) return hata;
+      await env.DB.batch([
+        bosalt,
+        env.DB.prepare(`INSERT INTO media(id,key,original_name,mime,category,title,published,slot,ai_generated,created_at,updated_at)
+          VALUES(?,?,?,?,?,?,1,?,?,?,?)
+          ON CONFLICT(key) DO UPDATE SET slot=excluded.slot,published=1,ai_generated=excluded.ai_generated,updated_at=excluded.updated_at`)
+          .bind(crypto.randomUUID(),STATIK_ONEK+x.path,x.path.split('/').pop(),uzantiMime(x.path),
+                x.category||'arsiv',x.baslik||'',slug,x.gercek?0:1,now,now),
+      ]);
+      yuvaOnbellek.t=0;
+      return json({ok:true,kaynak:'statik'});
+    }
+    if(body.id){
+      const row=await env.DB.prepare('SELECT id,mime FROM media WHERE id=?').bind(String(body.id)).first();
+      if(!row) return json({ok:false,error:'Dosya kasada bulunamadı.'},404);
+      const hata=turUyar(String(row.mime||'').startsWith('video/')); if(hata) return hata;
+      await env.DB.batch([bosalt, env.DB.prepare('UPDATE media SET slot=?,published=1,updated_at=? WHERE id=?').bind(slug,now,row.id)]);
+      yuvaOnbellek.t=0;
+      return json({ok:true,kaynak:'kasa'});
+    }
+    return json({ok:false,error:'Bir dosya seçin.'},400);
   }
 
   /* VIDEO KUTUPHANESI — tek anahtar noktasi.
@@ -699,7 +942,9 @@ async function mediaApi(request, env){
     if(q){sql+=' AND (original_name LIKE ? OR title LIKE ? OR description LIKE ? OR tags LIKE ?)'; const x=`%${q}%`; args.push(x,x,x,x);}
     if(cat){sql+=' AND category=?';args.push(cat);} if(pub!==null){sql+=' AND published=?';args.push(pub==='1'?1:0);} sql+=' ORDER BY created_at DESC LIMIT 500';
     const r=await env.DB.prepare(sql).bind(...args).all();
-    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||86400))})));
+    // static/ kayitlarin R2 nesnesi yok; imzali R2 adresi 404 olurdu.
+    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),
+      url:String(x.key).startsWith(STATIK_ONEK)?medyaAdresi(x.key):await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||86400))})));
     return json({items});
   }
   if(path==='/api/media' && request.method==='POST'){
@@ -731,7 +976,10 @@ async function mediaApi(request, env){
   const del=path.match(/^\/api\/media\/([^/]+)$/);
   if(del && request.method==='DELETE'){
     if(aiRead) return json({error:'AI token salt okunur'},403);
-    const id=del[1]; const row=await env.DB.prepare('SELECT key FROM media WHERE id=?').bind(id).first(); if(!row)return json({error:'Bulunamadı'},404); await env.MEDIA.delete(row.key); await env.DB.prepare('DELETE FROM media WHERE id=?').bind(id).run(); return json({ok:true});
+    const id=del[1]; const row=await env.DB.prepare('SELECT key FROM media WHERE id=?').bind(id).first(); if(!row)return json({error:'Bulunamadı'},404);
+    // static/ kaydi yalnizca bir isaret; dosya depoda durur, R2'de silinecek bir sey yok.
+    if(!String(row.key).startsWith(STATIK_ONEK)) await env.MEDIA.delete(row.key);
+    await env.DB.prepare('DELETE FROM media WHERE id=?').bind(id).run(); yuvaOnbellek.t=0; return json({ok:true});
   }
   const upd=path.match(/^\/api\/media\/([^/]+)$/);
   if(upd && request.method==='PATCH'){
@@ -749,6 +997,8 @@ async function mediaApi(request, env){
             JSON.stringify(pick('posted',JSON.parse(cur.posted||'[]'))),
             String(pick('youtube_id',cur.youtube_id)||''),pick('ai_generated',cur.ai_generated)?1:0,
             now,id).run();
+    // Yuva, yayin durumu ya da AI isareti degismis olabilir; anasayfa yeni hali gorsun.
+    yuvaOnbellek.t=0;
     return json({ok:true});
   }
   if(path==='/api/export' && request.method==='GET'){
@@ -774,22 +1024,68 @@ async function mediaApi(request, env){
  * Panel bu listeyi okuyup eksikleri kendisi gosterir; elle takip gerekmez.
  * Yeni bir yuva acilacaksa yalnizca buraya eklenir.
  */
+/* 26 Eylul 2026: bes yuva (hizmet-haber, hizmet-belgesel, hizmet-tanitim,
+   hizmet-dugun, siyah-oda) eski tasarimdan kalmisti; mevcut sitede yerleri
+   yoktu. Panelde "Bu yere bagla" deyince hicbir sey degismiyordu. Kaldirildi.
+   Kalan her yuva anasayfada gercek bir yere baglidir (bkz. data-slot). */
 const SITE_SLOTS=[
   // slug              bolum                       tur     oran    onerilen      notu
-  ['hero-video',      'Giriş filmi',              'video','16:9','1920x1080','En fazla 30 sn. Sayfanın ilk gördüğü şey.'],
-  ['hero-poster',     'Giriş kapak karesi',       'image','16:9','1920x1080','Video inmeden önce görünen kare.'],
-  ['portre-buse',     'Buse Tuncay portresi',     'image','4:5', '1200x1500','Gerçek fotoğraf. Şu anki görsel yapay zekâ üretimi.'],
-  ['saha-buse',       'Sahada çalışırken kare',   'image','16:9','1600x900', 'Mikrofonlu, iş başında. Muhabir kimliğini taşır.'],
-  ['hizmet-haber',    'Haber & Röportaj kartı',   'image','16:9','1600x900', 'Çekim sırasından kare.'],
-  ['hizmet-belgesel', 'Belgesel & Kısa Film',     'image','16:9','1600x900', 'Set ya da kamera arkası.'],
-  ['hizmet-tanitim',  'Tanıtım Filmi kartı',      'image','16:9','1600x900', 'Yayınlanmış bir işten kare.'],
-  ['hizmet-dugun',    'Düğün & Özel Gün kartı',   'image','16:9','1600x900', 'İzin alınmış bir çekimden.'],
-  ['siyah-oda',       'Siyah Oda kapağı',         'image','16:9','1600x900', 'Gerçek stüdyo. Şu anki görsel yapay zekâ konsepti.'],
-  ['kategori-haber',  'Kategori: Haber',          'video','9:16','1080x1920','Saha görüntüsü. Şu an yapay zekâ videosu var.'],
-  ['kategori-medya',  'Kategori: Medya',          'video','9:16','1080x1920','Sosyal içerik üretiminden.'],
-  ['kategori-prod',   'Kategori: Prodüksiyon',    'video','9:16','1080x1920','Kamera, kurgu, set.'],
-  ['og-image',        'Sosyal paylaşım görseli',  'image','16:9','1200x630', 'WhatsApp ve X paylaşımında görünen kapak.'],
+  ['hero-video',      'Giriş filmi',              'video','16:9','1920x1080','Anasayfanın ilk sahnesi. En fazla 30 sn.'],
+  ['hero-poster',     'Giriş kapak karesi',       'image','16:9','1920x1080','Film inmeden önce görünen kare.'],
+  ['kategori-haber',  'Giriş filmi: Haber sahnesi','video','9:16','1080x1920','Kaydırınca 2. sahne. Saha görüntüsü.'],
+  ['kategori-medya',  'Giriş filmi: Medya sahnesi','video','9:16','1080x1920','Kaydırınca 3. sahne. Sosyal içerik üretiminden.'],
+  ['kategori-prod',   'Giriş filmi: Prodüksiyon sahnesi','video','9:16','1080x1920','Kaydırınca 4. sahne. Kamera, kurgu, set.'],
+  ['saha-buse',       'Sahada çalışırken kare',   'image','16:9','1600x900', '01 / HABER sekmesi. Mikrofonlu, iş başında.'],
+  ['portre-buse',     'Buse Tuncay portresi',     'image','4:5', '1200x1500','Kuruluş hikâyesi bölümü. Gerçek fotoğraf.'],
+  ['og-image',        'Sosyal paylaşım görseli',  'image','16:9','1200x630', 'Anasayfa WhatsApp, X ve Facebook paylaşım kapağı.'],
 ];
+
+/* Panelden atama yapilmamis yuvada sitenin su an kullandigi dosya. Panel
+   "13 yer, 0 dolu" diyordu; oysa site doluydu, yalnizca bu dosyalari
+   bilmiyordu. Bu yollar public/index.html ile ayni kalmali;
+   tools/gerileme-denetimi.mjs bunu denetler. Kaynak (gercek/AI) burada
+   yazmaz, medya-listesi.json'daki gercek alanindan turer. */
+const SITE_SLOT_VARSAYILAN={
+  'hero-video':     'media/web/hero-story.mp4',
+  'hero-poster':    'media/web/hero-story-poster.jpg',
+  'kategori-haber': 'media/web/state-haber.mp4',
+  'kategori-medya': 'media/web/state-medya.mp4',
+  'kategori-prod':  'media/web/state-produksiyon.mp4',
+  'saha-buse':      'media/portfoy/buse-tuncay-saha-roportaj.webp',
+  'portre-buse':    'media/portfoy/buse-tuncay-portre-01.webp',
+  'og-image':       'media/web/hero-story-poster.jpg',
+};
+
+/* Kasa kaydinin sitede nereden servis edildigi. static/ onekli kayitlar
+   depodaki public/assets dosyalarina isaret eder; R2'de nesneleri yoktur. */
+const STATIK_ONEK='static/';
+function medyaAdresi(key){
+  const k=String(key||'');
+  return k.startsWith(STATIK_ONEK) ? '/assets/'+k.slice(STATIK_ONEK.length) : '/pub/'+encodeURIComponent(k);
+}
+function uzantiMime(yol){
+  const e=(String(yol).match(/\.([a-z0-9]+)$/i)||[])[1]?.toLowerCase();
+  return {mp4:'video/mp4',webm:'video/webm',mov:'video/quicktime',m4v:'video/mp4',
+    webp:'image/webp',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png'}[e]||'application/octet-stream';
+}
+
+/* Panelden atanmis yuvalar. Anasayfa her acilista soruyor; D1'e her
+   ziyaretci icin gitmemek icin isolate icinde 60 sn tutulur. Atama
+   yapilinca ayni isolate'te hemen sifirlanir. */
+let yuvaOnbellek={t:0,v:null};
+async function panelYuvaAtamalari(env){
+  if(yuvaOnbellek.v && Date.now()-yuvaOnbellek.t<60000) return yuvaOnbellek.v;
+  const gecerli=new Set(SITE_SLOTS.map(s=>s[0]));
+  const v={};
+  if(env.DB){
+    const r=await env.DB.prepare("SELECT key,slot,mime,ai_generated FROM media WHERE slot!='' AND published=1").all().catch(()=>({results:[]}));
+    for(const x of (r.results||[])) if(gecerli.has(x.slot)){
+      v[x.slot]={url:medyaAdresi(x.key),gercek:!x.ai_generated,tur:String(x.mime||'').startsWith('video/')?'video':'image'};
+    }
+  }
+  yuvaOnbellek={t:Date.now(),v};
+  return v;
+}
 
 const PLATFORM_RULES=[
   // slug              etiket                 kind    en-boy        max sn   ses
@@ -846,13 +1142,35 @@ function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
 
 export default { async scheduled(controller, env, ctx){
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
-  if(ctx?.waitUntil) ctx.waitUntil(task); else await task;
+  /* Metricool teslimi. METRICOOL_USER_TOKEN yoksa hicbir sey yapmaz; hata
+     nabzi durdurmasin diye ayri yakalanir. */
+  const metricool=processMetricoolQueue(env)
+    .then(x=>{ if(x.processed) console.log('[btmedya] metricool',x.scheduled,'teslim',x.failed,'hata'); })
+    .catch(e=>console.error('[btmedya] metricool kuyrugu:',e?.message||e));
+  const hepsi=Promise.all([task,metricool]);
+  if(ctx?.waitUntil) ctx.waitUntil(hepsi); else await hepsi;
 }, async fetch(request, env, ctx){
   const url = new URL(request.url);
 
   if(url.hostname.startsWith('www.')){
     url.hostname = url.hostname.slice(4);
     return Response.redirect(url.toString(), 301);
+  }
+
+  /* security.txt (RFC 9116). robots.txt bu adresi gosteriyordu ama adres
+     404 donuyordu. Dosya public/.well-known/ altinda duruyor; Wrangler
+     Static Assets nokta ile baslayan klasorleri yuklemeyebildigi icin
+     icerik burada, Worker tarafinda veriliyor — boylece her kosulda
+     servis edilir. */
+  if(url.pathname === '/.well-known/security.txt'){
+    return new Response(
+      '# BTMEDYA guvenlik iletisimi (RFC 9116)\n\n' +
+      'Contact: mailto:busetuncay74@gmail.com\n' +
+      'Contact: https://btmedya.com.tr/iletisim/\n' +
+      'Expires: 2027-09-26T00:00:00.000Z\n' +
+      'Preferred-Languages: tr, en\n' +
+      'Canonical: https://btmedya.com.tr/.well-known/security.txt\n',
+      {headers:{'content-type':'text/plain; charset=utf-8','cache-control':'public, max-age=86400'}});
   }
 
   // Eski haber URL'lerini mevcut statik haber sayfalarına taşı; eski backlink ve indeks sinyalleri kaybolmasın.
@@ -867,6 +1185,8 @@ export default { async scheduled(controller, env, ctx){
      dosya aninda 404'e doner. */
   if(url.pathname.startsWith('/pub/')){
     const key=decodeURIComponent(url.pathname.slice('/pub/'.length));
+    // static/ kayit depodaki dosyaya isaret eder; R2'ye gitmeden oraya yonlendir.
+    if(key.startsWith(STATIK_ONEK)) return Response.redirect(url.origin+medyaAdresi(key),302);
     if(!env.DB||!env.MEDIA) return text('Medya deposu yapılandırılmadı',503);
     const row=await env.DB.prepare('SELECT key FROM media WHERE key=? AND published=1').bind(key).first();
     if(!row) return text('Bu dosya yayında değil',404);
@@ -895,12 +1215,12 @@ export default { async scheduled(controller, env, ctx){
 
     const rcc = await controlCenterApi(request, env, url);
     if(rcc) return rcc;
-    const r1 = await newsApi(request, env, url);
+    const r1 = await newsApi(request, env, url, ctx);
     if(r1) return r1;
     if(env.DB){
       const rc = await contactApi(request, env, url, ctx);
       if(rc) return rc;
-    const rs = await socialApi(request, env, url);
+    const rs = await socialApi(request, env, url, ctx);
     if(rs) return rs;
     }
     if(env.DB && env.MEDIA){
@@ -999,17 +1319,26 @@ function nonceUret() {
   return btoa(String.fromCharCode(...b)).replace(/=+$/, '');
 }
 
+/* Cloudflare Web Analytics beacon'i zone tarafinda otomatik enjekte ediliyor.
+   CSP'de yeri olmadigi icin tarayici her sayfada betigi reddediyordu:
+   "Refused to load the script 'https://static.cloudflareinsights.com/beacon.min.js'".
+   Sonuc: olcum hic toplanmiyor ve her sayfa konsola hata yaziyor. Betigin
+   kendisi static.cloudflareinsights.com'dan geliyor, topladigi veriyi
+   cloudflareinsights.com'a POST ediyor; ikisi de tek tek aciliyor. */
+const CF_ANALYTICS_BETIK = 'https://static.cloudflareinsights.com';
+const CF_ANALYTICS_UC = 'https://cloudflareinsights.com';
+
 function cspKur(pathname, nonce) {
   const panel = pathname.startsWith('/admin');
   return [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    `script-src 'self' 'unsafe-inline' ${CF_ANALYTICS_BETIK}`,
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
     "img-src 'self' data: blob: https://i.ytimg.com",
     "media-src 'self' blob:",
     "frame-src https://www.youtube-nocookie.com",
-    "connect-src 'self'",
+    `connect-src 'self' ${CF_ANALYTICS_UC}`,
     "form-action 'self'",
     "frame-ancestors 'self'",
     "base-uri 'self'",
@@ -1039,6 +1368,50 @@ function onbellek(pathname) {
   return 'public, max-age=300, must-revalidate';
 }
 
+/* Site haritasi, Google News haritasi ve RSS depoda elle tutulan statik
+   dosyalar. Panelden yayinlanan haberler (D1) bu dosyalara hic girmiyordu;
+   Google yeni haberleri haritadan bulamiyor, RSS okuyuculari gormuyordu.
+   Statik dosya oldugu gibi kalir, D1'de yayinda olup dosyada bulunmayan
+   haberler sona eklenir. Hata olursa statik dosya degismeden verilir. */
+const HARITALAR = new Set(['/sitemap.xml', '/news-sitemap.xml', '/rss.xml']);
+const xmlKac = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+async function haritayaPanelHaberleriniEkle(yol, metin, env, origin) {
+  const satirlar = (await env.DB.prepare(
+    "SELECT slug,title,excerpt,published_at,updated_at FROM news WHERE status='published' AND slug<>'' ORDER BY published_at DESC LIMIT 500"
+  ).all()).results || [];
+  // Yerelde http gelebilir; haritadaki adres her zaman kanonik https olmali.
+  const kok = 'https://' + new URL(origin).host;
+  const adres = s => `${kok}/haberler/${encodeURIComponent(s)}`;
+  // Statik dosyada zaten olan haber ikinci kez eklenmez.
+  const eksik = satirlar.filter(r => !metin.includes(`/haberler/${r.slug}<`) && !metin.includes(`/haberler/${encodeURIComponent(r.slug)}<`));
+  if (!eksik.length) return metin;
+  const tarih = r => { const d = new Date(r.published_at || r.updated_at || ''); return isNaN(d) ? null : d; };
+
+  if (yol === '/sitemap.xml') {
+    const ek = eksik.map(r => {
+      const d = tarih(r);
+      return `<url><loc>${xmlKac(adres(r.slug))}</loc>${d ? `<lastmod>${d.toISOString().slice(0, 10)}</lastmod>` : ''}<changefreq>weekly</changefreq><priority>0.7</priority></url>`;
+    }).join('\n');
+    return metin.replace('</urlset>', ek + '\n</urlset>');
+  }
+  if (yol === '/news-sitemap.xml') {
+    // Google News haritasi yalniz son iki gunde yayinlanan haberleri kabul eder.
+    const sinir = Date.now() - 2 * 86400 * 1000;
+    const ek = eksik.filter(r => { const d = tarih(r); return d && d.getTime() >= sinir; }).map(r =>
+      `<url><loc>${xmlKac(adres(r.slug))}</loc><news:news><news:publication><news:name>BTMEDYA</news:name><news:language>tr</news:language></news:publication><news:publication_date>${tarih(r).toISOString()}</news:publication_date><news:title>${xmlKac(r.title)}</news:title></news:news></url>`
+    ).join('\n');
+    return ek ? metin.replace('</urlset>', ek + '\n</urlset>') : metin;
+  }
+  // RSS: yeni ogeler kanalin basina, statik ogelerin onune girer.
+  const ek = eksik.slice(0, 50).map(r => {
+    const d = tarih(r);
+    return `<item><title>${xmlKac(r.title)}</title><link>${xmlKac(adres(r.slug))}</link><guid isPermaLink="true">${xmlKac(adres(r.slug))}</guid><description>${xmlKac(r.excerpt || '')}</description>${d ? `<pubDate>${d.toUTCString()}</pubDate>` : ''}</item>`;
+  }).join('\n');
+  const i = metin.indexOf('<item>');
+  return i >= 0 ? metin.slice(0, i) + ek + '\n' + metin.slice(i) : metin.replace('</channel>', ek + '\n</channel>');
+}
+
 async function servisEt(request, env) {
   const url = new URL(request.url);
   let res = await env.ASSETS.fetch(request);
@@ -1061,6 +1434,40 @@ async function servisEt(request, env) {
   }
   if (!h.has('cache-control') || res.status === 404) h.set('cache-control', onbellek(url.pathname));
   else h.set('cache-control', onbellek(url.pathname));
+
+  if (res.status === 200 && HARITALAR.has(url.pathname) && env.DB) {
+    const metin = await res.text();
+    const yeni = await haritayaPanelHaberleriniEkle(url.pathname, metin, env, url.origin).catch(e => {
+      console.error('[harita] panel haberleri eklenemedi:', e?.message || e);
+      return metin;
+    });
+    h.delete('content-length');
+    return new Response(yeni, { status: 200, headers: h });
+  }
+
+  /* Panelden "Sosyal paylasim gorseli" yuvasina dosya atandiysa anasayfanin
+     og:image ve twitter:image etiketleri sunucuda degistirilir. WhatsApp,
+     Facebook ve X tarayicilari JavaScript calistirmaz; istemci tarafinda
+     yapilan degisikligi hic gormezler. Atama yoksa sayfaya dokunulmaz. */
+  if (url.pathname === '/' && res.status === 200 && contentType.toLowerCase().startsWith('text/html')) {
+    const og = (await panelYuvaAtamalari(env).catch(() => ({})))['og-image'];
+    if (og && og.url) {
+      // Her zaman https: paylasim tarayicilari http gorseli reddedebiliyor.
+      const mutlak = 'https://' + url.host + og.url;
+      const icerik = { element(e) { e.setAttribute('content', mutlak); } };
+      const sil = { element(e) { e.remove(); } };
+      const yeni = new HTMLRewriter()
+        .on('meta[property="og:image"]', icerik)
+        .on('meta[property="og:image:secure_url"]', icerik)
+        .on('meta[name="twitter:image"]', icerik)
+        .on('meta[property="og:image:type"]', { element(e) { e.setAttribute('content', uzantiMime(og.url)); } })
+        // Yeni gorselin olcusu bilinmiyor; yanlis olcu bildirmektense hic bildirme.
+        .on('meta[property="og:image:width"]', sil)
+        .on('meta[property="og:image:height"]', sil)
+        .transform(new Response(res.body, { status: res.status, statusText: res.statusText, headers: h }));
+      return yeni;
+    }
+  }
 
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
 }

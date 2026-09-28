@@ -1,3 +1,14 @@
+/* PANEL -> SITE BAGLANTISI
+   Yonetim panelindeki "Site Durumu" ekraninda bir yuvaya atanan dosya
+   anasayfada burada devreye girer. Once panel ve site birbirinden
+   habersizdi: "Bu yere bagla" dugmesi canli sitede hicbir seyi
+   degistirmiyordu. Tek istek, sayfanin geri kalanini bekletmez; basarisiz
+   olursa bos nesne doner ve sayfa kendi varsayilanlariyla kalir. */
+window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json'}})
+  .then(r => r.ok ? r.json() : {})
+  .then(j => (j && j.yuvalar) || {})
+  .catch(() => ({}));
+
 (() => {
   const d = document;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -177,15 +188,25 @@
   } else lazy.forEach(loadVideo);
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const norm = s => String(s || '').toLowerCase().replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ş/g,'s').replace(/ç/g,'c').replace(/ö/g,'o').replace(/ü/g,'u');
+  /* NFD: "Zekâ" ve "İ" gibi isaretli harfler de duz harfe iner; yoksa filtre "yapay zeka" ile eslesmez. */
+  const norm = s => String(s || '').toLowerCase().replace(/ı/g,'i').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  /* Filtre dugmeleri veriden degil bu sabit listeden gelir: panelde
+     "Ekonomi · Emlak", "Gündem · Yangın" gibi alt basliklar serbest
+     yaziliyor ve veriden turetilen dugmeler ayni konuyu uc dugmeye
+     boluyordu. Her ana baslik kendi alt basliklarini da yakalar. */
+  const ANA_KATEGORILER = [
+    ['yerel', 'BALIKESİR', /(yerel|pazar|alisveris|altyapi|balikesir)/],
+    ['gundem', 'GÜNDEM', /(gundem|asayis|yangin|afet)/],
+    ['yapay-zeka', 'YAPAY ZEKÂ', /(yapay zeka|^ai\b)/],
+    ['ekonomi', 'EKONOMİ', /(ekonomi|emlak|tarim|esnaf)/],
+    ['kultur', 'KÜLTÜR', /(kultur|zanaat|moda|sanat|gastronomi|dugun|insan)/],
+    ['saglik', 'SAĞLIK', /(saglik|bakim|beslenme|estetik)/],
+    ['spor', 'SPOR', /(spor|muay)/]
+  ];
   const catMatch = (cat, wanted) => {
     if (wanted === 'all') return true;
-    const c = norm(cat);
-    return wanted === 'kultur' ? /(kultur|zanaat|moda)/.test(c) :
-           wanted === 'yerel' ? /(yerel|pazar)/.test(c) :
-           wanted === 'ekonomi' ? /(ekonomi|emlak|tarim|esnaf)/.test(c) :
-           wanted === 'spor' ? /spor|muay/.test(c) :
-           wanted === 'saglik' ? /(saglik|bakim|beslenme)/.test(c) : true;
+    const ana = ANA_KATEGORILER.find(k => k[0] === wanted);
+    return ana ? ana[2].test(norm(cat)) : true;
   };
 
   const staticReference = {
@@ -230,15 +251,20 @@
     if (cover) {
       const kaynak = kapakKaynagi[n.slug] === 'ai' ? 'AI ÜRETİMİ'
         : kapakKaynagi[n.slug] === 'gercek' ? 'GERÇEK ÇEKİM'
+        : kapakKaynagi[n.slug] === 'grafik' ? 'BTMEDYA GRAFİK'
+        : kapakKaynagi[n.slug] === 'temsili' ? 'TEMSİLİ FOTOĞRAF'
+        : kapakKaynagi[n.slug] === 'arsiv' ? 'ARŞİV FOTOĞRAFI'
+        : kapakKaynagi[n.slug] === 'harita' ? 'HARİTA'
         : '';
-      /* Öne çıkan haber sosyal/paylaşım kapağının tam kompozisyonunu kullanır:
-         BTMEDYA'nın kendi gerçek fotoğrafı + iri başlık + kırmızı künyesi.
-         Diğer kartlar metinsiz fotoğraf kullanır, böylece başlık iki kez
-         basılmaz. */
-      const src = featured ? cover : kartGorseli(cover);
+      /* Öne çıkan kart da metinsiz kart görselini kullanır. Başlıklı
+         paylaşım kapağı burada kartın kendi başlığıyla iki kez basılıyor ve
+         geniş kutuda kırpılınca kategori etiketi kesiliyordu. Başlıklı kapak
+         og:image ve makale sayfası künyesi olarak kalır. */
+      const src = kartGorseli(cover);
       const badge = kaynak ? `<span class="news-kaynak">${esc(kaynak)}</span>` : '';
-      const overlay = featured ? `<div class="news-cover-overlay"><span class="news-cover-category">${esc(n.category || 'HABER')}</span><strong>${esc(n.title || '')}</strong><span class="news-cover-meta">BTMEDYA · ${esc(dateText(n))}</span></div>` : '';
-      return `<div class="news-media${featured?' news-media-editorial':''}"><img src="${esc(src)}" alt="${esc(n.title)}" loading="${featured?'eager':'lazy'}" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div>${badge}${overlay}</div>`;
+      const overlay = '';
+      const grafik = kapakKaynagi[n.slug] === 'grafik' ? ' news-media-grafik' : '';
+      return `<div class="news-media${featured?' news-media-editorial':''}${grafik}"><img src="${esc(src)}" alt="${esc(n.title)}" loading="${featured?'eager':'lazy'}" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div>${badge}${overlay}</div>`;
     }
     return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
   };
@@ -312,13 +338,11 @@
         allNews = [];
       }
     }
-    const categories = [...new Set(allNews.map(n => String(n.category || '').trim()).filter(Boolean))].slice(0, 10);
+    const categories = ANA_KATEGORILER.filter(k => allNews.some(n => k[2].test(norm(n.category))));
     if (filterBar) {
-      const labels = {yerel:'YEREL', ekonomi:'EKONOMİ', kultur:'KÜLTÜR', spor:'SPOR', saglik:'SAĞLIK', gundem:'GÜNDEM'};
-      filterBar.innerHTML = ['all', ...categories].map((cat, i) => {
-        const label = cat === 'all' ? 'TÜMÜ' : (labels[norm(cat)] || cat.toUpperCase());
-        return '<button class="filter' + (i === 0 ? ' active' : '') + '" type="button" role="tab" aria-selected="' + (i === 0 ? 'true' : 'false') + '" data-cat="' + esc(cat) + '">' + esc(label) + '</button>';
-      }).join('');
+      filterBar.innerHTML = [['all', 'TÜMÜ'], ...categories].map(([cat, label], i) =>
+        '<button class="filter' + (i === 0 ? ' active' : '') + '" type="button" role="tab" aria-selected="' + (i === 0 ? 'true' : 'false') + '" data-cat="' + esc(cat) + '">' + esc(label) + '</button>'
+      ).join('');
     }
     render(allNews);
     renderStoryLab(allNews);
@@ -517,6 +541,39 @@
   }
 })();
 
+/* ===== SOCIAL DESK / METRICOOL SNAPSHOT ===== */
+(function(){
+  function escSocial(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+  function profileCardSocial(p){
+    const statusMap={publishing_verified:'YAYIN DOĞRULANDI',connected_identity:'KANAL BAĞLI',profile_link:'PROFİL',verification_pending:'DOĞRULAMA BEKLİYOR'};
+    const label=escSocial(p.label||'Platform'), status=escSocial(statusMap[p.status]||p.status||'');
+    const action=p.url ? '<a href="'+escSocial(p.url)+'" target="_blank" rel="noopener">'+label+' ↗</a>' : '<span class="is-disabled">'+label+' · URL bekleniyor</span>';
+    return '<article class="social-profile-card"><div><span class="social-platform-tag">'+label+'</span><small>'+status+'</small></div><div>'+action+'</div></article>';
+  }
+  function feedCardSocial(item){
+    const title=escSocial(item.title), platform=escSocial(item.platform), date=escSocial(item.date);
+    return '<article class="social-feed-card"><div class="social-feed-card-top"><span>'+platform+'</span><time datetime="'+date+'">'+date+'</time></div><h3>'+title+'</h3><p>'+escSocial(item.archive_context||'')+'</p><a href="'+escSocial(item.url)+'" target="_blank" rel="noopener">Yayını aç ↗</a></article>';
+  }
+  async function loadSocialFeedHome(){
+    const profiles=d.getElementById('socialProfiles'), meta=d.getElementById('socialFeedMeta'), grid=d.getElementById('socialFeedGrid');
+    if(!profiles||!meta||!grid)return;
+    try{
+      const r=await fetch('/api/public/social-feed',{headers:{accept:'application/json'}});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const data=await r.json();
+      profiles.innerHTML=(Array.isArray(data.profiles)?data.profiles:[]).map(profileCardSocial).join('');
+      const count=Array.isArray(data.items)?data.items.length:0;
+      meta.textContent='Kaynak: '+String(data.source||'Metricool')+' · '+count+' doğrulanmış yayın snapshotı · '+String(data.generated_at||'');
+      grid.innerHTML=count ? data.items.map(feedCardSocial).join('') : '<div class="social-feed-empty">Doğrulanmış yayın kaydı yok.</div>';
+    }catch(err){
+      profiles.innerHTML='';
+      meta.textContent='Sosyal profil bağlantıları korunuyor; son yayın snapshotı şu anda okunamadı.';
+      grid.innerHTML='<div class="social-feed-empty">Sosyal akış geçici olarak kullanılamıyor.</div>';
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadSocialFeedHome,{once:true});else loadSocialFeedHome();
+})();
+
 /* BT WORLD NAVIGATOR */
 (function(){
   const stage=document.querySelector('[data-world-stage]');
@@ -541,6 +598,20 @@
     },180);
   }
   activate(tabs[0]);
+  /* Panelden "Sahada calisirken kare" yuvasina atanan gorsel 01/HABER
+     sekmesine gecer. Kaynak satiri da atanan dosyanin kaydindan turer. */
+  window.btYuvalar && window.btYuvalar.then(y=>{
+    tabs.forEach(tab=>{
+      const a=tab.dataset.slotImage && y[tab.dataset.slotImage];
+      if(!a || a.tur!=='image') return;
+      tab.dataset.image=a.url;
+      tab.dataset.source=(a.gercek?'GERÇEK ÇEKİM':'AI ÜRETİMİ')+' · BUSE TUNCAY';
+      if(tab.classList.contains('is-active')){
+        frame.style.backgroundImage='url("'+a.url+'")';
+        source.textContent=tab.dataset.source;
+      }
+    });
+  });
   tabs.forEach(tab=>{
     tab.addEventListener('mouseenter',()=>activate(tab));
     tab.addEventListener('focus',()=>activate(tab));
@@ -568,13 +639,36 @@
   const label=root.querySelector('[data-cinematic-label]');
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const mobile=()=>window.innerWidth<=720;
+  /* Sahne rozeti sahnenin videosunun kendi kaynagini gosterir.
+     Varsayilan dort video (hero-story, state-haber, state-medya,
+     state-produksiyon) yapay zeka uretimi: medya-ozel.json gercek listesinde
+     yoklar ve karelerine bakildi (robot zirh, patlama, sehir ustunde ucus).
+     a3e79e2 dosyalara dokunmadan bu etiketleri "GERCEK CEKIM" yapmisti.
+     Panelden bir sahneye gercek cekim atanirsa etiket asagidaki kancayla
+     kendiliginden degisir; elle yazilmaz. */
   const scenes=[
-    {key:'hero',k:'01 / GİRİŞ',kaynak:'GERÇEK ÇEKİM',t:'GERÇEK<br><span>GÖRÜNTÜ.</span>',d:'Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.'},
-    {key:'haber',k:'02 / HABER · SAHA',kaynak:'GERÇEK ÇEKİM',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
-    {key:'medya',k:'03 / MEDYA · İÇERİK',kaynak:'GERÇEK ÇEKİM',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için gerçek üretim.'},
-    {key:'produksiyon',k:'04 / PRODÜKSİYON',kaynak:'GERÇEK ÇEKİM',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
+    {key:'hero',yuva:'hero-video',k:'01 / GİRİŞ',kaynak:'AI ÜRETİMİ',t:'GERÇEK<br><span>GÖRÜNTÜ.</span>',d:'Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.'},
+    {key:'haber',yuva:'kategori-haber',k:'02 / HABER · SAHA',kaynak:'AI ÜRETİMİ',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
+    {key:'medya',yuva:'kategori-medya',k:'03 / MEDYA · İÇERİK',kaynak:'AI ÜRETİMİ',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için gerçek üretim.'},
+    {key:'produksiyon',yuva:'kategori-prod',k:'04 / PRODÜKSİYON',kaynak:'AI ÜRETİMİ',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
     {key:'ai',k:'05 / AI LAB · AÇIK ETİKET',kaynak:'AI ÜRETİMİ',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI üretimi ayrı, açık ve şeffaf bir laboratuvar olarak konumlanıyor.'}
   ];
+  /* Panel atamalari: sahnenin videosunu ve rozetini degistirir. Atama yoksa
+     hicbir sey yapilmaz, sayfa kendi varsayilanlariyla kalir. */
+  window.btYuvalar && window.btYuvalar.then(y=>{
+    scenes.forEach((s,i)=>{
+      const a=s.yuva && y[s.yuva]; if(!a || a.tur!=='video') return;
+      s.kaynak=a.gercek?'GERÇEK ÇEKİM':'AI ÜRETİMİ';
+      const el=videos[i] && videos[i].querySelector('video'); if(!el) return;
+      el.dataset.src=a.url; delete el.dataset.mobile;
+      // Varsayilan poster eski videonun karesi; yeni videoyla uyusmaz.
+      if(i>0) el.removeAttribute('poster');
+      if(el.dataset.loaded){ el.src=a.url; el.load(); if(i===active && i>0) el.play().catch(()=>{}); }
+      if(i===active && kaynakEl) kaynakEl.textContent=s.kaynak;
+    });
+    const poster=y['hero-poster'], hv=videos[0] && videos[0].querySelector('video');
+    if(poster && poster.tur==='image' && hv) hv.setAttribute('poster',poster.url);
+  });
   let active=-1, raf=0;
   function loadVideo(v){
     if(!v) return;
@@ -591,7 +685,8 @@
       active=i;
       root.classList.remove('beat-haber','beat-medya','beat-produksiyon','beat-ai');
       if(scene.key!=='hero') root.classList.add('beat-'+scene.key);
-      if(kaynakEl) kaynakEl.textContent=scene.kaynak||'GERÇEK ÇEKİM';
+      // Varsayilan AI URETIMI (AGENTS.md): kaynagi bilinmeyen kare gercek sayilmaz.
+      if(kaynakEl) kaynakEl.textContent=scene.kaynak||'AI ÜRETİMİ';
       if(title){title.innerHTML=scene.t;title.animate([{opacity:.35,transform:'translateY(16px)'},{opacity:1,transform:'translateY(0)'}],{duration:420,easing:'cubic-bezier(.2,.75,.2,1)'})}
       if(kicker) kicker.textContent=scene.k;
       if(lead) lead.textContent=scene.d;
@@ -648,4 +743,23 @@
   }
   setScene(0,0);
   request();
+})();
+
+/* Kurulus hikayesi portresi (panel yuvasi: portre-buse).
+   Varsayilan gorsel gercek fotograf. Panelden AI uretimi bir gorsel atanirsa
+   AGENTS.md geregi uzerinde AI URETIMI etiketi gorunur; etiketsiz kalmaz. */
+(function(){
+  const img=document.querySelector('img[data-slot="portre-buse"]');
+  if(!img || !window.btYuvalar) return;
+  window.btYuvalar.then(y=>{
+    const a=y['portre-buse']; if(!a || a.tur!=='image') return;
+    img.src=a.url;
+    const kutu=img.parentElement;
+    const eski=kutu.querySelector('.portre-kaynak'); if(eski) eski.remove();
+    if(!a.gercek){
+      const r=document.createElement('span');
+      r.className='portre-kaynak'; r.textContent='AI ÜRETİMİ';
+      kutu.appendChild(r);
+    }
+  });
 })();

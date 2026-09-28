@@ -1,0 +1,44 @@
+name: BTMEDYA Production HTTP Verify (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btmedya-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Verify production DNS and application
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== BTMEDYA production verification ==="
+          for i in {1..6}; do
+            code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 https://btmedya.com.tr/ || true)"
+            echo "Attempt $i: apex HTTP $code"
+            [ "$code" = "200" ] && break
+            sleep 10
+          done
+
+          apex="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 https://btmedya.com.tr/ || true)"
+          www="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 https://www.btmedya.com.tr/ || true)"
+          health="$(curl -sS --max-time 20 https://btmedya.com.tr/api/health || true)"
+
+          echo "APEX=$apex"
+          echo "WWW=$www"
+          echo "HEALTH=$health"
+
+          test "$apex" = "200"
+          echo "$health" | grep -q '"ok":true'
+          echo "$health" | grep -q '"cms":true'
+          echo "$health" | grep -q '"r2":true'

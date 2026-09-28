@@ -1,6 +1,8 @@
 # Cloudflare Workers Builds bu Worker'ı otomatik deploy eder.
 # Alan adı bağlantıları da bu dosyada tutulur: GitHub = kaynak gerçek.
 # Production deploy gate: .github/workflows/deploy.yml.
+# Production chain audit: 2026-09-28 — Workers Builds is the canonical live deploy path.
+# Audit trigger: 2026-09-28 production chain revalidation.
 # DNS administration is intentionally kept outside the application deploy path.
 name = "btmedya-db"
 main = "src/worker.js"
@@ -17,7 +19,7 @@ binding = "ASSETS"
 
 # API ve medya istekleri önce Worker'a gitmeli; aksi halde Static Assets
 # katmanı mevcut olmayan /api/* yollarını 404 olarak keser.
-run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/haber/*", "/haberler/*", "/hakkimizda*", "/iletisim*", "/hizmetler*", "/sosyal-medya*", "/sosyal-medya-kit*", "/video-produksiyon*", "/whatsapp-katalog*", "/basin-kiti*", "/vaka-calismalari*", "/gizlilik*", "/admin/*", "/social-studio/*", "/kaynak-masasi*", "/portfoy/*", "/robots.txt", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml", "/.well-known/*"]
+run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/haber/*", "/haberler/*", "/hakkimizda*", "/iletisim*", "/hizmetler*", "/sosyal-medya*", "/video-produksiyon*", "/whatsapp-katalog*", "/basin-kiti*", "/vaka-calismalari*", "/gizlilik*", "/admin/*", "/social-studio/*", "/kaynak-masasi*", "/portfoy/*", "/robots.txt", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml", "/.well-known/*"]
 
 not_found_handling = "404-page"
 
@@ -40,8 +42,7 @@ bucket_name = "btmedya-media"
 binding = "LEGACY_MEDIA"
 bucket_name = "btmedya-r2"
 
-# Workers KV: admin giriş denemeleri için IP tabanlı hız sınırlaması.
-
+# Login brute-force koruması: IP başına başarısız denemeler 15 dakika tutulur.
 [[kv_namespaces]]
 binding = "KV"
 id = "41a0fc3c9e9848fca750d2283d4d1fc3"
@@ -53,10 +54,14 @@ database_id = "94a980cd-62c5-4c29-b7fc-40f96ab665e4"
 
 [vars]
 MEDIA_PUBLIC_TTL = "86400"
+# BTMEDYA admin login user. This is a non-secret identifier; the password remains a Worker Secret.
+ADMIN_USERNAME = "busetuncay74@gmail.com"
 
 # Secret değerleri GitHub'a veya bu dosyaya yazılmaz.
 # Cloudflare Worker > Settings > Variables and Secrets altında Secret olarak eklenir.
 # wrangler deploy, aşağıdaki required secret isimlerini doğrular.
+# Süreli recovery Secret biçimi: UNIX_SANIYE:geçici-kod
+# Süre dolunca otomatik olarak geçersiz olur; production'da kullanımdan sonra silinmelidir.
 [secrets]
 required = [
   "ADMIN_PASSWORD_SECRET",
@@ -90,4 +95,4 @@ new_sqlite_classes = ["WorkflowStatusDO"]
 
 # Haber Bulucu: kaynakları periyodik olarak tarar, sonuçları D1'de taslak olarak tutar.
 [triggers]
-crons = ["*/30 * * * *"]
+crons = ["*/5 * * * *"]

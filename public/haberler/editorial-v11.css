@@ -1,0 +1,64 @@
+/* BTMEDYA Editorial News UI v11
+   Reference direction: local-news portal information architecture
+   without copying third-party branding/assets.
+*/
+.news-category-bar{
+  display:flex;gap:8px;overflow:auto;padding:12px 0 16px;margin:0 0 18px;
+  scrollbar-width:none;border-bottom:1px solid var(--line)
+}
+.news-category-bar::-webkit-scrollbar{display:none}
+.news-category-bar a{
+  flex:0 0 auto;text-decoration:none;color:#cbd5df;background:#0b1017;
+  border:1px solid #ffffff1a;border-radius:7px;padding:9px 13px;font-size:.74rem;
+  font-weight:800;letter-spacing:.02em;transition:.18s ease
+}
+.news-category-bar a:hover,.news-category-bar a.active{
+  color:#fff;border-color:#ff4038aa;background:#171017;transform:translateY(-1px)
+}
+.news-category-bar a.breaking{color:#fff;background:#ff4038;border-color:#ff4038}
+.editorial-special{margin-top:58px}
+.editorial-special-grid{
+  display:grid;grid-template-columns:1.55fr .8fr .8fr;gap:12px
+}
+.editorial-special-card{
+  position:relative;min-height:270px;overflow:hidden;background:#0b1017;
+  border:1px solid var(--line);text-decoration:none;color:#fff
+}
+.editorial-special-card.featured{min-height:460px}
+.editorial-special-card img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  transition:transform .55s ease
+}
+.editorial-special-card:after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,#05070a12 20%,#05070af0 100%)
+}
+.editorial-special-card:hover img{transform:scale(1.045)}
+.editorial-special-copy{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:22px}
+.editorial-special-copy small{color:#ff756d;font-size:.66rem;font-weight:900;letter-spacing:.13em}
+.editorial-special-copy h3{
+  font-family:"Bricolage Grotesque","Space Grotesk",sans-serif;
+  font-size:clamp(1.35rem,2.3vw,2.25rem);line-height:1.02;letter-spacing:-.04em;margin:9px 0
+}
+.editorial-special-card:not(.featured) .editorial-special-copy h3{font-size:1.3rem}
+.editorial-special-copy p{color:#b7c1cc;font-size:.86rem;line-height:1.45;margin:0}
+.editorial-special-meta{margin-top:9px;color:#7e8997;font-size:.68rem}
+.editorial-districts{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+  border:1px solid var(--line);margin-top:24px
+}
+.editorial-districts a{background:#0b1017;padding:18px;text-decoration:none}
+.editorial-districts b{display:block;font-family:"Bricolage Grotesque","Space Grotesk";font-size:1rem}
+.editorial-districts span{display:block;color:#758190;font-size:.72rem;margin-top:6px}
+.editorial-source-note{
+  margin-top:14px;padding:12px 14px;border-left:2px solid #ff4038;background:#0b1017;
+  color:#8994a2;font-size:.72rem;line-height:1.5
+}
+@media(max-width:900px){
+  .editorial-special-grid{grid-template-columns:1fr}
+  .editorial-special-card,.editorial-special-card.featured{min-height:330px}
+  .editorial-districts{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){
+  .editorial-districts{grid-template-columns:1fr}
+}

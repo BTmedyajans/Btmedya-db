@@ -1,0 +1,43 @@
+{
+  "slug": "yapay-zeka-kullanimi-turkiye-2026-q2",
+  "haber": "/haberler/microsoft-raporu-turkiye-de-uretken-yapay-zeka-kullananlarin-orani-yuzde-18-9-a-cikti",
+  "kategori": "YAPAY ZEKÂ · VERİ",
+  "kaynak": "Microsoft AI Economy Institute, Global AI Diffusion raporu, 2026 2. çeyrek",
+  "kunye": "VERİ GRAFİĞİ · BTMEDYA HABER MERKEZİ",
+  "kartlar": [
+    {
+      "tur": "rakam",
+      "ust": "Türkiye'de 15-64 yaş nüfusun",
+      "rakam": "%18,9",
+      "aciklama": "üretken yapay zekâ araçlarını kullanıyor.",
+      "kutular": [
+        ["Dünya ortalaması", "%18,8"],
+        ["Üç ayda değişim", "%17,4'ten %18,9'a  (+1,5 puan)"]
+      ],
+      "devam": "Sıralamada nerede? Kaydırın"
+    },
+    {
+      "tur": "cubuk",
+      "baslik": "Türkiye listenin neresinde?",
+      "alt": "Üretken yapay zekâ kullanan çalışma çağı nüfus oranı",
+      "satirlar": [
+        ["BAE", 73.3, false],
+        ["Singapur", 64.3, false],
+        ["İrlanda", 49.9, false],
+        ["Fransa", 49.6, false],
+        ["Norveç", 49.4, false],
+        ["· · · diğer ülkeler", null, false],
+        ["Türkiye", 18.9, true],
+        ["Dünya", 18.8, false]
+      ]
+    },
+    {
+      "tur": "baglam",
+      "baslik": "Kuzey ile Güney arasındaki açık büyüyor",
+      "ikili": [["Küresel Kuzey", "%28,8", false], ["Küresel Güney", "%16,2", false]],
+      "fark": "İki grup arasındaki fark 12,6 puana yükseldi.",
+      "yontem": "Yöntem notu: Rakamlar bir nüfus anketi değil. Microsoft, oranları anonim kullanım verisinden hesaplayıp internet erişimi, nüfus ve cihaz pazar payına göre düzelttiğini belirtiyor; yani şirketin tahminidir.",
+      "cagri": "Haberin tamamı: btmedya.com.tr"
+    }
+  ]
+}

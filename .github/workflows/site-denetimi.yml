@@ -1,0 +1,43 @@
+name: BTMEDYA canli site denetimi
+
+# Canli siteyi 6 saatte bir tarar: sitemap adresleri, paylasim gorselleri,
+# haber kapaklari, dagitim kaymasi, guvenlik yuzeyleri, vitrin alanlari.
+# Ayrintisi ve neden her birinin denetlendigi: tools/site-denetimi.mjs
+#
+# Push'ta degil zamanlanmis calisir: birlestirmeden hemen sonra dagitim
+# henuz inmemis olabilir ve yeni kapaklar birkac dakika 404 doner. O yanlis
+# alarm kimseye bir sey anlatmaz. Elle calistirmak icin: Actions > bu is
+# akisi > Run workflow.
+#
+# Basarisiz zamanlanmis calismalarda GitHub, cron'u son degistiren kisiye
+# e-posta gonderir; bu yuzden ayrica bildirim kurmak gerekmez.
+
+on:
+  schedule:
+    # Saat basi degil 17. dakika: GitHub zamanlanmis isleri saat basinda
+    # yogunlugundan gecikebiliyor.
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btmedya-site-denetimi
+  cancel-in-progress: false
+
+jobs:
+  denetim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Canli site denetimi
+        run: node tools/site-denetimi.mjs

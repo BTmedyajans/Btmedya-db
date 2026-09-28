@@ -12,3 +12,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+
+# Python onbellek klasoru: tools/paylasim-kapagi.py, haber-kapagi.py modulunu
+# import ettigi icin olusuyor; depoya girmez.
+__pycache__/

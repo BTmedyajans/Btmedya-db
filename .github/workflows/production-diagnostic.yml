@@ -5,8 +5,6 @@ on:
     branches: ["main"]
     paths:
       - "wrangler.toml"
-      - "src/**"
-      - "public/**"
       - "migrations/**"
       - "control-plane/**"
       - ".github/workflows/production-diagnostic.yml"
@@ -39,37 +37,104 @@ jobs:
 
       - name: Verify Cloudflare secrets
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -eu
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN eksik."; exit 1; }
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID eksik."; exit 1; }
 
+      - name: Report deploy token availability (values hidden)
+        env:
+          DEPLOY_TOKEN_SET: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN != '' && 'yes' || 'no' }}
+          API_TOKEN_SET: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && 'yes' || 'no' }}
+        run: |
+          set -eu
+          echo "CLOUDFLARE_DEPLOY_TOKEN configured: $DEPLOY_TOKEN_SET"
+          echo "CLOUDFLARE_API_TOKEN configured: $API_TOKEN_SET"
+
       - name: Inspect Cloudflare rules for API challenge
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
           api="https://api.cloudflare.com/client/v4"
           auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
-          zones="$(curl -fsS "${api}/zones?name=btmedya.com.tr&per_page=50" "${auth[@]}")"
+          if ! zones="$(curl -fsS "${api}/zones?name=btmedya.com.tr&per_page=50" "${auth[@]}")"; then
+            echo "UYARI: Cloudflare zone API erişimi 403/erişim hatası verdi; ruleset incelemesi atlandı." | tee -a btmedya-production-report.txt
+            exit 0
+          fi
           zone_id="$(jq -r '.result[] | select(.name=="btmedya.com.tr") | .id' <<<"$zones" | head -n1)"
           echo "===== CLOUDFLARE RULESETS MATCHING API/NEWS =====" | tee -a btmedya-production-report.txt
-          rulesets="$(curl -fsS "${api}/zones/${zone_id}/rulesets" "${auth[@]}")"
+
+          if [ -z "$zone_id" ]; then
+            echo "UYARI: btmedya.com.tr zone ID bulunamadı; ruleset incelemesi atlandı." | tee -a btmedya-production-report.txt
+            exit 0
+          fi
+
+          if ! rulesets="$(curl -fsS "${api}/zones/${zone_id}/rulesets" "${auth[@]}")"; then
+            echo "UYARI: Cloudflare Rulesets API 403/erişim hatası verdi. Bu kontrol atlandı; ana production diagnostic devam edecek." | tee -a btmedya-production-report.txt
+            exit 0
+          fi
+
           jq -r '.result[] | [.id,.name,.kind,.phase] | @tsv' <<<"$rulesets" | tee -a btmedya-production-report.txt
           while IFS= read -r rid; do
             [ -z "$rid" ] && continue
-            curl -fsS "${api}/zones/${zone_id}/rulesets/${rid}" "${auth[@]}" | jq -c '.result.rules[]? | select((.expression // "") | test("api/news|/api/"; "i")) | {id,description,action,enabled,expression}' | tee -a btmedya-production-report.txt || true
+            curl -fsS "${api}/zones/${zone_id}/rulesets/${rid}" "${auth[@]}" |
+              jq -c '.result.rules[]? | select((.expression // "") | test("api/news|/api/"; "i")) | {id,description,action,enabled,expression}' |
+              tee -a btmedya-production-report.txt || true
           done < <(jq -r '.result[].id' <<<"$rulesets")
+
+      - name: Verify authoritative nameservers
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN }}
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4"
+          auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
+          if ! zone_json="$(curl -fsS "${api}/zones?name=btmedya.com.tr&status=active&per_page=10" "${auth[@]}")"; then
+            echo "UYARI: Cloudflare zone API erişimi 403/erişim hatası verdi; NS karşılaştırması atlandı."
+            exit 0
+          fi
+          zone_success="$(jq -r '.success // false' <<<"$zone_json")"
+          if [ "$zone_success" != "true" ]; then
+            echo "UYARI: Cloudflare zone sorgusu başarısız; NS karşılaştırması atlandı."
+            exit 0
+          fi
+
+          expected="$(jq -r '.result[0].name_servers[]?' <<<"$zone_json" | tr '[:upper:]' '[:lower:]' | sed 's/\.$//' | sort -u)"
+          actual="$(dig +short NS btmedya.com.tr | tr '[:upper:]' '[:lower:]' | sed 's/\.$//' | sort -u)"
+
+          echo "Cloudflare authoritative NS:"
+          printf '%s\n' "$expected"
+          echo "Public DNS NS:"
+          printf '%s\n' "$actual"
+
+          if [ -z "$expected" ] || [ -z "$actual" ]; then
+            echo "UYARI: authoritative/public NS çıktısı eksik; diagnostic devam ediyor."
+            exit 0
+          fi
+
+          if diff -u <(printf '%s\n' "$expected") <(printf '%s\n' "$actual"); then
+            echo "OK: registrar/public NS delegation matches Cloudflare zone."
+          else
+            echo "UYARI: public NS delegation Cloudflare zone nameservers ile eşleşmiyor."
+          fi
+
       - name: Run diagnostic
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           chmod +x control-plane/diagnose.sh
           ./control-plane/diagnose.sh
+
+      - name: Print diagnostic report
+        if: always()
+        run: |
+          echo "===== BTMEDYA PRODUCTION REPORT ====="
+          cat btmedya-production-report.txt 2>/dev/null || true
 
       - name: Upload diagnostic report
         if: always()

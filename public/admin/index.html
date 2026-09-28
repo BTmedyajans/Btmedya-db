@@ -1,4 +1,4 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BTMedya Admin</title><style>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BTMedya Admin — İçerik Yönetimi</title><link rel="stylesheet" href="/admin/admin-overrides.css"><style>
 *{box-sizing:border-box}
 body{font-family:Inter,system-ui,sans-serif;margin:0;background:#090909;color:#eee;font-size:14px}
 a{color:#7dd}
@@ -101,8 +101,9 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <button class="tab" data-tab="media">Medya Kasası</button>
     <button class="tab" data-tab="news">Haberler</button>
     <button class="tab" data-tab="social">Sosyal İçerik</button>
+    <button class="tab" data-tab="automation">Otomasyon</button>
     <button class="tab" data-tab="videos">Videolar</button>
-    <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button><button class="tab" data-tab="control">Control Center</button><button class="tab" data-tab="trends">Trendler & Kaynaklar</button>
+    <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button><button class="tab" data-tab="control">Control Center</button>
   </div>
   <button class="btn" id="logoutBtn" style="display:none">Çıkış</button>
 </header>
@@ -113,7 +114,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 <div id="loginSection" class="panel login-box">
   <h2>Yönetici Girişi</h2>
   <p class="muted" style="margin-bottom:14px">BTMedya yönetim paneline giriş yapın.</p>
-  <input id="user" type="text" autocomplete="username" placeholder="Kullanıcı adı" value="BTMEDYA" style="width:100%;margin-bottom:10px">
+  <input id="user" type="text" autocomplete="username" placeholder="E-posta / kullanıcı adı" value="busetuncay74@gmail.com" style="width:100%;margin-bottom:10px">
   <input id="pw" type="password" autocomplete="current-password" placeholder="Şifre" style="width:100%;margin-bottom:10px">
   <button class="btn primary" id="loginBtn" style="width:100%">Giriş yap</button>
   <p id="loginMsg" class="status" style="color:#f88"></p>
@@ -121,6 +122,30 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 
 <!-- APP -->
 <div id="appSection" style="display:none">
+  <section class="admin-guide" aria-labelledby="adminGuideTitle">
+    <div class="guide-hero">
+      <div class="guide-kicker">BTMEDYA İÇERİK MASASI</div>
+      <h1 id="adminGuideTitle">İçeriği seç, düzenle, yayınla.</h1>
+      <p>Fotoğraf, video ve haberleri tek akışta yönetin. Önce dosyayı yükleyin, sonra haber kapağına veya sitenin doğru alanına bağlayın.</p>
+      <div class="guide-actions">
+        <button class="btn primary" type="button" onclick="showTab('media')">+ Medya yükle</button>
+        <button class="btn" type="button" onclick="showTab('news');clearNewsForm()">+ Haber yaz</button>
+        <button class="btn" type="button" onclick="showTab('durum')">Eksikleri gör</button>
+      </div>
+    </div>
+    <div class="guide-side" aria-label="Panel özeti">
+      <div class="guide-stat"><b id="guideMissing">—</b><span>eksik site alanı</span></div>
+      <div class="guide-stat"><b id="guideMedia">—</b><span>medya kaydı</span></div>
+      <div class="guide-stat"><b id="guideNews">—</b><span>haber</span></div>
+      <div class="guide-stat"><b>4</b><span>adımda yayın</span></div>
+    </div>
+  </section>
+  <section class="workflow" aria-label="Yayın akışı">
+    <div class="workflow-step"><strong><i>1</i> Dosyayı seç</strong><p>Fotoğraf veya videoyu sürükleyin.</p></div>
+    <div class="workflow-step"><strong><i>2</i> Bilgiyi tamamla</strong><p>Kategori, alt metin ve kapak.</p></div>
+    <div class="workflow-step"><strong><i>3</i> Alanı bağla</strong><p>Hero, haber kapağı veya sosyal.</p></div>
+    <div class="workflow-step"><strong><i>4</i> Yayınla</strong><p>Önizle, kaydet ve paylaş.</p></div>
+  </section>
 
   <!-- TAB: MEDYA KASASI -->
   <div class="tab-content active" id="tab-durum">
@@ -134,9 +159,11 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 
   <div class="tab-content" id="tab-media">
     <div class="panel">
-      <h2>Toplu medya yükle</h2>
+      <h2>1. Medya yükle</h2>
+      <p class="help-text">Birden fazla görsel/video seçebilirsiniz. Sistem boyut, oran ve video süresini otomatik ölçer.</p>
       <div class="drop" id="drop">Dosyaları buraya bırak ya da seç — <input id="files" type="file" multiple accept="image/*,video/*,audio/*,.pdf"></div>
-      <div class="row" style="margin-top:12px">
+      <div id="fileQueue" class="file-queue" aria-live="polite"></div>
+      <div class="upload-toolbar" style="margin-top:12px">
         <select id="category">
           <option value="arsiv">Arşiv</option>
           <option value="haber">Haber</option>
@@ -149,7 +176,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
         <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:#9fb2c2">
           <input type="checkbox" id="aiFlag"> Yapay zekâ ile üretildi
         </label>
-        <button class="btn primary" id="uploadBtn">Yüklemeyi başlat</button>
+        <button class="btn primary" id="uploadBtn">Seçilenleri yükle</button>
       </div>
       <p class="status" style="margin-top:6px">Dosyanın en-boy oranı ve süresi yüklenirken ölçülür; hangi platforma uygun olduğu buna göre önerilir.</p>
       <p id="uploadStatus" class="status"></p>
@@ -177,7 +204,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   <div class="tab-content" id="tab-news">
     <div class="panel">
       <div class="row" style="margin-bottom:10px">
-        <h2 style="margin:0;flex:1" id="newsFormTitle">Yeni haber ekle</h2>
+        <h2 style="margin:0;flex:1" id="newsFormTitle">2. Haber oluştur</h2>
         <button class="btn sm" id="newNewsBtn">+ Yeni haber</button>
       </div>
       <div id="newsForm">
@@ -201,23 +228,15 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
             <input id="nAuthor" style="width:100%" placeholder="Buse Tuncay">
           </div>
         </div>
-        <label>KAPAK GÖRSELI URL'si</label>
-        <input id="nCoverUrl" style="width:100%" placeholder="https://... veya /assets/...">
-        <img id="coverPreview" class="cover-preview" alt="Kapak önizleme">
-        <label>VIDEO URL</label>
-        <input id="nVideoUrl" style="width:100%" placeholder="YouTube bağlantısı yapıştırın (watch, youtu.be, shorts)">
-        <div class="form-2col">
-          <div>
-            <label>KAYNAK URL *</label>
-            <input id="nSourceUrl" style="width:100%" placeholder="https://kurum.gov.tr/aciklama veya özgün yayın">
-          </div>
-          <div>
-            <label>ÖZGÜN TARİH</label>
-            <input id="nOriginalDate" type="date" style="width:100%">
+        <div class="form-section">
+          <div class="form-section-title">KAPAK VE MEDYA</div>
+          <div class="cover-picker">
+            <div><label>KAPAK GÖRSELİ URL'Sİ</label><input id="nCoverUrl" style="width:100%" placeholder="Medya Kasası'ndan kapak seçin veya URL yapıştırın"><p class="help-text">Medya Kasası'ndaki “Habere kapak yap” düğmesi bu alanı otomatik doldurur.</p></div>
+            <img id="coverPreview" class="cover-preview" alt="Kapak önizleme">
           </div>
         </div>
-        <label>ARŞİV / KAYNAK NOTU</label>
-        <input id="nArchiveNote" style="width:100%" placeholder="Kaynağın niteliği, izin veya arşiv bağlamı">
+        <label>VIDEO URL</label>
+        <input id="nVideoUrl" style="width:100%" placeholder="YouTube bağlantısı yapıştırın (watch, youtu.be, shorts)">
         <label>ÖZET</label>
         <textarea id="nExcerpt" style="width:100%;min-height:70px" placeholder="Kısa özet (anasayfada görünür)"></textarea>
         <label>İÇERİK</label>
@@ -332,6 +351,30 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <p class="muted">Cloudflare, D1, R2, sosyal bağlantılar, iZap ve CMS Open Data iş akışının tek durum ekranı.</p>
     <div id="controlSummary" class="status">Yükleniyor…</div>
   </div>
+  <div class="panel" id="metricoolConnectionPanel">
+    <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap">
+      <div>
+        <h2 style="margin-bottom:4px">Metricool otomatik yayın bağlantısı</h2>
+        <p class="muted" style="margin:0">Token yalnızca bir kez GitHub Actions Secret olarak eklenir. Sonrasında BTMEDYA yayın zinciri bunu otomatik kullanır.</p>
+      </div>
+      <span id="metricoolBadge" class="pill">Kontrol ediliyor…</span>
+    </div>
+    <div style="margin-top:14px;padding:15px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.025)">
+      <div style="font-weight:700;margin-bottom:8px">Telefondan yapacağınız tek kurulum</div>
+      <div class="muted" style="font-size:12px;line-height:1.6">
+        <b>1.</b> Metricool'a giriş yapın → Menü → Account Settings → API → <b>REST API Access token</b> → tokenı kopyalayın.<br>
+        <b>2.</b> GitHub bağlantısını açın → <b>New repository secret</b> → Name: <code>BTMEDYA_METRICOOL_USER_TOKEN</code> → Value: Metricool tokenı → kaydet.<br>
+        <b>3.</b> Devamını BTMEDYA'nın GitHub → Cloudflare senkronizasyonu yapar. User ID / Brand ID zaten tanımlı: <b>5278969</b> / <b>6858384</b>.
+      </div>
+      <div class="row" style="margin-top:12px">
+        <a class="btn sm" href="https://app.metricool.com/" target="_blank" rel="noopener">1 · Metricool'u aç ↗</a>
+        <a class="btn primary sm" href="https://github.com/BTmedyajans/Btmedya-db/settings/secrets/actions" target="_blank" rel="noopener">2 · GitHub Secret ekle ↗</a>
+        <a class="btn sm" href="https://help.metricool.com/api-access-export-your-metricool-data-to-other-tools-and-automate-tasks-x8ln5" target="_blank" rel="noopener">API yardım ↗</a>
+      </div>
+      <div class="muted" style="font-size:11px;line-height:1.5;margin-top:10px">Tokenı bu sohbete veya site koduna yapıştırmayın. Metricool API tokenı sunucu tarafında <code>X-Mc-Auth</code> başlığında kullanılmalıdır.</div>
+    </div>
+  </div>
+
   <div class="panel">
     <h2>Bağlantılar</h2>
     <div id="controlIntegrations"></div>
@@ -339,24 +382,6 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   <div class="panel">
     <h2>Bekleyen kurulumlar</h2>
     <div id="controlNext"></div>
-  </div>
-</div>
-
-<div class="tab-content" id="tab-trends">
-  <div class="panel">
-    <h2>BTMEDYA Trend ve Kaynak Masası</h2>
-    <p class="muted">Platform önerileri resmi kaynaklardan türetilmiş dört haftalık pilotlardır; otomatik yayın garantisi değildir. Her içerik kaynak, izin, tarih ve AI/gerçek çekim kontrolünden geçer.</p>
-    <div id="trendPolicy" class="status">Yükleniyor…</div>
-  </div>
-  <div class="panel"><div id="trendCards" class="grid"><p class="muted">Trend verisi yükleniyor…</p></div></div>
-  <div class="panel">
-    <h2>Sosyal profil güncelleme kiti</h2>
-    <div class="news-list">
-      <div class="news-row"><div class="news-row-info"><b>Instagram · @btmedyajans</b><small>BTMEDYA | Haber & İçerik Stüdyosu · Reels / Carousel / Stories</small></div><a class="btn sm" href="/sosyal-medya-kit/" target="_blank">Metni aç ↗</a></div>
-      <div class="news-row"><div class="news-row-info"><b>TikTok · @btmedya1010</b><small>BTMEDYA | Haber & Video · yer + olay + kaynak</small></div><a class="btn sm" href="/sosyal-medya-kit/" target="_blank">Metni aç ↗</a></div>
-      <div class="news-row"><div class="news-row-info"><b>YouTube · @BTmedyaAjans</b><small>BTMEDYA | Buse Tuncay · Shorts + açıklayıcı + playlist</small></div><a class="btn sm" href="/sosyal-medya-kit/" target="_blank">Metni aç ↗</a></div>
-      <div class="news-row"><div class="news-row-info"><b>WhatsApp Business</b><small>Profil + katalog + beş bilgilik brief</small></div><a class="btn sm" href="/whatsapp-katalog/" target="_blank">Kataloğu aç ↗</a></div>
-    </div>
   </div>
 </div>
 
@@ -370,6 +395,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     </div>
   </div>
 
+<div id="adminToast" class="toast" role="status" aria-live="polite"></div>
 </div><!-- /appSection -->
 </div><!-- /wrap -->
 
@@ -433,9 +459,7 @@ function autoPlatforms(){
 function autoText(n,prefix){
   const clean=String(n.excerpt||n.body||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
   const lead=clean.slice(0,500);
-  const source=n.source_url||('https://btmedya.com.tr/haberler/'+n.slug+'.html');
-  const note=n.archive_note?('\n\nArşiv notu: '+n.archive_note):'';
-  return (prefix?prefix+'\n\n':'')+n.title+'\n\n'+lead+note+'\n\nKaynak: '+source;
+  return (prefix?prefix+'\n\n':'')+n.title+'\n\n'+lead+'\n\nKaynak: https://btmedya.com.tr/haberler/'+n.slug+'.html';
 }
 async function createAutomationPosts(){
   const status=$('#autoStatus'), mode=$('#autoMode').value, platforms=autoPlatforms();
@@ -470,7 +494,9 @@ async function loadControlCenter(){
   const box=$('#controlSummary'), integrations=$('#controlIntegrations'), next=$('#controlNext');
   try{
     const d=await req('/api/admin/control-center');
-    box.innerHTML='<b>Site:</b> '+escStr(d.site.url)+' · <b>Worker:</b> '+escStr(d.site.worker)+'<br><b>D1:</b> '+(d.storage.d1?'✓':'✗')+' · <b>R2:</b> '+(d.storage.r2?'✓':'✗')+' · <b>Admin secrets:</b> '+(d.admin.configured?'✓':'Eksik')+' · <b>Media signing:</b> '+(d.admin.mediaSigning?'✓':'Eksik');
+    box.innerHTML='<b>Site:</b> '+escStr(d.site.url)+' · <b>Worker:</b> '+escStr(d.site.worker)+'<br><b>D1:</b> '+(d.storage.d1?'✓':'✗')+' · <b>R2:</b> '+(d.storage.r2?'✓':'✗')+' · <b>Admin secrets:</b> '+(d.admin.configured?'✓':'Eksik')+' · <b>Media signing:</b> '+(d.admin.mediaSigning?'✓':'Eksik')+' · <b>Metricool:</b> '+(d.metricool?.yapilandirildi?'✓ Bağlı':'Kurulum bekliyor');
+    const badge=$('#metricoolBadge');
+    if(badge){badge.textContent=d.metricool?.yapilandirildi?'BAĞLI':'KURULUM BEKLİYOR';badge.className=d.metricool?.yapilandirildi?'pill pub':'pill'}
     const labels={izap:'iZap / WhatsApp',cmsOpenData:'CMS Open Data',github:'GitHub → Cloudflare'};
     integrations.innerHTML=Object.entries(d.integrations).map(([k,v])=>'<div style="padding:12px 0;border-bottom:1px solid #222"><b>'+escStr(labels[k]||k)+'</b><div class="muted" style="margin-top:4px">'+escStr(v.status)+' · '+escStr(v.note)+'</div></div>').join('');
     next.innerHTML=d.nextActions?.length?'<ul style="margin:0;padding-left:20px;color:#ccc">'+d.nextActions.map(x=>'<li style="margin:7px 0">'+escStr(x)+'</li>').join('')+'</ul>':'<span style="color:#6c6">Şu an Worker tarafında bekleyen zorunlu secret görünmüyor.</span>';
@@ -488,23 +514,15 @@ function showTab(name){
   if(name==='videos'){loadVideos()}
   if(name==='messages'){loadMessages()}
   if(name==='control'){loadControlCenter()}
-  if(name==='trends'){loadTrends()}
 }
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showTab(t.dataset.tab));
 
-async function loadTrends(){
-  const policy=$('#trendPolicy'), box=$('#trendCards');
-  try{
-    const d=await fetch('/data/editorial-trends.json').then(r=>r.json());
-    policy.textContent=(d.generated_at||'')+' · '+(d.policy||'');
-    box.innerHTML=(d.platforms||[]).map(p=>`<article class="card"><div class="meta"><b>${escStr(p.name)}</b><p class="muted">${escStr(p.pilot)}</p><p><strong>Formatlar:</strong> ${escStr((p.formats||[]).join(' · '))}</p><p><strong>Seriler:</strong> ${escStr((p.series||[]).join(' · '))}</p><p>${(p.official_sources||[]).slice(0,3).map(u=>'<a href="'+escStr(u)+'" target="_blank" rel="noopener">Resmi kaynak ↗</a>').join(' · ')}</p></div></article>`).join('');
-  }catch(e){policy.textContent='Trend verisi alınamadı.';box.innerHTML=''}
-}
-
 /* ---- Medya Kasası ---- */
-$('#files').onchange=e=>{selectedFiles=[...e.target.files];$('#drop').querySelector('input').after(document.createTextNode(` (${selectedFiles.length} dosya seçildi)`))};
+function renderFileQueue(){const q=$('#fileQueue');if(!q)return;q.innerHTML=selectedFiles.length?selectedFiles.map(f=>`<div class=\"file-queue-item\"><b>${escStr(f.name)}</b><small>${(f.size/1024/1024).toFixed(1)} MB · ${escStr(f.type||'dosya')}</small></div>`).join(''):''}
+function toast(msg){const t=$('#adminToast');if(!t)return;t.textContent=msg;t.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.remove('show'),2600)}
+$('#files').onchange=e=>{selectedFiles=[...e.target.files];renderFileQueue();$('#uploadStatus').textContent=`${selectedFiles.length} dosya seçildi`};
 $('#drop').ondragover=e=>e.preventDefault();
-$('#drop').ondrop=e=>{e.preventDefault();selectedFiles=[...e.dataTransfer.files];$('#uploadStatus').textContent=`${selectedFiles.length} dosya seçildi`};
+$('#drop').ondrop=e=>{e.preventDefault();selectedFiles=[...e.dataTransfer.files];renderFileQueue();$('#uploadStatus').textContent=`${selectedFiles.length} dosya seçildi`};
 /* Dosyanin en-boy orani ve suresi tarayicida okunur: Worker'da ffmpeg yok.
    Ses tespiti tarayiciya gore degisir, bu yuzden kesin degil, yalnizca ipucu. */
 function readMeta(file){
@@ -552,15 +570,15 @@ $('#uploadBtn').onclick=async()=>{
     }
     await req(`/api/upload/${encodeURIComponent(meta.key)}/complete?uploadId=${encodeURIComponent(meta.uploadId)}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({parts})});
   }
-  selectedFiles=[];
-  $('#uploadStatus').textContent='Yükleme tamamlandı ✓';
+  selectedFiles=[];renderFileQueue();$('#files').value='';
+  $('#uploadStatus').textContent='Yükleme tamamlandı ✓';toast('Medya başarıyla yüklendi. Şimdi site alanına bağlayabilirsiniz.');
   loadMedia();
 };
 async function loadMedia(){
   const qs=new URLSearchParams();
   if($('#q').value)qs.set('q',$('#q').value);
   if($('#filter').value)qs.set('category',$('#filter').value);
-  const d=await req('/api/media?'+qs);
+  const d=await req('/api/media?'+qs); if($('#guideMedia')&&!qs.toString())$('#guideMedia').textContent=d.items?.length||0;
   vaultPlan=await req('/api/vault/plan').catch(()=>({items:[]}));
   const planOf=id=>(vaultPlan.items||[]).find(i=>i.id===id)||{};
   $('#mediaGrid').innerHTML=d.items.map(x=>{
@@ -639,7 +657,7 @@ async function clearOwnVideo(id){
 /* ---- Site Durumu: yuvalari ve eksikleri gosterir ---- */
 async function loadSlots(){
   const d=await req('/api/site/slots');
-  $('#durumOzet').innerHTML=`<b>${d.ozet.toplam}</b> yer var, <b style="color:#5fba8c">${d.ozet.dolu}</b> dolu, <b style="color:#e0a45c">${d.ozet.eksik}</b> eksik.`;
+  $('#durumOzet').innerHTML=`<b>${d.ozet.toplam}</b> yer var, <b style="color:#5fba8c">${d.ozet.dolu}</b> dolu, <b style="color:#e0a45c">${d.ozet.eksik}</b> eksik.`; if($('#guideMissing'))$('#guideMissing').textContent=d.ozet.eksik;
   const all=await req('/api/media?').catch(()=>({items:[]}));
   const secenek=(all.items||[]).map(m=>`<option value="${escStr(m.id)}">${escStr((m.title||m.original_name).slice(0,54))}</option>`).join('');
   $('#slotList').innerHTML=d.yuvalar.map(y=>`
@@ -722,7 +740,7 @@ function clearNewsForm(){
   editingNewsId=null;
   $('#newsFormTitle').textContent='Yeni haber ekle';
   $('#nTitle').value='';delete $('#nSlug').dataset.touched;$('#nSlug').value='';
-  $('#nCategory').value='';$('#nAuthor').value='';$('#nCoverUrl').value='';$('#nVideoUrl').value='';$('#nSourceUrl').value='';$('#nOriginalDate').value='';$('#nArchiveNote').value='';
+  $('#nCategory').value='';$('#nAuthor').value='';$('#nCoverUrl').value='';$('#nVideoUrl').value='';
   $('#nExcerpt').value='';$('#nBody').value='';$('#nDate').value='';$('#nStatus').value='published';
   $('#coverPreview').style.display='none';
   $('#nCancelBtn').style.display='none';
@@ -740,16 +758,12 @@ async function saveNews(forceStatus){
     author:$('#nAuthor').value.trim(),
     cover_url:$('#nCoverUrl').value.trim(),
     video_url:$('#nVideoUrl').value.trim(),
-    source_url:$('#nSourceUrl').value.trim(),
-    original_date:$('#nOriginalDate').value,
-    archive_note:$('#nArchiveNote').value.trim(),
     excerpt:$('#nExcerpt').value.trim(),
     body:$('#nBody').value.trim(),
     status,
     published_at:$('#nDate').value ? new Date($('#nDate').value).toISOString() : null
   };
   if(!b.title||!b.slug){$('#nStatus2').textContent='Başlık ve slug zorunlu';return}
-  if(status==='published'&&!b.source_url){$('#nStatus2').textContent='Yayın için kaynak URL zorunlu';return}
   $('#nStatus2').textContent='Kaydediliyor…';
   try{
     let r,d;
@@ -773,7 +787,7 @@ $('#nSaveBtn').onclick=()=>saveNews('published');
 $('#nDraftBtn').onclick=()=>saveNews('draft');
 
 async function loadNewsList(){
-  const d=await req('/api/admin/news');
+  const d=await req('/api/admin/news'); if($('#guideNews'))$('#guideNews').textContent=d.items?.length||0;
   const list=$('#newsList');
   if(!d.items?.length){list.innerHTML='<p class="muted">Henüz haber yok.</p>';return}
   list.innerHTML='<div class="news-list">'+d.items.map(n=>`
@@ -804,9 +818,6 @@ async function loadNewsEdit(id){
   $('#nAuthor').value=n.author||'';
   $('#nCoverUrl').value=n.cover_url||'';
   $('#nVideoUrl').value=n.video_url||'';
-  $('#nSourceUrl').value=n.source_url||'';
-  $('#nOriginalDate').value=n.original_date ? String(n.original_date).slice(0,10) : '';
-  $('#nArchiveNote').value=n.archive_note||'';
   $('#nExcerpt').value=n.excerpt||'';
   $('#nBody').value=n.body||'';
   $('#nStatus').value=n.status||'draft';

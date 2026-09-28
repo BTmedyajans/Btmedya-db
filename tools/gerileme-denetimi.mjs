@@ -52,8 +52,15 @@ const tara = (dizin) => {
   for (const g of readdirSync(dizin, { withFileTypes: true })) {
     const y = join(dizin, g.name);
     if (g.isDirectory()) { if (g.name !== '.git' && g.name !== 'node_modules') tara(y); }
-    else if (/\.(html|js|json|md|toml)$/i.test(g.name) && readFileSync(y, 'utf8').includes('btcraft10')) {
-      bulgular.push(`${y} olu TikTok hesabini (@btcraft10) gosteriyor; dogrusu @btmedya1010.`);
+    else if (/\.(html|js|json|md|toml)$/i.test(g.name)) {
+      const icerik = readFileSync(y, 'utf8');
+      if (icerik.includes('btcraft10'))
+        bulgular.push(`${y} olu TikTok hesabini (@btcraft10) gosteriyor; dogrusu @btmedya1010.`);
+      /* Marka Instagram'i @btmedyajans (Instagram profilinden dogrulandi:
+         "BTMEDYA® | Haber • Medya • AI"). Haber sayfalari eski @btmedya10
+         adresini gosteriyordu; ana sayfa ve panel dogru hesabi. */
+      if (/instagram\.com\/btmedya10\b/.test(icerik))
+        bulgular.push(`${y} eski Instagram hesabini (@btmedya10) gosteriyor; marka hesabi @btmedyajans.`);
     }
   }
 };
@@ -96,7 +103,11 @@ tara('public'); tara('src');
     const kaynak = JSON.parse(readFileSync(kaynakYol, 'utf8'));
     for (const h of plan) {
       const kare = havuz[h.foto || ''];
-      const olmasiGereken = kare && kare.gercek ? 'gercek' : 'ai';
+      // Vurgu alanı olan kapaklar fotoğraf değil bilgi kartıdır; üretici
+      // bunları "grafik" olarak kaydeder. Temsili/arsiv fotoğraflarda ise
+      // doğruluk etiketi plan kaydındaki rozetten gelir; havuzdaki "gercek"
+      // alanı yalnızca ajansın kendi fotoğrafları için geçerlidir.
+      const olmasiGereken = h.temsili?.rozet || (h.vurgu ? 'grafik' : kare && kare.gercek ? 'gercek' : 'ai');
       if (kaynak[h.slug] !== olmasiGereken) {
         bulgular.push(`${kaynakYol}: "${h.slug}" ${kaynak[h.slug] ?? 'kayitsiz'} yaziyor, ` +
           `plandaki kare "${h.foto}" ise ${olmasiGereken}. ` +
@@ -117,9 +128,84 @@ tara('public'); tara('src');
     bulgular.push('public/home.js arsivDisi() dosya adi sabitlemis. ' +
       'Vitrin disi kayitlar public/data/medya-ozel.json vitrinDisi listesinden gelmeli.');
   }
-  if (worker.includes("source:'github-static'") && !worker.includes('title:x.baslik||')) {
-    bulgular.push("src/worker.js statik besleyicide baslik yalnizca dosya adindan turuyor. " +
-      'Elle yazilmis baslik medya-ozel.json baslik haritasindan gelmeli (x.baslik).');
+  /* 25-26 Eylul 2026: worker.js'in statik besleyici satiri iki kez bastan
+     yazildi ve her seferinde alan kaybetti. Once x.baslik dustu (19b747e
+     geri koydu), sonra vitrin, sira ve poster dustu. Hicbiri hata vermedi:
+     home.js undefined okuyup sessizce eski davranisa donuyor, vitrin
+     alfabetik siralanip ayni cekimden bes portre yan yana diziliyor, video
+     karti siyah kaliyor. Bu yuzden kontrol tek alana degil, arayuzun
+     okudugu her alana bakar. */
+  // Besleyici tek satirda duruyor; satirin tamami alinir. source:'...' den
+  // sonrasini almak yetmez, title alani o isaretin oncesinde geliyor.
+  const besleyici = (worker.split('\n').find((l) => l.includes("source:'github-static'")) || '');
+  const alanlar = [
+    ['baslik', /\bo?\.?baslik\b|x\.baslik/, 'title:x.baslik||', 'elle yazilmis baslik'],
+    ['vitrin', /\bo\.vitrin\b/, 'vitrin:', 'vitrin disi birakma'],
+    ['sira', /\bx\.sira\b/, 'sira:', 'vitrin sirasi'],
+    ['poster', /\bo\.poster\b/, 'poster:', 'video kapak karesi'],
+  ];
+  if (worker.includes("source:'github-static'")) {
+    for (const [ad, arayuzKalibi, workerKalibi, ne] of alanlar) {
+      if (arayuzKalibi.test(home) && !besleyici.includes(workerKalibi)) {
+        bulgular.push(`src/worker.js statik besleyicisi "${ad}" alanini gondermiyor ` +
+          `ama public/home.js onu okuyor (${ne}). Alan dustugunde hata cikmaz, ` +
+          'arayuz sessizce eski davranisa doner.');
+      }
+    }
+  }
+}
+
+/* 8) Giris filmi sahne rozetleri dosyanin gercek kaynagini gostermeli.
+      24 Eylul 2026 (a3e79e2): dort sahnenin etiketi, videolar degismeden
+      "GERCEK CEKIM" yapildi. Videolar yapay zeka uretimi (robot zirh,
+      patlama, sehir ustunde ucus); medya-ozel.json gercek listesinde yoklar.
+      Kural: bir sahne GERCEK CEKIM diyorsa videosu gercek listesinde olmali. */
+{
+  const home = existsSync('public/home.js') ? readFileSync('public/home.js', 'utf8') : '';
+  const index = existsSync('public/index.html') ? readFileSync('public/index.html', 'utf8') : '';
+  const ozel = existsSync('public/data/medya-ozel.json') ? JSON.parse(readFileSync('public/data/medya-ozel.json', 'utf8')) : {};
+  const gercek = new Set(ozel.gercek || []);
+  // Sahne -> yuva, yuva -> index.html'deki data-src
+  const sahneler = [...home.matchAll(/\{key:'([a-z]+)',yuva:'([a-z-]+)',k:'[^']*',kaynak:'([^']*)'/g)];
+  for (const [, key, yuva, kaynak] of sahneler) {
+    const m = index.match(new RegExp(`data-slot="${yuva}"[^>]*data-src="/assets/([^"]+)"`));
+    const dosya = m && m[1];
+    if (kaynak === 'GERÇEK ÇEKİM' && (!dosya || !gercek.has(dosya))) {
+      bulgular.push(`public/home.js giris filmi "${key}" sahnesi GERCEK CEKIM diyor ama videosu ` +
+        `(${dosya || 'bulunamadi'}) medya-ozel.json gercek listesinde yok. Gercek cekim panelden ` +
+        'yuvaya atanirsa rozet kendiliginden degisir; etiketi elle yazmayin.');
+    }
+  }
+  if (/scene\.kaynak\s*\|\|\s*'GERÇEK ÇEKİM'/.test(home)) {
+    bulgular.push("public/home.js sahne rozetinin varsayilani GERCEK CEKIM. AGENTS.md: varsayilan AI URETIMI.");
+  }
+  const ilk = sahneler[0] && sahneler[0][3];
+  const htmlRozet = (index.match(/data-cinematic-kaynak>([^<]*)</) || [])[1];
+  if (ilk && htmlRozet && ilk !== htmlRozet) {
+    bulgular.push(`index.html giris rozeti "${htmlRozet}" ama ilk sahne "${ilk}" diyor; sayfa acilirken yanlis etiket gorunur.`);
+  }
+}
+
+/* 9) Panel yuvalari sitede gercek bir yere bagli olmali.
+      26 Eylul 2026: bes yuva eski tasarimdan kalmisti, sitede yeri yoktu;
+      "Bu yere bagla" hicbir sey degistirmiyordu. Varsayilan dosyalar da
+      index.html ile ayni olmali, yoksa panel sitenin kullanmadigi bir dosyayi
+      "su an" diye gosterir. og-image sunucuda (HTMLRewriter) uygulanir. */
+{
+  const index = existsSync('public/index.html') ? readFileSync('public/index.html', 'utf8') : '';
+  const slotBlok = (worker.match(/const SITE_SLOTS=\[([\s\S]*?)\];/) || [, ''])[1];
+  const sluglar = [...slotBlok.matchAll(/\['([a-z0-9-]+)'/g)].map((m) => m[1]);
+  for (const slug of sluglar) {
+    if (slug === 'og-image') continue;
+    if (!new RegExp(`data-slot(?:-[a-z]+)?="${slug}"`).test(index)) {
+      bulgular.push(`panel yuvasi "${slug}" public/index.html'de hicbir yere bagli degil (data-slot yok); atama sitede hicbir sey degistirmez.`);
+    }
+  }
+  const varsBlok = (worker.match(/const SITE_SLOT_VARSAYILAN=\{([\s\S]*?)\};/) || [, ''])[1];
+  for (const [, slug, yol] of varsBlok.matchAll(/'([a-z0-9-]+)':\s*'([^']+)'/g)) {
+    if (!index.includes('/assets/' + yol)) {
+      bulgular.push(`SITE_SLOT_VARSAYILAN["${slug}"] = ${yol} ama index.html bu dosyayi kullanmiyor; panel yanlis "su an" gosterir.`);
+    }
   }
 }
 
@@ -129,5 +215,5 @@ if (bulgular.length) {
   process.exit(1);
 }
 console.log('Gerileme denetimi temiz: medya listesi uretilen dosyadan okunuyor, ' +
-  'regex kacislari dogru, kaynak etiketi oge basina turuyor, TikTok hesabi guncel, ' +
-  'GERCEK CEKIM etiketleri gercek karelere basiyor.');
+  'regex kacislari dogru, kaynak etiketi oge basina turuyor, TikTok ve Instagram hesaplari guncel, ' +
+  'GERCEK CEKIM etiketleri gercek karelere basiyor, panel yuvalari siteye bagli.');

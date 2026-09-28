@@ -16,7 +16,7 @@ jobs:
       - name: Apply remote D1 migrations
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: latest
           command: d1 migrations apply btmedya-media --remote

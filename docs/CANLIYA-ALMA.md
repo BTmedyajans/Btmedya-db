@@ -65,3 +65,50 @@ AI üretimleri ayrı `AI LAB` alanında açıkça etiketlenmelidir. Gerçek saha
 6. `https://www.btmedya.com.tr/`
 
 Secret'lar Cloudflare'da tanımlı değilse admin ve imzalı medya bağlantıları üretim için hazır kabul edilmez.
+
+
+## Cloudflare API token yetkileri
+
+Control-plane'ın `apply` modu için mevcut tokenın aşağıdaki yetkilere sahip olması gerekir:
+
+| Kapsam | Yetki | Kullanım |
+|---|---|---|
+| Zone: `btmedya.com.tr` | DNS Write | SPF ve legacy MX değişiklikleri |
+| Zone: `btmedya.com.tr` | Zone Settings Write | Email Routing'i etkinleştirme |
+| Zone: `btmedya.com.tr` | Email Routing Rules Write | `info@`, `admin@` ve catch-all kuralları |
+| Account | Email Routing Addresses Write | Doğrulama hedef adresini oluşturma |
+
+Mevcut Actions kaydında DNS yazma işlemi başarıyla çalıştı; eksik kalan ilk yetki `Account → Email Routing Addresses Write` oldu. Tekrar tekrar yetki döngüsüne girmemek için aynı API tokena tabloya giren üç Email Routing yetkisini birlikte eklemek gerekir.
+
+## Cloudflare / Email control-plane
+
+Repository now includes `control-plane/cloudflare-control-plane.sh` and the GitHub Actions workflow `.github/workflows/cloudflare-control-plane.yml`.
+
+### Otomatik yapılan işler
+
+- `btmedya.com.tr/*` biçimindeki eski Page Rule bulunursa apply modunda silinir.
+- Kök SPF tek kayıt olacak şekilde Cloudflare Email Routing include'ı mevcut include'larla birleştirilir.
+- `busetuncay74@gmail.com` Cloudflare Email Routing destination olarak yoksa oluşturulur.
+- Hedef adres Cloudflare tarafından doğrulanmışsa Email Routing etkinleştirilir ve `info@`, `admin@` ve catch-all yönlendirmeleri aynı hedefe bağlanır.
+- Eski kök MX `btmedyajans.com` yalnızca Email Routing başarıyla etkinleştikten sonra silinir.
+
+### Bilerek otomatik silinmeyen kayıt
+
+`send.btmedya.com.tr` MX kaydı varsayılan olarak korunur. Proje kodu Resend kullanıyor ve Resend'in 2026 dokümantasyonu `send` alt alanındaki Amazon SES MX/SPF kayıtlarını Resend domain return-path yapılandırmasının parçası olarak gösteriyor. Bu nedenle bunu sırf ekrandaki eski yönerge nedeniyle körlemesine silmek güvenli değildir.
+
+### İnsan müdahalesi gereken tek adım
+
+Cloudflare destination address ilk kez oluşturulursa Cloudflare, `busetuncay74@gmail.com` adresine doğrulama e-postası gönderir. Bu e-postadaki doğrulama bağlantısı insan tarafından bir kez onaylanmalıdır. Cloudflare, doğrulanmamış hedefe routing rule oluşturulmasına izin vermez.
+
+### Çalıştırma
+
+GitHub Actions → **BTMEDYA Cloudflare Control Plane** → **Run workflow**.
+
+- `audit`: yalnızca okur ve raporlar.
+- `apply`: DNS / Email Routing değişikliklerini uygular.
+- `apply_dmarc=false`: mevcut DMARC'ı korur.
+- `remove_resend_records=false`: `send.*` Resend/Amazon SES kayıtlarını korur.
+
+> Production deploy yolu DNS'i doğrudan değiştirmez. Cloudflare değişiklikleri ayrı bir control-plane iş akışında tutulur.
+
+> Control-plane audit tetikleyici commit'i GitHub Actions'ın otomatik audit yolunu başlatmak için eklendi.
