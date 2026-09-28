@@ -1216,6 +1216,7 @@ async function hydrateR2FromManifest(env, limit=3){
   return result;
 }
 
+/* production-reconcile: keep GitHub main as the sole Cloudflare Workers Builds source of truth. */
 export default { async scheduled(controller, env, ctx){
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
   /* Yayındaki yeni haberleri sosyal panelde onay kuyruğuna hazırlar.
