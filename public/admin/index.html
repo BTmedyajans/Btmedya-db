@@ -264,6 +264,16 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
         <input id="nVideoUrl" style="width:100%" placeholder="YouTube bağlantısı yapıştırın (watch, youtu.be, shorts)">
         <label>ÖZET</label>
         <textarea id="nExcerpt" style="width:100%;min-height:70px" placeholder="Kısa özet (anasayfada görünür)"></textarea>
+        <div class="form-2col">
+          <div>
+            <label>KAYNAK URL</label>
+            <input id="nSourceUrl" style="width:100%" placeholder="Haberin ana kaynağı / kurum bağlantısı">
+          </div>
+          <div>
+            <label>ARŞİV NOTU</label>
+            <input id="nArchiveNote" style="width:100%" placeholder="Örn. BTMEDYA saha haberi / arşiv notu">
+          </div>
+        </div>
         <label>İÇERİK</label>
         <textarea id="nBody" style="width:100%;min-height:180px" placeholder="Haberin tam içeriği..."></textarea>
         <div class="form-2col">
@@ -278,6 +288,16 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
               <option value="draft">Taslak</option>
             </select>
           </div>
+        </div>
+        <div class="panel" style="margin:12px 0 0;padding:12px;background:#0b0b0b">
+          <div class="row" style="align-items:center">
+            <div style="flex:1;min-width:220px">
+              <strong>Yayın öncesi kalite kontrol</strong>
+              <div class="muted">Başlık, slug, özet, kaynak, içerik, kapak ve tekrar kontrol edilir.</div>
+            </div>
+            <button class="btn" type="button" id="nPreflightBtn">Kontrol et</button>
+          </div>
+          <div id="nPreflight" class="preflight" aria-live="polite" style="margin-top:10px"><span class="muted">Kontrol henüz çalıştırılmadı.</span></div>
         </div>
         <div class="row" style="margin-top:12px">
           <button class="btn primary" id="nSaveBtn">Kaydet & Yayınla</button>
@@ -766,17 +786,17 @@ function clearNewsForm(){
   $('#newsFormTitle').textContent='Yeni haber ekle';
   $('#nTitle').value='';delete $('#nSlug').dataset.touched;$('#nSlug').value='';
   $('#nCategory').value='';$('#nAuthor').value='';$('#nCoverUrl').value='';$('#nVideoUrl').value='';
-  $('#nExcerpt').value='';$('#nBody').value='';$('#nDate').value='';$('#nStatus').value='published';
+  $('#nExcerpt').value='';$('#nSourceUrl').value='';$('#nArchiveNote').value='';$('#nBody').value='';$('#nDate').value='';$('#nStatus').value='published';
   $('#coverPreview').style.display='none';
   $('#nCancelBtn').style.display='none';
   $('#nStatus2').textContent='';
+  $('#nPreflight').innerHTML='<span class="muted">Kontrol henüz çalıştırılmadı.</span>';
 }
 $('#newNewsBtn').onclick=clearNewsForm;
 $('#nCancelBtn').onclick=clearNewsForm;
 
-async function saveNews(forceStatus){
-  const status=forceStatus||$('#nStatus').value;
-  const b={
+function newsFormData(status){
+  return {
     title:$('#nTitle').value.trim(),
     slug:$('#nSlug').value.trim(),
     category:$('#nCategory').value.trim(),
@@ -785,10 +805,54 @@ async function saveNews(forceStatus){
     video_url:$('#nVideoUrl').value.trim(),
     excerpt:$('#nExcerpt').value.trim(),
     body:$('#nBody').value.trim(),
+    source_url:$('#nSourceUrl').value.trim(),
+    archive_note:$('#nArchiveNote').value.trim(),
     status,
     published_at:$('#nDate').value ? new Date($('#nDate').value).toISOString() : null
   };
+}
+let lastPreflight=null;
+async function runNewsPreflight(){
+  const b=newsFormData($('#nStatus').value);
+  const checks=[];
+  const add=(label,ok,detail)=>checks.push({label,ok,detail});
+  add('Başlık',b.title.length>=35 && b.title.length<=110,b.title.length+' karakter');
+  add('Slug',/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(b.slug)&&b.slug.length>=3,b.slug||'eksik');
+  add('Kategori',b.category.length>=2,b.category||'eksik');
+  add('Yazar',b.author.length>=2,b.author||'eksik');
+  add('Özet',b.excerpt.length>=80 && b.excerpt.length<=500,b.excerpt.length+' karakter');
+  add('İçerik',b.body.length>=300,b.body.length+' karakter');
+  add('Kapak',/^https?:\/\//i.test(b.cover_url)||/^\//.test(b.cover_url),b.cover_url?'var':'eksik');
+  add('Kaynak',b.source_url?(/^https?:\/\//i.test(b.source_url)):!!b.archive_note,'Kaynak URL veya arşiv notu');
+  if(b.published_at){
+    const t=Date.parse(b.published_at);
+    add('Yayın tarihi',Number.isFinite(t) && t<=Date.now()+5*60*1000,'geçmiş/şimdi');
+  }else add('Yayın tarihi',true,'otomatik');
+  let duplicate=false;
+  try{
+    const d=await req('/api/admin/news');
+    const norm=s=>String(s||'').toLocaleLowerCase('tr-TR').replace(/[^a-z0-9çğıöşü]+/g,'').slice(0,180);
+    duplicate=!!d.items?.some(n=>n.id!==editingNewsId && norm(n.title)===norm(b.title));
+  }catch{}
+  add('Tekrar',!duplicate,duplicate?'Aynı başlıkta haber bulundu':'benzer kayıt görünmedi');
+  lastPreflight={checks,hardFails:checks.filter(x=>!x.ok)};
+  $('#nPreflight').innerHTML=checks.map(x=>'<div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #1d1d1d"><b style="color:'+(x.ok?'#6c6':'#f88')+'">'+(x.ok?'✓':'✗')+'</b><span><strong>'+escStr(x.label)+'</strong> <span class="muted">'+escStr(x.detail)+'</span></span></div>').join('')+
+    '<div style="margin-top:9px;color:'+(lastPreflight.hardFails.length?'#f88':'#6c6')+'">'+(lastPreflight.hardFails.length?'Yayın öncesi eksik: '+lastPreflight.hardFails.length+' alan':'Yayın öncesi kontrol temiz ✓')+'</div>';
+  return lastPreflight;
+}
+$('#nPreflightBtn').onclick=runNewsPreflight;
+
+async function saveNews(forceStatus){
+  const status=forceStatus||$('#nStatus').value;
+  const b=newsFormData(status);
   if(!b.title||!b.slug){$('#nStatus2').textContent='Başlık ve slug zorunlu';return}
+  if(status==='published'){
+    const check=await runNewsPreflight();
+    if(check.hardFails.length){
+      $('#nStatus2').textContent='Yayın engellendi: önce kalite kontrolündeki eksikleri düzeltin.';
+      return;
+    }
+  }
   $('#nStatus2').textContent='Kaydediliyor…';
   try{
     let r,d;
@@ -844,6 +908,8 @@ async function loadNewsEdit(id){
   $('#nCoverUrl').value=n.cover_url||'';
   $('#nVideoUrl').value=n.video_url||'';
   $('#nExcerpt').value=n.excerpt||'';
+  $('#nSourceUrl').value=n.source_url||'';
+  $('#nArchiveNote').value=n.archive_note||'';
   $('#nBody').value=n.body||'';
   $('#nStatus').value=n.status||'draft';
   if(n.published_at){
