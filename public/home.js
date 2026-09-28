@@ -776,6 +776,8 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     if(!scene) return;
     if(i!==active){
       active=i;
+      // Ses katmani (hero-ses) sahne gecislerini bu olaydan duyar.
+      root.dispatchEvent(new CustomEvent('btsahne',{detail:{sahne:i}}));
       root.classList.remove('beat-haber','beat-medya','beat-produksiyon','beat-ai');
       if(scene.key!=='hero') root.classList.add('beat-'+scene.key);
       // Varsayilan AI URETIMI (AGENTS.md): kaynagi bilinmeyen kare gercek sayilmaz.
@@ -933,4 +935,116 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     const io=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ io.disconnect(); doldur(); } },{rootMargin:'0px 0px -15% 0px'});
     io.observe(kutu);
   } else doldur();
+})();
+
+/* ===== HERO SES KATMANI =====
+   Ses dosyasi yok: Web Audio API ile tarayicida anlik uretilir (0 KB indirme)
+   ve kaydirmaya gercek zamanli tepki verir. Ses tasarimi hero videosundaki
+   hikayeyi izler: kontrol odasi ugultusu -> sahne gecisinde ruzgar ->
+   haber/medya/produksiyon panellerinde dokunus -> enerji kuresinde
+   yukselen gerilim -> AI/studyo sahnesinde derin vurus ve parilti ->
+   dairesel perde kapanirken inen gecis.
+   Varsayilan KAPALI: tarayicilar sesli otomatik oynatmayi engeller ve
+   ziyaretciyi habersiz sesle karsilamak istenmez. Tercih hatirlanir;
+   hatirlanmissa ilk dokunusta/tusta acilir. Hero ekrandan cikinca susar. */
+(function(){
+  const root=document.querySelector('.cinematic-hero');
+  const dugme=root && root.querySelector('[data-hero-ses]');
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(!root || !dugme || !AC) return;
+  dugme.hidden=false;
+  const yazi=dugme.querySelector('span');
+  let ac=null, ana=null, yatak=null, filtre=null, gerilim=null, gerilimFiltre=null, gurultu=null;
+  let acik=false, gorunurluk=1, sonP=0, perdeCaldi=false;
+  const oku=()=>{ try{ return localStorage.getItem('bt-hero-ses')==='1'; }catch(e){ return false; } };
+  const yaz=v=>{ try{ localStorage.setItem('bt-hero-ses',v?'1':'0'); }catch(e){} };
+
+  function gurultuTamponu(){
+    const b=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate), d=b.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+    return b;
+  }
+  function kur(){
+    ac=new AC();
+    ana=ac.createGain(); ana.gain.value=0; ana.connect(ac.destination);
+    gurultu=gurultuTamponu();
+    // Kontrol odasi yatagi: iki kaydirilmis testere + alt bas, alcak geciren filtre.
+    filtre=ac.createBiquadFilter(); filtre.type='lowpass'; filtre.frequency.value=420; filtre.Q.value=.7;
+    yatak=ac.createGain(); yatak.gain.value=.055; filtre.connect(yatak); yatak.connect(ana);
+    [55.0,55.4,110.2].forEach((f,i)=>{ const o=ac.createOscillator(); o.type=i<2?'sawtooth':'sine'; o.frequency.value=f; const g=ac.createGain(); g.gain.value=i<2?.35:.5; o.connect(g); g.connect(filtre); o.start(); });
+    const lfo=ac.createOscillator(), lfoG=ac.createGain(); lfo.frequency.value=.08; lfoG.gain.value=160; lfo.connect(lfoG); lfoG.connect(filtre.frequency); lfo.start();
+    // Enerji gerilimi: surekli calan gurultu + ton, seviyesi kaydirmayla acilir.
+    const n=ac.createBufferSource(); n.buffer=gurultu; n.loop=true;
+    gerilimFiltre=ac.createBiquadFilter(); gerilimFiltre.type='bandpass'; gerilimFiltre.frequency.value=600; gerilimFiltre.Q.value=4;
+    gerilim=ac.createGain(); gerilim.gain.value=0;
+    n.connect(gerilimFiltre); gerilimFiltre.connect(gerilim); gerilim.connect(ana); n.start();
+  }
+  function ruzgar(asagi){
+    const t=ac.currentTime, s=ac.createBufferSource(); s.buffer=gurultu;
+    const f=ac.createBiquadFilter(); f.type='bandpass'; f.Q.value=1.4;
+    f.frequency.setValueAtTime(asagi?3200:280,t); f.frequency.exponentialRampToValueAtTime(asagi?180:3400,t+.7);
+    const g=ac.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.22,t+.22); g.gain.exponentialRampToValueAtTime(.001,t+.85);
+    s.connect(f); f.connect(g); g.connect(ana); s.start(t); s.stop(t+.9);
+  }
+  function dokunus(){
+    const t=ac.currentTime+.18;
+    [[880,0],[1320,.07]].forEach(([fr,d])=>{ const o=ac.createOscillator(), g=ac.createGain(); o.type='sine'; o.frequency.value=fr;
+      g.gain.setValueAtTime(0,t+d); g.gain.linearRampToValueAtTime(.08,t+d+.01); g.gain.exponentialRampToValueAtTime(.001,t+d+.22);
+      o.connect(g); g.connect(ana); o.start(t+d); o.stop(t+d+.25); });
+  }
+  function vurus(){
+    const t=ac.currentTime+.1, o=ac.createOscillator(), g=ac.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(92,t); o.frequency.exponentialRampToValueAtTime(34,t+1.1);
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.5,t+.02); g.gain.exponentialRampToValueAtTime(.001,t+1.3);
+    o.connect(g); g.connect(ana); o.start(t); o.stop(t+1.35);
+    [1046.5,1318.5,1568].forEach((fr,i)=>{ const p=ac.createOscillator(), pg=ac.createGain(); p.type='triangle'; p.frequency.value=fr;
+      pg.gain.setValueAtTime(0,t+.15+i*.06); pg.gain.linearRampToValueAtTime(.035,t+.25+i*.06); pg.gain.exponentialRampToValueAtTime(.001,t+1.8);
+      p.connect(pg); pg.connect(ana); p.start(t+.15+i*.06); p.stop(t+1.85); });
+  }
+  function seviye(){
+    if(!ac) return;
+    const hedef=acik ? .9*gorunurluk : 0;
+    ana.gain.cancelScheduledValues(ac.currentTime); ana.gain.setTargetAtTime(hedef,ac.currentTime,.35);
+  }
+  function ilerleme(){
+    if(!ac || !acik) return;
+    const p=parseFloat(root.style.getPropertyValue('--hero-progress'))||0;
+    // Enerji kuresi videonun %55-%80 araliginda; gerilim o bolgede acilir.
+    const e=Math.max(0,1-Math.abs(p-.68)/.16);
+    gerilim.gain.setTargetAtTime(e*.12,ac.currentTime,.12);
+    gerilimFiltre.frequency.setTargetAtTime(500+e*2600,ac.currentTime,.15);
+    filtre.frequency.setTargetAtTime(380+p*520,ac.currentTime,.3);
+    if(p>.9 && sonP<=.9 && !perdeCaldi){ ruzgar(true); perdeCaldi=true; }
+    if(p<.85) perdeCaldi=false;
+    sonP=p;
+  }
+  async function ac_(){
+    if(!ac) kur();
+    if(ac.state==='suspended') await ac.resume().catch(()=>{});
+    acik=true; yaz(true); dugme.setAttribute('aria-pressed','true'); yazi.textContent='SESİ KAPAT'; dugme.classList.add('acik');
+    seviye(); ilerleme();
+  }
+  function kapat(){
+    acik=false; yaz(false); dugme.setAttribute('aria-pressed','false'); yazi.textContent='SESİ AÇ'; dugme.classList.remove('acik');
+    seviye();
+  }
+  dugme.addEventListener('click',()=>{ acik?kapat():ac_(); });
+  root.addEventListener('btsahne',e=>{
+    if(!ac || !acik) return;
+    const i=e.detail.sahne;
+    ruzgar(false);
+    if(i>=1 && i<=3) dokunus();
+    if(i===4) vurus();
+  });
+  window.addEventListener('scroll',()=>requestAnimationFrame(ilerleme),{passive:true});
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(es=>{ gorunurluk=es[0].isIntersecting?1:0; seviye(); },{threshold:[0,.01]}).observe(root);
+  }
+  document.addEventListener('visibilitychange',()=>{ if(ac){ document.hidden?ac.suspend():(acik&&ac.resume()); } });
+  // Hatirlanan tercih: tarayici ilk etkilesimi bekler.
+  if(oku()){
+    const ilk=()=>{ ac_(); window.removeEventListener('pointerdown',ilk); window.removeEventListener('keydown',ilk); };
+    window.addEventListener('pointerdown',ilk,{once:true}); window.addEventListener('keydown',ilk,{once:true});
+    yazi.textContent='SES HAZIR';
+  }
 })();
