@@ -1,3 +1,5 @@
+import { statikGorselAiMi } from "./sosyal-otomasyon.js";
+
 const NETWORKS = new Set(["facebook","instagram","tiktok","youtube","linkedin","twitter","threads","pinterest","gmb","bluesky"]);
 
 function localDateTime(iso, timezone="Europe/Istanbul"){
@@ -56,6 +58,11 @@ async function publicMediaUrl(env, key){
    (AGENTS.md: varsayilan AI URETIMI). Ilk surum her Instagram gonderisini
    sabit "isAiGenerated:false" ile, TikTok'u da hic etiketsiz gonderiyordu. */
 async function yapayZekaMi(env, key){
+  // Haber kartlari medya kasasinda degil; turleri kapak kaynak dosyasinda.
+  // Onceden kasada kaydi olmadigi icin gercek cekim kartlari da AI
+  // beyaniyla gidecekti.
+  const statik=await statikGorselAiMi(env,key);
+  if(statik!==null) return statik;
   if(!key || !env.DB) return true;
   const r=await env.DB.prepare("SELECT ai_generated FROM media WHERE key=?").bind(String(key)).first().catch(()=>null);
   return r ? Boolean(r.ai_generated) : true;
@@ -129,7 +136,10 @@ export async function scheduleToMetricool(env,row){
   const tt=providers.find(x=>x.network==="tiktok");
   if(ig) body.instagramData={...ig.data,isAiGenerated:ai};
   if(fb) body.facebookData={...fb.data};
-  if(tt) body.tiktokData={...tt.data,isAigc:ai};
+  // TikTok fotograf gonderisinde baslik ayri alan (en fazla 90 karakter);
+  // bos kalirsa akista metnin ilk satiri kesik gorunuyor.
+  const video=/\.(mp4|mov|m4v|webm)(?:$|\?)/i.test(String(mediaUrl||""));
+  if(tt) body.tiktokData={...tt.data,isAigc:ai,...(video?{}:{title:String(row.title||"").slice(0,90)})};
   const yt=youtubeDataFor(providers,row);
   if(yt) body.youtubeData=yt;
 
@@ -195,7 +205,9 @@ export async function processMetricoolQueue(env,limit=10){
     `INSERT INTO metricool_gonderim(post_id,metricool_id,durum,hata,updated_at,attempts,retryable)
      VALUES(?,?,?,?,?,?,?)
      ON CONFLICT(post_id) DO UPDATE SET metricool_id=excluded.metricool_id,durum=excluded.durum,hata=excluded.hata,updated_at=excluded.updated_at,attempts=excluded.attempts,retryable=excluded.retryable`
-  ).bind(String(id),String(metricoolId||""),durum,String(hata||"").slice(0,2000),new Date().toISOString(),attempts,1);
+  ).bind(String(id),String(metricoolId||""),durum,String(hata||"").slice(0,2000),new Date().toISOString(),attempts,1).run();
+  // .run() eksikti: basarili teslim kaydi hic yazilmiyor, gonderi panelde
+  // "gonderiliyor"da kaliyor ve Metricool kimligi kayboluyordu.
 
   for(const row of rows){
     result.processed++;
@@ -229,6 +241,27 @@ export async function processMetricoolQueue(env,limit=10){
     }
   }
   return result;
+}
+
+/* Metricool'a Worker disindan (panel sahibi Metricool'da elle ya da bir
+   asistan araciyla) teslim edilen gonderiyi kaydeder. Kayit olmazsa anahtar
+   eklendiginde kuyruk ayni gonderiyi ikinci kez teslim ederdi. */
+export async function disTeslimKaydet(env,postId,metricoolId){
+  if(!env.DB) return false;
+  await takipTablosu(env);
+  await env.DB.prepare(
+    `INSERT INTO metricool_gonderim(post_id,metricool_id,durum,hata,updated_at,attempts,retryable)
+     VALUES(?,?,?,?,?,?,?)
+     ON CONFLICT(post_id) DO UPDATE SET metricool_id=excluded.metricool_id,durum=excluded.durum,hata='',updated_at=excluded.updated_at`
+  ).bind(String(postId),String(metricoolId).slice(0,120),"planlandi","",new Date().toISOString(),1,0).run();
+  return true;
+}
+
+/* Panel listesi icin gonderi basina teslim durumu. */
+export async function teslimDurumlari(env){
+  if(!env.DB) return {};
+  const r=await env.DB.prepare("SELECT post_id,metricool_id,durum,hata,attempts,updated_at FROM metricool_gonderim").all().catch(()=>null);
+  return Object.fromEntries(((r&&r.results)||[]).map(x=>[x.post_id,x]));
 }
 
 /* Kontrol merkezi icin: son gonderimlerin durumu. Tablo henuz yoksa bos. */
