@@ -14,7 +14,11 @@ body{
     linear-gradient(180deg,#070a12 0%,#0b0e18 45%,#07090f 100%) !important;
 }
 body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(120deg,transparent 30%,rgba(86,118,255,.035),transparent 70%);z-index:-1}
-.topbar,.menu-panel,.cinematic-sticky,.section,.story-stage,.archive-section,.ai-section,.source-section,.founder-section,.contact-section,footer{
+/* Ust menu (fixed), acilir menu paneli (fixed), hero sahnesi ve hikaye
+   sahnesi (sticky) bu listeye girmez: 24 Eylul'de dordu de burada
+   relative oldu; menu paneli sayfanin ustunde 2.500 px bos alan birakti,
+   hero sahnesi kaydirmada sabit kalmadi ve mobilde hero hic gorunmedi. */
+.section,.archive-section,.ai-section,.source-section,.founder-section,.contact-section,footer{
   position:relative;
 }
 .topbar{

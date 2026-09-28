@@ -289,6 +289,34 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   }
 }
 
+/* 10) Mobil yerlesim. Ucu de sessizce bozuldu ve gozle fark edilmedi:
+       - home.css'te diff artigi "+@media" satirlari: tarayici blogu atlar,
+         hizmet sayfalari mobilde iki sutunda kaldi (25-28 Eylul).
+       - uiux-pro-max.css menu panelini ve ust menuyu relative yapti: menu
+         paneli sayfanin ustunde 2.500 px bos alan birakti, hero gorunmedi.
+       - basliklara overflow-wrap:anywhere: "YAYINLAMIYOR / UZ." bolmesi. */
+{
+  const cssDosyalari = readdirSync('public').filter(f => f.endsWith('.css')).map(f => join('public', f));
+  for (const dosya of cssDosyalari) {
+    const css = readFileSync(dosya, 'utf8');
+    css.split('\n').forEach((satir, i) => {
+      if (/^[+-][@.#:a-z]/.test(satir)) bulgular.push(`${dosya}:${i + 1} diff artigi satir basi "${satir.slice(0, 20)}"; tarayici bu kurali atlar.`);
+    });
+    for (const [, secici, govde] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      if (!/position:\s*relative/.test(govde)) continue;
+      const parcalar = secici.split(',').map(x => x.trim());
+      for (const bilesen of ['.menu-panel', '.topbar']) {
+        if (parcalar.includes(bilesen)) bulgular.push(`${dosya}: ${bilesen} position:relative aliyor; menu paneli/ust menu fixed olmali.`);
+      }
+    }
+    for (const [, secici, govde] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      if (/overflow-wrap:\s*anywhere/.test(govde) && secici.split(',').some(x => /^(?:h[1-4]|\.cinematic-title|\.hero-title)$/.test(x.trim()))) {
+        bulgular.push(`${dosya}: "${secici.trim().slice(0, 40)}" basliklara overflow-wrap:anywhere veriyor; kelime ortasindan bolunur.`);
+      }
+    }
+  }
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
