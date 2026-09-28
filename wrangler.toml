@@ -3,6 +3,7 @@
 # Production deploy gate: .github/workflows/deploy.yml.
 # Production chain audit: 2026-09-28 — Workers Builds is the canonical live deploy path.
 # Audit trigger: 2026-09-28 production chain revalidation.
+# Live repair: re-trigger Workers Builds so declared Custom Domains are reconciled.
 # DNS administration is intentionally kept outside the application deploy path.
 name = "btmedya-db"
 main = "src/worker.js"
