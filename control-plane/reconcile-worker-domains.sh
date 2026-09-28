@@ -34,30 +34,20 @@ if [[ -z "$zone_id" ]]; then
   exit 1
 fi
 
-domains="$(cf GET "/accounts/$ACCOUNT_ID/workers/domains?zone_id=$zone_id&per_page=100")"
-if [[ "$(jq -r '.success // false' <<<"$domains")" != "true" ]]; then
-  echo "ACTION REQUIRED: Worker Custom Domain listesi okunamadı. Workers Scripts Read yetkisini kontrol edin."
-  jq -c '{success,errors,messages}' <<<"$domains" || true
-  exit 1
-fi
-
-attach_if_missing() {
+attach_if_dns_missing() {
   local hostname="$1"
-  local existing service status body out
-  existing="$(jq -c --arg h "$hostname" '.result[]? | select(.hostname==$h)' <<<"$domains" | head -n1)"
+  local a aaaa cname body out
 
-  if [[ -n "$existing" ]]; then
-    service="$(jq -r '.service // ""' <<<"$existing")"
-    status="$(jq -r '.status // ""' <<<"$existing")"
-    if [[ "$service" == "$WORKER" ]]; then
-      echo "OK: $hostname -> $WORKER (status=$status)"
-      return 0
-    fi
-    echo "ACTION REQUIRED: $hostname başka bir Worker'a bağlı (service=$service). Mevcut domain değiştirilmedi."
-    return 2
+  a="$(dig +short A "$hostname" @1.1.1.1 | sed '/^$/d' | head -n1 || true)"
+  aaaa="$(dig +short AAAA "$hostname" @1.1.1.1 | sed '/^$/d' | head -n1 || true)"
+  cname="$(dig +short CNAME "$hostname" @1.1.1.1 | sed '/^$/d' | head -n1 || true)"
+
+  if [[ -n "$a" || -n "$aaaa" || -n "$cname" ]]; then
+    echo "OK/REVIEW: $hostname public DNS kayıt döndürüyor. Var olan DNS'e dokunulmadı (A=$a AAAA=$aaaa CNAME=$cname)."
+    return 0
   fi
 
-  echo "ATTACH: $hostname -> $WORKER"
+  echo "ATTACH: $hostname -> $WORKER (public DNS kaydı yok)"
   body="$(jq -n --arg hostname "$hostname" --arg service "$WORKER" --arg zone_id "$zone_id" --arg zone_name "$ZONE_NAME"     '{hostname:$hostname,service:$service,zone_id:$zone_id,zone_name:$zone_name}')"
   out="$(cf PUT "/accounts/$ACCOUNT_ID/workers/domains" "$body")"
 
@@ -70,8 +60,10 @@ attach_if_missing() {
 }
 
 failed=0
-attach_if_missing "$ZONE_NAME" || failed=1
-attach_if_missing "www.$ZONE_NAME" || failed=1
+# Apex DNS'in önceki denetimde eksik olduğu biliniyor; yalnızca gerçekten boşsa attach edilir.
+attach_if_dns_missing "$ZONE_NAME" || failed=1
+# www zaten public olarak cevap veriyorsa ona dokunulmaz.
+attach_if_dns_missing "www.$ZONE_NAME" || failed=1
 
 if [[ "$failed" -ne 0 ]]; then
   echo "RECONCILE FAILED"
