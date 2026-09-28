@@ -664,10 +664,10 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
      Panelden bir sahneye gercek cekim atanirsa etiket asagidaki kancayla
      kendiliginden degisir; elle yazilmaz. */
   const scenes=[
-    {key:'hero',yuva:'hero-video',k:'01 / GİRİŞ',kaynak:'AI ÜRETİMİ',t:'GERÇEK<br><span>GÖRÜNTÜ.</span>',d:'Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.'},
-    {key:'haber',yuva:'kategori-haber',k:'02 / HABER · SAHA',kaynak:'AI ÜRETİMİ',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
-    {key:'medya',yuva:'kategori-medya',k:'03 / MEDYA · İÇERİK',kaynak:'AI ÜRETİMİ',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için gerçek üretim.'},
-    {key:'produksiyon',yuva:'kategori-prod',k:'04 / PRODÜKSİYON',kaynak:'AI ÜRETİMİ',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
+    {key:'hero',yuva:'hero-video',k:'01 / GİRİŞ',kaynak:'GERÇEK ÇEKİM',t:'GERÇEK<br><span>GÖRÜNTÜ.</span>',d:'Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.'},
+    {key:'haber',yuva:'kategori-haber',k:'02 / HABER · SAHA',kaynak:'GERÇEK ÇEKİM',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
+    {key:'medya',yuva:'kategori-medya',k:'03 / MEDYA · İÇERİK',kaynak:'GERÇEK ÇEKİM',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için gerçek üretim.'},
+    {key:'produksiyon',yuva:'kategori-prod',k:'04 / PRODÜKSİYON',kaynak:'GERÇEK ÇEKİM',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
     {key:'ai',k:'05 / AI LAB · AÇIK ETİKET',kaynak:'AI ÜRETİMİ',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI üretimi ayrı, açık ve şeffaf bir laboratuvar olarak konumlanıyor.'}
   ];
   /* Panel atamalari: sahnenin videosunu ve rozetini degistirir. Atama yoksa
