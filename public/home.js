@@ -1078,3 +1078,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
  bar.addEventListener('click',e=>{const b=e.target.closest('[data-nextgen-cat]');if(!b)return;bar.querySelectorAll('[data-nextgen-cat]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));render(window.__BTMEDYA_NEWS_CACHE||[],b.dataset.nextgenCat);});
  fetch('/api/news?limit=100',{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():{}).then(j=>{window.__BTMEDYA_NEWS_CACHE=(Array.isArray(j.items)?j.items:[]).filter(n=>n.status==='published'); render(window.__BTMEDYA_NEWS_CACHE,'all');}).catch(()=>{});
 })();
+
+
+/* BTMEDYA Vitrine health layer — 29 Sep 2026 */
+(()=>{const healthEl=document.querySelector('[data-vitrine-health]'),mediaEl=document.querySelector('[data-vitrine-media]'),socialEl=document.querySelector('[data-vitrine-social]');const set=(el,t)=>{if(el)el.textContent=t};Promise.all([fetch('/api/health',{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():{}).catch(()=>({})),fetch('/api/public/social-feed',{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():{}).catch(()=>({}))]).then(([h,s])=>{set(healthEl,h.ok?'CANLI':'KONTROL GEREKLİ');set(mediaEl,h.r2?'R2 / ASSETS':'ASSETS');set(socialEl,s.source==='Metricool'?'METRICOOL':'SOCIAL FEED')})})();
