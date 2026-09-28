@@ -49,5 +49,9 @@ jobs:
           test ! -e .github/workflows/media-smoke.yml
           test ! -e .github/workflows/storage-audit.yml
 
-          # Only deploy.yml may be the production deploy gate.
-          test "$(grep -RIl '^name: BTMEDYA Production Deploy$' .github/workflows | wc -l)" = "1"
+          # Production'a yalniz Cloudflare Workers Builds dagitir (673c29f).
+          # Hicbir GitHub is akisi "wrangler deploy" calistirmamali; ikinci
+          # bir dagitici canliyi main'den farkli bir surume cekebilir.
+          # (Onceki kontrol "BTMEDYA Production Deploy" adini ariyordu; o is
+          # akisi "Production Verify" olunca her PR kirmiziya dusuyordu.)
+          ! grep -RIlE --exclude=pr-validation.yml 'wrangler(@[^ ]*)? deploy' .github/workflows
