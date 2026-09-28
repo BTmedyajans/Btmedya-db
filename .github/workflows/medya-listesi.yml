@@ -23,8 +23,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: btmedya-medya-listesi
@@ -71,4 +70,3 @@ jobs:
           name: btmedya-generated-media-catalog
           path: .artifacts/medya-listesi-generated.json
           if-no-files-found: ignore
-          body: "Medya listesi otomatik olarak yeniden üretildi. Bu PR, korunan main dalına doğrudan push yerine inceleme akışı kullanır."
