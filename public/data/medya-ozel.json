@@ -14,7 +14,10 @@
   "media/portfoy/buse-tuncay-portre-siyah-beyaz.webp",
   "media/portfoy/buse-tuncay-saha-roportaj.webp",
   "media/portfoy/buse-tuncay-studyo-kelebek.webp",
-  "media/portfoy/buse-tuncay-yesil-perde-studyo.webp"
+  "media/portfoy/buse-tuncay-yesil-perde-studyo.webp",
+  "media/web/hero-story.mp4",
+  "media/web/hero-story-mobile.mp4",
+  "media/web/showreel-action.mp4"
  ],
  "_baslik": "Kasa kartlarinda gorunen baslik. Yoksa dosya adindan turetilir; turetilen baslik cogu zaman kareyi anlatmaz. Yalnizca kareye bakilarak yazilmis basliklar buraya girer.",
  "baslik": {
