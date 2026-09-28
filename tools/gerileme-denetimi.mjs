@@ -66,6 +66,17 @@ const tara = (dizin) => {
 };
 tara('public'); tara('src');
 
+/* 4b) Ic araclar sitemap'e girmez. /social-studio/ robots.txt'de kapali
+   ama sitemap onarimlarinda iki kez geri geldi (8f70606, 399429d); canli
+   denetim ancak dagitimdan sonra yakaliyordu. */
+{
+  const harita = readFileSync('public/sitemap.xml', 'utf8');
+  for (const m of harita.matchAll(/<loc>([^<]+)<\/loc>/g)) {
+    if (/\/(admin|api|social-studio)(\/|$)/.test(new URL(m[1]).pathname))
+      bulgular.push(`public/sitemap.xml ic araci listeliyor: ${m[1]} (robots.txt ile kapali adres dizine girmemeli).`);
+  }
+}
+
 /* 5) GERCEK CEKIM etiketi gercekten gercek bir kareye bakmali.
       24 Eylul 2026: anasayfanin 01/HABER sekmesi "GERCEK CEKIM · BUSE TUNCAY"
       diyordu ama gosterdigi kare yapay zeka uretimi bir yuzdu — ustelik
