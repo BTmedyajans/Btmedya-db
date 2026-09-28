@@ -92,6 +92,30 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   .news-row>.row{width:100%;margin-left:62px}
   .news-row>.row .btn{flex:1}
 }
+
+@media(max-width:760px){
+  html,body{max-width:100%;overflow-x:hidden}
+  .wrap{width:100%;max-width:100%;padding:14px}
+  .top{gap:10px}
+  .nav,nav{width:100%;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+  nav button,.ghost,.primary,.tab{min-height:44px;white-space:nowrap}
+  .grid{grid-template-columns:1fr!important}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .row{grid-template-columns:1fr!important}
+  .panel{padding:14px!important;overflow:hidden}
+  .post{flex-direction:column}
+  .actions{width:100%;display:grid;grid-template-columns:1fr;gap:8px}
+  .actions button,.actions a{width:100%;min-height:44px}
+  .msg-body .msg-detail{grid-template-columns:1fr;gap:2px}
+  input,textarea,select{width:100%;min-width:0;box-sizing:border-box}
+  table{display:block;max-width:100%;overflow-x:auto;white-space:nowrap}
+  .toast{left:14px;right:14px;bottom:14px}
+}
+@media(max-width:420px){
+  .stats{grid-template-columns:1fr!important}
+  .wrap{padding:12px}
+  h1{font-size:clamp(32px,11vw,52px)}
+}
 </style></head>
 <body>
 <header>
