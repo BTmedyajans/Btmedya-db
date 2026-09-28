@@ -15,7 +15,7 @@
 .news-category-bar a:hover,.news-category-bar a.active{
   color:#fff;border-color:#ff4038aa;background:#171017;transform:translateY(-1px)
 }
-.news-category-bar a.breaking{color:#fff;background:#ff4038;border-color:#ff4038}
+.news-category-bar a.breaking{color:#fff;background:#d42a22;border-color:#d42a22}
 .editorial-special{margin-top:58px}
 .editorial-special-grid{
   display:grid;grid-template-columns:1.55fr .8fr .8fr;gap:12px
