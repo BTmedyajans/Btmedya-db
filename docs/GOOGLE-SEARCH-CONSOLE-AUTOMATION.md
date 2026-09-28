@@ -9,7 +9,7 @@ Bu repo Google tarafındaki son bağlantıyı da otomatikleştirmek için hazır
 - Ana sayfa, haberler, hizmetler ve portföy için URL Inspection çalıştırılır.
 - Workflow her gün çalışır; ayrıca `main` değişikliklerinde ve manuel tetiklemede çalışabilir.
 
-Google, sitemap gönderimini öneriyor ve yeniden taramanın ardından indekslemenin zaman alabileceğini belirtiyor. cite?
+Google, sitemap gönderimini öneriyor; tarama ve indeksleme sonrasında sonuçların görünmesi zaman alabilir.
 
 ## Yalnızca bir kez yapılacak Google işlemi
 
