@@ -1281,6 +1281,7 @@ export default { async scheduled(controller, env, ctx){
           return new Response(renderNewsPage(n, url.origin, vlib), {
             headers:{...guvenlikBasliklari(url.pathname),
                      'content-type':'text/html; charset=utf-8',
+                     'x-robots-tag':robotsBasligi(url.pathname),
                      'cache-control':'public, max-age=300, s-maxage=600'}
           });
         }
@@ -1376,12 +1377,30 @@ function onbellek(pathname) {
 const HARITALAR = new Set(['/sitemap.xml', '/news-sitemap.xml', '/rss.xml']);
 const xmlKac = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
+/* Google News haritasi statik dosyaya eklenerek degil, her istekte D1'den
+   bastan uretilir. Statik dosya 28 Eylul'de bos ve kendiliginden kapanan
+   <urlset .../> olarak yazilmisti; "</urlset>" aranip ekleme yapildigi icin
+   harita hep bos donuyordu ve news: ad alani da tanimli degildi. Google News
+   yalniz son 48 saatte yayinlanan haberleri kabul eder; eski haber listede
+   kalirsa uyari verir, bu yuzden statik listeye guvenilmez. */
+const NEWS_NS = 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"';
+function haberHaritasiUret(satirlar, kok, simdi = Date.now()) {
+  const sinir = simdi - 2 * 86400 * 1000;
+  const ogeler = satirlar.map(r => ({ r, d: new Date(r.published_at || '') }))
+    // Ileri tarihli (zamanlanmis) haber henuz yayinda sayilmaz.
+    .filter(({ d }) => !isNaN(d) && d.getTime() >= sinir && d.getTime() <= simdi + 3600 * 1000)
+    .slice(0, 1000)
+    .map(({ r, d }) => `<url><loc>${xmlKac(`${kok}/haberler/${encodeURIComponent(r.slug)}`)}</loc><news:news><news:publication><news:name>BTMEDYA</news:name><news:language>tr</news:language></news:publication><news:publication_date>${xmlKac(/T\d{2}:\d{2}/.test(r.published_at) ? r.published_at : d.toISOString())}</news:publication_date><news:title>${xmlKac(r.title)}</news:title></news:news></url>`);
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset ${NEWS_NS}>\n${ogeler.join('\n')}${ogeler.length ? '\n' : ''}</urlset>\n`;
+}
+
 async function haritayaPanelHaberleriniEkle(yol, metin, env, origin) {
   const satirlar = (await env.DB.prepare(
     "SELECT slug,title,excerpt,published_at,updated_at FROM news WHERE status='published' AND slug<>'' ORDER BY published_at DESC LIMIT 500"
   ).all()).results || [];
   // Yerelde http gelebilir; haritadaki adres her zaman kanonik https olmali.
   const kok = 'https://' + new URL(origin).host;
+  if (yol === '/news-sitemap.xml') return haberHaritasiUret(satirlar, kok);
   const adres = s => `${kok}/haberler/${encodeURIComponent(s)}`;
   // Statik dosyada zaten olan haber ikinci kez eklenmez.
   const eksik = satirlar.filter(r => !metin.includes(`/haberler/${r.slug}<`) && !metin.includes(`/haberler/${encodeURIComponent(r.slug)}<`));
@@ -1395,14 +1414,6 @@ async function haritayaPanelHaberleriniEkle(yol, metin, env, origin) {
     }).join('\n');
     return metin.replace('</urlset>', ek + '\n</urlset>');
   }
-  if (yol === '/news-sitemap.xml') {
-    // Google News haritasi yalniz son iki gunde yayinlanan haberleri kabul eder.
-    const sinir = Date.now() - 2 * 86400 * 1000;
-    const ek = eksik.filter(r => { const d = tarih(r); return d && d.getTime() >= sinir; }).map(r =>
-      `<url><loc>${xmlKac(adres(r.slug))}</loc><news:news><news:publication><news:name>BTMEDYA</news:name><news:language>tr</news:language></news:publication><news:publication_date>${tarih(r).toISOString()}</news:publication_date><news:title>${xmlKac(r.title)}</news:title></news:news></url>`
-    ).join('\n');
-    return ek ? metin.replace('</urlset>', ek + '\n</urlset>') : metin;
-  }
   // RSS: yeni ogeler kanalin basina, statik ogelerin onune girer.
   const ek = eksik.slice(0, 50).map(r => {
     const d = tarih(r);
@@ -1412,9 +1423,33 @@ async function haritayaPanelHaberleriniEkle(yol, metin, env, origin) {
   return i >= 0 ? metin.slice(0, i) + ek + '\n' + metin.slice(i) : metin.replace('</channel>', ek + '\n</channel>');
 }
 
+/* Arama motoru yonergesi tek yerden, HTTP basligiyla verilir. Sayfalarin
+   cogunda robots meta etiketi yok; Google varsayilan olarak buyuk gorsel
+   onizlemesi gostermez ve Discover'da haber kucuk karta duser.
+   Panel ve ic araclar dizine hic girmez. */
+const DIZIN_DISI = /^\/(?:admin|social-studio|api)(?:\/|$)/;
+function robotsBasligi(pathname) {
+  return DIZIN_DISI.test(pathname) ? 'noindex, nofollow'
+    : 'max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+}
+
 async function servisEt(request, env) {
   const url = new URL(request.url);
   let res = await env.ASSETS.fetch(request);
+
+  /* Static Assets "/hizmetler" -> "/hizmetler/" ve "/index.html" -> "/"
+     duzeltmelerini 307 (gecici) ile yapar. Gecici yonlendirmede Google eski
+     adresi de ayri tutabilir; adres kalici oldugu icin 301 verilir. Yalniz
+     ayni alan adi icindeki yonlendirme cevrilir. */
+  if (res.status === 307 && (request.method === 'GET' || request.method === 'HEAD')) {
+    const hedef = res.headers.get('location');
+    if (hedef) {
+      const mutlak = new URL(hedef, url);
+      if (mutlak.host === url.host) {
+        return new Response(null, { status: 301, headers: { location: mutlak.pathname + mutlak.search, 'cache-control': 'public, max-age=3600' } });
+      }
+    }
+  }
 
   /* Bilinmeyen adres: kendi 404 sayfamızı, doğru durum koduyla ver */
   if (res.status === 404 && request.method === 'GET' &&
@@ -1431,6 +1466,7 @@ async function servisEt(request, env) {
   const contentType = h.get('content-type') || '';
   if (contentType.toLowerCase().startsWith('text/html')) {
     h.set('content-type', 'text/html; charset=utf-8');
+    if (res.status === 200) h.set('x-robots-tag', robotsBasligi(url.pathname));
   }
   if (!h.has('cache-control') || res.status === 404) h.set('cache-control', onbellek(url.pathname));
   else h.set('cache-control', onbellek(url.pathname));

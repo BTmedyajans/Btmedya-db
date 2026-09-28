@@ -75,3 +75,40 @@ curl -fsS https://btmedya.com.tr/robots.txt
 curl -fsS https://btmedya.com.tr/sitemap.xml
 curl -fsS https://btmedya.com.tr/news-sitemap.xml
 ```
+
+## Güncelleme — 28 Eylül 2026, ikinci ölçüm
+
+Yukarıdaki "Apex DNS eksik" bulgusu ikinci ölçümde **doğrulanmadı**. DNS-over-HTTPS ile iki bağımsız çözücüye doğrudan soruldu:
+
+| Sorgu | dns.google (8.8.8.8) | cloudflare-dns.com (1.1.1.1) |
+|---|---|---|
+| `btmedya.com.tr A` | `172.67.198.84`, `104.21.90.86` | aynı |
+| `btmedya.com.tr AAAA` | `2606:4700:3031::ac43:c654`, `2606:4700:3032::6815:5a56` | aynı |
+| `www.btmedya.com.tr A` | `172.67.198.84`, `104.21.90.86` | — |
+
+Apex çözülüyor ve `https://btmedya.com.tr/` 200 dönüyor; `www` → apex 301 zinciri çalışıyor. İlk ölçüm geçici bir yayılma durumuna denk gelmiş olabilir; kanıt yok, varsayımdır.
+
+Aynı ölçümde görülenler:
+
+- Apex TXT'de `google-site-verification=pwUdz11U…` kaydı var: Search Console **Domain property** DNS ile doğrulanmış görünüyor. `public/google3d14019638be46ce.html` dosyası da yayında (URL-prefix doğrulaması). Hesap içi durum bu oturumdan görülemez.
+- MX kaydı yok; DMARC `p=quarantine` ve `rua=admin@btmedya.com.tr`. MX olmadığı için DMARC raporları teslim edilemez. Email Routing kurulunca düzelir.
+
+### Bu turda yapılan düzeltmeler
+
+1. **Google News haritası hep boştu.** Statik dosya `<urlset .../>` olarak kendiliğinden kapanıyordu. Worker `</urlset>` arayıp ekleme yaptığı için panelden yayımlanan haberler hiç girmiyordu, `news:` ad alanı da tanımlı değildi. Harita artık her istekte D1'den son 48 saatin haberleriyle üretiliyor; ileri tarihli haberler dışarıda kalıyor. `tools/gerileme-denetimi.mjs` bu hatanın geri gelmesini yakalıyor.
+2. **X-Robots-Tag:** Kamuya açık HTML yanıtları `max-image-preview:large, max-snippet:-1, max-video-preview:-1` başlığını alıyor. Bu başlık Discover ve Haberler'de büyük görselli kart için gerekli; daha önce yalnız iki sayfada vardı. `/admin/`, `/social-studio/` ve `/api/` yanıtları `noindex, nofollow` alıyor.
+3. **307 → 301:** Static Assets'in `/hizmetler` → `/hizmetler/`, `/haberler` → `/haberler/` ve `/index.html` → `/` yönlendirmeleri geçici (307) idi; artık kalıcı (301).
+4. **Haber sayfaları (D1):**
+   - `datePublished` ve `dateModified` saat dilimiyle birlikte veriliyor (`2026-09-25T09:00:00+03:00`).
+   - `article:published_time`, `article:modified_time`, `article:section`, `og:site_name` ve `og:locale` eklendi.
+   - Meta açıklaması kelime sınırında ~160 karaktere kısaltılıyor.
+   - RSS `alternate` bağlantısı eklendi.
+   - JSON-LD içinde `<` kaçışlanıyor.
+5. **Yapısal veri:** JSON-LD'si olmayan 8 sayfaya (`/haberler/`, `/sosyal-medya/`, `/video-produksiyon/`, `/whatsapp-katalog/`, `/basin-kiti/`, `/vaka-calismalari/`, `/sosyal-medya-kit/`, `/kaynak-masasi/`) `WebPage`/`CollectionPage` ve `BreadcrumbList` eklendi. İçerik yalnız sayfanın kendi başlığı ve açıklamasından türetildi.
+
+### Hesap sahibinin yapması gerekenler (erişim yalnız sende)
+
+1. Search Console → Sitemaps: `sitemap.xml` ve `news-sitemap.xml` gönder. Google, 2023'ten beri "ping" ile harita bildirimini kabul etmiyor; tek yol bu ekran ya da robots.txt (robots.txt'de zaten var).
+2. Google Haberler için Publisher Center'da yayın kaydı oluştur. Başvuru zorunlu değil ama görünürlüğü artırır.
+3. Google İşletme Profili: "BTMEDYA – Balıkesir" yerel aramada harita paketinde çıkmak için tek yol bu.
+4. Bing Webmaster Tools: Search Console'dan tek tıkla içe aktarılabiliyor. IndexNow zaten kurulu.
