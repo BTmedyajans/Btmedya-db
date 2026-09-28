@@ -1,0 +1,70 @@
+/* BTMEDYA Editorial Agency System / inspired by current Turkish award-site patterns, not copied */
+:root{
+ --bt-black:#050607;--bt-ink:#f4f5f2;--bt-muted:#a5aaa6;--bt-line:rgba(255,255,255,.12);--bt-accent:#d9ff3f;--bt-max:1440px;
+}
+body{background:var(--bt-black);color:var(--bt-ink)}
+.topbar{height:76px;padding-inline:clamp(18px,4vw,56px);border-bottom:1px solid var(--bt-line);background:rgba(5,6,7,.82);backdrop-filter:blur(18px)}
+.topbar .brand img{width:154px;height:auto}
+.top-meta{font:600 10px/1 "Space Grotesk",sans-serif;letter-spacing:.16em;color:#858b88}
+.top-cta,.cinematic-actions .button,.offer-link,.button{border-radius:999px!important}
+.top-cta{min-height:44px;padding:0 20px;display:inline-flex;align-items:center;justify-content:center;background:var(--bt-accent);color:#071000!important;font-weight:800;letter-spacing:.04em}
+.menu-panel{background:#070909}
+.cinematic-copy{max-width:900px}
+.cinematic-title{font-size:clamp(64px,9.2vw,150px);letter-spacing:-.085em}
+.cinematic-lead{font-size:clamp(15px,1.4vw,20px);max-width:650px}
+.cinematic-actions{gap:10px}
+.cinematic-actions .button-dark{background:var(--bt-accent);border-color:var(--bt-accent);color:#071000}
+.cinematic-actions .button-light{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.25)}
+.vitrine-status{background:#090b0b;border-color:var(--bt-line)}
+.vitrine-dot{background:var(--bt-accent);box-shadow:0 0 0 4px rgba(217,255,63,.1)}
+.bt-world,.section,.archive-section,.founder-section,.contact-section{max-width:var(--bt-max);margin-inline:auto}
+.bt-world,.section{padding-inline:clamp(18px,4vw,56px)}
+.section{padding-block:clamp(72px,9vw,150px)}
+.section-head,.bt-world-head{border-top:1px solid var(--bt-line);padding-top:18px}
+.section-head{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);gap:48px;align-items:end;margin-bottom:44px}
+.section-head .display,.bt-world-head .display{font-size:clamp(58px,8vw,132px);line-height:.84}
+.section-side{max-width:500px;margin-left:auto}
+.section-side p{font-size:16px;color:#b6bbb7;line-height:1.7}
+.text-link{font-weight:750;text-decoration:none;border-bottom:1px solid rgba(217,255,63,.55);padding-bottom:4px}
+.news-grid{grid-template-columns:1.35fr .8fr .8fr;gap:12px}
+.news-card{background:#0a0c0d;border-color:var(--bt-line);border-radius:2px!important}
+.news-card.featured .news-body h3{font-size:clamp(28px,3.3vw,52px)}
+.news-body{padding:22px}
+.news-body small,.offer-index,.kicker{letter-spacing:.16em}
+.service-grid,.offer-grid,.nextgen-proof-grid{gap:1px;background:var(--bt-line)}
+.service-grid article,.offer-card,.nextgen-proof-grid article{background:#090b0c;border:0;border-radius:0}
+.service-grid article{min-height:230px;padding:28px;transition:transform .25s ease,background .25s ease}
+.service-grid article:hover{background:#101312;transform:translateY(-4px)}
+.service-grid h3,.offer-card h3,.nextgen-proof-grid h3{font-family:Bricolage,Space,sans-serif;letter-spacing:-.04em}
+.offer-card{padding:30px;min-height:330px}
+.offer-card-featured{background:var(--bt-accent)!important;color:#071000}
+.offer-card-featured p,.offer-card-featured .offer-meta{color:#263117}
+.offer-link{display:inline-flex;margin-top:22px;min-height:44px;padding:0 18px;align-items:center;border:1px solid currentColor;text-decoration:none}
+.portfoy-grid,.social-feed-grid,.archive-grid{gap:12px}
+.ai-section{background:#0b0d0e;max-width:none;padding-inline:clamp(18px,8vw,120px)}
+.ai-stage{max-width:var(--bt-max);margin:auto}
+.source-grid a{border-color:var(--bt-line);border-radius:0;background:#090b0c}
+.contact-section{padding:clamp(80px,10vw,150px) clamp(18px,4vw,56px);border-top:1px solid var(--bt-line);display:grid;grid-template-columns:1.2fr .8fr;gap:70px}
+.contact-section .display{font-size:clamp(70px,10vw,150px);line-height:.82}
+.contact-links a{border-bottom:1px solid var(--bt-line);padding:20px 0;display:flex;justify-content:space-between;gap:20px}
+footer{border-top:1px solid var(--bt-line);padding:28px clamp(18px,4vw,56px);max-width:none}
+@media(max-width:850px){
+ .topbar{height:64px}.top-meta{display:none}.top-cta{min-height:40px;padding-inline:14px;font-size:10px}
+ .section{padding-block:64px}.section-head,.contact-section{grid-template-columns:1fr;gap:22px}.section-head{margin-bottom:28px}
+ .section-head .display,.bt-world-head .display{font-size:clamp(54px,16vw,88px)}
+ .news-grid{grid-template-columns:1fr}.news-card.featured .news-body h3{font-size:32px}
+ .service-grid{grid-template-columns:1fr 1fr}.service-grid article{min-height:190px;padding:20px}
+ .offer-grid,.nextgen-proof-grid{grid-template-columns:1fr}
+ .offer-card{min-height:0;padding:24px}
+ .contact-section{padding-block:76px}.contact-section .display{font-size:clamp(64px,18vw,96px)}
+ .contact-links a{min-height:58px;align-items:center}
+}
+@media(max-width:520px){
+ .cinematic-title{font-size:clamp(50px,17vw,78px)}
+ .cinematic-lead{font-size:14px}
+ .cinematic-actions{flex-direction:column;align-items:stretch}.cinematic-actions .button{width:100%;min-height:48px}
+ .service-grid{grid-template-columns:1fr}
+ .service-grid article{min-height:auto}
+ .vitrine-status-inner{padding-inline:16px}
+}
+@media(prefers-reduced-motion:reduce){.service-grid article{transition:none}}
