@@ -666,3 +666,7 @@ if __name__ == "__main__":
         f.write("\n")
     print(f"  kapak-foto-kaynaklari.json: {len(atif)} temsili fotograf atfi.")
     print(f"  haber-kapak-kaynagi.json: {toplam} kayit ({gercek} gercek cekim).")
+    # Sosyal kuyruk 4:5 JPEG karti kullanir (Instagram webp kabul etmez);
+    # kapak degisince kart da ayni anda yenilensin.
+    import subprocess
+    subprocess.run([sys.executable, os.path.join(KOK, "tools", "sosyal-kart.py"), *sorted(istenen)], check=True)

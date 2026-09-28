@@ -319,6 +319,24 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   <!-- TAB: GELEN MESAJLAR -->
   <div class="tab-content" id="tab-social">
     <div class="panel">
+      <h2>Otomatik Yayın Ayarları</h2>
+      <p class="muted" id="oDurum" style="margin-top:0">Yükleniyor…</p>
+      <label>PAYLAŞILACAK AĞLAR</label>
+      <div class="row" style="gap:16px;flex-wrap:wrap;margin:6px 0 12px">
+        <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-ag="instagram" style="width:18px;height:18px;margin:0"> Instagram</label>
+        <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-ag="facebook" style="width:18px;height:18px;margin:0"> Facebook</label>
+        <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-ag="tiktok" style="width:18px;height:18px;margin:0"> TikTok</label>
+      </div>
+      <p class="muted" style="margin:-4px 0 12px;font-size:12px">Yalnız Metricool'da bağlı olan ağları seçin; bağlı olmayan bir ağ gönderinin tamamını reddettirir.</p>
+      <div class="form-2col">
+        <div><label>PAYLAŞIM SAATLERİ (İstanbul)</label><input id="oSaatler" style="width:100%" placeholder="10:00, 12:00, 18:00"></div>
+        <div><label>OTOMATİK PLANLANACAK HABER YAŞI (saat)</label><input id="oTazelik" type="number" min="1" max="720" style="width:100%"></div>
+      </div>
+      <label style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="oOtomatik" style="width:20px;height:20px;flex:none;margin:0"> Yeni haberleri onay beklemeden bir sonraki boş saate planla</label>
+      <div class="row" style="margin-top:12px"><button class="btn primary" id="oKaydet">Ayarları kaydet</button></div>
+      <p id="oMsg" class="status"></p>
+    </div>
+    <div class="panel">
       <h2>Sosyal İçerik Akışı</h2>
       <div class="form-2col">
         <div><label>BAŞLIK *</label><input id="sTitle" style="width:100%" placeholder="Örn. Balıkesir'den saha hikâyesi"></div>
@@ -1001,7 +1019,43 @@ $('#msgRefresh').onclick=loadMessages;
 
 init();
 /* ---- Sosyal İçerik ---- */
+function tarihTr(iso){try{return new Date(iso).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}catch{return iso}}
+// Gonderinin Metricool'a ulasip ulasmadigi: panelde "planlandi" yazmasi
+// tek basina paylasimin gidecegi anlamina gelmez.
+function teslimSatiri(x,anahtar){
+  const t=x.teslim;
+  if(t&&t.durum==='planlandi') return '<small style="color:#6c6">✓ Metricool\'a teslim edildi'+(t.metricool_id?' · #'+escStr(String(t.metricool_id).slice(0,14)):'')+'</small>';
+  if(t&&t.durum==='hata') return '<small style="color:#f77">✗ Teslim hatası ('+escStr(String(t.attempts||1))+'. deneme): '+escStr(String(t.hata||'').slice(0,160))+'</small>';
+  if(t&&t.durum==='gonderiliyor') return '<small class="muted">Metricool\'a gönderiliyor…</small>';
+  if(x.status==='planlandi'&&!anahtar) return '<small style="color:#fb3">Metricool anahtarı eksik: bu gönderi teslim edilemez</small>';
+  if(x.status==='planlandi') return '<small class="muted">Sıradaki kontrolde (≤5 dk) Metricool\'a teslim edilecek</small>';
+  return '';
+}
+async function loadSocialSettings(){
+  try{
+    const r=await req('/api/admin/social/settings');
+    const a=r.ayarlar;
+    document.querySelectorAll('[data-ag]').forEach(el=>el.checked=a.aglar.includes(el.dataset.ag));
+    $('#oSaatler').value=a.saatler.join(', ');
+    $('#oTazelik').value=a.tazelikSaat;
+    $('#oOtomatik').checked=a.otomatikPlanla;
+    $('#oDurum').innerHTML=r.metricool
+      ?(a.otomatikPlanla?'<span style="color:#6c6">● Otomatik yayın açık.</span> Yeni haberler '+escStr(a.saatler.join(' / '))+' saatlerinden ilk boş olana planlanır ve Metricool\'a teslim edilir.':'<span style="color:#fb3">● Otomatik planlama kapalı.</span> Yeni haberler "Onayda" bekler; "Onayla ve planla" ile tek tıkta takvime girer.')
+      :'<span style="color:#f77">● Metricool anahtarı Worker\'a eklenmemiş.</span> Taslaklar hazırlanır ama sosyal medyaya teslim edilmez. GitHub > Settings > Secrets > <b>BTMEDYA_METRICOOL_USER_TOKEN</b> ekleyin.';
+  }catch(e){$('#oDurum').textContent='Ayarlar alınamadı.';}
+}
+$('#oKaydet').onclick=async()=>{
+  const r=await req('/api/admin/social/settings',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({
+    aglar:[...document.querySelectorAll('[data-ag]:checked')].map(el=>el.dataset.ag),
+    saatler:$('#oSaatler').value.split(',').map(x=>x.trim()).filter(Boolean),
+    tazelikSaat:Number($('#oTazelik').value)||72,
+    otomatikPlanla:$('#oOtomatik').checked
+  })});
+  $('#oMsg').textContent=r.ok?'Kaydedildi.':'Kaydedilemedi: '+(r.error||'');
+  loadSocialSettings();
+};
 async function loadSocial(){
+  loadSocialSettings();
   const box=$('#socialList');
   try{
     const r=await req('/api/admin/social');
@@ -1009,11 +1063,18 @@ async function loadSocial(){
     if(!items.length){box.innerHTML='<p class="muted">Henüz sosyal içerik yok.</p>';return;}
     box.innerHTML='<div class="news-list">'+items.map(x=>{
       const plats=(x.platforms||[]).join(' · ');
-      return '<div class="news-row" style="margin-bottom:6px"><div class="news-row-info"><b>'+escStr(x.title)+'</b><small>'+escStr(x.status)+' · '+escStr(x.format)+' · '+escStr(plats||'platform seçilmedi')+'</small></div><div class="row"><select data-social-status="'+escStr(x.id)+'" class="btn sm"><option value="fikir" '+(x.status==='fikir'?'selected':'')+'>Fikir</option><option value="hazirlaniyor" '+(x.status==='hazirlaniyor'?'selected':'')+'>Hazırlanıyor</option><option value="onayda" '+(x.status==='onayda'?'selected':'')+'>Onayda</option><option value="planlandi" '+(x.status==='planlandi'?'selected':'')+'>Planlandı</option><option value="yayinlandi" '+(x.status==='yayinlandi'?'selected':'')+'>Yayınlandı</option></select><button class="btn sm danger" data-social-delete="'+escStr(x.id)+'">Sil</button></div></div>';
+      const onizleme=String(x.media_key||'').startsWith('static/')?'<img src="/assets/'+escStr(x.media_key.slice(7))+'" alt="" loading="lazy" style="width:56px;height:70px;object-fit:cover;border-radius:4px;flex:none">':'';
+      const onayBtn=x.status==='onayda'?'<button class="btn sm primary" data-social-onay="'+escStr(x.id)+'">Onayla ve planla</button>':'';
+      return '<div class="news-row" style="margin-bottom:6px;gap:12px">'+onizleme+'<div class="news-row-info"><b>'+escStr(x.title)+'</b><small>'+escStr(x.status)+' · '+escStr(x.format)+' · '+escStr(plats||'platform seçilmedi')+(x.scheduled_at?' · '+escStr(tarihTr(x.scheduled_at)):'')+'</small>'+teslimSatiri(x,r.metricool)+'</div><div class="row">'+onayBtn+'<select data-social-status="'+escStr(x.id)+'" class="btn sm"><option value="fikir" '+(x.status==='fikir'?'selected':'')+'>Fikir</option><option value="hazirlaniyor" '+(x.status==='hazirlaniyor'?'selected':'')+'>Hazırlanıyor</option><option value="onayda" '+(x.status==='onayda'?'selected':'')+'>Onayda</option><option value="planlandi" '+(x.status==='planlandi'?'selected':'')+'>Planlandı</option><option value="yayinlandi" '+(x.status==='yayinlandi'?'selected':'')+'>Yayınlandı</option></select><button class="btn sm danger" data-social-delete="'+escStr(x.id)+'">Sil</button></div></div>';
     }).join('')+'</div>';
     box.querySelectorAll('[data-social-status]').forEach(el=>el.onchange=async()=>{
       const id=el.dataset.socialStatus;
       await req('/api/admin/social/'+encodeURIComponent(id),{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({status:el.value})});
+      loadSocial();
+    });
+    box.querySelectorAll('[data-social-onay]').forEach(el=>el.onclick=async()=>{
+      el.disabled=true;
+      await req('/api/admin/social/'+encodeURIComponent(el.dataset.socialOnay),{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({status:'planlandi'})});
       loadSocial();
     });
     box.querySelectorAll('[data-social-delete]').forEach(el=>el.onclick=async()=>{

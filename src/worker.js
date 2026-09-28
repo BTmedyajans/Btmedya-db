@@ -5,7 +5,8 @@ import { socialProviderStatus } from "./social-platforms.js";
 import { recoveryPasswordValid } from "./auth-recovery.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
-import { processMetricoolQueue, metricoolDurumu } from "./metricool-scheduler.js";
+import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
+import { ayarlariOku, ayarlariYaz, platformSluglari, sonrakiYuva, altyazi, varlikVar, kapakKunyesi, yayinlananlariIsaretle, gecikenleriKaydir } from "./sosyal-otomasyon.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
  * 2) Medya Kasası (D1 tablo: media, R2) — /api/media*, /api/public/media, /api/export, /media/*, /api/login, /api/logout
@@ -629,6 +630,17 @@ async function socialApi(request, env, url, ctx){
     return json({ok:true,providers:socialProviderStatus(env)});
   }
 
+  if(url.pathname==='/api/admin/social/settings'){
+    if(request.method==='GET') return json({ok:true,ayarlar:await ayarlariOku(env),metricool:Boolean(env.METRICOOL_USER_TOKEN)});
+    if(request.method==='PUT'){
+      const b=await request.json().catch(()=>null);
+      if(!b || typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
+      try{ return json({ok:true,ayarlar:await ayarlariYaz(env,b)}); }
+      catch(e){ return json({ok:false,error:String(e?.message||e)},503); }
+    }
+    return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,PUT'});
+  }
+
   if(url.pathname==='/api/admin/social' && request.method==='GET'){
     const status=String(url.searchParams.get('status')||'').trim();
     if(status && !SOCIAL_STATUS.has(status)) return json({ok:false,error:'Geçersiz durum'},400);
@@ -637,8 +649,9 @@ async function socialApi(request, env, url, ctx){
     if(status){sql+=' WHERE status=?';args.push(status);}
     sql+=' ORDER BY CASE status WHEN "onayda" THEN 1 WHEN "planlandi" THEN 2 WHEN "hazirlaniyor" THEN 3 WHEN "fikir" THEN 4 WHEN "yayinlandi" THEN 5 ELSE 9 END, COALESCE(scheduled_at,"9999-12-31T23:59:59.999Z"), updated_at DESC LIMIT 300';
     const rows=args.length ? await env.DB.prepare(sql).bind(...args).all() : await env.DB.prepare(sql).all();
-    const items=(rows.results||[]).map(x=>({...x,platforms:JSON.parse(x.platforms||'[]')}));
-    return json({ok:true,items});
+    const teslim=await teslimDurumlari(env);
+    const items=(rows.results||[]).map(x=>({...x,platforms:JSON.parse(x.platforms||'[]'),teslim:teslim[x.id]||null}));
+    return json({ok:true,items,metricool:Boolean(env.METRICOOL_USER_TOKEN)});
   }
 
   if(url.pathname==='/api/admin/social' && request.method==='POST'){
@@ -651,7 +664,9 @@ async function socialApi(request, env, url, ctx){
     const status=SOCIAL_STATUS.has(String(b.status||'')) ? String(b.status) : 'fikir';
     const sourceSlug=String(b.source_slug||'').trim().slice(0,180);
     const mediaKey=String(b.media_key||'').trim().slice(0,1000);
-    const scheduledAt=b.scheduled_at ? String(b.scheduled_at).slice(0,64) : null;
+    let scheduledAt=b.scheduled_at ? String(b.scheduled_at).slice(0,64) : null;
+    // "Planlandı" saat girilmeden secilirse bir sonraki bos yuvaya yerlesir.
+    if(status==='planlandi' && !scheduledAt) scheduledAt=await sonrakiYuva(env,await ayarlariOku(env));
     let platforms=b.platforms;
     if(typeof platforms==='string') {
       try { platforms=JSON.parse(platforms); } catch { platforms=platforms.split(',').map(x=>x.trim()).filter(Boolean); }
@@ -669,14 +684,16 @@ async function socialApi(request, env, url, ctx){
       await env.DB.prepare('INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
         .bind(id,title,body,JSON.stringify(platforms),format,mediaKey,sourceSlug,status,scheduledAt,now,now).run();
     }
-    if(status==='planlandi' && ctx?.waitUntil){
+    const disId=String(b.metricool_id||'').trim();
+    if(disId) await disTeslimKaydet(env,id,disId);
+    if(status==='planlandi' && !disId && ctx?.waitUntil){
       ctx.waitUntil(
         processMetricoolQueue(env,10)
           .then(x=>console.log('[btmedya] immediate Metricool handoff',JSON.stringify(x)))
           .catch(e=>console.error('[btmedya] immediate Metricool handoff:',e?.message||e))
       );
     }
-    return json({ok:true,id,status});
+    return json({ok:true,id,status,scheduled_at:scheduledAt});
   }
 
   const byId=url.pathname.match(/^\/api\/admin\/social\/([^/]+)$/);
@@ -685,8 +702,17 @@ async function socialApi(request, env, url, ctx){
     const b=await request.json().catch(()=>({}));
     const status=String(b.status||'');
     if(!SOCIAL_STATUS.has(status)) return json({ok:false,error:'Geçersiz durum'},400);
-    const r=await env.DB.prepare('UPDATE social_posts SET status=?,updated_at=? WHERE id=?')
-      .bind(status,new Date().toISOString(),id).run();
+    const now=new Date().toISOString();
+    let r;
+    const mevcut=status==='planlandi' ? await env.DB.prepare('SELECT scheduled_at FROM social_posts WHERE id=?').bind(id).first() : null;
+    // Panelde tek tik onay: saati olmayan ya da saati gecmis gonderi
+    // bir sonraki bos yuvaya yerlesir.
+    if(mevcut && (!mevcut.scheduled_at || mevcut.scheduled_at<now)){
+      const yuva=await sonrakiYuva(env,await ayarlariOku(env));
+      r=await env.DB.prepare('UPDATE social_posts SET status=?,scheduled_at=?,updated_at=? WHERE id=?').bind(status,yuva,now,id).run();
+    }else{
+      r=await env.DB.prepare('UPDATE social_posts SET status=?,updated_at=? WHERE id=?').bind(status,now,id).run();
+    }
     if(status==='planlandi' && ctx?.waitUntil && (r.meta?.changes||0)>0){
       ctx.waitUntil(
         processMetricoolQueue(env,10)
@@ -1152,12 +1178,18 @@ function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
   return {aspect,uygun,uygunsuz,siteUyarisi};
 }
 
+/* Yayindaki yeni haberlerden sosyal gonderi hazirlar.
+   Gorsel: haberin 4:5 JPEG sosyal karti (Instagram webp kabul etmez);
+   kart yoksa kapak. Metin: baslik + spot + haber adresi + kunye + etiket.
+   Otomatik planlama panelden acilir ve yalniz Metricool anahtari varken
+   ve haber taze ise calisir; aksi halde gonderi "onayda" bekler. */
 async function autoPrepareSocialDrafts(env, limit=3){
-  const result={enabled:Boolean(env.DB),created:0,skipped:0,items:[]};
+  const result={enabled:Boolean(env.DB),created:0,planned:0,skipped:0,items:[]};
   if(!env.DB) return result;
   try{
+    const ayar=await ayarlariOku(env);
     const rows=(await env.DB.prepare(
-      `SELECT n.id,n.slug,n.title,n.excerpt,n.cover_url,n.published_at
+      `SELECT n.id,n.slug,n.title,n.excerpt,n.category,n.cover_url,n.published_at
          FROM news n
         WHERE n.status='published' AND n.slug<>''
         ORDER BY COALESCE(n.published_at,n.updated_at) DESC LIMIT 20`
@@ -1168,16 +1200,22 @@ async function autoPrepareSocialDrafts(env, limit=3){
       if(made>=take) break;
       const exists=await env.DB.prepare("SELECT id FROM social_posts WHERE source_slug=? LIMIT 1").bind(String(n.slug)).first().catch(()=>null);
       if(exists){ result.skipped++; continue; }
+      const kart=`/assets/sosyal-kart/${n.slug}.jpg`;
       const cover=String(n.cover_url||'');
-      const mediaKey=cover.startsWith('/assets/') ? 'static/'+cover.slice('/assets/'.length) : '';
-      const platforms=JSON.stringify(['instagram-post','facebook-post','tiktok']);
-      const body=String(n.excerpt||n.title||'').trim();
+      const mediaKey=(await varlikVar(env,kart)) ? 'static/sosyal-kart/'+n.slug+'.jpg'
+        : cover.startsWith('/assets/') ? 'static/'+cover.slice('/assets/'.length) : '';
+      const body=altyazi(n,await kapakKunyesi(env,n.slug));
+      const yas=(Date.now()-new Date(n.published_at||0).getTime())/3600000;
+      const otomatik=ayar.otomatikPlanla && Boolean(env.METRICOOL_USER_TOKEN) && ayar.aglar.length>0 && yas>=0 && yas<=ayar.tazelikSaat;
+      const yuva=otomatik ? await sonrakiYuva(env,ayar) : null;
+      const status=yuva ? 'planlandi' : 'onayda';
       const now=new Date().toISOString();
       const id=crypto.randomUUID();
       await env.DB.prepare(
         'INSERT INTO social_posts (id,title,body,platforms,format,media_key,source_slug,status,scheduled_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)'
-      ).bind(id,String(n.title||'BTMEDYA').slice(0,180),body,platforms,'4:5',mediaKey,String(n.slug),'onayda',null,now,now).run();
-      made++; result.created++; result.items.push({id,slug:n.slug,status:'onayda'});
+      ).bind(id,String(n.title||'BTMEDYA').slice(0,180),body,JSON.stringify(platformSluglari(ayar)),'4:5',mediaKey,String(n.slug),status,yuva,now,now).run();
+      made++; result.created++; if(yuva) result.planned++;
+      result.items.push({id,slug:n.slug,status,scheduled_at:yuva});
     }
   }catch(e){
     result.error=String(e?.message||e).slice(0,300);
@@ -1247,7 +1285,13 @@ export default { async scheduled(controller, env, ctx){
   const archive=hydrateR2FromManifest(env,3)
     .then(x=>{ if(x.processed) console.log('[btmedya] r2 archive',x.copied,'kopya',x.skipped,'mevcut',x.failed,'hata'); })
     .catch(e=>console.error('[btmedya] r2 archive:',e?.message||e));
-  const hepsi=Promise.all([task,metricool,archive,drafts]);
+  /* Teslim edilip saati gecenler "yayinlandi" olur; anahtar varken saati
+     kacmis teslim edilmemis gonderiler bir sonraki bos yuvaya kayar. */
+  const takip=ayarlariOku(env)
+    .then(ayar=>Promise.all([yayinlananlariIsaretle(env),gecikenleriKaydir(env,ayar)]))
+    .then(([y,k])=>{ if(y||k) console.log('[btmedya] sosyal takip',y,'yayinlandi',k,'kaydirildi'); })
+    .catch(e=>console.error('[btmedya] sosyal takip:',e?.message||e));
+  const hepsi=Promise.all([task,metricool,archive,drafts,takip]);
   if(ctx?.waitUntil) ctx.waitUntil(hepsi); else await hepsi;
 }, async fetch(request, env, ctx){
   const url = new URL(request.url);
