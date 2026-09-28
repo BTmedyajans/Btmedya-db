@@ -1397,5 +1397,65 @@
    "odak": 0.45,
    "rozet": "arsiv"
   }
+ },
+ {
+  "slug": "balikesir-tarim-ve-hayvancilik-fuari-dort-gunde-108-bin-ziyaretci",
+  "baslik": "Balıkesir Tarım ve Hayvancılık Fuarı dört günde 108 bin ziyaretçiyi ağırladı",
+  "kategori": "Tarım · Ekonomi",
+  "altbilgi": "BTMEDYA · 29 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "108.321",
+   "etiket": "ziyaretçi · 135 firma, 350 marka",
+   "yer": "Balıkesir"
+  },
+  "temsili": {
+   "dosya": "tools/temsili-kaynak/balikesir-tarim-ve-hayvancilik-fuari-dort-gunde-108-bin-ziyaretci.jpg",
+   "baslik": "Turkey (Balikesir, Dikili) Male goats",
+   "yazar": "ustung",
+   "kaynak": "Flickr",
+   "kaynak_url": "https://www.flickr.com/photos/126397594@N03/27830365698",
+   "lisans": "by",
+   "lisans_surum": "2.0",
+   "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
+   "odak": 0.5,
+   "rozet": "temsili"
+  }
+ },
+ {
+  "slug": "balikesir-buyuksehir-kutuphaneleri-tek-dijital-portalda-toplandi",
+  "baslik": "Balıkesir Büyükşehir kütüphaneleri tek dijital portalda toplandı",
+  "kategori": "Yerel · Kültür",
+  "altbilgi": "BTMEDYA · 29 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "Tek adres",
+   "etiket": "çalışma saatleri, kapasite, etkinlik takvimi, ön kayıt",
+   "yer": "Balıkesir"
+  }
+ },
+ {
+  "slug": "balikesir-buyuksehir-belediyespor-sporculari-avrupa-ve-balkanlardan-dereceyle-dondu",
+  "baslik": "Balıkesir Büyükşehir Belediyespor sporcuları Avrupa ve Balkanlar'dan dereceyle döndü",
+  "kategori": "Spor",
+  "altbilgi": "BTMEDYA · 29 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "4 derece",
+   "etiket": "boks, triatlon ve judoda Avrupa ve Balkan kürsüsü",
+   "yer": "Balıkesir"
+  }
+ },
+ {
+  "slug": "balikesir-itfaiye-araclarina-sehit-ve-gazi-itfaiyecilerin-adlari-verildi",
+  "baslik": "Balıkesir'de itfaiye araçlarına şehit ve gazi itfaiyecilerin adları verildi",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 29 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "14",
+   "etiket": "şehit ve gazi itfaiyecinin adı araçlarda",
+   "yer": "Balıkesir"
+  }
  }
 ]
