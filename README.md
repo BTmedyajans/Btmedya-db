@@ -84,4 +84,4 @@ Detaylı adımlar: `docs/CANLIYA-ALMA.md`
 
 ## Tek elden yönetim
 
-GitHub Actions üzerindeki `deploy.yml` artık tek kanonik production deploy kapısıdır. `main` push'unda Worker'ı deploy eder ve canlı release marker, health, media feed, sitemap ve gerçek/AI etiketlerini smoke-test eder. Eski yinelenen deploy/smoke akışları kaldırılmıştır.
+Cloudflare Workers Builds `main` dalından `btmedya-db` Worker'ını production'a dağıtan tek kanonik deploy motorudur. GitHub Actions içindeki `deploy.yml` yalnızca kaynak ve canlı production doğrulaması yapar; release marker, health, media feed, sitemap ve gerçek/AI etiketlerini smoke-test eder.
