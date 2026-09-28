@@ -105,8 +105,10 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       const kategoriler = [{ad:'', etiket:'TÜMÜ'}].concat(
         (veri.kategoriler || []).filter(c => isler.some(x => x.kategori === c.ad)));
       filtre.innerHTML = kategoriler.map((c, i) =>
-        '<button class="portfoy-sekme' + (i === 0 ? ' secili' : '') + '" type="button" role="tab"' +
-        ' aria-selected="' + (i === 0) + '" data-kategori="' + esc(c.ad) + '">' + esc(c.etiket) + '</button>'
+        // Sekme degil filtre: tabpanel yok, ayni izgarayi daraltiyor. Bu yuzden
+        // role="tab" yerine basili/basili degil durumu bildiren dugme.
+        '<button class="portfoy-sekme' + (i === 0 ? ' secili' : '') + '" type="button"' +
+        ' aria-pressed="' + (i === 0) + '" data-kategori=""' + esc(c.ad) + '">' + esc(c.etiket) + '</button>'
       ).join('');
       filtre.addEventListener('click', e => {
         const b = e.target.closest('.portfoy-sekme');
@@ -115,7 +117,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
         filtre.querySelectorAll('.portfoy-sekme').forEach(x => {
           const aktif = x === b;
           x.classList.toggle('secili', aktif);
-          x.setAttribute('aria-selected', String(aktif));
+          x.setAttribute('aria-pressed', String(aktif));
         });
         grid.querySelectorAll('.portfoy-kart').forEach(kart => {
           kart.hidden = !!sec && kart.dataset.kategori !== sec;
@@ -279,7 +281,9 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     const root = d.getElementById('storyCards');
     if (!root || !items.length) return;
     const [main, side] = items.slice(0, 2);
-    const card = (n, extra) => `<article class="story-card ${extra}">
+    // Yan kart %34 opakliga soldurulmus dekor katmani; ayni haber akisinda
+    // zaten listelendigi icin ekran okuyucudan ve klavye sirasindan cikarilir.
+    const card = (n, extra) => `<article class="story-card ${extra}"${extra === 'story-card-side' ? ' aria-hidden="true" inert' : ''}>
       <img src="${esc(storyMedia(n))}" alt="${esc(n.title || 'BTMEDYA haber görseli')}" loading="lazy" decoding="async">
       <div class="story-card-copy"><small>${esc(n.category || 'HABER')} · ${esc(dateText(n))}</small><h3>${esc(n.title || '')}</h3><p>${esc(String(n.excerpt || '').replace(/\s+/g, ' ').slice(0, 150))}</p><a href="/haberler/${encodeURIComponent(n.slug)}">Haberi aç ↗</a></div>
     </article>`;

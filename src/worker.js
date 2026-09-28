@@ -269,7 +269,11 @@ async function newsApi(request, env, url, ctx){
       ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA,
       r2Objects:!!r2Probe?.objects?.length,legacyR2Objects:!!legacyProbe?.objects?.length,
       r2MediaObjects:mediaCount(r2Probe),legacyR2MediaObjects:mediaCount(legacyProbe),
-      admin:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mail:!!env.RESEND_API_KEY
+      admin:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mail:!!env.RESEND_API_KEY,
+      // Dagitim bekcisi (.github/workflows/dagitim-bekcisi.yml) bu zamani
+      // commit zamaniyla karsilastirir: derleme sessizce duserse canli
+      // surum eski kalir ve bu alan ilerlemez.
+      surum:surumBilgisi(env)
     });
   }
 
@@ -525,7 +529,7 @@ async function controlCenterApi(request, env, url){
        yayinlandi. Tek anahtar Instagram, Facebook, TikTok ve YouTube'u
        birlikte kapsar; asagidaki dogrudan API anahtarlari alternatiftir. */
     metricool,
-    site:{url:'https://btmedya.com.tr/',worker:'btmedya-db'},
+    site:{url:'https://btmedya.com.tr/',worker:'btmedya-db',surum:surumBilgisi(env)},
     storage:{d1:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA},
     admin:{configured:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
     automation,
@@ -553,6 +557,14 @@ async function controlCenterApi(request, env, url){
       metricool.hatali?`Metricool: ${metricool.hatali} gönderi teslim edilemedi — ${metricool.sonHata||'ayrıntı için Sosyal İçerik'}`:null
     ].filter(Boolean)
   });
+}
+
+/* Canlidaki Worker surumu. Workers Builds basarisiz olursa eski surum
+   calismaya devam eder ve site "calisiyor" gorunur; tek iz bu zamanin
+   son commit'in gerisinde kalmasidir. Baglama wrangler.toml'da
+   [version_metadata] SURUM. */
+function surumBilgisi(env){
+  return {id:env.SURUM?.id||null,yuklendi:env.SURUM?.timestamp||null};
 }
 
 /* ---------- İletişim Formu API ---------- */

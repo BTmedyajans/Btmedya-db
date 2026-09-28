@@ -1,0 +1,98 @@
+name: BTMEDYA dagitim bekcisi
+
+# NEDEN
+# Production'a yalniz Cloudflare Workers Builds dagitir. Derleme duserse
+# (28 Eylul: src/worker.js'te kirik regex, 5 saat) eski surum calismaya
+# devam eder, site 200 doner ve hicbir smoke test kirmiziya donmez.
+# Bu is akisi main'e her push'tan sonra canli Worker'in yuklenme
+# zamanini (/api/health -> surum.yuklendi) commit zamaniyla karsilastirir.
+# Sure dolunca canli surum hala eskiyse bir issue acar; GitHub, depo
+# sahibine e-posta ve mobil bildirim gonderir. Sonraki basarili dagitim
+# acik issue'yu kendisi kapatir.
+#
+# Cloudflare token'i gerektirmez: yalniz herkese acik /api/health okunur.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: btmedya-dagitim-bekcisi
+  cancel-in-progress: true
+
+jobs:
+  bekci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Canli surum commit'e yetisti mi
+        id: bekle
+        shell: bash
+        env:
+          COMMIT_ZAMANI: ${{ github.event.head_commit.timestamp }}
+        run: |
+          set -uo pipefail
+          # Elle calistirmada head_commit yok; o zaman simdiki zamandan
+          # 20 dk oncesi esas alinir (son dagitim en az o kadar yeni olmali).
+          if [ -z "${COMMIT_ZAMANI:-}" ]; then COMMIT_ZAMANI="$(date -u -d '-20 min' +%FT%TZ)"; fi
+          hedef=$(date -u -d "$COMMIT_ZAMANI" +%s)
+          echo "commit zamani: $COMMIT_ZAMANI"
+          son=""
+          # Workers Builds genelde 1-2 dk surer; kuyruk icin 15 dk pay.
+          for i in $(seq 1 30); do
+            son=$(curl -fsS --max-time 20 -H 'Cache-Control: no-cache' \
+              "https://btmedya.com.tr/api/health?bekci=$GITHUB_RUN_ID-$i" \
+              | python3 -c 'import json,sys; print((json.load(sys.stdin).get("surum") or {}).get("yuklendi") or "")' 2>/dev/null || true)
+            if [ -n "$son" ] && [ "$(date -u -d "$son" +%s)" -ge "$hedef" ]; then
+              echo "canli surum yuklendi: $son"
+              echo "durum=tamam" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "canli surum: ${son:-bilinmiyor}"
+          echo "son=${son:-bilinmiyor}" >> "$GITHUB_OUTPUT"
+          echo "durum=geride" >> "$GITHUB_OUTPUT"
+
+      - name: Issue ac veya kapat
+        if: always() && steps.bekle.outputs.durum != ''
+        uses: actions/github-script@v7
+        env:
+          DURUM: ${{ steps.bekle.outputs.durum }}
+          SON: ${{ steps.bekle.outputs.son }}
+        with:
+          script: |
+            const baslik = 'Canlı dağıtım main’in gerisinde';
+            const { owner, repo } = context.repo;
+            const acik = (await github.rest.issues.listForRepo({ owner, repo, state: 'open', per_page: 100 }))
+              .data.filter(i => !i.pull_request && i.title === baslik);
+            const sha = context.sha.slice(0, 7);
+            if (process.env.DURUM === 'tamam') {
+              for (const i of acik) {
+                await github.rest.issues.createComment({ owner, repo, issue_number: i.number,
+                  body: `${sha} canlıya indi; dağıtım yeniden güncel. Kapatılıyor.` });
+                await github.rest.issues.update({ owner, repo, issue_number: i.number, state: 'closed', state_reason: 'completed' });
+              }
+              return;
+            }
+            const govde = [
+              `\`${sha}\` main'e girdi ama 15 dakika sonra canlı Worker hâlâ eski sürümde (son yükleme: ${process.env.SON}).`,
+              '',
+              'Büyük olasılıkla Cloudflare Workers Builds derlemesi başarısız oldu. Site eski sürümle çalışmaya devam ediyor; yeni kod, kapak ve panel değişiklikleri yayında değil.',
+              '',
+              'Bakılacak yer: Cloudflare > Workers & Pages > btmedya-db > Builds > son derlemenin günlüğü.',
+              'Yerelde aynı hatayı görmek için: `node --check src/worker.js`.',
+              '',
+              `Çalışma: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
+            ].join('\n');
+            if (acik.length) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: acik[0].number, body: govde });
+            } else {
+              await github.rest.issues.create({ owner, repo, title: baslik, body: govde });
+            }
+            core.setFailed('Canlı dağıtım main’in gerisinde.');
