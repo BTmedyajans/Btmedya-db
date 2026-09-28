@@ -34,6 +34,7 @@ const ICERIK_KLASORLERI = ['media', 'haber-kapak', 'sosyal'];
 const KOK_ICERIK = /^hero-/i;
 const POSTER = /^poster-/i;
 const KART_VARYANTI = /-foto\.webp$/i;
+const HERO_POSTER = /^hero-story-poster\.(?:jpg|jpeg|webp|png)$/i;
 
 function* dosyalar(dizin) {
   for (const girdi of readdirSync(dizin, { withFileTypes: true })) {
@@ -46,7 +47,9 @@ function* dosyalar(dizin) {
 /** Dosya medya kasasina girmeli mi? */
 export function kasayaGirer(gorecelYol) {
   if (!MEDYA_UZANTISI.test(gorecelYol)) return false;
-  if (POSTER.test(gorecelYol.split('/').pop())) return false;
+  const dosyaAdi = gorecelYol.split('/').pop();
+  if (POSTER.test(dosyaAdi)) return false;
+  if (HERO_POSTER.test(dosyaAdi)) return false;
   if (KART_VARYANTI.test(gorecelYol)) return false;
   const parca = gorecelYol.split('/');
   if (parca.length > 1) return ICERIK_KLASORLERI.includes(parca[0]);
