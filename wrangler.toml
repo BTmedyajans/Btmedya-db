@@ -95,5 +95,10 @@ new_sqlite_classes = ["WorkflowStatusDO"]
 
 
 # Haber Bulucu: kaynakları periyodik olarak tarar, sonuçları D1'de taslak olarak tutar.
+# Canli surumun kimligi ve yuklenme zamani; /api/health ve panel
+# Control Center bunu gosterir, dagitim bekcisi bununla kaymayi yakalar.
+[version_metadata]
+binding = "SURUM"
+
 [triggers]
 crons = ["*/5 * * * *"]

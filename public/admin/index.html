@@ -535,11 +535,19 @@ $('#autoLoadNews').onclick=loadAutomationNews;
 $('#autoCreate').onclick=createAutomationPosts;
 
 /* ---- Tabs ---- */
+// Kod degisikligi main'e girip burada saat ilerlemiyorsa Cloudflare
+// derlemesi dusmustur; site eski surumle calismaya devam eder.
+function surumSatiri(v){
+  if(!v||!v.yuklendi) return '';
+  const t=new Date(v.yuklendi), dk=Math.round((Date.now()-t)/60000);
+  const once=dk<60?dk+' dk önce':dk<2880?Math.round(dk/60)+' saat önce':Math.round(dk/1440)+' gün önce';
+  return '<br><b>Canlı sürüm:</b> '+escStr(t.toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}))+' ('+once+') · '+escStr(String(v.id||'').slice(0,8));
+}
 async function loadControlCenter(){
   const box=$('#controlSummary'), integrations=$('#controlIntegrations'), next=$('#controlNext');
   try{
     const d=await req('/api/admin/control-center');
-    box.innerHTML='<b>Site:</b> '+escStr(d.site.url)+' · <b>Worker:</b> '+escStr(d.site.worker)+'<br><b>D1:</b> '+(d.storage.d1?'✓':'✗')+' · <b>R2:</b> '+(d.storage.r2?'✓':'✗')+' · <b>Admin secrets:</b> '+(d.admin.configured?'✓':'Eksik')+' · <b>Media signing:</b> '+(d.admin.mediaSigning?'✓':'Eksik')+' · <b>Metricool:</b> '+(d.metricool?.yapilandirildi?'✓ Bağlı':'Kurulum bekliyor');
+    box.innerHTML='<b>Site:</b> '+escStr(d.site.url)+' · <b>Worker:</b> '+escStr(d.site.worker)+'<br><b>D1:</b> '+(d.storage.d1?'✓':'✗')+' · <b>R2:</b> '+(d.storage.r2?'✓':'✗')+' · <b>Admin secrets:</b> '+(d.admin.configured?'✓':'Eksik')+' · <b>Media signing:</b> '+(d.admin.mediaSigning?'✓':'Eksik')+' · <b>Metricool:</b> '+(d.metricool?.yapilandirildi?'✓ Bağlı':'Kurulum bekliyor')+surumSatiri(d.site.surum);
     const badge=$('#metricoolBadge');
     if(badge){badge.textContent=d.metricool?.yapilandirildi?'BAĞLI':'KURULUM BEKLİYOR';badge.className=d.metricool?.yapilandirildi?'pill pub':'pill'}
     const labels={izap:'iZap / WhatsApp',cmsOpenData:'CMS Open Data',github:'GitHub → Cloudflare'};
