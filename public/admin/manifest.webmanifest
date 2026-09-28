@@ -1,0 +1,13 @@
+{
+  "name": "BTMEDYA Yönetim",
+  "short_name": "BTMEDYA Admin",
+  "start_url": "/admin/",
+  "scope": "/admin/",
+  "display": "standalone",
+  "background_color": "#090909",
+  "theme_color": "#090909",
+  "description": "BTMEDYA içerik, medya, haber ve sosyal yayın yönetim paneli.",
+  "lang": "tr",
+  "dir": "ltr",
+  "icons": []
+}
