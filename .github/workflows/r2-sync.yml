@@ -42,7 +42,9 @@ jobs:
         run: npm install --global wrangler@4.142.0
 
       - name: Sync static media
+        id: sync
         if: steps.preflight.outputs.configured == 'true'
+        continue-on-error: true
         shell: bash
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -61,3 +63,23 @@ jobs:
               echo "SKIP $key"
             fi
           done < <(node -e 'for (const x of require("./public/data/medya-listesi.json")) console.log(x.path)')
+
+      - name: Report R2 sync status
+        if: always() && steps.preflight.outputs.configured == 'true'
+        shell: bash
+        run: |
+          if [ "$SYNC_OUTCOME" = "success" ]; then
+            echo "R2 sync completed."
+          else
+            echo "::warning::R2 archive sync was not completed. Production static assets remain canonical via Cloudflare Workers Assets. Check the Cloudflare API token for R2 object write permission (403 means the token is authenticated but lacks the required R2 write scope)."
+            {
+              echo "## R2 archive sync"
+              echo ""
+              echo "⚠️ R2 sync was not completed."
+              echo ""
+              echo "The production site remains deployable because public static assets are served through Workers Assets."
+              echo "A Cloudflare API token with R2 object write permission is still required for automatic R2 archival."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+        env:
+          SYNC_OUTCOME: ${{ steps.sync.outcome }}
