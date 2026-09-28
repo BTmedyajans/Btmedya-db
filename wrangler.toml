@@ -52,6 +52,8 @@ database_id = "94a980cd-62c5-4c29-b7fc-40f96ab665e4"
 
 [vars]
 MEDIA_PUBLIC_TTL = "86400"
+# BTMEDYA admin login user. This is a non-secret identifier; the password remains a Worker Secret.
+ADMIN_USERNAME = "busetuncay74@gmail.com"
 
 # Secret değerleri GitHub'a veya bu dosyaya yazılmaz.
 # Cloudflare Worker > Settings > Variables and Secrets altında Secret olarak eklenir.
