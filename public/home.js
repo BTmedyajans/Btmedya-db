@@ -199,20 +199,10 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
      "Ekonomi · Emlak", "Gündem · Yangın" gibi alt basliklar serbest
      yaziliyor ve veriden turetilen dugmeler ayni konuyu uc dugmeye
      boluyordu. Her ana baslik kendi alt basliklarini da yakalar. */
-  const ANA_KATEGORILER = [
-    ['yerel', 'BALIKESİR', /(yerel|pazar|alisveris|altyapi|balikesir)/],
-    ['gundem', 'GÜNDEM', /(gundem|asayis|yangin|afet)/],
-    ['yapay-zeka', 'YAPAY ZEKÂ', /(yapay zeka|^ai\b)/],
-    ['ekonomi', 'EKONOMİ', /(ekonomi|emlak|tarim|esnaf)/],
-    ['kultur', 'KÜLTÜR', /(kultur|zanaat|moda|sanat|gastronomi|dugun|insan)/],
-    ['saglik', 'SAĞLIK', /(saglik|bakim|beslenme|estetik)/],
-    ['spor', 'SPOR', /(spor|muay)/]
-  ];
-  const catMatch = (cat, wanted) => {
-    if (wanted === 'all') return true;
-    const ana = ANA_KATEGORILER.find(k => k[0] === wanted);
-    return ana ? ana[2].test(norm(cat)) : true;
-  };
+  // Tek siniflandirma kurali: BTMEDYA_RELEVANCE (dosyanin sonunda tanimli,
+  // sayfa yuklenirken esit zamanli calisir; haberler geldiginde hazirdir).
+  const sinif = n => (window.BTMEDYA_RELEVANCE ? window.BTMEDYA_RELEVANCE.category(n) : 'diger');
+  const catMatch = (n, wanted) => wanted === 'all' || sinif(n) === wanted;
 
   const staticReference = {
     'balikesir-in-en-kalabalik-pazari':'https://gazetemerhaba.com/balikesirin-en-kalabalik-pazari',
@@ -345,7 +335,8 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
         allNews = [];
       }
     }
-    const categories = ANA_KATEGORILER.filter(k => allNews.some(n => k[2].test(norm(n.category))));
+    const categories = (window.BTMEDYA_RELEVANCE ? window.BTMEDYA_RELEVANCE.categories : [])
+      .filter(k => allNews.some(n => sinif(n) === k.key)).map(k => [k.key, k.label]);
     if (filterBar) {
       filterBar.innerHTML = [['all', 'TÜMÜ'], ...categories].map(([cat, label], i) =>
         '<button class="filter' + (i === 0 ? ' active' : '') + '" type="button" role="tab" aria-selected="' + (i === 0 ? 'true' : 'false') + '" data-cat="' + esc(cat) + '">' + esc(label) + '</button>'
@@ -364,7 +355,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       b.setAttribute('aria-selected', active ? 'true' : 'false');
       b.setAttribute('tabindex', active ? '0' : '-1');
     });
-    render(allNews.filter(n => catMatch(n.category, btn.dataset.cat)));
+    render(allNews.filter(n => catMatch(n, btn.dataset.cat)));
   });
   loadNews();
 
@@ -1081,11 +1072,10 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
  const cat=n=>{const k=String(n&&n.category||'');return bul(norm(k.split('·')[0]))||bul(norm(k))||bul(norm([n&&n.title,n&&n.excerpt].join(' ')))||'diger'};
  const quality=n=>Number(!!n&&n.source_url)*2+Number(!!n&&n.cover_url)*2+Number(!!n&&n.author)+Number(String(n&&n.body||'').length>=500)+Number(String(n&&n.published_at||'').slice(0,4)===String(new Date().getFullYear()))*2+Number(n&&n.ai_generated===true);
  window.BTMEDYA_RELEVANCE={categories:CATS.map(x=>({key:x[0],label:x[1]})),category:cat,quality};
- const grid=d.getElementById('newsGrid'),bar=d.getElementById('newsFilter'); if(!grid||!bar||bar.dataset.nextgenBound)return; bar.dataset.nextgenBound='1';
- const render=(items,key)=>{const a=items.filter(n=>key==='all'||cat(n)===key).sort((x,y)=>quality(y)-quality(x)).slice(0,3);if(!a.length){grid.innerHTML='<div class="portfoy-bos">Bu editoryal hatta şu anda yayınlanmış içerik bulunmuyor.</div>';return;}grid.innerHTML=a.map((n,i)=>{const cover=(n.cover_url||(n.slug?'/assets/haber-kapak/'+encodeURIComponent(n.slug)+'.webp':''))||'';const foto=cover.replace(/\.webp$/,'-foto.webp');const badge=n.ai_generated===true?'AI ÜRETİMİ':'GERÇEK / EDİTORYAL';return '<a class="news-card'+(i===0?' featured':'')+'" href="/haberler/'+encodeURIComponent(n.slug||'')+'"><div class="news-media"><img src="'+foto.replace(/&/g,'&amp;')+'" alt="'+String(n.title||'BTMEDYA haber').replace(/"/g,'&quot;')+'" loading="lazy" decoding="async" width="1200" height="675"><span class="nextgen-media-badge">'+badge+'</span></div><div class="news-body"><small>'+String(n.category||'HABER')+'</small><h3>'+String(n.title||'')+'</h3><p>'+String(n.excerpt||'')+'</p><div class="nextgen-proof">'+(n.source_url?'KAYNAKLI':'BTMEDYA ARŞİVİ')+' · '+(n.author||'BTMEDYA Haber Merkezi')+'</div></div></a>';}).join('');};
- const controls=[['all','TÜMÜ'],...CATS.map(x=>[x[0],x[1]])];bar.innerHTML=controls.map((x,i)=>'<button type="button" role="tab" aria-selected="'+(i===0)+'" data-nextgen-cat="'+x[0]+'">'+x[1]+'</button>').join('');
- bar.addEventListener('click',e=>{const b=e.target.closest('[data-nextgen-cat]');if(!b)return;bar.querySelectorAll('[data-nextgen-cat]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));render(window.__BTMEDYA_NEWS_CACHE||[],b.dataset.nextgenCat);});
- fetch('/api/news?limit=100',{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():{}).then(j=>{window.__BTMEDYA_NEWS_CACHE=(Array.isArray(j.items)?j.items:[]).filter(n=>n.status==='published'); render(window.__BTMEDYA_NEWS_CACHE,'all');}).catch(()=>{});
+ // Sekmeleri ve izgarayi yalniz haber filtresi (yukarida, loadNews) cizer.
+ // Burada ikinci bir cizici vardi: iki kod ayni /api/news'i cekip ayni
+ // izgaraya yaziyordu; sayfa hangi istek once donerse ona gore 9 ya da 3
+ // kartla aciliyordu.
 })();
 
 
