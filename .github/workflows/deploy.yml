@@ -46,6 +46,7 @@ jobs:
           node --check src/worker.js
           node --check src/metricool-scheduler.js
           node --check public/home.js
+          node --check public/mobile-motion.js
           # 27 Sep 2026'da yaşanan home.js truncation regresyonunu tekrar
           # üretime taşımamak için yalnızca sözdizimini değil, runtime'ın
           # beklenen minimum bütünlüğünü de kapıdan kontrol ediyoruz.
@@ -58,6 +59,10 @@ jobs:
           node tools/a11y-denetimi.mjs
           node tools/link-denetimi.mjs
           grep -q 'mobile-fixes.css' public/index.html
+          grep -q 'mobile-motion.css' public/index.html
+          grep -q 'mobile-motion.js' public/index.html
+          test -s public/mobile-motion.css
+          test -s public/mobile-motion.js
           grep -q 'prefers-reduced-motion' public/mobile-fixes.css
           grep -q 'Control Center' public/admin/index.html
           grep -q '/api/admin/control-center' public/admin/index.html
