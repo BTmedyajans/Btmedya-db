@@ -92,6 +92,16 @@ echo "=== PAGE RULES ==="
 jq -r '.result[]? | [(.id // ""), ((.targets[0].constraint.request_uri.value // "") | tostring), (.status // "")] | @tsv' <<<"$page_rules" || true
 
 echo ""
+echo "=== WORKER ROUTES ==="
+routes=$(cf GET "/zones/$zone_id/workers/routes")
+if [[ "$(jq -r '.success // false' <<<"$routes")" == "true" ]]; then
+  jq -r '.result[]? | [.id,.pattern,(.script // "")] | @tsv' <<<"$routes" | sed 's/\t/ | /g' || true
+else
+  echo "WARNING: Worker routes okunamadı."
+  jq -c '{errors,messages}' <<<"$routes" || true
+fi
+
+echo ""
 echo "=== WORKER CUSTOM DOMAINS ==="
 worker_domains=$(cf GET "/accounts/$ACCOUNT_ID/workers/domains")
 if [[ "$(jq -r '.success // false' <<<"$worker_domains")" == "true" ]]; then
