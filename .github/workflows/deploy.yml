@@ -69,6 +69,9 @@ jobs:
           grep -q 'Sitemap: https://btmedya.com.tr/news-sitemap.xml' public/robots.txt
           test -s public/.well-known/security.txt
           test -s public/site.webmanifest
+          test -s public/admin/manifest.webmanifest
+          test -s public/admin/sw.js
+          test -s public/admin/mobile-admin.css
           test ! -e .github/workflows/media-smoke.yml
           test ! -e .github/workflows/storage-audit.yml
 
@@ -126,6 +129,9 @@ jobs:
           check_http "kaynak-masasi" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/kaynak-masasi/" "200"
           check_http "robots" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/robots.txt" "200"
           check_http "sitemap" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/sitemap.xml" "200"
+          check_http "news-sitemap" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/news-sitemap.xml" "200"
+          check_http "rss" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/rss.xml" "200"
+          check_http "security" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/.well-known/security.txt" "200"
 
           health="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/api/health)"
           echo "SMOKE health: $health"
