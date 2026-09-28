@@ -152,18 +152,18 @@ async function seoMetaDenetimi(adresler) {
   }));
   for (const x of sonuc) {
     const yol = new URL(x.a).pathname;
-    if (x.status !== 200) { hatalar.push(\`SEO sayfası \${x.status} dönüyor: \${yol}\`); continue; }
-    if (!x.title) hatalar.push(\`title yok: \${yol}\`);
-    if (!x.description) hatalar.push(\`meta description yok: \${yol}\`);
-    if (!x.canonical) hatalar.push(\`canonical yok/yanlış: \${yol}\`);
-    if (!x.og) hatalar.push(\`og:image yok/HTTPS değil: \${yol}\`);
-    if (!x.tw) uyarilar.push(\`twitter:card yok: \${yol}\`);
+    if (x.status !== 200) { hatalar.push(`SEO sayfası ${x.status} dönüyor: ${yol}`); continue; }
+    if (!x.title) hatalar.push(`title yok: ${yol}`);
+    if (!x.description) hatalar.push(`meta description yok: ${yol}`);
+    if (!x.canonical) hatalar.push(`canonical yok/yanlış: ${yol}`);
+    if (!x.og) hatalar.push(`og:image yok/HTTPS değil: ${yol}`);
+    if (!x.tw) uyarilar.push(`twitter:card yok: ${yol}`);
     if (x.a.includes('/haberler/')) {
-      if (!x.article) hatalar.push(\`NewsArticle structured data yok: \${yol}\`);
-      if (!x.twTitle || !x.twImage) uyarilar.push(\`haber sosyal meta eksik: \${yol}\`);
+      if (!x.article) hatalar.push(`NewsArticle structured data yok: ${yol}`);
+      if (!x.twTitle || !x.twImage) uyarilar.push(`haber sosyal meta eksik: ${yol}`);
     }
   }
-  notlar.push(\`SEO: \${sonuc.length} sayfa temel meta + paylaşım etiketi açısından denetlendi\`);
+  notlar.push(`SEO: ${sonuc.length} sayfa temel meta + paylaşım etiketi açısından denetlendi`);
 }
 
 /* ---------- 3. Haber kapaklari: her haberin kapagi depoda ve canlida olmali ---------- */
