@@ -33,7 +33,7 @@ jobs:
             echo "Cloudflare credentials are configured; R2 sync will run."
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "WARNING: Cloudflare credentials are not configured; R2 sync is skipped."
+            echo "WARNING: Cloudflare credentials are not configured; R2 sync is skipped. When configured, Wrangler REST object writes require `Workers R2 Storage Write`."
           fi
 
       - name: Setup Wrangler
@@ -71,14 +71,14 @@ jobs:
           if [ "$SYNC_OUTCOME" = "success" ]; then
             echo "R2 sync completed."
           else
-            echo "::warning::R2 archive sync was not completed. Production static assets remain canonical via Cloudflare Workers Assets. Check the Cloudflare API token for R2 object write permission (403 means the token is authenticated but lacks the required R2 write scope)."
+            echo "::warning::R2 archive sync was not completed. Production static assets remain canonical via Cloudflare Workers Assets. Check the Cloudflare API token for the `Workers R2 Storage Write` account permission (403 means the token is authenticated but lacks the required REST/Workers R2 write scope)."
             {
               echo "## R2 archive sync"
               echo ""
               echo "⚠️ R2 sync was not completed."
               echo ""
               echo "The production site remains deployable because public static assets are served through Workers Assets."
-              echo "A Cloudflare API token with R2 object write permission is still required for automatic R2 archival."
+              echo "A Cloudflare API token with the Cloudflare account permission `Workers R2 Storage Write` is still required for automatic R2 archival via Wrangler."
             } >> "$GITHUB_STEP_SUMMARY"
           fi
         env:
