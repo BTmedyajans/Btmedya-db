@@ -815,29 +815,39 @@ let lastPreflight=null;
 async function runNewsPreflight(){
   const b=newsFormData($('#nStatus').value);
   const checks=[];
-  const add=(label,ok,detail)=>checks.push({label,ok,detail});
-  add('Başlık',b.title.length>=35 && b.title.length<=110,b.title.length+' karakter');
-  add('Slug',/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(b.slug)&&b.slug.length>=3,b.slug||'eksik');
-  add('Kategori',b.category.length>=2,b.category||'eksik');
-  add('Yazar',b.author.length>=2,b.author||'eksik');
-  add('Özet',b.excerpt.length>=80 && b.excerpt.length<=500,b.excerpt.length+' karakter');
-  add('İçerik',b.body.length>=300,b.body.length+' karakter');
-  add('Kapak',/^https?:\/\//i.test(b.cover_url)||/^\//.test(b.cover_url),b.cover_url?'var':'eksik');
-  add('Kaynak',b.source_url?(/^https?:\/\//i.test(b.source_url)):!!b.archive_note,'Kaynak URL veya arşiv notu');
+  const add=(label,ok,detail,severity='warning')=>checks.push({label,ok,detail,severity});
+  add('Başlık',b.title.length>=8 && b.title.length<=240,b.title.length+' karakter','hard');
+  add('Başlık okunabilirliği',b.title.length>=35 && b.title.length<=110,b.title.length+' karakter, önerilen aralık','warning');
+  add('Slug',/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(b.slug)&&b.slug.length>=3,b.slug||'eksik','hard');
+  add('Kategori',b.category.length>=2,b.category||'eksik','hard');
+  add('Yazar',b.author.length>=2,b.author||'belirtilmemiş','warning');
+  add('Özet',b.excerpt.length>=80 && b.excerpt.length<=500,b.excerpt.length+' karakter','warning');
+  add('İçerik',b.body.length>=120,b.body.length+' karakter','hard');
+  add('Kapak',/^https?:\/\//i.test(b.cover_url)||/^\//.test(b.cover_url),b.cover_url?'var':'eksik','hard');
+  add('Kaynak',b.source_url?(/^https?:\/\//i.test(b.source_url)):!!b.archive_note,'Kaynak URL veya arşiv notu','warning');
   if(b.published_at){
     const t=Date.parse(b.published_at);
-    add('Yayın tarihi',Number.isFinite(t) && t<=Date.now()+5*60*1000,'geçmiş/şimdi');
-  }else add('Yayın tarihi',true,'otomatik');
+    add('Yayın tarihi',Number.isFinite(t) && t<=Date.now()+5*60*1000,'geçmiş/şimdi','hard');
+  }else add('Yayın tarihi',true,'otomatik','warning');
   let duplicate=false;
   try{
     const d=await req('/api/admin/news');
     const norm=s=>String(s||'').toLocaleLowerCase('tr-TR').replace(/[^a-z0-9çğıöşü]+/g,'').slice(0,180);
     duplicate=!!d.items?.some(n=>n.id!==editingNewsId && norm(n.title)===norm(b.title));
   }catch{}
-  add('Tekrar',!duplicate,duplicate?'Aynı başlıkta haber bulundu':'benzer kayıt görünmedi');
-  lastPreflight={checks,hardFails:checks.filter(x=>!x.ok)};
-  $('#nPreflight').innerHTML=checks.map(x=>'<div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #1d1d1d"><b style="color:'+(x.ok?'#6c6':'#f88')+'">'+(x.ok?'✓':'✗')+'</b><span><strong>'+escStr(x.label)+'</strong> <span class="muted">'+escStr(x.detail)+'</span></span></div>').join('')+
-    '<div style="margin-top:9px;color:'+(lastPreflight.hardFails.length?'#f88':'#6c6')+'">'+(lastPreflight.hardFails.length?'Yayın öncesi eksik: '+lastPreflight.hardFails.length+' alan':'Yayın öncesi kontrol temiz ✓')+'</div>';
+  add('Tekrar',!duplicate,duplicate?'Aynı başlıkta haber bulundu':'benzer kayıt görünmedi','warning');
+  const hardFails=checks.filter(x=>x.severity==='hard'&&!x.ok);
+  const warnings=checks.filter(x=>x.severity==='warning'&&!x.ok);
+  lastPreflight={checks,hardFails,warnings};
+  $('#nPreflight').innerHTML=checks.map(x=>{
+    const ok=x.ok;
+    const icon=ok?'✓':'!';
+    const color=ok?'#6c6':(x.severity==='hard'?'#f88':'#e8c06a');
+    return '<div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #1d1d1d"><b style="color:'+color+'">'+icon+'</b><span><strong>'+escStr(x.label)+'</strong> <span class="muted">'+escStr(x.detail)+'</span></span></div>';
+  }).join('')+
+    '<div style="margin-top:9px;color:'+(hardFails.length?'#f88':warnings.length?'#e8c06a':'#6c6')+'">'+
+    (hardFails.length?'Yayın engeli: '+hardFails.length+' zorunlu alan':warnings.length?'Kontrol tamamlandı: '+warnings.length+' uyarı, yayınlanabilir':'Yayın öncesi kontrol temiz ✓')+
+    '</div>';
   return lastPreflight;
 }
 $('#nPreflightBtn').onclick=runNewsPreflight;
@@ -867,8 +877,9 @@ async function saveNews(forceStatus){
     // Haber artik kendi adresinde yayinda; dogrudan acilabilsin.
     if(b.status==='published'){
       $('#nStatus2').innerHTML='Yayınlandı ✓ <a href="/haberler/'+encodeURIComponent(b.slug)+'" target="_blank" rel="noopener" style="color:#e8c06a">haberi aç ↗</a>';
+    }else{
+      $('#nStatus2').textContent='Taslak kaydedildi ✓';
     }
-    $('#nStatus2').textContent=status==='published'?'Yayınlandı ✓':'Taslak kaydedildi ✓';
     loadNewsList();
   }catch(e){$('#nStatus2').textContent='Hata: '+e.message}
 }
