@@ -134,11 +134,11 @@ jobs:
           echo "$health" | grep -q '"r2":true'
 
           media="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/api/public/media)"
-          echo "SMOKE media: $(printf '%s' "$media" | head -c 500)"
+          echo "SMOKE media: ${media:0:500}"
           echo "$media" | grep -q '"items"'
 
           social="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/api/public/social-feed)"
-          echo "SMOKE social: $(printf '%s' "$social" | head -c 500)"
+          echo "SMOKE social: ${social:0:500}"
           echo "$social" | grep -q '"items"'
 
           admin_api="$(curl --resolve "btmedya.com.tr:443:$HOME_IP" -sS -o /dev/null -w "%{http_code}" --max-time 30 https://btmedya.com.tr/api/admin/control-center)"
