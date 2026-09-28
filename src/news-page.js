@@ -99,7 +99,7 @@ export function renderNewsPage(n, origin, vlib){
     ...(tarihIso?{datePublished:tarihIso,dateModified:guncelIso}:{}),
     author:(n.author&&/buse\s+tuncay/i.test(n.author))?{"@type":"Person",name:n.author,url:`${origin}/portfoy/buse-tuncay/`}:{"@type":"Organization",name:n.author||'BTMEDYA',url:origin},
     publisher:{"@type":"Organization",name:"BTMEDYA",
-      logo:{"@type":"ImageObject",url:`${origin}/assets/btmedya-emblem-derived.png`}},
+      logo:{"@type":"ImageObject",url:`${origin}/assets/logo/bt-amblem-256.png`}},
     ...(n.category?{articleSection:n.category}:{}),
     ...(ogImg?{image:ogImg}:{}),
     mainEntityOfPage:{"@type":"WebPage","@id":url},
@@ -186,9 +186,7 @@ ${ldYaz(videoLd)}
 <a class="skip-link" href="#main">İçeriğe geç</a>
 <div class="noise" aria-hidden="true"></div>
 <header class="topbar">
-  <a class="brand" href="/" aria-label="BTMEDYA ana sayfa">
-    <img src="/assets/btmedya-emblem-derived.png" alt="BTMEDYA" class="brand-emblem">
-    <span class="brand-mark">BT</span><span class="brand-word">MEDYA</span>
+  <a class="brand" href="/" aria-label="BTMEDYA ana sayfa"><img class="brand-logo" src="/assets/logo/btmedya-logo-baslik.webp" alt="" width="154" height="37" decoding="async">
   </a>
   <button class="menu-toggle" type="button" aria-label="Menüyü aç" aria-expanded="false" aria-controls="anaMenu">☰</button>
   <a class="quote" href="/haberler/">HABER ARŞİVİ ↗</a>
@@ -236,8 +234,8 @@ ${(n.archive_note||n.source_url)?`<div class="article-note">${esc(n.archive_note
 </main>
 <footer class="final-footer">
   <div class="footer-brand">
-    <img src="/assets/btmedya-emblem-derived.png" alt="">
-    <div><strong>BTMEDYA</strong><span>Balıkesir · Haber, prodüksiyon, yapay zekâ</span></div>
+    <img class="footer-logo" src="/assets/logo/btmedya-logo-imza.webp" alt="BTMEDYA — Hikâyeleri yaşatıyoruz" width="231" height="55" loading="lazy" decoding="async">
+    <div><span>Balıkesir · Haber, prodüksiyon, yapay zekâ</span></div>
   </div>
   <div class="footer-contact"><a href="/iletisim/">İletişim</a><a href="/hakkimizda/">Hakkımızda</a></div>
   <div class="footer-legal">© ${new Date().getUTCFullYear()} BTMEDYA</div>

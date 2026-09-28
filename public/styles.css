@@ -1135,3 +1135,9 @@ button,a{touch-action:manipulation}
 }
 /* Dokunma hedefi: 10px yazili geri baglantisi mobilde 14px yuksekligindeydi (WCAG 2.5.8 alt siniri 24px). Yazi boyutu korunur, tiklanabilir alan buyur. */
 .article-back{display:inline-flex;align-items:center;min-height:32px}
+
+/* ===== KURUMSAL LOGO / 28 EYLUL 2026 ===== */
+.brand .brand-logo{display:block;width:auto;height:36px;max-width:none;object-fit:contain}
+@media (max-width:760px){.brand .brand-logo{height:30px;max-width:58vw}}
+.footer-brand img.footer-logo{width:auto;height:52px;max-width:100%}
+.footer-brand:has(.footer-logo){flex-direction:column;align-items:flex-start;gap:6px}
