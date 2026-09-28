@@ -114,6 +114,13 @@ jobs:
           }
 
           check_http "home" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/" "200"
+          # #25'te düzeltilen menünün canlı deployda da erişilebilir olduğunu
+          # iç sayfalar üzerinden kontrol et. Bu yolların 200 dönmesi, Worker
+          # + Static Assets + custom domain zincirinin canlıda birlikte
+          # çalıştığını doğrular.
+          check_http "hakkimizda" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/hakkimizda/" "200"
+          check_http "iletisim" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/iletisim/" "200"
+          check_http "haberler" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/haberler/" "200"
           check_http "kaynak-masasi" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/kaynak-masasi/" "200"
           check_http "robots" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/robots.txt" "200"
           check_http "sitemap" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/sitemap.xml" "200"
