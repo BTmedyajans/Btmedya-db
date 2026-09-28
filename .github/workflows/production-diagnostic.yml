@@ -130,6 +130,12 @@ jobs:
           chmod +x control-plane/diagnose.sh
           ./control-plane/diagnose.sh
 
+      - name: Print diagnostic report
+        if: always()
+        run: |
+          echo "===== BTMEDYA PRODUCTION REPORT ====="
+          cat btmedya-production-report.txt 2>/dev/null || true
+
       - name: Upload diagnostic report
         if: always()
         uses: actions/upload-artifact@v4
