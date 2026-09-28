@@ -1,4 +1,4 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BTMedya Admin — İçerik Yönetimi</title><link rel="stylesheet" href="/admin/admin-overrides.css"><style>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BTMedya Admin — İçerik Yönetimi</title><meta name="theme-color" content="#090909"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="/admin/manifest.webmanifest"><link rel="stylesheet" href="/admin/admin-overrides.css"><style>
 *{box-sizing:border-box}
 body{font-family:Inter,system-ui,sans-serif;margin:0;background:#090909;color:#eee;font-size:14px}
 a{color:#7dd}
@@ -953,5 +953,5 @@ $('#sSaveBtn').onclick=async()=>{
 $('#sRefreshBtn').onclick=loadSocial;
 
 </script>
-</body>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/admin/sw.js",{scope:"/admin/"}).catch(()=>{});}</script></body>
 </html>
