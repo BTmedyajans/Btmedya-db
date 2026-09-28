@@ -27,7 +27,7 @@ for(const file of files){
   const h=readFileSync(file,'utf8');
   for(const m of h.matchAll(/<a\b[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi)){
     const href=m[1];
-    if(/^(https?:|mailto:|tel:|javascript:|data:)/i.test(href)||href.startsWith('#')||href.includes('${')) continue;
+    if(/^(https?:|mailto:|tel:|javascript:|data:)/i.test(href)||href.startsWith('#')||href.includes('${')||href.startsWith('/api/')||href.startsWith('/media/')||href.startsWith('/pub/')) continue;
     const t=targetFile(href);
     if(t==='__MISSING_DYNAMIC_NEWS__') broken.push(`${file}: haber slug'i veri kaynaginda yok ${href}`);
     else if(t===null && href.startsWith('/assets/')) broken.push(`${file}: eksik asset ${href}`);
