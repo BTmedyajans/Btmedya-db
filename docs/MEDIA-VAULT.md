@@ -4,7 +4,7 @@ Bu belge yalnızca **kanonik production** mimarisini anlatır. Eski Btmedya-Ajan
 
 ## Kanonik zincir
 
-GitHub `BTmedyajans/Btmedya-db` → GitHub Actions `deploy.yml` → Cloudflare Worker `btmedya-db` → `btmedya.com.tr`
+GitHub `BTmedyajans/Btmedya-db` → Cloudflare Workers Builds → Cloudflare Worker `btmedya-db` → `btmedya.com.tr`
 
 Medya: Cloudflare R2 `btmedya-media`  
 Veri: Cloudflare D1 `btmedya-media`  
