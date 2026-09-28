@@ -576,99 +576,98 @@
  },
  {
   "path": "media/web/hero-story.mp4",
-  "id": "static-110",
+  "id": "static-109",
   "category": "video",
   "gercek": true
  },
  {
   "path": "media/web/showreel-07.mp4",
-  "id": "static-111",
+  "id": "static-110",
   "category": "video"
  },
  {
   "path": "media/web/showreel-07.webm",
-  "id": "static-112",
+  "id": "static-111",
   "category": "video"
  },
  {
   "path": "media/web/showreel-action.mp4",
-  "id": "static-113",
+  "id": "static-112",
   "category": "video",
   "gercek": true
  },
  {
   "path": "media/web/showreel-action.webm",
-  "id": "static-114",
-  "category": "video",
-  "gercek": true
+  "id": "static-113",
+  "category": "video"
  },
  {
   "path": "media/web/showreel-fantasy.mp4",
-  "id": "static-115",
+  "id": "static-114",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/showreel-fantasy.webm",
-  "id": "static-116",
+  "id": "static-115",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/showreel-flying-reporter.mp4",
-  "id": "static-117",
+  "id": "static-116",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/showreel-flying-reporter.webm",
-  "id": "static-118",
+  "id": "static-117",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/state-haber.mp4",
-  "id": "static-119",
+  "id": "static-118",
   "category": "video"
  },
  {
   "path": "media/web/state-medya.mp4",
-  "id": "static-120",
+  "id": "static-119",
   "category": "video"
  },
  {
   "path": "media/web/state-produksiyon.mp4",
-  "id": "static-121",
+  "id": "static-120",
   "category": "video"
  },
  {
   "path": "sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4",
-  "id": "static-122",
+  "id": "static-121",
   "category": "sosyal"
  },
  {
   "path": "sosyal/balikesir-pazarinda-canli-helva-sovu-dikey.mp4",
-  "id": "static-123",
+  "id": "static-122",
   "category": "sosyal"
  },
  {
   "path": "sosyal/el-emegi-yorganlar-artik-isitmiyor-dikey.mp4",
-  "id": "static-124",
+  "id": "static-123",
   "category": "sosyal"
  },
  {
   "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-1.jpg",
-  "id": "static-125",
+  "id": "static-124",
   "category": "sosyal"
  },
  {
   "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-2.jpg",
-  "id": "static-126",
+  "id": "static-125",
   "category": "sosyal"
  },
  {
   "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-3.jpg",
-  "id": "static-127",
+  "id": "static-126",
   "category": "sosyal"
  }
 ]
