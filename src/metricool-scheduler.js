@@ -154,8 +154,7 @@ export async function scheduleToMetricool(env,row){
    Metricool'a birakir. Yayini Metricool yapar; Worker yalnizca teslim eder.
    Anahtar (METRICOOL_USER_TOKEN) yoksa hicbir sey yapmaz: bu, otomatik
    paylasimin kullanici tarafindan bilincli olarak acilmasi demektir.
-   Bir gonderi yalnizca bir kez teslim edilir; hata alan tekrar denenmez,
-   hata metni panelde gorunsun diye kaydedilir. */
+   Gecici hatalar tekrar denenir; kalici hatalar panelde gorunsun diye kaydedilir. */
 export async function processMetricoolQueue(env,limit=10){
   const result={enabled:Boolean(env.METRICOOL_USER_TOKEN),processed:0,scheduled:0,failed:0,retried:0,skipped:0,items:[]};
   if(!env.DB || !env.METRICOOL_USER_TOKEN) return result;
@@ -163,7 +162,7 @@ export async function processMetricoolQueue(env,limit=10){
 
   const now=new Date();
   const nowIso=now.toISOString();
-  // Hatalı teslimler 5 dakika sonra tekrar denenir; kalıcı hatalar 5 denemede durur.
+  // Yeniden denenebilir teslimler 5 dakika sonra tekrar denenir; kalıcı hatalar 5 denemede durur.
   const retryBefore=new Date(now.getTime()-5*60*1000).toISOString();
   const rows=(await env.DB.prepare(
     `SELECT p.*, g.durum AS metricool_durum, g.attempts AS metricool_attempts
@@ -182,10 +181,10 @@ export async function processMetricoolQueue(env,limit=10){
   const claim=async(id,attempts)=>{
     const stamp=new Date().toISOString();
     const r=await env.DB.prepare(
-      `INSERT INTO metricool_gonderim(post_id,metricool_id,durum,hata,updated_at,attempts)
-       VALUES(?,?,?,?,?,?)
+      `INSERT INTO metricool_gonderim(post_id,metricool_id,durum,hata,updated_at,attempts,retryable)
+       VALUES(?,?,?,?,?,?,?)
        ON CONFLICT(post_id) DO UPDATE SET
-         durum=excluded.durum,hata=excluded.hata,updated_at=excluded.updated_at,attempts=excluded.attempts`
+         durum=excluded.durum,hata=excluded.hata,updated_at=excluded.updated_at,attempts=excluded.attempts,retryable=excluded.retryable`
     ).bind(String(id),"","gonderiliyor","",stamp,attempts,1).run();
     return Number(r.meta?.changes||0)>0;
   };
