@@ -98,12 +98,19 @@ function duz(s) {
 
 /* Paylasim metni: baslik, spot, haber adresi, gorsel kunyesi ve etiketler.
    Etiketler haberin kategori/baslik metninden turer; elle yazilmaz. */
-export function altyazi(n, kunye) {
+const AYLAR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+
+export function altyazi(n, kunye, simdi = new Date()) {
   const t = duz([n.category, n.title].join(' '));
   const etiket = ['#BTMEDYA'];
   for (const [re, e] of ETIKETLER) if (re.test(t)) etiket.push(...e);
+  // 30 gunden eski haber bugun olmus gibi paylasilmasin: tarih acikca yazilir.
+  const yayin = new Date(n.published_at || '');
+  const arsiv = !Number.isNaN(yayin.getTime()) && simdi - yayin > 30 * 86400000
+    ? `📌 Arşiv haberi · ${AYLAR[yayin.getUTCMonth()]} ${yayin.getUTCFullYear()}` : '';
   const parca = [
     String(n.title || '').trim(),
+    arsiv,
     String(n.excerpt || '').replace(/\s+/g, ' ').trim(),
     `Haberin tamamı: btmedya.com.tr/haberler/${n.slug}`
   ];

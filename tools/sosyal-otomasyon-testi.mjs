@@ -21,4 +21,8 @@ dolu.push(y); y=await sonrakiYuva(env,a,simdi); assert.equal(y,'2026-09-30T07:00
 dolu.length=0; y=await sonrakiYuva(env,a,new Date('2026-09-29T06:50:00Z')); assert.equal(y,'2026-09-29T15:00:00.000Z');
 const m=altyazi({slug:'x',title:'Balıkesir itfaiyesi',excerpt:'  Spot   metni ',category:'Yerel'},'temsili fotoğraf — ustung / Flickr, CC BY 2.0');
 assert.match(m,/#BTMEDYA #Balıkesir #BalıkesirHaber #Gündem/); assert.match(m,/btmedya.com.tr\/haberler\/x/);
+const eski=altyazi({slug:'y',title:'Güneş koruyucu',excerpt:'s',category:'Sağlık · Bakım',published_at:'2024-08-07T09:00:00Z'},'',new Date('2026-09-29T00:00:00Z'));
+assert.match(eski,/📌 Arşiv haberi · Ağustos 2024/); assert.match(eski,/#Sağlık/);
+const taze=altyazi({slug:'z',title:'t',excerpt:'s',category:'Spor',published_at:'2026-09-28T09:00:00Z'},'',new Date('2026-09-29T00:00:00Z'));
+assert.doesNotMatch(taze,/Arşiv/);
 console.log('TUM TESTLER GECTI');

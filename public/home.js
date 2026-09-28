@@ -1072,8 +1072,13 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
 (()=>{
  const d=document;
  const norm=s=>String(s||'').toLocaleLowerCase('tr-TR').replace(/ı/g,'i').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
- const CATS=[['balikesir','BALIKESİR',/(balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|yerel|pazar|altyapi)/],['gundem','GÜNDEM',/(gundem|asayis|yangin|afet|guvenlik|trafik)/],['ekonomi','EKONOMİ',/(ekonomi|emlak|esnaf|tarim|ticaret|fiyat)/],['kultur','KÜLTÜR',/(kultur|zanaat|sanat|gastronomi|turizm|insan|etkinlik)/],['egitim','EĞİTİM',/(egitim|universite|okul|sinav)/],['saglik','SAĞLIK',/(saglik|beslenme|bakim|hastane)/],['spor','SPOR',/(spor|futbol|basketbol|muayene|turnuva)/],['teknoloji','TEKNOLOJİ / AI',/(yapay zeka|teknoloji|yazilim|dijital|ai\b)/]];
- const cat=n=>{const t=norm([n&&n.category,n&&n.title,n&&n.excerpt].join(' '));return (CATS.find(x=>x[2].test(t))||['diger'])[0]};
+ // Sinif once editoryal kategori alanindan okunur, ancak alan hicbir
+ // hatta uymazsa baslik/spot metnine bakilir. Onceki surum tum metinde
+ // alt dizi ariyordu: "Balikesir" gecen 61/80 haber BALIKESIR'e, "raporu"
+ // icindeki "spor" yuzunden bir yapay zeka haberi SPOR'a dusuyordu.
+ const CATS=[['balikesir','BALIKESİR',/\b(yerel|balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|pazar|altyapi)\b/],['gundem','GÜNDEM',/\b(gundem|asayis|yangin|afet|guvenlik|trafik)\b/],['ekonomi','EKONOMİ',/\b(ekonomi|emlak|esnaf|tarim|ticaret|fiyat)\b/],['kultur','KÜLTÜR',/\b(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik)\b/],['egitim','EĞİTİM',/\b(egitim|universite|okul|sinav)\b/],['saglik','SAĞLIK',/\b(saglik|beslenme|bakim|hastane)\b/],['spor','SPOR',/\b(spor|futbol|basketbol|turnuva)\b/],['teknoloji','TEKNOLOJİ / AI',/\b(yapay zeka|teknoloji|yazilim|dijital|ai)\b/]];
+ const bul=t=>(CATS.find(x=>x[2].test(t))||[null])[0];
+ const cat=n=>{const k=String(n&&n.category||'');return bul(norm(k.split('·')[0]))||bul(norm(k))||bul(norm([n&&n.title,n&&n.excerpt].join(' ')))||'diger'};
  const quality=n=>Number(!!n&&n.source_url)*2+Number(!!n&&n.cover_url)*2+Number(!!n&&n.author)+Number(String(n&&n.body||'').length>=500)+Number(String(n&&n.published_at||'').slice(0,4)===String(new Date().getFullYear()))*2+Number(n&&n.ai_generated===true);
  window.BTMEDYA_RELEVANCE={categories:CATS.map(x=>({key:x[0],label:x[1]})),category:cat,quality};
  const grid=d.getElementById('newsGrid'),bar=d.getElementById('newsFilter'); if(!grid||!bar||bar.dataset.nextgenBound)return; bar.dataset.nextgenBound='1';
