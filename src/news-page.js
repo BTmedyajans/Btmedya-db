@@ -38,6 +38,26 @@ function isoTarih(iso){
   const d=new Date(iso);
   return isNaN(d)?String(iso):d.toISOString().slice(0,10);
 }
+/* Google yayin tarihinde saat ve saat dilimi ister; yoksa kendi saat
+   dilimini varsayar ve haber bir gun kayik gorunebilir. Kayitta saat varsa
+   (panel "2026-09-25T09:00:00+03:00" yazar) oldugu gibi verilir; yalniz
+   gun bilinen arsiv kayitlarina uydurma saat eklenmez. */
+function isoTam(iso){
+  const s=String(iso||'').trim();
+  if(!s) return '';
+  return /T\d{2}:\d{2}/.test(s)&&!isNaN(new Date(s))?s:isoTarih(s);
+}
+/* Arama sonucu snippet'i ~160 karakterde kesilir; kesimi kelime sinirinda
+   biz yapariz ki cumle ortasindan bolunmesin. Tam metin og ve JSON-LD'de kalir. */
+function kisaOzet(s, sinir=158){
+  const t=String(s||'').replace(/\s+/g,' ').trim();
+  if(t.length<=sinir) return t;
+  const k=t.slice(0,sinir);
+  return k.slice(0,Math.max(k.lastIndexOf(' '),sinir-30)).replace(/[\s,;:.–-]+$/,'')+'…';
+}
+/* JSON-LD script etiketinin icinde "</script>" gecerse etiket erken kapanir;
+   "<" kacislanir, JSON anlami degismez. */
+const ldYaz = o => JSON.stringify(o).replace(/</g,'\\u003c');
 
 /* Govde: bos satirla ayrilmis paragraflar. HTML girilmisse oldugu gibi
    birakilmaz; panelden gelen metin her zaman kacisli yazilir. */
@@ -56,7 +76,8 @@ export function renderNewsPage(n, origin, vlib){
   const kanal=vlib?(vlib.own_youtube_id?'BTMEDYA':(vlib.source_channel||'')):'';
   const kapak=n.cover_url || `${origin}/assets/haber-kapak/${encodeURIComponent(n.slug)}.webp`;
   const tarihTr=n.original_date||trTarih(n.published_at);
-  const tarihIso=isoTarih(n.published_at);
+  const tarihIso=isoTam(n.published_at);
+  const guncelIso=isoTam(n.updated_at)||tarihIso;
   const durumNotu=String(n.archive_note||'');
   const arsiv = /2024|2023|2022/.test(String(n.original_date || '')) ||
     (/arşiv|arsiv|geçmiş|gecmis/i.test(durumNotu) && !/güncel|guncel/i.test(durumNotu));
@@ -73,7 +94,7 @@ export function renderNewsPage(n, origin, vlib){
   const ld={
     "@context":"https://schema.org","@type":"NewsArticle",
     headline:n.title, description:ozet, url,
-    ...(tarihIso?{datePublished:tarihIso,dateModified:isoTarih(n.updated_at)||tarihIso}:{}),
+    ...(tarihIso?{datePublished:tarihIso,dateModified:guncelIso}:{}),
     author:(n.author&&/buse\s+tuncay/i.test(n.author))?{"@type":"Person",name:n.author,url:`${origin}/portfoy/buse-tuncay/`}:{"@type":"Organization",name:n.author||'BTMEDYA',url:origin},
     publisher:{"@type":"Organization",name:"BTMEDYA",
       logo:{"@type":"ImageObject",url:`${origin}/assets/btmedya-emblem-derived.png`}},
@@ -124,9 +145,16 @@ ${kanal?`<p class="video-credit">Video ${esc(kanal)} kanalında yayında. <a hre
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="theme-color" content="#02070d"/>
 <title>${esc(n.title)} — BTMEDYA Haber</title>
-<meta name="description" content="${esc(ozet)}"/>
+<meta name="description" content="${esc(kisaOzet(ozet))}"/>
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"/>
 <link rel="canonical" href="${esc(url)}"/>
+<link rel="alternate" type="application/rss+xml" title="BTMEDYA Haber" href="/rss.xml"/>
+<meta property="og:site_name" content="BTMEDYA"/>
+<meta property="og:locale" content="tr_TR"/>
 <meta property="og:type" content="article"/>
+${tarihIso?`<meta property="article:published_time" content="${esc(tarihIso)}"/>
+<meta property="article:modified_time" content="${esc(guncelIso)}"/>`:''}
+${n.category?`<meta property="article:section" content="${esc(n.category)}"/>`:''}
 <meta property="og:title" content="${esc(n.title)}"/>
 <meta property="og:description" content="${esc(ozet)}"/>
 <meta property="og:url" content="${esc(url)}"/>
@@ -143,13 +171,13 @@ ${kanal?`<p class="video-credit">Video ${esc(kanal)} kanalında yayında. <a hre
 <link rel="manifest" href="/site.webmanifest"/>
 <link rel="stylesheet" href="/styles.css"/><style>.article-page{max-width:920px;margin:auto;padding:56px 20px 90px}.article-page h1{font-family:"Bricolage Grotesque","Space Grotesk",sans-serif;font-size:clamp(2.7rem,7vw,6.5rem);line-height:.92;letter-spacing:-.065em;margin:14px 0 22px}.article-eyebrow{color:#ff6d64;font-size:.72rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase}.article-meta{display:flex;flex-wrap:wrap;gap:12px;color:#8e99a8;font-size:.82rem;margin-bottom:18px}.article-meta span:first-child{color:#dce3ec}.article-lead{font-size:1.18rem;line-height:1.7;color:#c6ced8;border-left:3px solid #ff4038;padding-left:18px;margin:28px 0}.article-cover-wrap{margin:28px 0}.article-cover{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;object-position:50% 26%;border-radius:14px;margin:0}.article-cover-wrap figcaption{color:#7e8b9a;font:11px "Manrope",sans-serif;letter-spacing:.06em;margin-top:9px}@media(max-width:700px){.article-cover{aspect-ratio:4/3}}.article-body{max-width:760px;margin:34px auto}.article-body p{font-size:1.08rem;line-height:1.85;color:#d1d8e1;margin:0 0 1.3em}.article-tools{display:flex;flex-wrap:wrap;gap:9px;margin:24px 0;border-top:1px solid #ffffff18;border-bottom:1px solid #ffffff18;padding:14px 0}.article-tools a{color:#dfe7ef;text-decoration:none;border:1px solid #ffffff18;padding:8px 11px;border-radius:999px;font-size:.75rem}.archive-badge{display:inline-block;color:#ffb0ab;border:1px solid #ff403833;border-radius:999px;padding:6px 10px;font-size:.68rem;font-weight:800;letter-spacing:.08em}.yt-lite{position:relative;aspect-ratio:16/9;overflow:hidden;border-radius:14px;background:#080b10;margin:28px 0;cursor:pointer}.yt-lite img{width:100%;height:100%;object-fit:cover}.yt-lite:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent,#05070aaa)}.yt-play{position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;border:1px solid #ffffff66;background:#05070acc;color:#fff;font-size:1.35rem}.article-byline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.video-credit{color:#91a2b2;font:12px "Manrope",sans-serif;line-height:1.6;margin:8px 0 18px}.article-body,.article-lead{font-family:"Manrope",sans-serif}.article-body p{font-family:"Manrope",sans-serif}</style>
 <script type="application/ld+json">
-${JSON.stringify(ld,null,0)}
+${ldYaz(ld)}
 </script>
 <script type="application/ld+json">
-${JSON.stringify(breadcrumbLd,null,0)}
+${ldYaz(breadcrumbLd)}
 </script>
 ${videoLd?`<script type="application/ld+json">
-${JSON.stringify(videoLd,null,0)}
+${ldYaz(videoLd)}
 </script>`:''}
 </head>
 <body>

@@ -255,6 +255,40 @@ tara('public'); tara('src');
   }
 }
 
+/* 9) Google News haritasi. Statik dosya bir kez "<urlset .../>" olarak
+      kendiliginden kapanan ve news: ad alani olmadan yazildi; Worker
+      "</urlset>" arayarak ekleme yaptigi icin harita haftalarca bos kaldi.
+      Harita artik Worker'da D1'den uretilir; yedek dosya da gecerli kalmali. */
+{
+  const ns = readFileSync('public/news-sitemap.xml', 'utf8');
+  if (/<urlset[^>]*\/>/.test(ns) || !ns.includes('</urlset>')) {
+    bulgular.push('public/news-sitemap.xml kendiliginden kapanan <urlset/> iceriyor; acik/kapali etiket olmali.');
+  }
+  if (!ns.includes('xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"')) {
+    bulgular.push('public/news-sitemap.xml news: ad alanini bildirmiyor; Google haritayi gecersiz sayar.');
+  }
+  if (!/function haberHaritasiUret\(/.test(worker) || !/return haberHaritasiUret\(/.test(worker)) {
+    bulgular.push('src/worker.js Google News haritasini D1\'den uretmiyor (haberHaritasiUret); statik dosyaya ekleme bozuk bicime karsi korumasiz.');
+  }
+}
+
+/* 9b) Arama motoru yonergesi: kamuya acik HTML X-Robots-Tag ile buyuk gorsel
+       onizlemesine izin vermeli, panel dizine girmemeli. */
+if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
+  bulgular.push('src/worker.js X-Robots-Tag / max-image-preview:large basligini vermiyor; Discover buyuk kart gostermez.');
+}
+
+/* 9c) Site haritasindaki her statik sayfa yapisal veri tasimali. */
+{
+  const harita = readFileSync('public/sitemap.xml', 'utf8');
+  for (const [, yol] of harita.matchAll(/<loc>https:\/\/btmedya\.com\.tr(\/[^<]*\/)<\/loc>/g)) {
+    const dosya = join('public', yol, 'index.html');
+    if (existsSync(dosya) && !readFileSync(dosya, 'utf8').includes('application/ld+json')) {
+      bulgular.push(`${dosya} site haritasinda ama JSON-LD yapisal verisi yok.`);
+    }
+  }
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
