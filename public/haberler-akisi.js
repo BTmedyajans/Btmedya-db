@@ -43,7 +43,7 @@
 
   function categoryMatch(n,key){
     if(key==='all')return true;
-    var s=norm((n.title||'')+' '+(n.category||'')+' '+(n.excerpt||'');
+    var s=norm((n.title||'')+' '+(n.category||'')+' '+(n.excerpt||''));
     if(key==='balikesir')return local(n)||s.indexOf('balikesir')>-1;
     if(key==='ozel')return /ozel|dosya|saha|roportaj/.test(s);
     return s.indexOf(key)>-1;

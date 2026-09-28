@@ -11,6 +11,7 @@
  *
  * Kullanim: node tools/gerileme-denetimi.mjs
  * ===================================================================== */
+import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -74,6 +75,40 @@ tara('public'); tara('src');
   for (const m of harita.matchAll(/<loc>([^<]+)<\/loc>/g)) {
     if (/\/(admin|api|social-studio)(\/|$)/.test(new URL(m[1]).pathname))
       bulgular.push(`public/sitemap.xml ic araci listeliyor: ${m[1]} (robots.txt ile kapali adres dizine girmemeli).`);
+  }
+}
+
+/* 4c) Sitede yayinlanan her betik sozdizimi olarak gecerli olmali.
+   haberler-akisi.js'te eksik bir parantez (28.09) /haberler/ canli akisini
+   tamamen durdurdu; sayfa statik yedekte kaldi ve kimse fark etmedi. */
+{
+  const betikler = [];
+  const topla = (dizin) => {
+    for (const g of readdirSync(dizin, { withFileTypes: true })) {
+      const y = join(dizin, g.name);
+      if (g.isDirectory()) topla(y); else if (g.name.endsWith('.js')) betikler.push(y);
+    }
+  };
+  topla('public');
+  for (const y of betikler) {
+    const r = spawnSync(process.execPath, ['--check', y], { encoding: 'utf8' });
+    if (r.status !== 0) bulgular.push(`${y} sozdizimi hatali: ${(r.stderr.split('\n').find(l => /Error/.test(l)) || '').trim()}`);
+  }
+}
+
+/* 4d) home.js'te 'd' kisaltmasi (const d = document) yalniz ilk IIFE'de
+   tanimli. Sonraki bloklarda 'd.' kullanimi ReferenceError verir; 28.09'da
+   sosyal akis bolumu bu yuzden hic yuklenmedi. */
+{
+  const ana = readFileSync('public/home.js', 'utf8');
+  const bitis = ana.indexOf('\n})();');
+  if (bitis > -1) {
+    const sonrasi = ana.slice(bitis + 6).split('\n');
+    sonrasi.forEach((satir, k) => {
+      if (/(^|[^\w.$])d\.(getElementById|querySelector|querySelectorAll|createElement|body|documentElement)\b/.test(satir)
+          && !/\b(const|let|var)\s+d\s*=/.test(ana.slice(bitis)))
+        bulgular.push(`public/home.js ilk IIFE disinda tanimsiz 'd.' kullaniyor (ana IIFE bitisinden ${k + 1}. satir): ${satir.trim().slice(0, 70)}`);
+    });
   }
 }
 
