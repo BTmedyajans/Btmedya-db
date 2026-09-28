@@ -13,6 +13,14 @@ name: BTMEDYA canli site denetimi
 # e-posta gonderir; bu yuzden ayrica bildirim kurmak gerekmez.
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "public/**"
+      - "tools/site-denetimi.mjs"
+      - "tools/a11y-denetimi.mjs"
+      - "tools/link-denetimi.mjs"
+      - ".github/workflows/site-denetimi.yml"
   schedule:
     # Saat basi degil 17. dakika: GitHub zamanlanmis isleri saat basinda
     # yogunlugundan gecikebiliyor.
