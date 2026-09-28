@@ -1,0 +1,14 @@
+/* BTMEDYA revenue engine | 2026-09-29 */
+.revenue-section{max-width:var(--bt-max,1440px);margin:0 auto;padding:clamp(80px,10vw,150px) 5vw;border-top:1px solid var(--bt-line,#252525)}
+.revenue-head{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:6vw;align-items:end;margin-bottom:48px}
+.revenue-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:1px solid var(--bt-line,#252525);background:#0a0a0a}
+.revenue-card{min-height:260px;padding:30px;border-right:1px solid var(--bt-line,#252525);border-bottom:1px solid var(--bt-line,#252525);display:flex;flex-direction:column}
+.revenue-card:nth-child(2n){border-right:0}.revenue-card:nth-last-child(-n+2){border-bottom:0}
+.revenue-card-main{background:linear-gradient(135deg,#101010,#151515)}
+.revenue-tag{font-size:11px;letter-spacing:.14em;color:var(--bt-accent,#d9ff3f);font-weight:800}
+.revenue-card h3{font-size:clamp(24px,3vw,42px);line-height:.98;margin:22px 0 14px;max-width:11ch}
+.revenue-card p{color:var(--bt-muted,#a0a0a0);line-height:1.7;max-width:55ch}
+.revenue-card a{margin-top:auto;color:#fff;text-decoration:none;font-weight:800;padding-top:22px}.revenue-card a:hover{color:var(--bt-accent,#d9ff3f)}
+.revenue-proof{display:flex;flex-wrap:wrap;gap:10px 24px;padding:22px 0;border-bottom:1px solid var(--bt-line,#252525);color:#888;font-size:11px;letter-spacing:.12em}
+.revenue-proof b{color:#ddd}
+@media(max-width:850px){.revenue-head{grid-template-columns:1fr;gap:20px}.revenue-grid{grid-template-columns:1fr}.revenue-card,.revenue-card:nth-child(2n){border-right:0}.revenue-card:nth-last-child(-n+2){border-bottom:1px solid var(--bt-line,#252525)}.revenue-card:last-child{border-bottom:0}.revenue-proof{gap:12px 16px}}
