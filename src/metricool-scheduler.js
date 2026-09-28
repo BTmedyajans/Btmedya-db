@@ -73,11 +73,11 @@ async function takipTablosu(env){
     durum TEXT NOT NULL DEFAULT '',
     hata TEXT NOT NULL DEFAULT '',
     updated_at TEXT NOT NULL,
-    attempts INTEGER NOT NULL DEFAULT 0
-  )`).run();
+undefined`).run();
 
-  // Canlı tablo eski sürümden geldiyse yeni alanı yerinde ve idempotent ekle.
+  // Canlı tablo eski sürümden geldiyse yeni alanları yerinde ve idempotent ekle.
   try { await env.DB.prepare("ALTER TABLE metricool_gonderim ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0").run(); } catch {}
+  try { await env.DB.prepare("ALTER TABLE metricool_gonderim ADD COLUMN retryable INTEGER NOT NULL DEFAULT 1").run(); } catch {}
 }
 
 function youtubeDataFor(providers,row){
@@ -174,7 +174,7 @@ export async function processMetricoolQueue(env,limit=10){
         AND p.scheduled_at > ?
         AND (
           g.post_id IS NULL
-          OR (g.durum='hata' AND g.updated_at <= ? AND COALESCE(g.attempts,0) < 5)
+          OR (g.durum='hata' AND COALESCE(g.retryable,1)=1 AND g.updated_at <= ? AND COALESCE(g.attempts,0) < 5)
         )
       ORDER BY p.scheduled_at ASC LIMIT ?`
   ).bind(nowIso,retryBefore,Number(limit)||10).all()).results||[];
@@ -186,14 +186,14 @@ export async function processMetricoolQueue(env,limit=10){
        VALUES(?,?,?,?,?,?)
        ON CONFLICT(post_id) DO UPDATE SET
          durum=excluded.durum,hata=excluded.hata,updated_at=excluded.updated_at,attempts=excluded.attempts`
-    ).bind(String(id),"","gonderiliyor","",stamp,attempts).run();
+    ).bind(String(id),"","gonderiliyor","",stamp,attempts,1).run();
     return Number(r.meta?.changes||0)>0;
   };
-  const yaz=(id,metricoolId,durum,hata,attempts)=>env.DB.prepare(
-    `INSERT INTO metricool_gonderim(post_id,metricool_id,durum,hata,updated_at,attempts)
-     VALUES(?,?,?,?,?,?)
-     ON CONFLICT(post_id) DO UPDATE SET metricool_id=excluded.metricool_id,durum=excluded.durum,hata=excluded.hata,updated_at=excluded.updated_at,attempts=excluded.attempts`
-  ).bind(String(id),String(metricoolId||""),durum,String(hata||"").slice(0,2000),new Date().toISOString(),attempts);
+  const yaz=(id,metricoolId,durum,hata,attempts,retryable)=>env.DB.prepare(
+    `INSERT INTO metricool_gonderim(post_id,metricool_id,durum,hata,updated_at,attempts,retryable)
+     VALUES(?,?,?,?,?,?,?)
+     ON CONFLICT(post_id) DO UPDATE SET metricool_id=excluded.metricool_id,durum=excluded.durum,hata=excluded.hata,updated_at=excluded.updated_at,attempts=excluded.attempts,retryable=excluded.retryable`
+  ).bind(String(id),String(metricoolId||""),durum,String(hata||"").slice(0,2000),new Date().toISOString(),attempts,retryable?1:0);
 
   for(const row of rows){
     result.processed++;
@@ -208,18 +208,18 @@ export async function processMetricoolQueue(env,limit=10){
     try{
       const out=await scheduleToMetricool(env,row);
       if(out.ok){
-        await yaz(row.id,out.id||"submitted","planlandi","",attempts);
+        await yaz(row.id,out.id||"submitted","planlandi","",attempts,false);
         result.scheduled++;
         if(attempts>1) result.retried++;
         result.items.push({id:row.id,status:"scheduled",metricoolId:out.id||null,attempts});
       }else{
-        await yaz(row.id,"","hata",out.error||"Metricool planlamasi basarisiz",attempts);
+        await yaz(row.id,"","hata",out.error||"Metricool planlamasi basarisiz",attempts,Boolean(out.retryable));
         result.failed++;
         result.items.push({id:row.id,status:"error",retryable:Boolean(out.retryable),error:String(out.error||"").slice(0,300),attempts});
       }
     }catch(e){
       const msg=String(e?.message||e);
-      await yaz(row.id,"","hata",msg,attempts).catch(()=>{});
+      await yaz(row.id,"","hata",msg,attempts,true).catch(()=>{});
       result.failed++;
       result.items.push({id:row.id,status:"error",retryable:true,error:msg.slice(0,300),attempts});
     }
