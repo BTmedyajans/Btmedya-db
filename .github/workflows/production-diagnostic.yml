@@ -94,8 +94,8 @@ jobs:
             exit 0
           fi
 
-          expected="$(jq -r '.result[0].name_servers[]?' <<<"$zone_json" | tr '[:upper:]' '[:lower:]' | sed 's/\\.$//' | sort -u)"
-          actual="$(dig +short NS btmedya.com.tr | tr '[:upper:]' '[:lower:]' | sed 's/\\.$//' | sort -u)"
+          expected="$(jq -r '.result[0].name_servers[]?' <<<"$zone_json" | tr '[:upper:]' '[:lower:]' | sed 's/\.$//' | sort -u)"
+          actual="$(dig +short NS btmedya.com.tr | tr '[:upper:]' '[:lower:]' | sed 's/\.$//' | sort -u)"
 
           echo "Cloudflare authoritative NS:"
           printf '%s\n' "$expected"
