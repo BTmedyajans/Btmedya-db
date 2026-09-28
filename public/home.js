@@ -555,7 +555,9 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     return '<article class="social-feed-card"><div class="social-feed-card-top"><span>'+platform+'</span><time datetime="'+date+'">'+date+'</time></div><h3>'+title+'</h3><p>'+escSocial(item.archive_context||'')+'</p><a href="'+escSocial(item.url)+'" target="_blank" rel="noopener">Yayını aç ↗</a></article>';
   }
   async function loadSocialFeedHome(){
-    const profiles=d.getElementById('socialProfiles'), meta=d.getElementById('socialFeedMeta'), grid=d.getElementById('socialFeedGrid');
+    /* Bu blok ana IIFE'nin disinda; oradaki 'const d = document' burada yok.
+       'd' ile yazildiginda sayfa ReferenceError verip sosyal akisi hic yuklemiyordu. */
+    const profiles=document.getElementById('socialProfiles'), meta=document.getElementById('socialFeedMeta'), grid=document.getElementById('socialFeedGrid');
     if(!profiles||!meta||!grid)return;
     try{
       const r=await fetch('/api/public/social-feed',{headers:{accept:'application/json'}});
