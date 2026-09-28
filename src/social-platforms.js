@@ -2,6 +2,10 @@
  * Üretimde sosyal yayınların tek geçidi Metricool'dur.
  * Böylece Worker içinde Instagram/Facebook/TikTok/YouTube için ayrı OAuth
  * tokenları tutulmaz. Hesap yetkilendirmesi Metricool'da bir kez yapılır.
+ *
+ * Production redeploy marker: 2026-09-29
+ * Social queue remains approval-driven: only records marked "planlandi"
+ * with a future scheduled_at are delivered to Metricool automatically.
  */
 export const SOCIAL_PROVIDERS = {
   instagram: { label: "Instagram", managedBy: "Metricool" },
