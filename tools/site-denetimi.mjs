@@ -148,6 +148,10 @@ async function seoMetaDenetimi(adresler) {
       twTitle: /<meta\s+name=["']twitter:title["'][^>]+content=/i.test(html),
       twImage: /<meta\s+name=["']twitter:image["'][^>]+content=/i.test(html),
       article: /"@type"\s*:\s*"NewsArticle"/.test(html),
+      linkedin: html.includes("tr.linkedin.com/in/buse-tuncay-6b217623"),
+      instagram: html.includes("https://www.instagram.com/btmedyajans/"),
+      youtube: html.includes("https://www.youtube.com/@BTmedyaAjans"),
+      tiktok: html.includes("https://www.tiktok.com/@btmedya1010"),
     };
   }));
   for (const x of sonuc) {
@@ -158,9 +162,18 @@ async function seoMetaDenetimi(adresler) {
     if (!x.canonical) hatalar.push(`canonical yok/yanlış: ${yol}`);
     if (!x.og) hatalar.push(`og:image yok/HTTPS değil: ${yol}`);
     if (!x.tw) uyarilar.push(`twitter:card yok: ${yol}`);
-    if (x.a.includes('/haberler/')) {
+    const isArticle = /\/haberler\/[^/]+\/?$/.test(new URL(x.a).pathname);
+    if (isArticle) {
       if (!x.article) hatalar.push(`NewsArticle structured data yok: ${yol}`);
       if (!x.twTitle || !x.twImage) uyarilar.push(`haber sosyal meta eksik: ${yol}`);
+    }
+    if (yol === '/') {
+      if (!x.linkedin) uyarilar.push('anasayfa Buse Tuncay LinkedIn kimliği eksik');
+      if (!x.instagram || !x.youtube || !x.tiktok) uyarilar.push('anasayfa sosyal kanal kimliklerinden biri eksik');
+    }
+    if (yol === '/portfoy/buse-tuncay/') {
+      if (!x.linkedin) hatalar.push('Buse Tuncay portföyünde LinkedIn kimliği eksik');
+      if (!x.instagram || !x.youtube) uyarilar.push('Buse Tuncay portföyünde doğrulanmış sosyal kanal bağlantısı eksik');
     }
   }
   notlar.push(`SEO: ${sonuc.length} sayfa temel meta + paylaşım etiketi açısından denetlendi`);
