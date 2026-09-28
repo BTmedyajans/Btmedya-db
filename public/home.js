@@ -944,9 +944,10 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
    haber/medya/produksiyon panellerinde dokunus -> enerji kuresinde
    yukselen gerilim -> AI/studyo sahnesinde derin vurus ve parilti ->
    dairesel perde kapanirken inen gecis.
-   Varsayilan KAPALI: tarayicilar sesli otomatik oynatmayi engeller ve
-   ziyaretciyi habersiz sesle karsilamak istenmez. Tercih hatirlanir;
-   hatirlanmissa ilk dokunusta/tusta acilir. Hero ekrandan cikinca susar. */
+   Varsayilan ACIK (kullanici istegi). Tarayicilar ziyaretci etkilesiminden
+   once ses calmayi engeller; bu yuzden ses ilk dokunus/tiklama/tusta
+   kendiliginden baslar (mobilde kaydirmaya baslayan ilk dokunus yeter).
+   Ziyaretci kapatirsa tercih hatirlanir. Hero ekrandan cikinca susar. */
 (function(){
   const root=document.querySelector('.cinematic-hero');
   const dugme=root && root.querySelector('[data-hero-ses]');
@@ -956,7 +957,8 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   const yazi=dugme.querySelector('span');
   let ac=null, ana=null, yatak=null, filtre=null, gerilim=null, gerilimFiltre=null, gurultu=null;
   let acik=false, gorunurluk=1, sonP=0, perdeCaldi=false;
-  const oku=()=>{ try{ return localStorage.getItem('bt-hero-ses')==='1'; }catch(e){ return false; } };
+  const oku=()=>{ try{ return localStorage.getItem('bt-hero-ses')!=='0'; }catch(e){ return true; } };
+  let bekliyor=false, clickYut=false;
   const yaz=v=>{ try{ localStorage.setItem('bt-hero-ses',v?'1':'0'); }catch(e){} };
 
   function gurultuTamponu(){
@@ -1021,14 +1023,17 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   async function ac_(){
     if(!ac) kur();
     if(ac.state==='suspended') await ac.resume().catch(()=>{});
-    acik=true; yaz(true); dugme.setAttribute('aria-pressed','true'); yazi.textContent='SESİ KAPAT'; dugme.classList.add('acik');
+    acik=true; yaz(true); dugme.setAttribute('aria-pressed','true'); yazi.textContent='SESİ KAPAT'; dugme.classList.add('acik'); dugme.classList.remove('bekliyor');
     seviye(); ilerleme();
   }
   function kapat(){
     acik=false; yaz(false); dugme.setAttribute('aria-pressed','false'); yazi.textContent='SESİ AÇ'; dugme.classList.remove('acik');
     seviye();
   }
-  dugme.addEventListener('click',()=>{ acik?kapat():ac_(); });
+  // Bekleme durumunda dugmeye ilk basis sesi baslatir, kapatmaz.
+  // Sesi baslatan dokunus dugmenin kendisindeyse, ayni dokunusun click
+  // olayi sesi geri kapatmasin (bir kez yutulur).
+  dugme.addEventListener('click',()=>{ if(clickYut){ clickYut=false; return; } if(bekliyor) return; acik?kapat():ac_(); });
   root.addEventListener('btsahne',e=>{
     if(!ac || !acik) return;
     const i=e.detail.sahne;
@@ -1043,8 +1048,11 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   document.addEventListener('visibilitychange',()=>{ if(ac){ document.hidden?ac.suspend():(acik&&ac.resume()); } });
   // Hatirlanan tercih: tarayici ilk etkilesimi bekler.
   if(oku()){
-    const ilk=()=>{ ac_(); window.removeEventListener('pointerdown',ilk); window.removeEventListener('keydown',ilk); };
-    window.addEventListener('pointerdown',ilk,{once:true}); window.addEventListener('keydown',ilk,{once:true});
-    yazi.textContent='SES HAZIR';
+    bekliyor=true;
+    const olaylar=['pointerdown','touchend','keydown','click'];
+    const ilk=e=>{ olaylar.forEach(o=>window.removeEventListener(o,ilk,true));
+      clickYut=e.type!=='click' && dugme.contains(e.target); bekliyor=false; ac_(); };
+    olaylar.forEach(o=>window.addEventListener(o,ilk,true));
+    dugme.setAttribute('aria-pressed','true'); dugme.classList.add('acik','bekliyor'); yazi.textContent='SES AÇIK';
   }
 })();
