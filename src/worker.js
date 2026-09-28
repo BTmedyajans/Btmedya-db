@@ -1140,6 +1140,39 @@ function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
   return {aspect,uygun,uygunsuz,siteUyarisi};
 }
 
+async function autoPrepareSocialDrafts(env, limit=3){
+  const result={enabled:Boolean(env.DB),created:0,skipped:0,items:[]};
+  if(!env.DB) return result;
+  try{
+    const rows=(await env.DB.prepare(
+      `SELECT n.id,n.slug,n.title,n.excerpt,n.cover_url,n.published_at
+         FROM news n
+        WHERE n.status='published' AND n.slug<>''
+        ORDER BY COALESCE(n.published_at,n.updated_at) DESC LIMIT 20`
+    ).all()).results||[];
+    const take=Math.max(1,Math.min(3,Number(limit)||3));
+    let made=0;
+    for(const n of rows){
+      if(made>=take) break;
+      const exists=await env.DB.prepare("SELECT id FROM social_posts WHERE source_slug=? LIMIT 1").bind(String(n.slug)).first().catch(()=>null);
+      if(exists){ result.skipped++; continue; }
+      const cover=String(n.cover_url||'');
+      const mediaKey=cover.startsWith('/assets/') ? 'static/'+cover.slice('/assets/'.length) : '';
+      const platforms=JSON.stringify(['instagram-post','facebook-post','tiktok']);
+      const body=String(n.excerpt||n.title||'').trim();
+      const now=new Date().toISOString();
+      const id=crypto.randomUUID();
+      await env.DB.prepare(
+        'INSERT INTO social_posts (id,title,body,platforms,format,media_key,source_slug,status,scheduled_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)'
+      ).bind(id,String(n.title||'BTMEDYA').slice(0,180),body,platforms,'4:5',mediaKey,String(n.slug),'onayda',null,now,now).run();
+      made++; result.created++; result.items.push({id,slug:n.slug,status:'onayda'});
+    }
+  }catch(e){
+    result.error=String(e?.message||e).slice(0,300);
+  }
+  return result;
+}
+
 async function hydrateR2FromManifest(env, limit=3){
   const result={enabled:Boolean(env.MEDIA&&env.ASSETS),processed:0,copied:0,skipped:0,failed:0,items:[]};
   if(!result.enabled) return result;
@@ -1185,6 +1218,11 @@ async function hydrateR2FromManifest(env, limit=3){
 
 export default { async scheduled(controller, env, ctx){
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
+  /* Yayındaki yeni haberleri sosyal panelde onay kuyruğuna hazırlar.
+     Otomatik yayın yapmaz: son yayın kararı kullanıcı onayından sonra Metricool'a gider. */
+  const drafts=autoPrepareSocialDrafts(env,3)
+    .then(x=>{ if(x.created) console.log('[btmedya] social drafts',x.created,'hazırlandı'); })
+    .catch(e=>console.error('[btmedya] social draft generator:',e?.message||e));
   /* Metricool teslimi. METRICOOL_USER_TOKEN yoksa hicbir sey yapmaz; hata
      nabzi durdurmasin diye ayri yakalanir. */
   const metricool=processMetricoolQueue(env)
@@ -1196,7 +1234,7 @@ export default { async scheduled(controller, env, ctx){
   const archive=hydrateR2FromManifest(env,3)
     .then(x=>{ if(x.processed) console.log('[btmedya] r2 archive',x.copied,'kopya',x.skipped,'mevcut',x.failed,'hata'); })
     .catch(e=>console.error('[btmedya] r2 archive:',e?.message||e));
-  const hepsi=Promise.all([task,metricool,archive]);
+  const hepsi=Promise.all([task,metricool,archive,drafts]);
   if(ctx?.waitUntil) ctx.waitUntil(hepsi); else await hepsi;
 }, async fetch(request, env, ctx){
   const url = new URL(request.url);
