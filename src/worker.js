@@ -1196,7 +1196,7 @@ async function hydrateR2FromManifest(env, limit=3){
   const n=Math.max(1,Math.min(3,Number(limit)||3));
   for(let i=0;i<n;i++){
     const row=items[(index+i)%items.length];
-    const key=String(row.path).replace(/^\\/+/,"");
+    const key=String(row.path).replace(/^\/+/,"");
     result.processed++;
     const exists=await env.MEDIA.head(key).catch(()=>null);
     if(exists){ result.skipped++; result.items.push({key,status:'exists'}); continue; }
