@@ -42,7 +42,7 @@ jobs:
 
       - name: Commit generated vitrine
         run: |
-          if git diff --quiet -- public/assets/generated; then
+          if [ -z "$(git status --porcelain -- public/assets/generated)" ]; then
             echo "No generated vitrine changes."
             exit 0
           fi
