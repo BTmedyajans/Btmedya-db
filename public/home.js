@@ -1064,8 +1064,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   }
 })();
 
-/* BTMEDYA NextGen Relevance Layer — 2026-09-29
-   Goal: order/filter published editorial cards using existing metadata only. */
+/* BTMEDYA NextGen Relevance Layer — 2026-09-29 */
 (()=>{
  const d=document;
  const norm=s=>String(s||'').toLocaleLowerCase('tr-TR').replace(/ı/g,'i').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -1077,4 +1076,5 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
  const render=(items,key)=>{const a=items.filter(n=>key==='all'||cat(n)===key).sort((x,y)=>quality(y)-quality(x)).slice(0,3);if(!a.length){grid.innerHTML='<div class="portfoy-bos">Bu editoryal hatta şu anda yayınlanmış içerik bulunmuyor.</div>';return;}grid.innerHTML=a.map((n,i)=>{const cover=(n.cover_url||(n.slug?'/assets/haber-kapak/'+encodeURIComponent(n.slug)+'.webp':''))||'';const foto=cover.replace(/\.webp$/,'-foto.webp');const badge=n.ai_generated===true?'AI ÜRETİMİ':'GERÇEK / EDİTORYAL';return '<a class="news-card'+(i===0?' featured':'')+'" href="/haberler/'+encodeURIComponent(n.slug||'')+'"><div class="news-media"><img src="'+foto.replace(/&/g,'&amp;')+'" alt="'+String(n.title||'BTMEDYA haber').replace(/"/g,'&quot;')+'" loading="lazy" decoding="async" width="1200" height="675"><span class="nextgen-media-badge">'+badge+'</span></div><div class="news-body"><small>'+String(n.category||'HABER')+'</small><h3>'+String(n.title||'')+'</h3><p>'+String(n.excerpt||'')+'</p><div class="nextgen-proof">'+(n.source_url?'KAYNAKLI':'BTMEDYA ARŞİVİ')+' · '+(n.author||'BTMEDYA Haber Merkezi')+'</div></div></a>';}).join('');};
  const controls=[['all','TÜMÜ'],...CATS.map(x=>[x[0],x[1]])];bar.innerHTML=controls.map((x,i)=>'<button type="button" role="tab" aria-selected="'+(i===0)+'" data-nextgen-cat="'+x[0]+'">'+x[1]+'</button>').join('');
  bar.addEventListener('click',e=>{const b=e.target.closest('[data-nextgen-cat]');if(!b)return;bar.querySelectorAll('[data-nextgen-cat]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));render(window.__BTMEDYA_NEWS_CACHE||[],b.dataset.nextgenCat);});
+ fetch('/api/news?limit=100',{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():{}).then(j=>{window.__BTMEDYA_NEWS_CACHE=(Array.isArray(j.items)?j.items:[]).filter(n=>n.status==='published'); render(window.__BTMEDYA_NEWS_CACHE,'all');}).catch(()=>{});
 })();
