@@ -21,7 +21,7 @@ const files=walk('public');
 for(const file of files){
   if(file.endsWith('google3d14019638be46ce.html')) continue;
   const h=readFileSync(file,'utf8');
-  if(!/^<html\b[^>]*\blang\s*=\s*["'][^"']+["']/im.test(h)) errors.push(`${file}: <html> lang eksik`);
+  if(!/<html\b[^>]*\blang\s*=\s*["'][^"']+["']/i.test(h)) errors.push(`${file}: <html> lang eksik`);
   if(!/<title>[^<]+<\/title>/i.test(h)) errors.push(`${file}: <title> eksik`);
   if(!/<meta\s+name=["']viewport["']/i.test(h)) warnings.push(`${file}: viewport meta eksik`);
 
