@@ -23,8 +23,8 @@
     {k:'05 / AI LAB · AÇIK ETİKET',source:'AI ÜRETİMİ',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI üretimi ayrı, açık ve şeffaf bir laboratuvar olarak konumlanıyor.'}
   ];
   const state={active:-1,raf:0};
-  const setScene=i=>{
-    if(i<0||i>=scenes.length||i===state.active) return;
+  const setScene=(i,force=false)=>{
+    if(i<0||i>=scenes.length||(!force && i===state.active)) return;
     state.active=i;
     const s=scenes[i];
     kicker&&(kicker.textContent=s.k);
@@ -64,6 +64,9 @@
     sticky.style.setProperty('--hero-progress',p.toFixed(4));
   };
   const request=()=>{if(!state.raf)state.raf=requestAnimationFrame(render)};
+  // Base hero engine has a compact-mode timer. On mobile the scroll timeline owns the story,
+  // so any timer-driven scene event is immediately reconciled with the current scroll position.
+  root.addEventListener('btsahne',()=>request(),{passive:true});
   // Give the mobile hero enough vertical runway for a real scroll timeline.
   const resize=()=>{
     root.style.height=Math.max(window.innerHeight*5.2,2600)+'px';
