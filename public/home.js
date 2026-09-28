@@ -641,6 +641,11 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   const label=root.querySelector('[data-cinematic-label]');
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const mobile=()=>window.innerWidth<=720;
+  /* Kompakt mod: sahne CSS'te sabitlenmiyorsa (mobil, cinematic-overrides.css)
+     kaydirma ilerlemesi sahne secemez; kapsayici tek ekran oldugu icin hafif
+     bir kaydirma bile son sahneye atlatirdi. Bu modda sahneler zamanla doner.
+     Veri tasarrufu: afisi olan ara sahnelerin videosu indirilmez, afis gosterilir. */
+  const kompakt=()=>!!sticky && getComputedStyle(sticky).position!=='sticky';
   /* Sahne rozeti sahnenin videosunun kendi kaynagini gosterir.
      Varsayilan dort video (hero-story, state-haber, state-medya,
      state-produksiyon) yapay zeka uretimi: medya-ozel.json gercek listesinde
@@ -693,9 +698,13 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       if(kicker) kicker.textContent=scene.k;
       if(lead) lead.textContent=scene.d;
       if(index) index.textContent=String(i+1).padStart(2,'0');
-      if(label) label.textContent=i===0?'SCROLL TO EXPLORE':scene.k;
+      if(label) label.textContent=(i===0&&!kompakt())?'SCROLL TO EXPLORE':scene.k;
       videos.forEach((v,n)=>{
-        if(n===i) { loadVideo(v); const el=v.querySelector('video'); if(el && i>0) el.play().catch(()=>{}); }
+        if(n===i) {
+          const el=v.querySelector('video');
+          const sadeceAfis=kompakt() && i>0 && el && el.getAttribute('poster') && !el.dataset.loaded;
+          if(!sadeceAfis){ loadVideo(v); if(el && (i>0 || kompakt()) && !reduced) el.play().catch(()=>{}); }
+        }
         const el=v.querySelector('video');
         if(el && n!==i) el.pause();
       });
@@ -720,6 +729,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   }
   function tick(){
     raf=0;
+    if(kompakt()) return;
     const rect=root.getBoundingClientRect();
     const travel=Math.max(1,root.offsetHeight-window.innerHeight);
     const p=Math.min(1,Math.max(0,-rect.top/travel));
@@ -745,6 +755,30 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   }
   setScene(0,0);
   request();
+
+  /* setScene opakligi kaydirma ilerlemesinden hesaplar; zamanli modda
+     yalniz etkin sahne tam gorunur, AI sahnesinde gorsel acilir. */
+  function kompaktGorunum(i){
+    videos.forEach((v,n)=>{v.style.opacity=n===i?'1':'0';v.style.transform='none';});
+    if(ai) ai.style.opacity=i===4?'1':'0';
+  }
+  if(kompakt()) kompaktGorunum(0);
+  let gorunur=true, dongu=0;
+  if('IntersectionObserver' in window) new IntersectionObserver(es=>{gorunur=es[0].isIntersecting;}).observe(root);
+  function donguAyarla(){
+    const gerekli=kompakt() && !reduced;
+    if(gerekli && !dongu){
+      dongu=setInterval(()=>{
+        if(document.hidden || !gorunur || !kompakt()) return;
+        const i=(active+1)%scenes.length;
+        setScene(i,i/scenes.length);
+        kompaktGorunum(i);
+      },5200);
+    } else if(!gerekli && dongu){ clearInterval(dongu); dongu=0; request(); }
+    if(gerekli && label) label.textContent=scenes[Math.max(0,active)].k;
+  }
+  donguAyarla();
+  window.addEventListener('resize',donguAyarla,{passive:true});
 })();
 
 /* Kurulus hikayesi portresi (panel yuvasi: portre-buse).

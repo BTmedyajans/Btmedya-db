@@ -15,7 +15,7 @@ button,a{touch-action:manipulation}
   .cinematic-sticky{min-height:100svh;height:100svh;max-height:none}
   .cinematic-video video,.cinematic-video-1 video{width:100%;height:100%;object-fit:cover;object-position:center center}
   .cinematic-copy{left:var(--bt-gutter);right:var(--bt-gutter);max-width:calc(100% - 2 * var(--bt-gutter))}
-  .cinematic-title{font-size:clamp(44px,13vw,72px);line-height:.9;overflow-wrap:anywhere}
+  .cinematic-title{font-size:clamp(44px,13vw,72px);line-height:.9;overflow-wrap:break-word}
   .cinematic-lead{max-width:34ch;font-size:14px;line-height:1.55}
   .cinematic-actions{display:grid;grid-template-columns:1fr;gap:8px}
   .cinematic-actions .button{min-height:48px;display:flex;align-items:center;justify-content:center}
@@ -36,7 +36,8 @@ button,a{touch-action:manipulation}
   .news-grid,.service-grid,.ai-grid,.source-grid{grid-template-columns:1fr}
   .news-card,.service-grid article,.ai-grid article,.source-grid a{min-height:0}
   .news-media{aspect-ratio:16/10}
-  .news-media img,.article-cover{width:100%;height:auto;object-fit:cover}
+  .news-media img{width:100%;height:100%;object-fit:cover}
+  .article-cover{width:100%;height:auto;object-fit:cover}
 
   .portfoy-grid,.archive-live-grid{grid-template-columns:1fr}
   .portfoy-kart,.archive-live-card,.archive-live-card.featured{grid-column:auto;min-height:300px}
@@ -158,7 +159,8 @@ button,a{touch-action:manipulation}
   .founder-copy{width:100%}
   .contact-section{gap:36px}
   .portfoy-kart,.news-card,.archive-live-card{min-width:0!important;width:100%!important}
-  .portfoy-kapak,.news-media img,.archive-media{max-width:100%;height:auto}
+  .portfoy-kapak,.archive-media{max-width:100%;height:auto}
+  .news-media img{max-width:100%;height:100%}
 }
 @media (max-width: 600px) and (pointer: coarse){
   .section,.archive-section,.founder-section,.contact-section{padding-left:18px!important;padding-right:18px!important}
@@ -177,7 +179,12 @@ button,a{touch-action:manipulation}
   html,body{max-width:100%;overflow-x:hidden!important}
   body{min-width:0}
   main,header,footer,section,article,aside,nav,div{min-width:0}
-  h1,h2,h3,h4,p,a,button,label,span{overflow-wrap:anywhere}
+  /* Govde metni uzun URL/etiketlerde tasmasin diye her yerde kirilabilir;
+     basliklar ise yalniz tek kelime satira sigmiyorsa kirilir. "anywhere"
+     basliklarda "YAYINLAMIYOR / UZ." gibi kelime ortasi bolme uretiyordu. */
+  p,a,button,label,span{overflow-wrap:anywhere}
+  h1,h2,h3,h4{overflow-wrap:break-word;word-break:normal;hyphens:manual}
+  :is(h1,h2,h3,h4) :is(span,a,b,em){overflow-wrap:inherit}
   input,textarea,select,button{max-width:100%;font:inherit}
   input,textarea,select{min-width:0}
   img,video,svg,canvas,iframe{max-width:100%;box-sizing:border-box}
@@ -194,12 +201,12 @@ button,a{touch-action:manipulation}
   .menu-wide{grid-column:auto!important}
   .cinematic-sticky{overflow:hidden}
   .cinematic-copy{max-width:none!important}
-  .cinematic-title,.hero-title{max-width:100%;word-break:normal;overflow-wrap:anywhere}
+  .cinematic-title,.hero-title{max-width:100%;word-break:normal;overflow-wrap:break-word}
   .cinematic-actions .button,.hero-actions .button{width:100%;min-width:0}
   .news-grid,.service-grid,.ai-grid,.source-grid,.portfoy-grid,.archive-live-grid{width:100%;min-width:0}
   .news-card,.service-grid article,.ai-grid article,.source-grid a,
   .portfoy-kart,.archive-live-card{min-width:0!important}
-  .news-body h3,.news-body p,.service-grid article,.ai-grid article{overflow-wrap:anywhere}
+  .news-body p,.service-grid article p,.ai-grid article p{overflow-wrap:anywhere}
   .story-cards,.story-card,.bt-world-visual,.bt-world-frame{min-width:0;max-width:100%}
   .cta,.final-footer{overflow:hidden}
   .cta-sub{max-width:100%}
@@ -213,4 +220,11 @@ button,a{touch-action:manipulation}
   .cinematic-title{font-size:clamp(38px,13vw,52px)!important}
   .cinematic-lead{max-width:100%;font-size:13px}
   .section,.archive-section,.source-section{padding-left:16px!important;padding-right:16px!important}
+}
+
+/* ===== BASLIK OLCEGI / 28 EYLUL 2026 =====
+   En uzun Turkce kelime ("YAYINLAMIYORUZ.") satira sigacak buyukluk.
+   Olcum: 390 px'de 58,5 px'lik baslik 421 px istiyordu, alan 351 px. */
+@media (max-width:720px){
+  .manifesto h2,.section-head h2{font-size:clamp(34px,11.6vw,82px)}
 }
