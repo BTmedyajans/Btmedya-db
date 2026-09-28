@@ -302,3 +302,5 @@ fi
 echo ""
 echo "APPLY completed."
 echo "NOT: send.* Resend MX korundu; yalnızca REMOVE_RESEND_RECORDS=1 verilirse silinir."
+
+# Token scope recheck trigger: 2026-09-28
