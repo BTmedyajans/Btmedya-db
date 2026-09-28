@@ -165,7 +165,10 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     }, {passive:true});
   }
 
-  const lazy = [...d.querySelectorAll('video[data-src]')];
+  /* Hero videolari hero motoruna aittir (sahneye gore ya da hic yuklenir);
+     burada yuklenirse ust uste duran dort video sahneden bagimsiz hepsi
+     birden iner (masaustunde ~14 MB, mobilde panel atamasiyla ~13 MB). */
+  const lazy = [...d.querySelectorAll('video[data-src]')].filter(v => !v.closest('.cinematic-hero'));
   const loadVideo = v => {
     if (v.dataset.loaded) return;
     v.src = v.dataset.src;
@@ -677,11 +680,94 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     if(poster && poster.tur==='image' && hv) hv.setAttribute('poster',poster.url);
   });
   let active=-1, raf=0;
+
+  /* KARE DIZISI (masaustu). Hero videosu (AI uretimi, assets/hero-scrub.mp4)
+     93 kareye bolundu; kaydirma ilerlemesi kareyi secer, video oynatilmaz.
+     Apple urun sayfalarindaki teknik: video decode'u kaydirmaya yetismez,
+     hazir kare aninda cizilir. Kareler asamali iner: once ilk kare, sonra
+     her 8. kare (iskelet), sonra aradakiler; eksik karede en yakin inmis
+     kare cizilir. Panelden sahneye video atanirsa dizi devreden cikar;
+     panel atamasi her zaman onceliklidir. Mobil (kompakt) ve hareket
+     azaltmada kullanilmaz. */
+  const KARE_SAYISI=93;
+  // Dizi bu cekimden uretildi; panel bu dosyalardan birini secmisse dizi
+  // ayni icerigi gosterir ve devrede kalir.
+  const KARE_KAYNAKLARI=['/assets/hero-scrub.mp4','/assets/hero-scrub.webm','/assets/hero-mobil.mp4'];
+  const kareYolu=i=>'/assets/hero-kare/'+String(i+1).padStart(3,'0')+'.webp';
+  let kareAktif=false, tuval=null, cizer=null, kareler=[], sonKare=-1;
+  function tuvalBoyut(){
+    if(!tuval) return;
+    const o=Math.min(window.devicePixelRatio||1,1.5), r=sticky.getBoundingClientRect();
+    tuval.width=Math.round(r.width*o); tuval.height=Math.round(r.height*o); sonKare=-1;
+  }
+  function enYakinKare(i){
+    for(let d=0; d<KARE_SAYISI; d++){
+      if(kareler[i-d] && kareler[i-d].hazir) return i-d;
+      if(kareler[i+d] && kareler[i+d].hazir) return i+d;
+    }
+    return -1;
+  }
+  function kareCiz(p){
+    if(!cizer) return;
+    const k=enYakinKare(Math.round(Math.min(1,Math.max(0,p))*(KARE_SAYISI-1)));
+    if(k<0 || k===sonKare) return;
+    sonKare=k;
+    const im=kareler[k], W=tuval.width, H=tuval.height;
+    const olcek=Math.max(W/im.naturalWidth,H/im.naturalHeight), w=im.naturalWidth*olcek, h=im.naturalHeight*olcek;
+    cizer.drawImage(im,(W-w)/2,(H-h)/2,w,h);
+  }
+  /* Hero'nun sonunda sahne daireye kapanir ve sonraki bolum acilir. */
+  function perde(p){
+    const t=Math.max(0,(p-.9)/.1);
+    sticky.style.clipPath=t>0?`circle(${(150-t*128).toFixed(1)}% at 50% 50%)`:'';
+  }
+  function kareYukle(sira){
+    let n=0;
+    const tek=()=>{
+      while(n<sira.length && kareler[sira[n]]) n++;
+      if(n>=sira.length || !tuval) return;
+      const i=sira[n++], im=new Image(); im.decoding='async'; kareler[i]=im;
+      im.onload=()=>{ im.hazir=true; if(i===0 && tuval) tuval.classList.add('hazir'); sonKare=-1; request(); tek(); };
+      im.onerror=tek; im.src=kareYolu(i);
+    };
+    for(let k=0;k<4;k++) tek();
+  }
+  function kareKur(){
+    if(reduced || kompakt() || tuval || !sticky) return;
+    tuval=document.createElement('canvas');
+    tuval.className='cinematic-kare'; tuval.setAttribute('aria-hidden','true');
+    sticky.insertBefore(tuval, sticky.querySelector('.cinematic-vignette'));
+    cizer=tuval.getContext('2d',{alpha:false});
+    kareAktif=true; tuvalBoyut();
+    // Kareler panel atamasi okunduktan sonra iner; baska bir video atanmissa
+    // hic indirilmez.
+    Promise.resolve(window.btYuvalar||{}).then(y=>{
+      const yabanci=scenes.some(sc=>{ const a=sc.yuva && y[sc.yuva];
+        return a && a.tur==='video' && !KARE_KAYNAKLARI.includes(String(a.url||'').split('?')[0]); });
+      if(yabanci){ kareKapat(); return; }
+      const sira=[0]; for(let i=8;i<KARE_SAYISI;i+=8) sira.push(i);
+      for(let i=1;i<KARE_SAYISI;i++) if(!sira.includes(i)) sira.push(i);
+      kareYukle(sira);
+    });
+  }
+  function kareKapat(){
+    if(!tuval) return;
+    kareAktif=false; tuval.remove(); tuval=null; cizer=null; sticky.style.clipPath='';
+    active=-1; request();
+  }
+  /* Panel atamasi okunmadan video yuklenmez: once varsayilan video inip
+     sonra atanan videoyla degistiriliyordu (mobilde ~1,1 MB bosa). Bu
+     sirada video afisi gorunur. */
+  let yuvalarOkundu=false; const bekleyen=new Set();
+  Promise.resolve(window.btYuvalar||{}).finally(()=>{ yuvalarOkundu=true; bekleyen.forEach(v=>{ loadVideo(v); const el=v.querySelector('video'); if(el && videos.indexOf(v)===active && (active>0||kompakt()) && !reduced) el.play().catch(()=>{}); }); bekleyen.clear(); });
   function loadVideo(v){
     if(!v) return;
+    if(!yuvalarOkundu){ bekleyen.add(v); return; }
     const el=v.querySelector('video');
     if(!el || el.dataset.loaded) return;
-    const src=mobile() && el.dataset.mobile ? el.dataset.mobile : el.dataset.src;
+    let src=mobile() && el.dataset.mobile ? el.dataset.mobile : el.dataset.src;
+    // hero-scrub 1280x720 ve 8,7 MB; ayni cekimin dikey kesimi 0,9 MB.
+    if(mobile() && /\/hero-scrub\.(?:mp4|webm)$/.test(src||'')) src='/assets/hero-mobil.mp4';
     if(!src) return;
     el.dataset.loaded='1'; el.src=src; el.load();
   }
@@ -700,7 +786,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       if(index) index.textContent=String(i+1).padStart(2,'0');
       if(label) label.textContent=(i===0&&!kompakt())?'SCROLL TO EXPLORE':scene.k;
       videos.forEach((v,n)=>{
-        if(n===i) {
+        if(n===i && !kareAktif) {
           const el=v.querySelector('video');
           const sadeceAfis=kompakt() && i>0 && el && el.getAttribute('poster') && !el.dataset.loaded;
           if(!sadeceAfis){ loadVideo(v); if(el && (i>0 || kompakt()) && !reduced) el.play().catch(()=>{}); }
@@ -720,6 +806,11 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       v.classList.toggle('is-active',n===i);
     });
     if(ai) ai.style.opacity=i===4?String(Math.min(1,Math.max(0,(local-.02)*1.5))):'0';
+    if(kareAktif){
+      kareCiz(p); perde(p);
+      // Ilk kare cizilene kadar video afisi gorunur kalir; siyah bosluk olusmaz.
+      if(tuval.classList.contains('hazir')){ videos.forEach(v=>{v.style.opacity='0';}); if(ai) ai.style.opacity='0'; }
+    }
     if(progressEl){
       progressEl.style.width=(p*100)+'%';
       const progressBar=progressEl.closest('[role="progressbar"]');
@@ -753,6 +844,12 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     root.style.height='100vh';
     loadVideo(videos[0]);
   }
+  kareKur();
+  window.addEventListener('resize',()=>{
+    if(kompakt()) kareKapat();
+    else if(!tuval) { kareKur(); active=-1; }
+    tuvalBoyut(); request();
+  },{passive:true});
   setScene(0,0);
   request();
 
@@ -798,4 +895,42 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       kutu.appendChild(r);
     }
   });
+})();
+
+/* Canli rakamlar (manifesto). Sayilar elle yazilmaz: haber sayisi yayin
+   API'sinden, medya ve video sayisi uretilen medya listesinden, kanal
+   sayisi sayfadaki gercek sosyal baglantilardan gelir. Veri alinamazsa
+   "—" kalir; tahmini rakam gosterilmez. Ekrana girince sayarak dolar. */
+(function(){
+  const kutu=document.querySelector('.canli-sayac');
+  if(!kutu) return;
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const yaz=(ad,deger)=>{
+    const el=kutu.querySelector('[data-sayac="'+ad+'"]');
+    if(!el || !(deger>0)) return;
+    if(reduced){ el.textContent=deger.toLocaleString('tr-TR'); return; }
+    const bas=performance.now(), sure=1400;
+    const adim=t=>{ const k=Math.min(1,(t-bas)/sure), e=1-Math.pow(1-k,3);
+      el.textContent=Math.round(deger*e).toLocaleString('tr-TR'); if(k<1) requestAnimationFrame(adim); };
+    requestAnimationFrame(adim);
+  };
+  async function doldur(){
+    const [haber,medya]=await Promise.all([
+      fetch('/api/news?limit=500',{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('/data/medya-listesi.json').then(r=>r.ok?r.json():null).catch(()=>null)
+    ]);
+    if(haber && Array.isArray(haber.items)) yaz('haber',haber.items.filter(n=>n.status==='published').length);
+    if(Array.isArray(medya)){
+      yaz('medya',medya.length);
+      yaz('video',medya.filter(m=>/\.mp4$/i.test(m.path||'')).length);
+    }
+    const kanallar=new Set([...document.querySelectorAll('a[href*="instagram.com/"],a[href*="youtube.com/@"],a[href*="tiktok.com/@"]')]
+      .map(a=>{ try{ const u=new URL(a.href); return u.hostname.replace(/^www\./,'')+u.pathname.split('/').slice(0,2).join('/'); }catch(e){ return ''; } })
+      .filter(Boolean));
+    yaz('kanal',kanallar.size);
+  }
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(es=>{ if(es.some(e=>e.isIntersecting)){ io.disconnect(); doldur(); } },{rootMargin:'0px 0px -15% 0px'});
+    io.observe(kutu);
+  } else doldur();
 })();

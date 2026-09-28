@@ -317,6 +317,21 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   }
 }
 
+/* 11) Hero videolari genel tembel yukleyiciye girmemeli: girerse ust uste
+       duran dort video sahneden bagimsiz hepsi birden iner (~14 MB).
+       Kare dizisi dosyalari da eksiksiz olmali. */
+{
+  const home = readFileSync('public/home.js', 'utf8');
+  if (!/filter\(v => !v\.closest\('\.cinematic-hero'\)\)/.test(home)) {
+    bulgular.push("public/home.js genel video yukleyicisi hero videolarini disarida birakmiyor (.cinematic-hero); hero'da tum videolar birden iner.");
+  }
+  const n = Number((home.match(/const KARE_SAYISI=(\d+)/) || [])[1] || 0);
+  for (let i = 1; i <= n; i++) {
+    const f = join('public/assets/hero-kare', String(i).padStart(3, '0') + '.webp');
+    if (!existsSync(f)) { bulgular.push(`${f} yok; hero kare dizisi eksik (KARE_SAYISI=${n}).`); break; }
+  }
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
