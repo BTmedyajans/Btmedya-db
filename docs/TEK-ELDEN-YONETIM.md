@@ -8,7 +8,7 @@ BTMEDYA'nın günlük yönetimi `https://btmedya.com.tr/admin/` üzerinden yapı
 - D1: haberler, mesajlar ve medya kayıtları
 - R2: fotoğraf, video, ses ve belge
 - GitHub: yalnızca kod ve sürüm geçmişi
-- GitHub Actions `deploy.yml` + Cloudflare Workers: `main` dalından production deploy
+- Cloudflare Workers Builds: `main` dalından production deploy; GitHub Actions `deploy.yml` yalnızca production doğrulama
 
 ## Günlük kullanım
 
