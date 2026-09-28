@@ -97,8 +97,9 @@ export function renderNewsPage(n, origin, vlib){
     "@context":"https://schema.org","@type":"NewsArticle",
     headline:n.title, description:ozet, url,
     ...(tarihIso?{datePublished:tarihIso,dateModified:guncelIso}:{}),
-    author:(n.author&&/buse\s+tuncay/i.test(n.author))?{"@type":"Person",name:n.author,url:`${origin}/portfoy/buse-tuncay/`}:{"@type":"Organization",name:n.author||'BTMEDYA',url:origin},
-    publisher:{"@type":"Organization",name:"BTMEDYA",
+    author:(n.author&&/buse\s+tuncay/i.test(n.author))?{"@type":"Person",name:n.author,url:`${origin}/portfoy/buse-tuncay/`,sameAs:["https://tr.linkedin.com/in/buse-tuncay-6b217623","https://www.instagram.com/busetuncayy10/","https://www.youtube.com/@BTmedyaAjans"]}:{"@type":"Organization",name:n.author||'BTMEDYA',url:origin,sameAs:["https://www.instagram.com/btmedyajans/","https://www.youtube.com/@BTmedyaAjans","https://www.tiktok.com/@btmedya1010"]},
+    publisher:{"@type":"Organization",name:"BTMEDYA",url:origin,
+      sameAs:["https://www.instagram.com/btmedyajans/","https://www.youtube.com/@BTmedyaAjans","https://www.tiktok.com/@btmedya1010"],
       logo:{"@type":"ImageObject",url:`${origin}/assets/logo/bt-amblem-256.png`}},
     ...(n.category?{articleSection:n.category}:{}),
     ...(ogImg?{image:ogImg}:{}),
@@ -165,6 +166,11 @@ ${n.category?`<meta property="article:section" content="${esc(n.category)}"/>`:'
 <meta property="og:image:height" content="675"/>
 <meta property="og:image:alt" content="${esc(n.title)}"/>
 <meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="${esc(n.title)}"/>
+<meta name="twitter:description" content="${esc(kisaOzet(ozet))}"/>
+<meta name="twitter:image" content="${esc(ogImg)}"/>
+<meta name="twitter:image:alt" content="${esc(n.title)}"/>
+<meta name="twitter:url" content="${esc(url)}"/>
 <link rel="preload" href="/assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/bricolage-latin-ext.woff2" as="font" type="font/woff2" crossorigin>
