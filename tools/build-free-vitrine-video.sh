@@ -42,9 +42,9 @@ build() {
     INPUTS+=(-loop 1 -t 2.6 -i "${IMAGES[$i]}")
   done
 
-  FILTER="[0:v]scale=$W:$H:force_original_aspect_ratio=increase,crop=$W:$H,zoompan=z='min(zoom+0.0007,1.07)':d=78:s=${W}x${H}:fps=30,setsar=1,drawtext=fontfile=$FONT:text='${LABELS[0]}':x=56:y=${H}-110:fontsize=${W}/48:fontcolor=white:box=1:boxcolor=black@0.48:boxborderw=18,fade=t=in:st=0:d=.35,fade=t=out:st=2.15:d=.35[v0];"
+  FILTER="[0:v]scale=$W:$H:force_original_aspect_ratio=increase,crop=$W:$H,zoompan=z='min(zoom+0.0007,1.07)':d=78:s=${W}x${H}:fps=30,setsar=1,drawtext=fontfile=$FONT:text='${LABELS[0]}':x=56:y=${H}-110:fontsize=${W}/48:fontcolor=white:box=1:boxcolor=black@0.48:boxborderw=18,fade=t=in:st=0:d=0.35,fade=t=out:st=2.15:d=0.35[v0];"
   for i in 1 2 3 4; do
-    FILTER+="[$i:v]scale=$W:$H:force_original_aspect_ratio=increase,crop=$W:$H,zoompan=z='min(zoom+0.0007,1.07)':d=78:s=${W}x${H}:fps=30,setsar=1,drawtext=fontfile=$FONT:text='${LABELS[$i]}':x=56:y=${H}-110:fontsize=${W}/48:fontcolor=white:box=1:boxcolor=black@0.48:boxborderw=18,fade=t=in:st=0:d=.35,fade=t=out:st=2.15:d=.35[v$i];"
+    FILTER+="[$i:v]scale=$W:$H:force_original_aspect_ratio=increase,crop=$W:$H,zoompan=z='min(zoom+0.0007,1.07)':d=78:s=${W}x${H}:fps=30,setsar=1,drawtext=fontfile=$FONT:text='${LABELS[$i]}':x=56:y=${H}-110:fontsize=${W}/48:fontcolor=white:box=1:boxcolor=black@0.48:boxborderw=18,fade=t=in:st=0:d=0.35,fade=t=out:st=2.15:d=0.35[v$i];"
   done
   FILTER+="[v0][v1][v2][v3][v4]concat=n=5:v=1:a=0,format=yuv420p[v]"
 
