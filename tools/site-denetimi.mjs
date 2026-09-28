@@ -124,6 +124,48 @@ async function paylasimDenetimi(adresler) {
   notlar.push(`paylasim gorseli: ${sayfalar.length} sayfa denetlendi, ${tamam}/${gorseller.size} gorsel aciliyor`);
 }
 
+/* ---------- 2b. SEO ve sosyal paylaşım etiketleri ---------- */
+async function seoMetaDenetimi(adresler) {
+  const secilecek = [
+    SITE + '/',
+    SITE + '/haberler/',
+    SITE + '/sosyal-medya/',
+    SITE + '/sosyal-medya-kit/',
+    SITE + '/portfoy/buse-tuncay/',
+    ...adresler.filter((a) => /\/haberler\/.+/.test(new URL(a).pathname)).slice(0, 2),
+  ];
+  const sonuc = await sinirli(secilecek.map((a) => async () => {
+    const r = await getir(a);
+    const html = await r.text();
+    return {
+      a,
+      status: r.status,
+      title: /<title>[^<]+<\/title>/i.test(html),
+      description: /<meta\s+name=["']description["'][^>]+content=["'][^"']+/i.test(html),
+      canonical: /<link\s+rel=["']canonical["'][^>]+href=["']https:\/\/btmedya\.com\.tr\//i.test(html),
+      og: /<meta\s+property=["']og:image["'][^>]+content=["']https:\/\//i.test(html),
+      tw: /<meta\s+name=["']twitter:card["'][^>]+content=/i.test(html),
+      twTitle: /<meta\s+name=["']twitter:title["'][^>]+content=/i.test(html),
+      twImage: /<meta\s+name=["']twitter:image["'][^>]+content=/i.test(html),
+      article: /"@type"\s*:\s*"NewsArticle"/.test(html),
+    };
+  }));
+  for (const x of sonuc) {
+    const yol = new URL(x.a).pathname;
+    if (x.status !== 200) { hatalar.push(\`SEO sayfası \${x.status} dönüyor: \${yol}\`); continue; }
+    if (!x.title) hatalar.push(\`title yok: \${yol}\`);
+    if (!x.description) hatalar.push(\`meta description yok: \${yol}\`);
+    if (!x.canonical) hatalar.push(\`canonical yok/yanlış: \${yol}\`);
+    if (!x.og) hatalar.push(\`og:image yok/HTTPS değil: \${yol}\`);
+    if (!x.tw) uyarilar.push(\`twitter:card yok: \${yol}\`);
+    if (x.a.includes('/haberler/')) {
+      if (!x.article) hatalar.push(\`NewsArticle structured data yok: \${yol}\`);
+      if (!x.twTitle || !x.twImage) uyarilar.push(\`haber sosyal meta eksik: \${yol}\`);
+    }
+  }
+  notlar.push(\`SEO: \${sonuc.length} sayfa temel meta + paylaşım etiketi açısından denetlendi\`);
+}
+
 /* ---------- 3. Haber kapaklari: her haberin kapagi depoda ve canlida olmali ---------- */
 async function kapakDenetimi() {
   const haberler = JSON.parse(readFileSync('public/data/haberler.json', 'utf8'));
@@ -229,6 +271,7 @@ const baslangic = Date.now();
 console.log(`BTMEDYA canli site denetimi — ${SITE}\n`);
 const adresler = await sitemapDenetimi();
 await paylasimDenetimi(adresler);
+await seoMetaDenetimi(adresler);
 await kapakDenetimi();
 await dagitimDenetimi();
 await altyapiDenetimi();
