@@ -405,10 +405,12 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     }
     const yt = '<a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube ↗</a>';
     const medya = video
-      /* Poster olmadan kart, video metadata'si gelene kadar siyah duruyordu. */
-      ? '<video class="archive-media" muted loop playsinline preload="metadata"' +
+      /* Poster olmadan kart, video metadata'si gelene kadar siyah duruyordu.
+         Adres data-src'de bekler: bolum sayfanin cok asagisinda ve showreel
+         4,7 MB; sayfa acilir acilmaz on yukleme mobil veriyi harciyordu. */
+      ? '<video class="archive-media" muted loop playsinline preload="none"' +
         (o.poster ? ' poster="' + esc(String(o.poster)) + '"' : '') +
-        ' src="' + esc(url) + '"></video>'
+        ' data-src="' + esc(url) + '"></video>'
       : '<img class="archive-media" loading="lazy" src="' + esc(url) + '" alt="' + baslik + '">';
     return '<article class="archive-live-card ' + (i === 0 ? 'featured' : '') + '">' + medya +
       '<div class="archive-overlay"></div><div class="archive-copy">' +
@@ -445,7 +447,12 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       /* Videolar yalnızca ekrandayken oynar: mobil veri ve pil için. */
       grid.querySelectorAll('video').forEach(v => {
         const io = new IntersectionObserver(
-          es => es.forEach(e => { if (e.isIntersecting) v.play().catch(() => {}); else v.pause(); }),
+          es => es.forEach(e => {
+            if (e.isIntersecting) {
+              if (!v.src && v.dataset.src) { v.src = v.dataset.src; v.load(); }
+              v.play().catch(() => {});
+            } else v.pause();
+          }),
           {rootMargin:'120px'}
         );
         io.observe(v);
