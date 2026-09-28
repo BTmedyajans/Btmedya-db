@@ -228,3 +228,7 @@ button,a{touch-action:manipulation}
 @media (max-width:720px){
   .manifesto h2,.section-head h2{font-size:clamp(34px,11.6vw,82px)}
 }
+
+/* MOBILE FINAL / BRAND LOGO: index uses the full BTMEDYA wordmark image, not an icon. */
+@media(max-width:760px){.topbar .brand{height:44px}.topbar .brand img{max-height:32px}}
+@media(max-width:420px){.topbar .brand img{max-width:54vw;max-height:30px}}
