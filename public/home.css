@@ -199,3 +199,5 @@ footer{padding:35px var(--pad);display:grid;grid-template-columns:1fr auto auto;
 @media(min-width:981px){.news-card.featured .news-media{height:auto;min-height:390px;flex:1 1 390px}.news-card.featured .news-body{flex:none}}
 /* Bilgi kartı (BTMEDYA GRAFİK) kapaklarında rakam karenin ortasında durur; fotoğraf için ayarlı üst kırpma ve alt karartma rakamı kesiyordu. */
 .news-media-grafik img{object-position:50% 50%!important;filter:none!important}.news-media-grafik .news-scrim{display:none}
+/* Sosyal akis baglantilari 13-14px yuksekligindeydi; mobil dokunma hedefi en az 24px olmali. */
+.social-profile-card a,.social-feed-card a{display:inline-flex;align-items:center;min-height:32px}

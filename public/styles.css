@@ -1133,3 +1133,5 @@ button,a{touch-action:manipulation}
   .cv-proof-card a,
   .cv-bottom a{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
 }
+/* Dokunma hedefi: 10px yazili geri baglantisi mobilde 14px yuksekligindeydi (WCAG 2.5.8 alt siniri 24px). Yazi boyutu korunur, tiklanabilir alan buyur. */
+.article-back{display:inline-flex;align-items:center;min-height:32px}
