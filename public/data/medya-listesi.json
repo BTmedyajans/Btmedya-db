@@ -571,17 +571,14 @@
  {
   "path": "media/web/hero-story-mobile.mp4",
   "id": "static-108",
-  "category": "video"
- },
- {
-  "path": "media/web/hero-story-poster.jpg",
-  "id": "static-109",
-  "category": "video"
+  "category": "video",
+  "gercek": true
  },
  {
   "path": "media/web/hero-story.mp4",
   "id": "static-110",
-  "category": "video"
+  "category": "video",
+  "gercek": true
  },
  {
   "path": "media/web/showreel-07.mp4",
@@ -596,12 +593,14 @@
  {
   "path": "media/web/showreel-action.mp4",
   "id": "static-113",
-  "category": "video"
+  "category": "video",
+  "gercek": true
  },
  {
   "path": "media/web/showreel-action.webm",
   "id": "static-114",
-  "category": "video"
+  "category": "video",
+  "gercek": true
  },
  {
   "path": "media/web/showreel-fantasy.mp4",
