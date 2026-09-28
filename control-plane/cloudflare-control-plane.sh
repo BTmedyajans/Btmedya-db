@@ -92,6 +92,16 @@ echo "=== PAGE RULES ==="
 jq -r '.result[]? | [(.id // ""), ((.targets[0].constraint.request_uri.value // "") | tostring), (.status // "")] | @tsv' <<<"$page_rules" || true
 
 echo ""
+echo "=== WORKER CUSTOM DOMAINS ==="
+worker_domains=$(cf GET "/accounts/$ACCOUNT_ID/workers/domains")
+if [[ "$(jq -r '.success // false' <<<"$worker_domains")" == "true" ]]; then
+  jq -r '.result[]? | [.hostname, (.service // ""), (.environment // ""), (.zone_id // ""), (.status // "")] | @tsv' <<<"$worker_domains" | sed 's/\t/ | /g' || true
+else
+  echo "WARNING: Worker custom domains okunamadı."
+  jq -c '{errors,messages}' <<<"$worker_domains" || true
+fi
+
+echo ""
 echo "=== DNS ==="
 jq -r '.result[]? | [.type,.name,.content,(.priority // ""),(.proxied // false)] | @tsv' <<<"$dns" | sed 's/	/ | /g' || true
 
