@@ -3,6 +3,7 @@ import { WorkflowStatusDO } from "./workflow-status-do.js";
 import { renderNewsPage } from "./news-page.js";
 import { socialProviderStatus } from "./social-platforms.js";
 import { recoveryPasswordValid } from "./auth-recovery.js";
+import { salesApi } from "./sales-router.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
@@ -1397,6 +1398,9 @@ export default { async scheduled(controller, env, ctx){
   }
 
   if(url.pathname.startsWith('/api/')){
+    const rSales = await salesApi(request, env, url);
+    if(rSales) return rSales;
+
     const rw = await workflowApi(request, env, url);
     if(rw) return rw;
 
