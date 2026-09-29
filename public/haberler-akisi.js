@@ -43,10 +43,28 @@
 
   function categoryMatch(n,key){
     if(key==='all')return true;
-    var s=norm((n.title||'')+' '+(n.category||'')+' '+(n.excerpt||''));
+    var s=norm((n.title||'')+' '+(n.category||'')+' '+(n.excerpt||'')+' '+(n.body||[]).join(' '));
     if(key==='balikesir')return local(n)||s.indexOf('balikesir')>-1;
+    if(key==='turkiye')return !/(abd|cin|kanada|ingiltere|avustralya|italya|trump|openai|google cloud|anthropic)/.test(s);
+    if(key==='dunya')return /(abd|cin|kanada|ingiltere|avustralya|italya|trump|openai|google cloud|anthropic|bm guvenlik|uluslararasi)/.test(s);
+    if(key==='ai')return /(yapay zeka|yapay zekâ|ai |ai,|openai|anthropic|gemini|microsoft|meta dan|claude|otomasyon)/.test(s);
     if(key==='ozel')return /ozel|dosya|saha|roportaj/.test(s);
     return s.indexOf(key)>-1;
+  }
+
+  function relevanceScore(n, coverMap){
+    var s=norm((n.title||'')+' '+(n.category||'')+' '+(n.excerpt||''));
+    var score=0;
+    if(n.cover_url)score+=20;
+    var kind=coverMap&&coverMap[n.slug];
+    if(kind==='gercek')score+=35;
+    else if(kind==='arsiv')score+=15;
+    else if(kind==='grafik')score+=8;
+    else if(kind==='temsili')score-=8;
+    if(local(n))score+=18;
+    if(/roportaj|saha|ozel|dosya/.test(s))score+=14;
+    if(/video|goruntu|kamera/.test(s))score+=8;
+    return score;
   }
   function filter(items,key){
     var list=items.filter(function(n){return categoryMatch(n,key);});
@@ -59,16 +77,16 @@
   function categoryBar(items){
     var old=document.querySelector('.news-category-bar');if(old)old.remove();
     var target=document.querySelector('.news-nav');if(!target)return;
-    var groups=[['SON DAKİKA','all','breaking'],['BALIKESİR','balikesir'],['ALTIEYLÜL','altieylul'],['KARESİ','karesi'],['BANDIRMA','bandirma'],['EDREMİT','edremit'],['AYVALIK','ayvalik'],['ASAYİŞ','asayis'],['GÜNDEM','gundem'],['EKONOMİ','ekonomi'],['SPOR','spor'],['KÜLTÜR','kultur'],['EĞİTİM','egitim'],['SAĞLIK','saglik'],['TEKNOLOJİ','teknoloji'],['TURİZM','turizm'],['ÖZEL HABER','ozel']];
+    var groups=[['SON DAKİKA','all','breaking'],['BALIKESİR','balikesir'],['İLÇELER','ilceler'],['TÜRKİYE','turkiye'],['DÜNYA','dunya'],['ASAYİŞ','asayis'],['GÜNDEM','gundem'],['EKONOMİ','ekonomi'],['EĞİTİM','egitim'],['SAĞLIK','saglik'],['KÜLTÜR','kultur'],['SPOR','spor'],['TEKNOLOJİ','teknoloji'],['AI','ai'],['TURİZM','turizm'],['ÖZEL HABER','ozel']];
     var bar=document.createElement('nav');bar.className='news-category-bar';bar.setAttribute('aria-label','Haber kategorileri');
     groups.forEach(function(g,i){var a=document.createElement('a');a.href='#haber-akisi';a.textContent=g[0];if(g[2])a.className=g[2];if(i===0)a.classList.add('active');
       a.addEventListener('click',function(e){e.preventDefault();bar.querySelectorAll('a').forEach(function(x){x.classList.remove('active');});a.classList.add('active');filter(items,g[1]);});
       bar.appendChild(a);});
     target.after(bar);
   }
-  function special(items){
+  function special(items,coverMap){
     var old=document.querySelector('.editorial-special');if(old)old.remove();
-    var c=items.filter(function(n){return n.cover_url;}).slice(0,3);if(!c.length)return;
+    var c=items.filter(function(n){return n.cover_url;}).sort(function(a,b){return (b._relevance||0)-(a._relevance||0);}).slice(0,3);if(!c.length)return;
     var s=document.createElement('section');s.className='editorial-special';s.id='haber-akisi';
     s.innerHTML='<div class="section-head"><div><h2>BTMEDYA Özel Haber</h2><p>Gerçek kapak görselleri · saha · kaynak · editoryal dosya</p></div></div>'+
       '<div class="editorial-special-grid">'+c.map(function(n,i){return '<a class="editorial-special-card'+(i===0?' featured':'')+'" href="/haberler/'+encodeURIComponent(n.slug)+'"><img src="'+esc(imgUrl(n.cover_url))+'" alt="" loading="lazy" decoding="async"><div class="editorial-special-copy"><small>'+esc(n.category||'SAHA HABERİ')+'</small><h3>'+esc(n.title)+'</h3><p>'+esc(n.excerpt||'')+'</p><div class="editorial-special-meta">'+esc(date(n))+' · '+esc(source(n))+'</div></div></a>';}).join('')+'</div>'+
@@ -89,7 +107,11 @@
     var j=await r.json(),published=(Array.isArray(j.items)?j.items:[]).filter(function(n){return n.status==='published';});
     var current=published.filter(function(n){return /^2026/.test(String(n.published_at||''))&&!/202[0-5]/.test(String(n.original_date||''));});
     if(!current.length)return;
-    categoryBar(current);special(current);districts(current);
+    var coverMap={};
+    try{var cm=await fetch('/data/haber-kapak-kaynagi.json',{headers:{Accept:'application/json'}});if(cm.ok)coverMap=await cm.json();}catch(e){}
+    current.forEach(function(n){n._relevance=relevanceScore(n,coverMap);});
+    current.sort(function(a,b){return (b._relevance||0)-(a._relevance||0)||new Date(b.published_at||0)-new Date(a.published_at||0);});
+    categoryBar(current);special(current,coverMap);districts(current);
     var featured=choose(current);
     if(grid){var cards=grid.querySelectorAll('.news-card');featured.forEach(function(n,i){var el=cards[i];if(!el)return;el.href='/haberler/'+encodeURIComponent(n.slug);el.classList.remove('video-card');el.classList.add('gorselli');el.innerHTML=heroCard(n,i===0);});}
     var shown=featured.slice(),loc=current.filter(function(n){return local(n)&&shown.indexOf(n)<0;}).slice(0,6);shown=shown.concat(loc);
