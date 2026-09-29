@@ -92,7 +92,7 @@
   }
   function special(items,coverMap){
     var old=document.querySelector('.editorial-special');if(old)old.remove();
-    var c=items.filter(function(n){return n.cover_url;}).sort(function(a,b){return (b._relevance||0)-(a._relevance||0);}).slice(0,3);if(!c.length)return;
+    var c=items.filter(function(n){var k=(coverMap&&coverMap[n.slug])||'';return n.cover_url&&(k==='gercek'||k==='arsiv');}).sort(function(a,b){return (b._relevance||0)-(a._relevance||0);}).slice(0,3);if(!c.length)return;
     var s=document.createElement('section');s.className='editorial-special';s.id='haber-akisi';
     s.innerHTML='<div class="section-head"><div><h2>BTMEDYA Özel Haber</h2><p>Gerçek kapak görselleri · saha · kaynak · editoryal dosya</p></div></div>'+
       '<div class="editorial-special-grid">'+c.map(function(n,i){return '<a class="editorial-special-card'+(i===0?' featured':'')+'" href="/haberler/'+encodeURIComponent(n.slug)+'"><img src="'+esc(imgUrl(n.cover_url))+'" alt="'+esc(n.title)+'" loading="lazy" decoding="async"><div class="editorial-special-copy"><small>'+esc(n.category||'SAHA HABERİ')+'</small><h3>'+esc(n.title)+'</h3><p>'+esc(n.excerpt||'')+'</p><div class="editorial-special-meta">'+esc(date(n))+' · '+esc(source(n))+'</div></div></a>';}).join('')+'</div>'+
