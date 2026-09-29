@@ -1339,6 +1339,25 @@ export default { async scheduled(controller, env, ctx){
     return Response.redirect(url.toString(), 301);
   }
 
+  /* Admin kabuğu: API zaten oturum korumalı olsa da /admin/ HTML'inin
+     anonim olarak 200 dönmesi gereksiz keşif yüzeyi oluşturuyordu. Giriş
+     ekranı kullanıcıya gösterilir, fakat HTTP durumu 401 olur. Böylece
+     Cloudflare Access kullanılmasa bile panel adresi herkese açık bir
+     başarı sayfası gibi görünmez. CSS/JS/manifest gibi alt kaynaklar
+     normal statik varlık olarak kalır; başarılı giriş mevcut kabuğu açar. */
+  if(url.pathname === '/admin/' && request.method === 'GET'){
+    const authenticated = await validSession(request, env.ADMIN_SESSION_SECRET_SECRET);
+    const adminRes = await env.ASSETS.fetch(request);
+    if(!adminRes.ok) return adminRes;
+    const adminHeaders = new Headers(adminRes.headers);
+    for(const [k,v] of Object.entries(guvenlikBasliklari(url.pathname))) adminHeaders.set(k,v);
+    adminHeaders.set('cache-control','no-store');
+    adminHeaders.set('x-robots-tag','noindex, nofollow');
+    adminHeaders.set('content-type','text/html; charset=utf-8');
+    adminHeaders.set('vary','Cookie');
+    return new Response(adminRes.body,{status:authenticated?200:401,statusText:authenticated?'OK':'Unauthorized',headers:adminHeaders});
+  }
+
   /* security.txt (RFC 9116). robots.txt bu adresi gosteriyordu ama adres
      404 donuyordu. Dosya public/.well-known/ altinda duruyor; Wrangler
      Static Assets nokta ile baslayan klasorleri yuklemeyebildigi icin
