@@ -33,6 +33,14 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 .status{font-size:12px;color:#6c6;min-height:18px;margin-top:6px}
 .tab-content{display:none}
 .tab-content.active{display:block}
+.social-network-toggle{display:grid!important;grid-template-columns:auto auto;grid-template-rows:auto auto;column-gap:8px;align-items:center;padding:9px 11px;border:1px solid #292929;border-radius:10px;background:#121212;min-width:150px;cursor:pointer}
+.social-network-toggle input{grid-row:1/3;width:20px!important;height:20px!important;margin:0!important}
+.social-network-toggle span{font-size:13px;color:#eee}
+.social-network-toggle small{font-size:10px;color:#777;letter-spacing:.02em}
+.social-network-toggle[data-state="ready"]{border-color:#365a2f;background:#101710}
+.social-network-toggle[data-state="partial"]{border-color:#5b4b22;background:#17150f}
+.social-network-toggle[data-state="off"]{opacity:.58}
+@media(max-width:760px){.social-network-toggle{min-width:0;flex:1 1 46%;font-size:12px}.form-2col{grid-template-columns:1fr!important}.row{max-width:100%}}
 /* Login */
 .login-box{max-width:380px;margin:10vh auto}
 /* News list */
@@ -341,12 +349,13 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
       <h2>Otomatik Yayın Ayarları</h2>
       <p class="muted" id="oDurum" style="margin-top:0">Yükleniyor…</p>
       <label>PAYLAŞILACAK AĞLAR</label>
-      <div class="row" style="gap:16px;flex-wrap:wrap;margin:6px 0 12px">
-        <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-ag="instagram" style="width:18px;height:18px;margin:0"> Instagram</label>
-        <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-ag="facebook" style="width:18px;height:18px;margin:0"> Facebook</label>
-        <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-ag="tiktok" style="width:18px;height:18px;margin:0"> TikTok</label>
+      <div class="row" style="gap:10px;flex-wrap:wrap;margin:8px 0 12px">
+        <label class="social-network-toggle"><input type="checkbox" data-ag="instagram"><span>Instagram</span><small data-ag-state="instagram">doğrulama bekliyor</small></label>
+        <label class="social-network-toggle"><input type="checkbox" data-ag="facebook"><span>Facebook</span><small data-ag-state="facebook">doğrulama bekliyor</small></label>
+        <label class="social-network-toggle"><input type="checkbox" data-ag="tiktok"><span>TikTok</span><small data-ag-state="tiktok">kontrol ediliyor</small></label>
+        <label class="social-network-toggle"><input type="checkbox" data-ag="youtube"><span>YouTube</span><small data-ag-state="youtube">kontrol ediliyor</small></label>
       </div>
-      <p class="muted" style="margin:-4px 0 12px;font-size:12px">Yalnız Metricool'da bağlı olan ağları seçin; bağlı olmayan bir ağ gönderinin tamamını reddettirir.</p>
+      <p class="muted" style="margin:-4px 0 12px;font-size:12px">Yalnızca bu Worker'da canlı olarak doğrulanmış Metricool ağları seçilebilir. Hesap bağlantısı Metricool'da yapılır; bu panel yalnızca yayın zincirini yönetir.</p>
       <div class="form-2col">
         <div><label>PAYLAŞIM SAATLERİ (İstanbul)</label><input id="oSaatler" style="width:100%" placeholder="10:00, 12:00, 18:00"></div>
         <div><label>OTOMATİK PLANLANACAK HABER YAŞI (saat)</label><input id="oTazelik" type="number" min="1" max="720" style="width:100%"></div>
@@ -451,19 +460,16 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
       <div style="font-weight:700;margin-bottom:8px">Metricool yayın kuyruğu</div>
       <div id="metricoolLiveQueueBody" class="muted">Canlı kuyruk durumu okunuyor…</div>
     </div>
-    <div style="margin-top:14px;padding:15px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.025)">
-      <div style="font-weight:700;margin-bottom:8px">Telefondan yapacağınız tek kurulum</div>
+    <div style="margin-top:14px;padding:15px;border:1px solid rgba(216,255,62,.18);border-radius:12px;background:rgba(216,255,62,.035)">
+      <div style="font-weight:700;margin-bottom:8px">Bağlantı zinciri</div>
       <div class="muted" style="font-size:12px;line-height:1.6">
-        <b>1.</b> Metricool'a giriş yapın → Menü → Account Settings → API → <b>REST API Access token</b> → tokenı kopyalayın.<br>
-        <b>2.</b> GitHub bağlantısını açın → <b>New repository secret</b> → Name: <code>BTMEDYA_METRICOOL_USER_TOKEN</code> → Value: Metricool tokenı → kaydet.<br>
-        <b>3.</b> Devamını BTMEDYA'nın GitHub → Cloudflare senkronizasyonu yapar. User ID / Brand ID zaten tanımlı: <b>5278969</b> / <b>6858384</b>.
+        <b>GitHub → Cloudflare → Worker → Metricool</b> secret senkronizasyonu son denetimde başarıyla tamamlandı. Bu panel token değerini hiçbir zaman göstermez.
+        Yeni bir sosyal ağ Metricool Brand'e bağlandığında yalnızca doğrulanan ağı seçilebilir hale getireceğiz.
       </div>
       <div class="row" style="margin-top:12px">
-        <a class="btn sm" href="https://app.metricool.com/" target="_blank" rel="noopener">1 · Metricool'u aç ↗</a>
-        <a class="btn primary sm" href="https://github.com/BTmedyajans/Btmedya-db/settings/secrets/actions" target="_blank" rel="noopener">2 · GitHub Secret ekle ↗</a>
-        <a class="btn sm" href="https://help.metricool.com/api-access-export-your-metricool-data-to-other-tools-and-automate-tasks-x8ln5" target="_blank" rel="noopener">API yardım ↗</a>
+        <a class="btn sm" href="https://app.metricool.com/" target="_blank" rel="noopener">Metricool'u aç ↗</a>
+        <a class="btn sm" href="https://github.com/BTmedyajans/Btmedya-db/actions/workflows/sync-worker-secrets.yml" target="_blank" rel="noopener">Secret sync durumunu gör ↗</a>
       </div>
-      <div class="muted" style="font-size:11px;line-height:1.5;margin-top:10px">Tokenı bu sohbete veya site koduna yapıştırmayın. Metricool API tokenı sunucu tarafında <code>X-Mc-Auth</code> başlığında kullanılmalıdır.</div>
     </div>
   </div>
 
@@ -1077,14 +1083,27 @@ function teslimSatiri(x,anahtar){
 async function loadSocialSettings(){
   try{
     const r=await req('/api/admin/social/settings');
-    const a=r.ayarlar;
-    document.querySelectorAll('[data-ag]').forEach(el=>el.checked=a.aglar.includes(el.dataset.ag));
-    $('#oSaatler').value=a.saatler.join(', ');
-    $('#oTazelik').value=a.tazelikSaat;
-    $('#oOtomatik').checked=a.otomatikPlanla;
+    const a=r.ayarlar||{};
+    const live=r.providers||{};
+    document.querySelectorAll('[data-ag]').forEach(el=>{
+      const key=el.dataset.ag, st=live[key]||{};
+      const connected=Boolean(st.connected);
+      el.checked=connected && a.aglar.includes(key);
+      el.disabled=!connected;
+      const state=document.querySelector('[data-ag-state="'+key+'"]');
+      if(state) state.textContent=st.configured?'Metricool + Worker hazır':connected?'Metricool bağlı · Worker listeye eklenmeli':'Metricool bağlantısı doğrulanmadı';
+      const label=el.closest('.social-network-toggle');
+      if(label){
+        label.dataset.state=st.configured?'ready':connected?'partial':'off';
+        label.title=st.note||'';
+      }
+    });
+    $('#oSaatler').value=(a.saatler||[]).join(', ');
+    $('#oTazelik').value=a.tazelikSaat||72;
+    $('#oOtomatik').checked=a.otomatikPlanla===true;
     $('#oDurum').innerHTML=r.metricool
-      ?(a.otomatikPlanla?'<span style="color:#6c6">● Otomatik yayın açık.</span> Yeni haberler '+escStr(a.saatler.join(' / '))+' saatlerinden ilk boş olana planlanır ve Metricool\'a teslim edilir.':'<span style="color:#fb3">● Otomatik planlama kapalı.</span> Yeni haberler "Onayda" bekler; "Onayla ve planla" ile tek tıkta takvime girer.')
-      :'<span style="color:#f77">● Metricool anahtarı Worker\'a eklenmemiş.</span> Taslaklar hazırlanır ama sosyal medyaya teslim edilmez. GitHub > Settings > Secrets > <b>BTMEDYA_METRICOOL_USER_TOKEN</b> ekleyin.';
+      ?(a.otomatikPlanla?'<span style="color:#6c6">● Otomatik yayın açık.</span> Yeni içerikler '+escStr((a.saatler||[]).join(' / '))+' saatlerinden ilk boş olana planlanır ve doğrulanmış ağlara teslim edilir.':'<span style="color:#fb3">● Otomatik planlama kapalı.</span> Yeni içerikler "Onayda" bekler.')
+      :'<span style="color:#f77">● Worker tarafında Metricool secret görünmüyor.</span>';
   }catch(e){$('#oDurum').textContent='Ayarlar alınamadı.';}
 }
 $('#oKaydet').onclick=async()=>{
