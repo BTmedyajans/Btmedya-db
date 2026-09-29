@@ -1,36 +1,36 @@
 {
-  "generated_at": "2026-09-25T16:45:00+03:00",
+  "generated_at": "2026-09-29T09:54:00+03:00",
   "source": "Metricool",
-  "mode": "verified_snapshot",
-  "note": "Bu akış Metricool'dan doğrulanan son yayınların snapshot'ıdır. Sürekli canlı eşitleme için Worker tarafında sosyal OAuth/secret bağlantıları tamamlanmalıdır.",
+  "mode": "verified_connection_snapshot",
+  "note": "29 Eylül 2026 Metricool Brand 6858384 bağlantı durumu: TikTok ve YouTube bağlantıları doğrulandı; Instagram ve Facebook için bağlantı doğrulaması bekleniyor.",
   "profiles": [
     {
       "key": "instagram",
       "label": "Instagram",
       "url": "https://www.instagram.com/btmedyajans/",
-      "status": "profile_link",
-      "note": "Sitedeki mevcut profil bağlantısı."
+      "status": "verification_pending",
+      "note": "Metricool Brand bağlantısı mevcut kayıtta doğrulanmadı."
     },
     {
       "key": "facebook",
       "label": "Facebook",
       "url": null,
       "status": "verification_pending",
-      "note": "Facebook yayın hesabı için sayfa URL'si ve META_PAGE_ID doğrulaması bekleniyor."
+      "note": "Metricool Brand bağlantısı mevcut kayıtta doğrulanmadı."
     },
     {
       "key": "youtube",
       "label": "YouTube",
       "url": "https://www.youtube.com/@BTmedyaAjans",
       "status": "connected_identity",
-      "note": "Metricool brand'inde kanal kimliği mevcut."
+      "note": "Metricool Brand kanal kimliği doğrulandı."
     },
     {
       "key": "tiktok",
       "label": "TikTok",
       "url": "https://www.tiktok.com/@btmedya1010",
       "status": "publishing_verified",
-      "note": "Metricool üzerinden son iki yayın doğrulandı."
+      "note": "Metricool Brand bağlantısı doğrulandı."
     }
   ],
   "items": [
