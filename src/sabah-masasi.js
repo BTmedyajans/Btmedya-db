@@ -233,9 +233,21 @@ export function rakamDenetimi(cikti, kaynak) {
    max(4, n-3) harf yeterli sayılır. Yanlış alarm haberi taslakta tutar,
    yanlış kabul ise uydurma bir adı yayına çıkarır: bu yüzden katı. */
 const SERBEST = new Set(['BTMEDYA', 'Haberin', 'Görsel', 'Kaynak', 'Açıklamada', 'Açıklamaya', 'Ayrıca', 'Bu', 'Bunun', 'Böylece', 'Öte', 'Buna', 'Ancak', 'Söz', 'Türkiye', 'Türkiye\'de']);
+// Cümle başındaki büyük harf ad kanıtı değildir ("Aynı grup...", "Maçta
+// gösterilen..."): cümle başında, eksiz ve ardından küçük harfli sözcük gelen
+// tek sözcük atlanır. "Mehmet Kaya konuştu" gibi çok sözcüklü adlar ve
+// "Balıkesir'de" gibi ek almış adlar yine denetlenir.
+function cumleBasiSiradanMi(metin, m) {
+  const once = metin.slice(Math.max(0, m.index - 3), m.index);
+  const basta = m.index === 0 || /(^|[.!?:…]["”’]?\s+|\n\s*)["“‘]?$/.test(once);
+  if (!basta || m[0].includes("'")) return false;
+  return /^\s+[a-zçğıöşü]/.test(metin.slice(m.index + m[0].length, m.index + m[0].length + 3));
+}
 export function adDenetimi(cikti, kaynak) {
   const k = duz(kaynak);
-  const adlar = [...new Set((String(cikti).match(/\b[A-ZÇĞİÖŞÜ][\wçğıöşüâîû]{3,}(?:'[\wçğıöşü]+)?/g) || []))];
+  const metin = String(cikti);
+  const adlar = [...new Set([...metin.matchAll(/\b[A-ZÇĞİÖŞÜ][\wçğıöşüâîû]{3,}(?:'[\wçğıöşü]+)?/g)]
+    .filter(m => !cumleBasiSiradanMi(metin, m)).map(m => m[0]))];
   const eksik = adlar.filter(a => {
     if (SERBEST.has(a)) return false;
     const kok = duz(a.split("'")[0]);
@@ -266,6 +278,31 @@ function kopyaOrani(paragraflar, kaynakMetin) {
   return toplam ? ayni / toplam : 0;
 }
 
+/* Skor ekleri son sayının okunuşuna uyar: 4-1'lik (bir), 2-3'lük (üç),
+   1-0'lık (sıfır), 3-9'luk (dokuz). */
+const SKOR_EKI = { 0: "lık", 1: "lik", 2: "lik", 3: "lük", 4: "lük", 5: "lik", 6: "lık", 7: "lik", 8: "lik", 9: "luk" };
+export function skorEkiHatasi(metin) {
+  for (const m of String(metin).matchAll(/\b(\d{1,2})-(\d)['’](l[ıiuü]k)\b/g)) {
+    if (SKOR_EKI[m[2]] !== m[3]) return `${m[0]} → ${m[1]}-${m[2]}'${SKOR_EKI[m[2]]}`;
+  }
+  return '';
+}
+
+/* Aynı 8 sözcüklük dizinin gövdede ikinci kez geçmesi: modelin dolgu için
+   önceki paragrafı yeniden anlatması. */
+export function tekrarEdenIfade(paragraflar) {
+  const gorulen = new Set();
+  for (const p of paragraflar) {
+    const w = duz(p).replace(/[^a-z0-9]+/g, ' ').trim().split(' ');
+    for (let i = 0; i + 8 <= w.length; i++) {
+      const d = w.slice(i, i + 8).join(' ');
+      if (gorulen.has(d)) return d;
+      gorulen.add(d);
+    }
+  }
+  return '';
+}
+
 export function kaliteDenetimi(y, kaynakMetin = '') {
   const sorun = [];
   const baslik = String(y.baslik || '').trim();
@@ -281,7 +318,10 @@ export function kaliteDenetimi(y, kaynakMetin = '') {
   if (spot.length > 300) sorun.push('spot 300 karakteri aşıyor');
   if ((y.paragraflar || []).length < 3) sorun.push('gövde 3 paragraftan az');
   if (govde.length < 650) sorun.push('gövde 650 karakterden kısa');
-  if (/\d+-\d+'l[ıi]k\b/.test(govde + ' ' + baslik)) sorun.push("skor eki hatalı (ör. 4-1'lik)");
+  const ekHata = skorEkiHatasi(govde + ' ' + baslik + ' ' + spot);
+  if (ekHata) sorun.push(`skor eki hatalı: ${ekHata}`);
+  const tekrar = tekrarEdenIfade(y.paragraflar || []);
+  if (tekrar) sorun.push(`gövdede aynı ifade tekrar ediyor: "${tekrar}"`);
   const oran = kopyaOrani(y.paragraflar || [], kaynakMetin);
   if (oran > 0.4) sorun.push(`gövdenin %${Math.round(oran * 100)}'i kaynaktan aynen alınmış`);
   return { gecti: sorun.length === 0, sorun, kopya: Math.round(oran * 100) / 100 };
@@ -348,7 +388,9 @@ export function jsonAyikla(metin) {
 }
 
 function temizle(j) {
-  const tek = s => String(s || '').replace(/\s+/g, ' ').trim();
+  // Model sayılarda bölünmez tire (U+2011) kullanıyor; aramada ve kopyalamada
+  // sorun çıkarmasın diye düz tireye çevrilir.
+  const tek = s => String(s || '').replace(/[\u2010\u2011\u2012]/g, '-').replace(/\s+/g, ' ').trim();
   return {
     baslik: tek(j.baslik).replace(/[.。]+$/, '').slice(0, 200),
     spot: tek(j.spot).slice(0, 400),
@@ -360,9 +402,9 @@ function temizle(j) {
 }
 
 /* Yazar, üç denetimden geçirir; geçemezse sorunları modele geri verip bir
-   kez daha yazdırır. En iyi (en az sorunlu) deneme döner; yayın kararı
+   kez daha (en fazla üç deneme) yazdırır. En iyi (en az sorunlu) deneme döner; yayın kararı
    çağırandadır. */
-export async function yaz(env, ayar, kaynak, kategori, denemeSayisi = 2) {
+export async function yaz(env, ayar, kaynak, kategori, denemeSayisi = 3) {
   const kaynakMetin = kaynak.metin + '\n' + kaynak.baslik;
   const girdi = [
     'KAYNAK BAŞLIK: ' + kaynak.baslik,

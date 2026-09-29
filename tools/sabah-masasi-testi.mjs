@@ -58,8 +58,24 @@ assert.ok(M.kaliteDenetimi({ ...iyi, baslik: 'Balıkesir Tarım Ve Hayvancılık
 assert.ok(M.kaliteDenetimi({ ...iyi, paragraflar: iyi.paragraflar.slice(0, 2) }).sorun.some(x => x.includes('3 paragraf')));
 assert.ok(M.kaliteDenetimi(iyi, iyi.paragraflar.join(' ')).sorun.some(x => x.includes('aynen')), 'kaynaktan kopya yakalanmalı');
 
+// Canlı denemeden: doğru skor eki geçer, yanlışı yakalanır.
+assert.equal(M.skorEkiHatasi("İtalya'ya 4-1'lik mağlubiyet"), '');
+assert.equal(M.skorEkiHatasi("2-0'lık galibiyet, 3-9'luk seri"), '');
+assert.ok(M.skorEkiHatasi("4-1'lık mağlubiyet").includes("4-1'lik"));
+// Cümle başındaki sıradan sözcük ad sayılmaz; çok sözcüklü ad yine denetlenir.
+assert.equal(M.adDenetimi('Aynı grup içinde oran arttı. Maçta gösterilen performans zayıftı.', 'grup oran performans').gecti, true);
+assert.deepEqual(M.adDenetimi('Toplantıda Ayşe Demir konuştu.', 'toplantida konustu').eksik, ['Ayşe', 'Demir']);
+assert.deepEqual(M.adDenetimi("Konya'da fuar açıldı.", 'fuar acildi').eksik, ["Konya'da"]);
+// Gövdede tekrar eden ifade (canlı Gündem taslağı).
+assert.ok(M.tekrarEdenIfade([
+  'Rüzgar kuzeyli yönlerden orta, yağışla birlikte zaman zaman 40-60 km/saat hızla esecek.',
+  'Rüzgarın, kuzeyli yönlerden orta, yağışla birlikte zaman zaman 40-60 km/saat hızla eseceği tahmin ediliyor.'
+]));
+assert.equal(M.tekrarEdenIfade(iyi.paragraflar), '');
+
 // Yazım: denetimden kalan ilk taslak, sorunlar geri verilerek yeniden yazdırılır.
-const kaynak = { baslik: 'Fuar', tarih: '', kaynakAd: 'Balıkesir Büyükşehir Belediyesi', metin: [iyi.spot, ...iyi.paragraflar].join('\n').replace(/[;,]/g, ' ') + ' ' + 'x'.repeat(10) };
+// Kaynak aynı bilgileri farklı sözcük sırasıyla taşır: taslak kopya sayılmasın.
+const kaynak = { baslik: 'Fuar', tarih: '', kaynakAd: 'Balıkesir Büyükşehir Belediyesi', metin: [iyi.spot, ...iyi.paragraflar].map(p => p.split(' ').reverse().join(' ')).join('\n') };
 const cagrilar = [];
 const env = { AI: { run: async (model, girdi) => {
   cagrilar.push({ model, n: girdi.messages.length });
