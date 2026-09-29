@@ -37,11 +37,15 @@ const notlar = [];    // bilgi
 const GRACE_DK = 60;
 
 async function getir(yol, secenek = {}) {
-  const url = yol.startsWith('http') ? yol : SITE + yol;
+  const hamUrl = yol.startsWith('http') ? yol : SITE + yol;
+  // CDN/Workers cache'inden eski HTML okunmasını önlemek için denetim isteklerini benzersizleştir.
+  const u = new URL(hamUrl);
+  u.searchParams.set('__btmedya_audit', `${process.env.GITHUB_SHA || 'local'}-${Date.now()}`);
+  const url = u.toString();
   for (let deneme = 1; deneme <= 3; deneme++) {
     try {
       const r = await fetch(url, { redirect: 'follow', ...secenek,
-        headers: { 'user-agent': 'BTMEDYA-site-denetimi/1.0', ...(secenek.headers || {}) } });
+        headers: { 'user-agent': 'BTMEDYA-site-denetimi/1.0', 'cache-control': 'no-cache, no-store', 'pragma': 'no-cache', ...(secenek.headers || {}) } });
       return r;
     } catch (e) {
       if (deneme === 3) return { ok: false, status: 0, hata: String(e), headers: new Headers(), text: async () => '', arrayBuffer: async () => new ArrayBuffer(0) };
