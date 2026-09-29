@@ -7,13 +7,18 @@
   if(!sticky||!title)return;
   root.classList.add('bt-mobile-motion');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Rozet sabit yazilmaz: varsayilan AI URETIMI (AGENTS.md); panel yuvasina
+  // gercek cekim atanmissa home.js ile ayni veriden GERCEK CEKIM olur.
   const scenes=[
-    {k:'01 / GİRİŞ',source:'GERÇEK ÇEKİM',t:'GERÇEK<br><span>GÖRÜNTÜ.</span>',d:'Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.'},
-    {k:'02 / HABER · SAHA',source:'GERÇEK ÇEKİM',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
-    {k:'03 / MEDYA · İÇERİK',source:'GERÇEK ÇEKİM',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için gerçek üretim.'},
-    {k:'04 / PRODÜKSİYON',source:'GERÇEK ÇEKİM',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
+    {yuva:'hero-video',k:'01 / GİRİŞ',source:'AI ÜRETİMİ',t:'GERÇEK<br><span>GÖRÜNTÜ.</span>',d:'Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.'},
+    {yuva:'kategori-haber',k:'02 / HABER · SAHA',source:'AI ÜRETİMİ',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
+    {yuva:'kategori-medya',k:'03 / MEDYA · İÇERİK',source:'AI ÜRETİMİ',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için gerçek üretim.'},
+    {yuva:'kategori-prod',k:'04 / PRODÜKSİYON',source:'AI ÜRETİMİ',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
     {k:'05 / AI LAB · AÇIK ETİKET',source:'AI ÜRETİMİ',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI üretimi ayrı, açık ve şeffaf bir laboratuvar olarak konumlanıyor.'}
   ];
+  window.btYuvalar&&window.btYuvalar.then(y=>{
+    scenes.forEach((s,i)=>{const a=s.yuva&&y&&y[s.yuva];if(!a||a.tur!=='video')return;s.source=a.gercek?'GERÇEK ÇEKİM':'AI ÜRETİMİ';if(i===state.active&&source)source.textContent=s.source;});
+  }).catch(()=>{});
   const state={active:-1,raf:0};
   const setScene=(i,force=false)=>{
     if(i<0||i>=scenes.length||(!force&&i===state.active))return;

@@ -21,9 +21,10 @@ permissions:
   contents: read
   issues: write
 
-concurrency:
-  group: btmedya-dagitim-bekcisi
-  cancel-in-progress: true
+# Eszamanlilik grubu yok: 29 Eylul'de 115a50e'den sonra derleme 1,5 saat
+# kirik kaldi, ama her yeni push bekleyen bekciyi iptal ettigi icin hicbiri
+# sureyi doldurup uyari veremedi. Her calisma yalniz kendi commit'inin
+# zamanina bakar; paralel calismalar birbirini bozmaz.
 
 jobs:
   bekci:
@@ -86,7 +87,7 @@ jobs:
               'Büyük olasılıkla Cloudflare Workers Builds derlemesi başarısız oldu. Site eski sürümle çalışmaya devam ediyor; yeni kod, kapak ve panel değişiklikleri yayında değil.',
               '',
               'Bakılacak yer: Cloudflare > Workers & Pages > btmedya-db > Builds > son derlemenin günlüğü.',
-              'Yerelde aynı hatayı görmek için: `node --check src/worker.js`.',
+              'Yerelde aynı hatayı görmek için pr-validation.yml içindeki kuru derleme komutunu çalıştırın (`node --check` her hatayı yakalamıyor).',
               '',
               `Çalışma: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
             ].join('\n');
