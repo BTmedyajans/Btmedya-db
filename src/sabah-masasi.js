@@ -555,7 +555,7 @@ export async function sabahMasasi(env, secenek = {}) {
 
   // Son 4 günün başlıkları: aynı konu farklı kaynaktan ikinci kez girmesin.
   const sonBasliklar = ((await env.DB.prepare("SELECT title FROM news WHERE COALESCE(published_at,updated_at) > ?").bind(new Date(Date.now() - 4 * 86400000).toISOString()).all().catch(() => ({ results: [] }))).results || []).map(x => String(x.title || ''));
-  const son = sonBasliklar.map(t => new Set(kelimeler(t)));
+  const son = sonBasliklar.map(kokler);
   const tekrarMi = baslik => benzerBaslik(baslik, son);
 
   // 1) Aday listesi: akış başlığı ve tarihine göre süzülür, puanlanır.
@@ -608,9 +608,18 @@ export async function sabahMasasi(env, secenek = {}) {
   return rapor;
 }
 
-function benzerBaslik(baslik, son) {
-  const a = new Set(kelimeler(baslik));
-  return a.size > 2 && son.some(b => { let o = 0; for (const k of a) if (b.has(k)) o++; return o / Math.min(a.size, b.size) >= 0.5; });
+/* Konu tekrarı sözcük köküyle aranır: "hayvancılık/hayvancılığın",
+   "ziyaretçi/ziyaretçiyi" tam sözcükle eşleşmiyordu ve 29 Eylül'de tarım
+   fuarı haberi CUMHA'dan ikinci kez girdi. İlk 5 harf Türkçe ekleri
+   büyük ölçüde atar; sayılar olduğu gibi kalır. */
+// Neredeyse her yerel ve yapay zekâ başlığında geçen kökler konu ayırt
+// etmez; bunlar sayılırsa "Balıkesir'in en kalabalık pazarı" ile "Balıkesir
+// pazarında helva şovu" aynı konu sanılıyordu.
+const GENEL_KOK = new Set(['balik', 'yapay', 'zeka']);
+export function kokler(s) { return new Set(kelimeler(s).map(k => /^\d+$/.test(k) ? k : k.slice(0, 5)).filter(k => !GENEL_KOK.has(k))); }
+export function benzerBaslik(baslik, son) {
+  const a = kokler(baslik);
+  return a.size > 2 && son.some(b => { if (b.size < 3) return false; let o = 0; for (const k of a) if (b.has(k)) o++; return o / Math.min(a.size, b.size) >= 0.5; });
 }
 
 /* Tek kategori: adayların kaynak sayfasını okur, ilk uygun olanı yazar,
@@ -618,7 +627,7 @@ function benzerBaslik(baslik, son) {
    diye girdisi ve çıktısı düz nesnedir. */
 export async function kategoriIsle(env, { kat, adaylar = [], ayar, kuru = false, deneme = false, sonBasliklar = [] }) {
   const sonuc = { secilen: [], yayinlanan: 0, taslak: 0, hatalar: [] };
-  const son = sonBasliklar.map(t => new Set(kelimeler(t)));
+  const son = sonBasliklar.map(kokler);
   const gorulduYaz = async link => { if (!deneme && !kuru) await env.DB.prepare('INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) VALUES(?,?)').bind(link, new Date().toISOString()).run(); };
   let secildi = null;
   for (const o of adaylar) {
@@ -642,21 +651,25 @@ export async function kategoriIsle(env, { kat, adaylar = [], ayar, kuru = false,
   const kayit = { kategori: kat.kategori, anahtar: kat.anahtar, kaynakBaslik: secildi.kaynak.baslik || secildi.o.baslik, kaynak: secildi.o.link, puan: secildi.o.puan, trend: secildi.o.eslesen };
   sonuc.secilen.push(kayit);
   if (kuru) { kayit.durum = 'kuru-calisma'; return sonuc; }
-  await kategoriYaz(env, ayar, { kat, o: secildi.o, kaynak: secildi.kaynak, kayit }, deneme, sonuc);
+  await kategoriYaz(env, ayar, { kat, o: secildi.o, kaynak: secildi.kaynak, kayit, son }, deneme, sonuc);
   return sonuc;
 }
 
-async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit }, deneme, rapor) {
+async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit, son = [] }, deneme, rapor) {
   try {
     if (!env.AI) throw new Error('Workers AI bağlaması (AI) yok');
     const y = await yaz(env, ayar, kaynak, kat.kategori);
     const { rakam: rd, ad, kalite } = y.denetim;
-    const denetimTamam = rd.gecti && ad.gecti && kalite.gecti;
+    // Kaynak başlığı farklı olsa da yazılan başlık son günlerdeki bir
+    // haberle aynı konuyu anlatıyorsa yayına çıkmaz; editör karar verir.
+    const tekrarKonu = benzerBaslik(y.baslik, son);
+    const denetimTamam = rd.gecti && ad.gecti && kalite.gecti && !tekrarKonu;
     const yayinla = ayar.otomatikYayin && denetimTamam;
     const nedenler = [
       !rd.gecti ? 'rakam: ' + rd.eksik.slice(0, 3).join(', ') : '',
       !ad.gecti ? 'özel ad: ' + ad.eksik.slice(0, 3).join(', ') : '',
-      !kalite.gecti ? 'kalite: ' + kalite.sorun.slice(0, 2).join('; ') : ''
+      !kalite.gecti ? 'kalite: ' + kalite.sorun.slice(0, 2).join('; ') : '',
+      tekrarKonu ? 'tekrar: son 4 günde benzer başlıklı haber var' : ''
     ].filter(Boolean);
     Object.assign(kayit, {
       baslik: y.baslik, spot: y.spot, vurgu: y.vurgu, deneme: y.deneme,
@@ -675,7 +688,8 @@ async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit }, deneme, rapor) 
       gorsel ? `Kapaktaki görsel ${gorsel.kunye} lisanslıdır ve olayın kendisini göstermez.` : 'Kapak, BTMEDYA kategori grafiğidir; fotoğraf değildir.',
       !rd.gecti ? `Rakam denetimi: kaynakta bulunmayan ${rd.eksik.join(', ')}.` : '',
       !ad.gecti ? `Özel ad denetimi: kaynakta bulunmayan ${ad.eksik.join(', ')}.` : '',
-      !kalite.gecti ? `Kalite denetimi: ${kalite.sorun.join('; ')}.` : ''
+      !kalite.gecti ? `Kalite denetimi: ${kalite.sorun.join('; ')}.` : '',
+      tekrarKonu ? 'Tekrar denetimi: son 4 günde benzer başlıklı bir haber yayınlanmış; yayın kararı editörün.' : ''
     ].filter(Boolean).join(' ');
     const govde = [...y.paragraflar, gorsel ? `Görsel: ${gorsel.kunye}.` : ''].filter(Boolean).join('\n\n');
     const simdi = new Date().toISOString();
