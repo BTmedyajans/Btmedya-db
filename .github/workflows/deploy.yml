@@ -55,6 +55,8 @@ jobs:
           grep -q 'cinematic' public/home.js
           grep -q 'story' public/home.js
           grep -q 'social' public/home.js
+          grep -q 'data-kategori="' public/home.js
+          ! grep -q 'data-kategori=""' public/home.js
           python3 tools/validate-assets.py
           node tools/a11y-denetimi.mjs
           # Etiket, sitemap/JSON-LD ve hero butunlugu: sessiz editoryal gerilemeleri yakalar.
