@@ -11,6 +11,10 @@ BTMEDYA'nın sosyal yayın katmanında **Metricool tek yayın geçididir**. Inst
 - `METRICOOL_BRAND_ID`: BTMEDYA Metricool marka kimliği
 - `METRICOOL_TIMEZONE`: varsayılan `Europe/Istanbul`
 
+### GitHub -> Cloudflare secret zinciri
+
+GitHub Actions workflow'u `metricool` kapsamıyla aşağıdaki GitHub secret'larını Worker secret'larına aktarır: `BTMEDYA_METRICOOL_USER_TOKEN`, `BTMEDYA_METRICOOL_USER_ID`, `BTMEDYA_METRICOOL_BRAND_ID`. Secret değerleri commit edilmez ve dokümana yazılmaz.
+
 ### Hesap bağlantısı
 
 Platform hesaplarının yetkilendirmesi Metricool tarafında yapılır. Worker'a Instagram/Facebook/TikTok/YouTube access tokenları eklenmez.
