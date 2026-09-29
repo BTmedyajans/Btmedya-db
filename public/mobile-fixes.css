@@ -144,7 +144,11 @@ button,a{touch-action:manipulation}
 /* ===== MOBILE HARDENING V13 =====
    Android Chrome'da viewport/cache farklarinda da tek kolon garanti edilir. */
 @media (max-width: 1024px) and (pointer: coarse){
-  html,body{width:100%;max-width:100%;overflow-x:hidden!important}
+  /* overflow-x:hidden body'yi kaydirma kabina cevirir ve giris filmindeki
+     position:sticky calismaz (29 Eylul: mobilde 5 ekran siyah). clip tasmayi
+     ayni sekilde keser ama kaydirma kabi olusturmaz; desteklemeyen eski
+     tarayici hidden'a duser. */
+  html,body{width:100%;max-width:100%;overflow-x:hidden!important;overflow-x:clip!important}
   .news-grid,.portfoy-grid,.archive-grid,.service-grid,.ai-grid,.source-grid,
   .social-feed-grid,.social-profiles,.offer-grid{grid-template-columns:1fr!important}
   .news-card,.news-card.featured,.portfoy-kart,.portfoy-kart:nth-child(1),.portfoy-kart:nth-child(5),
@@ -176,7 +180,7 @@ button,a{touch-action:manipulation}
    başlıkların küçük Android/iPhone ekranlarında kesilmesini önler. */
 @media (max-width:1024px){
   *,*::before,*::after{box-sizing:border-box}
-  html,body{max-width:100%;overflow-x:hidden!important}
+  html,body{max-width:100%;overflow-x:hidden!important;overflow-x:clip!important}
   body{min-width:0}
   main,header,footer,section,article,aside,nav,div{min-width:0}
   /* Govde metni uzun URL/etiketlerde tasmasin diye her yerde kirilabilir;
