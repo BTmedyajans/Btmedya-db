@@ -22,15 +22,21 @@
   function source(n){try{return n.source_url?new URL(n.source_url).hostname.replace(/^www\./,''):'BTMEDYA';}catch(e){return 'BTMEDYA';}}
   function date(n){var t=n.published_at?new Date(n.published_at):null;return t&&!isNaN(t)?t.toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'}):'';}
 
-  function row(n){
+  function sourceLabel(n,coverMap){
+    var k=coverMap&&coverMap[n.slug];
+    return k==='gercek'?'GERÇEK ÇEKİM':k==='arsiv'?'ARŞİV GÖRSELİ':k==='grafik'?'BTMEDYA GRAFİĞİ':k==='harita'?'HARİTA / VERİ':'TEMSİLİ GÖRSEL';
+  }
+  function row(n,coverMap){
     var im=n.cover_url?'<span class="latest-kapak"><img src="'+esc(imgUrl(n.cover_url))+'" alt="" loading="lazy" decoding="async"></span>':'';
+    var badge=coverMap?'<small class="news-source-badge">'+esc(sourceLabel(n,coverMap))+'</small>':'';
     return '<a class="latest-item'+(im?' kapakli':'')+'" href="/haberler/'+encodeURIComponent(n.slug)+'">'+im+
-      '<span class="latest-metin"><small>'+esc(n.category||'HABER')+'</small><h3>'+esc(n.title)+'</h3><p>'+esc(n.excerpt||'')+
+      '<span class="latest-metin">'+badge+'<small>'+esc(n.category||'HABER')+'</small><h3>'+esc(n.title)+'</h3><p>'+esc(n.excerpt||'')+
       '</p><span class="news-meta">'+esc(date(n))+' · <span class="source">Kaynak: '+esc(source(n))+'</span></span></span></a>';
   }
-  function heroCard(n,big){
+  function heroCard(n,big,coverMap){
     var im=n.cover_url?'<img class="kart-gorsel" src="'+esc(imgUrl(n.cover_url))+'" alt="" loading="'+(big?'eager':'lazy')+'" decoding="async">':'';
-    return im+'<div class="veil"></div><div class="inner"><span class="news-tag">'+esc(n.category||'HABER')+
+    var badge=coverMap?'<span class="news-source-badge hero-badge">'+esc(sourceLabel(n,coverMap))+'</span>':'';
+    return im+'<div class="veil"></div><div class="inner">'+badge+'<span class="news-tag">'+esc(n.category||'HABER')+
       '</span>'+(big?'<h2>':'<h3>')+esc(n.title)+(big?'</h2>':'</h3>')+'<p>'+esc(n.excerpt||'')+
       '</p><div class="news-meta">'+esc(date(n))+' · '+esc(n.author||'BTMEDYA Haber Merkezi')+'</div></div>';
   }
@@ -72,7 +78,7 @@
     var loc=list.filter(local).slice(0,6);
     var rest=list.filter(function(n){return loc.indexOf(n)<0;}).slice(0,9);
     if(yerelListe)yerelListe.innerHTML=(loc.length?loc:list.slice(0,6)).map(row).join('');
-    if(guncelListe)guncelListe.innerHTML=rest.map(row).join('');
+    if(guncelListe)guncelListe.innerHTML=rest.map(function(n){return row(n,coverMap);}).join('');
   }
   function categoryBar(items){
     var old=document.querySelector('.news-category-bar');if(old)old.remove();
@@ -113,10 +119,10 @@
     current.sort(function(a,b){return (b._relevance||0)-(a._relevance||0)||new Date(b.published_at||0)-new Date(a.published_at||0);});
     categoryBar(current);special(current,coverMap);districts(current);
     var featured=choose(current);
-    if(grid){var cards=grid.querySelectorAll('.news-card');featured.forEach(function(n,i){var el=cards[i];if(!el)return;el.href='/haberler/'+encodeURIComponent(n.slug);el.classList.remove('video-card');el.classList.add('gorselli');el.innerHTML=heroCard(n,i===0);});}
+    if(grid){var cards=grid.querySelectorAll('.news-card');featured.forEach(function(n,i){var el=cards[i];if(!el)return;el.href='/haberler/'+encodeURIComponent(n.slug);el.classList.remove('video-card');el.classList.add('gorselli');el.innerHTML=heroCard(n,i===0,coverMap);});}
     var shown=featured.slice(),loc=current.filter(function(n){return local(n)&&shown.indexOf(n)<0;}).slice(0,6);shown=shown.concat(loc);
     var rest=current.filter(function(n){return shown.indexOf(n)<0;}).slice(0,9);
-    if(yerelListe&&loc.length)yerelListe.innerHTML=loc.map(row).join('');
+    if(yerelListe&&loc.length)yerelListe.innerHTML=loc.map(function(n){return row(n,coverMap);}).join('');
     if(guncelListe&&rest.length)guncelListe.innerHTML=rest.map(row).join('');
     if(guncelTarih)guncelTarih.textContent='Son güncelleme: '+date(current[0]);
   }
