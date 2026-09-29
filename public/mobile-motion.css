@@ -1,10 +1,11 @@
-/* BTMEDYA Mobile Motion Layer — 2026-09-29 / V2
-   Mobile-first scroll choreography. The phone hero uses existing poster assets
-   instead of downloading desktop video files. */
+/* BTMEDYA Mobile Motion Layer — 2026-09-29 / V3
+   Mobile-first scroll choreography. The real mobile intro video stays in flow
+   across the opening story; secondary scene videos remain unloaded/hidden. */
 @media (max-width:720px){
   .cinematic-hero.bt-mobile-motion{
     --mm-progress:0;
     --mm-scene:0;
+    --mm-video-opacity:1;
     --mm-bg:url('/assets/media/web/hero-story-poster.jpg');
   }
 
@@ -33,8 +34,18 @@
 
   .cinematic-hero.bt-mobile-motion .cinematic-video video{
     opacity:0!important;
-    visibility:hidden;
+    visibility:hidden!important;
     pointer-events:none;
+  }
+
+  /* Giriş videosu mobilde akışın omurgasıdır. Kaydırma sırasında yavaşça
+     kaybolur, böylece ikinci/üçüncü hikâye beat'lerine yumuşak geçiş olur. */
+  .cinematic-hero.bt-mobile-motion .cinematic-video-1 video{
+    opacity:var(--mm-video-opacity,1)!important;
+    visibility:visible!important;
+    transition:opacity .65s ease!important;
+    object-fit:cover;
+    object-position:center center;
   }
 
   .cinematic-hero.bt-mobile-motion .cinematic-video-2,
