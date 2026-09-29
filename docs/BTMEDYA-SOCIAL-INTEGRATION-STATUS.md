@@ -19,10 +19,14 @@ Brand label: busetuncayy10
 Timezone: Europe/Istanbul
 
 Doğrulanan kanal kimlikleri:
-- Instagram: https://www.instagram.com/btmedyajans/
-- YouTube: https://www.youtube.com/@BTmedyaAjans
-- TikTok: https://www.tiktok.com/@btmedya1010
-- Facebook: sayfa URL'si ve META_PAGE_ID doğrulama bekliyor
+- Instagram: https://www.instagram.com/btmedyajans/ — web sitesinde profil bağlantısı mevcut; Metricool Brand bağlantısı bu denetimde doğrulanmadı.
+- YouTube: https://www.youtube.com/@BTmedyaAjans — Metricool Brand'inde kanal kimliği mevcut.
+- TikTok: https://www.tiktok.com/@btmedya1010 — Metricool üzerinden yayın doğrulandı.
+- Facebook: sayfa URL'si ve Metricool bağlantısı doğrulama bekliyor.
+
+### 29 Eylül 2026 canlı bağlantı denetimi
+Metricool Brand 6858384 / busetuncayy10 doğrudan Metricool bağlantısından okundu. Brand verisinde TikTok (btmedya1010) ve YouTube (UCGyRifwCyrKJQAbmo4uoO9g) kimlikleri mevcut. Instagram ve Facebook için bu Brand'de yayın/analytics kaydı doğrulanamadı.
+Bu nedenle site otomasyonu varsayılan olarak yalnız doğrulanmış TikTok ağına planlama yapacak; YouTube video yayınında ayrıca video formatı gerektirdiği için haber kartı otomasyonuna otomatik eklenmeyecek.
 
 Son Metricool snapshotında TikTok üzerinden iki yayın doğrulandı:
 - 24 Eylül 2026: Balıkesir Pazarında Canlı Helva Şovu
