@@ -79,6 +79,14 @@ required = [
 #   RESEND_TO             -> bildirim alıcı adresi
 #   RESEND_FROM           -> gönderici adresi
 
+# Sabah Masası kategori işçisi: Worker kendi SabahYazici giriş noktasını
+# çağırır. Her kategori ayrı çağrıda çalışır; ücretsiz planın çağrı başına
+# 50 dış istek sınırı 8 kategoriyi tek çağrıda kaldırmıyor.
+[[services]]
+binding = "SABAH_YAZICI"
+service = "btmedya-db"
+entrypoint = "SabahYazici"
+
 # Cloudflare Workflow: BTMEDYA içerik/onay otomasyonu
 [[workflows]]
 name = "btmedya-content"

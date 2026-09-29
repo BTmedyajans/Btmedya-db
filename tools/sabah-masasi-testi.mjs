@@ -95,3 +95,10 @@ const ayar = await M.sabahAyarlari({ KV: { get: async k => kv.get(k) || null } }
 assert.equal(ayar.model, '@cf/openai/gpt-oss-120b');
 assert.equal(ayar.kategoriler.length, 8);
 console.log('SABAH MASASI TESTLERİ GEÇTİ');
+
+// Kategori işçisi ayrı çağrıda çalışır: düz girdi/çıktı, aday yoksa kayıt yazmaz.
+const bos = await M.kategoriIsle({ DB: null }, { kat: M.KATEGORILER[0], adaylar: [], ayar: {}, sonBasliklar: [] });
+assert.deepEqual(bos.secilen, [{ kategori: 'Yerel', anahtar: 'balikesir', durum: 'uygun-kaynak-yok' }]);
+assert.equal(bos.yayinlanan + bos.taslak, 0);
+assert.doesNotThrow(() => structuredClone(bos), 'RPC dönüşü klonlanabilir olmalı');
+console.log('SABAH MASASI KATEGORI ISCISI TESTI GECTI');
