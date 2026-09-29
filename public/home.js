@@ -100,6 +100,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     }
 
     grid.innerHTML = isler.map(portfoyKarti).join('');
+    grid.setAttribute('aria-busy','false');
 
     if (filtre) {
       const kategoriler = [{ad:'', etiket:'TÜMÜ'}].concat(
@@ -297,6 +298,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
         </div>
       </article>`;
     }).join('');
+    newsGrid.setAttribute('aria-busy','false');
     kapakYedegiKur(newsGrid);
     observeReveal();
   };
@@ -439,6 +441,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
         return;
       }
       grid.innerHTML = ogeler.map(arsivKarti).join('');
+      grid.setAttribute('aria-busy','false');
       /* Videolar yalnızca ekrandayken oynar: mobil veri ve pil için. */
       grid.querySelectorAll('video').forEach(v => {
         const io = new IntersectionObserver(
@@ -563,6 +566,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     /* Bu blok ana IIFE'nin disinda; oradaki 'const d = document' burada yok.
        'd' ile yazildiginda sayfa ReferenceError verip sosyal akisi hic yuklemiyordu. */
     const profiles=document.getElementById('socialProfiles'), meta=document.getElementById('socialFeedMeta'), grid=document.getElementById('socialFeedGrid');
+    const markReady=()=>{profiles?.setAttribute('aria-busy','false');grid?.setAttribute('aria-busy','false')};
     if(!profiles||!meta||!grid)return;
     try{
       const r=await fetch('/api/public/social-feed',{headers:{accept:'application/json'}});
@@ -572,10 +576,12 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       const count=Array.isArray(data.items)?data.items.length:0;
       meta.textContent='Kaynak: '+String(data.source||'Metricool')+' · '+count+' doğrulanmış yayın snapshotı · '+String(data.generated_at||'');
       grid.innerHTML=count ? data.items.map(feedCardSocial).join('') : '<div class="social-feed-empty">Doğrulanmış yayın kaydı yok.</div>';
+      markReady();
     }catch(err){
       profiles.innerHTML='';
       meta.textContent='Sosyal profil bağlantıları korunuyor; son yayın snapshotı şu anda okunamadı.';
       grid.innerHTML='<div class="social-feed-empty">Sosyal akış geçici olarak kullanılamıyor.</div>';
+      markReady();
     }
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadSocialFeedHome,{once:true});else loadSocialFeedHome();

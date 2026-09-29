@@ -131,3 +131,26 @@ input:focus,select:focus,textarea:focus{border-color:rgba(83,132,255,.72)!import
   .tabs{overflow-x:auto;width:100%;padding-bottom:4px}
   .tab{flex:0 0 auto}
 }
+
+/* Supervisor pass — erişilebilirlik, mobil güven ve düşük maliyetli render iyileştirmeleri. */
+:where(a,button,input,select,textarea):focus-visible{
+  outline:3px solid var(--ux-cyan,#49b7ff);
+  outline-offset:4px;
+  box-shadow:0 0 0 6px rgba(73,183,255,.16);
+}
+:where(section,article)[id]{scroll-margin-top:84px}
+/* Ekran dışındaki uzun editoryal bloklar ilk boyamayı engellemesin. */
+#news,#portfoy,#sosyal-akis,#gercek-arsiv,#nextgen-proof,#ai-lab,#kaynaklar,.founder-section,.contact-section{
+  content-visibility:auto;
+  contain-intrinsic-size:820px;
+}
+/* Ağdan gelen kart görüntüleri için güvenli oran; görsel gelmeden kart yüksekliği korunur. */
+.news-media,.story-card img,.portfoy-oynat,.archive-live-card{contain:layout paint}
+.news-media img,.story-card img,.portfoy-kapak,.archive-media{background:#0a0f15}
+@media(max-width:720px){
+  .topbar{padding-bottom:max(12px,env(safe-area-inset-bottom))!important}
+  .contact-links a{padding-block:18px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
