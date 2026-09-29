@@ -8,11 +8,11 @@ const DB={prepare:(sql)=>({bind:(...a)=>({first:async()=>dolu.some(t=>t>=a[0]&&t
 const kv=new Map(); const KV={get:async k=>kv.get(k)??null,put:async(k,v)=>kv.set(k,v)};
 const env={DB,KV};
 let a=await ayarlariOku(env);
-// Varsayilan: yalniz Metricool'da dogrulanmis ag (TikTok), otomatik planlama acik.
-assert.deepEqual(a.aglar,['tiktok']); assert.equal(a.otomatikPlanla,true);
-a=await ayarlariYaz(env,{aglar:['tiktok','x','TikTok'],saatler:['18:00','9:5','10:00','25:00'],otomatikPlanla:true,tazelikSaat:-3});
-assert.deepEqual(a.aglar,['tiktok']); assert.deepEqual(a.saatler,['10:00','18:00']); assert.equal(a.tazelikSaat,72);
-assert.deepEqual(platformSluglari(a),['tiktok']);
+// Varsayilan: Metricool'da dogrulanmis aglar (TikTok + YouTube), otomatik planlama acik.
+assert.deepEqual(a.aglar,['tiktok','youtube']); assert.equal(a.otomatikPlanla,true);
+a=await ayarlariYaz(env,{aglar:['tiktok','youtube','x','TikTok'],saatler:['18:00','9:5','10:00','25:00'],otomatikPlanla:true,tazelikSaat:-3});
+assert.deepEqual(a.aglar,['tiktok','youtube']); assert.deepEqual(a.saatler,['10:00','18:00']); assert.equal(a.tazelikSaat,72);
+assert.deepEqual(platformSluglari(a),['tiktok','youtube']);
 // 29 Eylul 02:30 Istanbul (= 28 Eylul 23:30Z): ilk yuva 29 Eylul 10:00 TR = 07:00Z
 const simdi=new Date('2026-09-28T23:30:00Z');
 let y=await sonrakiYuva(env,a,simdi); assert.equal(y,'2026-09-29T07:00:00.000Z');
