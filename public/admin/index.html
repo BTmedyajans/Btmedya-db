@@ -437,7 +437,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap">
       <div>
         <h2 style="margin-bottom:4px">Metricool otomatik yayın bağlantısı</h2>
-        <p class="muted" style="margin:0">Token yalnızca bir kez GitHub Actions Secret olarak eklenir. Sonrasında BTMEDYA yayın zinciri bunu otomatik kullanır.</p>
+        <p class="muted" style="margin:0">Metricool, BTMEDYA sosyal yayınlarının tek geçididir. Site panelindeki içerik önce kuyruğa alınır; yalnızca <b>Planlandı</b> durumundaki gelecekteki gönderiler Worker tarafından Metricool'a teslim edilir.</p>
       </div>
       <span id="metricoolBadge" class="pill">Kontrol ediliyor…</span>
     </div>
@@ -446,6 +446,10 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
       <div data-mnet="youtube" style="padding:11px;border:1px solid #263326;border-radius:10px;background:#101610"><b>YouTube</b><div class="muted">Kontrol ediliyor…</div></div>
       <div data-mnet="instagram" style="padding:11px;border:1px solid #332a22;border-radius:10px;background:#16120e"><b>Instagram</b><div class="muted">Doğrulama bekliyor</div></div>
       <div data-mnet="facebook" style="padding:11px;border:1px solid #332a22;border-radius:10px;background:#16120e"><b>Facebook</b><div class="muted">Doğrulama bekliyor</div></div>
+    </div>
+    <div id="metricoolLiveQueue" style="margin-top:14px;padding:15px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.025)">
+      <div style="font-weight:700;margin-bottom:8px">Metricool yayın kuyruğu</div>
+      <div id="metricoolLiveQueueBody" class="muted">Canlı kuyruk durumu okunuyor…</div>
     </div>
     <div style="margin-top:14px;padding:15px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.025)">
       <div style="font-weight:700;margin-bottom:8px">Telefondan yapacağınız tek kurulum</div>
@@ -591,11 +595,20 @@ async function loadControlCenter(){
   try{
     const d=await req('/api/admin/control-center');
     box.innerHTML='<b>Site:</b> '+escStr(d.site.url)+' · <b>Worker:</b> '+escStr(d.site.worker)+'<br><b>D1:</b> '+(d.storage.d1?'✓':'✗')+' · <b>R2:</b> '+(d.storage.r2?'✓':'✗')+' · <b>Admin secrets:</b> '+(d.admin.configured?'✓':'Eksik')+' · <b>Media signing:</b> '+(d.admin.mediaSigning?'✓':'Eksik')+' · <b>Metricool:</b> '+(d.metricool?.yapilandirildi?'✓ Bağlı':'Kurulum bekliyor')+surumSatiri(d.site.surum);
-    const matrix={tiktok:true,youtube:true,instagram:false,facebook:false};
-    Object.entries(matrix).forEach(([network,ok])=>{
+    const matrix=d.social||{};
+    Object.entries({tiktok:'TikTok',youtube:'YouTube',instagram:'Instagram',facebook:'Facebook'}).forEach(([network,label])=>{
       const el=document.querySelector('[data-mnet="'+network+'"]');
-      if(el) el.innerHTML='<b>'+escStr(network==='tiktok'?'TikTok':network==='youtube'?'YouTube':network==='instagram'?'Instagram':'Facebook')+'</b><div class="muted">'+(ok?'✓ Metricool bağlantısı doğrulandı':'⚠ Metricool Connections doğrulaması bekliyor')+'</div>';
+      const st=matrix[network]||{};
+      if(el) el.innerHTML='<b>'+label+'</b><div class="muted">'+(st.configured?'✓ Metricool bağlantısı doğrulandı':(st.connected?'⚠ Hesap bağlı, Worker yapılandırması bekliyor':'○ Bağlantı doğrulanmadı'))+'</div>';
     });
+    const mq=$('#metricoolLiveQueueBody');
+    if(mq){
+      const m=d.metricool||{};
+      mq.innerHTML='<b>Worker bağlantısı:</b> '+(m.yapilandirildi?'✓ hazır':'⚠ token bekleniyor')+
+        ' · <b>Planlanan:</b> '+Number(m.planlanan||0)+
+        ' · <b>Hatalı:</b> '+Number(m.hatali||0)+
+        (m.sonHata?' · <b>Son hata:</b> '+escStr(m.sonHata):'');
+    }
     const badge=$('#metricoolBadge');
     if(badge){badge.textContent=d.metricool?.yapilandirildi?'BAĞLI':'KURULUM BEKLİYOR';badge.className=d.metricool?.yapilandirildi?'pill pub':'pill'}
     const labels={izap:'iZap / WhatsApp',cmsOpenData:'CMS Open Data',github:'GitHub → Cloudflare'};
