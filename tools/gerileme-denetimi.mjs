@@ -232,6 +232,22 @@ tara('public'); tara('src');
   }
 }
 
+/* 8b) Giris filmi rozeti baska bir betikte elle yazilmamali.
+       29 Eylul 2026 (3567196, d12694f): public/mobile-motion.js mobilde
+       sahneleri kendi dizisiyle yeniden kurdu ve dort AI sahnesine sabit
+       "GERCEK CEKIM" bastı; home.js'in panel verisinden turettigi rozeti
+       ezdi. 8. kural yalniz home.js'e baktigi icin yakalamadi.
+       Kural: public/ altindaki hicbir .js dosyasi bir nesne alanina sabit
+       'GERÇEK ÇEKİM' yazmaz; rozet veriden (panel yuvasi, gercek listesi) turer. */
+{
+  const dosyalar = readdirSync('public').filter(f => f.endsWith('.js')).map(f => 'public/' + f);
+  for (const f of dosyalar) {
+    const kod = readFileSync(f, 'utf8');
+    const m = kod.match(/[A-Za-z_]+\s*:\s*['"]GERÇEK ÇEKİM['"]/g);
+    if (m) bulgular.push(`${f} rozeti sabit "GERÇEK ÇEKİM" olarak yaziyor (${m.length} yer). Rozet panel verisinden turemeli; varsayilan AI ÜRETİMİ.`);
+  }
+}
+
 /* 9) Panel yuvalari sitede gercek bir yere bagli olmali.
       26 Eylul 2026: bes yuva eski tasarimdan kalmisti, sitede yeri yoktu;
       "Bu yere bagla" hicbir sey degistirmiyordu. Varsayilan dosyalar da
