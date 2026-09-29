@@ -13,7 +13,8 @@
 
 const AYAR_ANAHTARI = 'social:ayarlar';
 const VARSAYILAN = Object.freeze({
-  // 29 Eylül 2026 Metricool Brand denetimi: TikTok yayın bağlantısı doğrulandı; Instagram/Facebook henüz doğrulanmadı.\n  aglar: ['tiktok'],
+  // 29 Eylül 2026 Metricool Brand denetimi: TikTok yayın bağlantısı doğrulandı; Instagram/Facebook henüz doğrulanmadı.
+  aglar: ['tiktok'],
   otomatikPlanla: true,
   // Metricool'un TikTok verisine gore zirve saatler (Europe/Istanbul).
   saatler: ['10:00', '12:00', '18:00'],

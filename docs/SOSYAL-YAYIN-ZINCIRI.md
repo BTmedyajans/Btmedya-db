@@ -40,21 +40,22 @@ Metricool'a Worker dışından planlanan gönderi, panel kuyruğuna `metricool_i
 Kod: `src/sabah-masasi.js`. Tetik: `wrangler.toml` içinde `0 5 * * *` (05:00 UTC = 08:00 İstanbul). Test: `node tools/sabah-masasi-testi.mjs`.
 
 1. Google Trends TR günlük akışı okunur.
-2. Kategori kaynakları okunur: TRT Haber kategori akışları, Balıkesir Büyükşehir haber listesi, CUMHA Balıkesir, Hürriyet ve Sabah (spor, eğitim ve teknoloji yedekleri).
+2. Kategori kaynakları okunur: TRT Haber kategori akışları, Balıkesir Büyükşehir haber listesi, CUMHA Balıkesir; yedek olarak Hürriyet (spor, eğitim, teknoloji), Sabah (spor, kültür-sanat, sağlık) ve Anadolu Ajansı (kültür, bilim-teknoloji).
 3. Seçimden önce elenenler:
    - 72 saatten eski haberler,
    - başka kategoriye sızan spor haberleri,
    - video sayfaları,
    - son 4 günde yayınlanmış konular,
    - daha önce alınmış bağlantılar.
-4. Kalan her haber trendle eşleşmesine ve tazeliğine göre puanlanır; her kategoriye en yüksek puanlı haber seçilir.
-5. Siyaset, soruşturma, gözaltı ve suç haberleri otomatik akışa alınmaz (`HASSAS`). Bunlar editör kararıdır.
-6. Workers AI (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`) kaynak metinden özgün metin yazar.
-7. İki denetim yapılır:
+4. Kalan her haber trendle eşleşmesine ve tazeliğine göre puanlanır; her kategoriye en yüksek puanlı haber seçilir. Bir kategoride seçilen konu, sıradaki kategorilerde tekrar sayılır.
+5. Siyaset, soruşturma, gözaltı, suç, ölüm ve yaralanma haberleri otomatik akışa alınmaz (`HASSAS`). Bunlar editör kararıdır.
+6. Workers AI (`@cf/openai/gpt-oss-120b`) kaynak metinden özgün metin yazar. Seçilen kategorilerin hepsi **eş zamanlı** yazılır; biri hata verirse diğerleri etkilenmez. Model koddan gelir, panel ayarlarında saklanmaz.
+7. Üç denetim yapılır:
    - **Rakam denetimi:** metindeki her sayı kaynakta geçmeli.
    - **Özel ad denetimi:** metindeki her ad kaynakta geçmeli.
+   - **Kalite denetimi:** başlık tam cümle (en az 40 karakter, 5 kelime, Her Kelimesi Büyük değil, sansasyonsuz), spot 90-300 karakter, gövde en az 3 paragraf ve 650 karakter, gövdenin en fazla %40'ı kaynaktan aynen.
 
-   İkisini de geçen haber yayınlanır (panelde "Denetimi geçenleri otomatik yayınla" açıksa); geçemeyen haber taslak kalır ve nedeni panelde görünür.
+   Denetimden kalan taslak, sorunlar modele geri verilerek bir kez daha yazdırılır. Üçünü de geçen haber yayınlanır (panelde "Denetimi geçenleri otomatik yayınla" açıksa); geçemeyen haber taslak kalır ve nedeni panelde görünür.
 8. Görsel: Openverse'ten ticari kullanıma açık CC lisanslı temsili fotoğraf alınır, `otomasyon/<slug>.jpg` olarak R2'ye kaydedilir ve `/gorsel/otomasyon/...` adresinden servis edilir. Künye metne ve nota yazılır. Fotoğraf bulunamazsa `public/assets/kategori-kapak/` altındaki kategori grafiği kullanılır.
 9. Her otomatik haberin notunda yapay zekâ desteğiyle derlendiği ve editör denetiminden geçmediği açıkça yazılır.
 10. Yayınlanan haberler sosyal zincire düşer. `RESEND_*` tanımlıysa günün özeti e-postayla gelir.
@@ -63,5 +64,7 @@ Panel > Sosyal İçerik > Sabah Masası kartından şunlar yapılır:
 - açma/kapama,
 - otomatik yayın ayarı,
 - günlük azami haber sayısı,
+- hangi kategorilerin yazılacağı (hepsi boşaltılırsa "hepsi" sayılır),
 - **Önizle** (yazmadan yalnız seçim),
+- **Deneme yazımı** (yazar ve denetler ama hiçbir şey kaydetmez; metin panelde görünür),
 - **Şimdi çalıştır**.

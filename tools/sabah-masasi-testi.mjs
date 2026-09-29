@@ -26,4 +26,56 @@ assert.ok(a.puan > b.puan, 'trend eşleşmesi öne geçmeli');
 assert.ok(!b.eslesen.includes('turkiye'), '"türkiye" genel kelime sayılmalı');
 
 assert.equal(M.slugUret("Türkiye, İtalya'ya 1-4 yenildi"), 'turkiye-italya-ya-1-4-yenildi');
+
+// Ölüm/yaralanma haberleri otomatik akışa girmez; "olumlu" gibi kelimeler takılmaz.
+assert.equal(M.hassasMi('Kazada 2 kişi hayatını kaybetti'), true);
+assert.equal(M.hassasMi('Yaralılar hastaneye kaldırıldı'), true);
+assert.equal(M.hassasMi('Görüşmeler olumlu geçti, olumsuz hava etkisini yitirdi'), false);
+
+// Yanıt biçimleri: eski { response }, Chat Completions ve Responses.
+assert.equal(M.yanitMetni({ response: '{"a":1}' }), '{"a":1}');
+assert.equal(M.yanitMetni({ choices: [{ message: { content: 'x' } }] }), 'x');
+assert.equal(M.yanitMetni({ output: [{ type: 'reasoning', content: [{ text: 'düşünce' }] }, { type: 'message', content: [{ type: 'output_text', text: 'metin' }] }] }), 'metin');
+assert.deepEqual(M.jsonAyikla('```json\n{"baslik":"x"}\n```'), { baslik: 'x' });
+assert.equal(M.jsonAyikla('yanıt yok'), null);
+
+// Kalite denetimi: llama denemesindeki kusurlar yakalanır, düzgün haber geçer.
+const iyi = {
+  baslik: "Balıkesir'de tarım fuarı dört günde 108 bin ziyaretçiyi ağırladı",
+  spot: "Ali Hikmet Paşa Tesisleri'nde düzenlenen 3. Balıkesir Tarım ve Hayvancılık Fuarı, belediye verilerine göre dört günde 108 bin 321 kişiyi ağırladı.",
+  paragraflar: [
+    'Balıkesir Büyükşehir Belediyesi tarafından düzenlenen fuar 24-27 Eylül tarihleri arasında kapılarını açtı ve bölgenin üreticilerini bir araya getirdi.',
+    'Belediyenin açıkladığı verilere göre dört gün boyunca 108 bin 321 kişi fuarı gezdi; alanda 135 firma ve 350 marka yer aldı.',
+    'Fransa ve Bulgaristan’dan sektör temsilcileri ile Sierra Leone’den alıcılar da fuara katılarak üreticilerle görüştü.',
+    'Organizasyon, tarım makinelerinden hayvancılık ekipmanlarına kadar geniş bir ürün yelpazesini ziyaretçilerle buluşturdu.',
+    'Fuar süresince üreticiler yeni ürünlerini tanıttı, ziyaretçiler de makineleri yakından inceleme fırsatı buldu. Belediye, fuarın önümüzdeki yıl da aynı alanda düzenlenmesini planlıyor.'
+  ]
+};
+const kq = M.kaliteDenetimi(iyi, 'tamamen farklı bir kaynak metni');
+assert.equal(kq.gecti, true, kq.sorun.join('; '));
+assert.equal(M.kaliteDenetimi({ ...iyi, baslik: 'Okula Uyumu' }).gecti, false);
+assert.ok(M.kaliteDenetimi({ ...iyi, baslik: 'Balıkesir Tarım Ve Hayvancılık Fuarı Dört Günde Büyük İlgi Gördü' }).sorun.some(x => x.includes('Her Kelimesi')));
+assert.ok(M.kaliteDenetimi({ ...iyi, paragraflar: iyi.paragraflar.slice(0, 2) }).sorun.some(x => x.includes('3 paragraf')));
+assert.ok(M.kaliteDenetimi(iyi, iyi.paragraflar.join(' ')).sorun.some(x => x.includes('aynen')), 'kaynaktan kopya yakalanmalı');
+
+// Yazım: denetimden kalan ilk taslak, sorunlar geri verilerek yeniden yazdırılır.
+const kaynak = { baslik: 'Fuar', tarih: '', kaynakAd: 'Balıkesir Büyükşehir Belediyesi', metin: [iyi.spot, ...iyi.paragraflar].join('\n').replace(/[;,]/g, ' ') + ' ' + 'x'.repeat(10) };
+const cagrilar = [];
+const env = { AI: { run: async (model, girdi) => {
+  cagrilar.push({ model, n: girdi.messages.length });
+  if (cagrilar.length === 1) return { choices: [{ message: { content: JSON.stringify({ baslik: 'Okula Uyumu', spot: 'kısa', paragraflar: ['çok kısa bir paragraf burada duruyor.'] }) } }] };
+  return { response: JSON.stringify({ ...iyi, paragraflar: iyi.paragraflar, gorsel_anahtar: 'agricultural fair' }) };
+} } };
+const y = await M.yaz(env, { model: '@cf/openai/gpt-oss-120b' }, kaynak, 'Yerel');
+assert.equal(cagrilar.length, 2, 'ikinci deneme yapılmalı');
+assert.ok(cagrilar[1].n > cagrilar[0].n, 'sorunlar modele geri verilmeli');
+assert.equal(y.deneme, 2);
+assert.equal(y.baslik, iyi.baslik);
+assert.equal(y.denetim.rakam.gecti, true, y.denetim.rakam.eksik.join(','));
+
+// Model ayarlarda saklansa bile koddaki model kullanılır; boş kategori listesi "hepsi" demektir.
+const kv = new Map([['sabah:ayarlar', JSON.stringify({ model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast', kategoriler: [] })]]);
+const ayar = await M.sabahAyarlari({ KV: { get: async k => kv.get(k) || null } });
+assert.equal(ayar.model, '@cf/openai/gpt-oss-120b');
+assert.equal(ayar.kategoriler.length, 8);
 console.log('SABAH MASASI TESTLERİ GEÇTİ');

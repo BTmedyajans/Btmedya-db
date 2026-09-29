@@ -7,7 +7,7 @@ import { salesApi } from "./sales-router.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
-import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu } from "./sabah-masasi.js";
+import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu, KATEGORILER } from "./sabah-masasi.js";
 import { ayarlariOku, ayarlariYaz, platformSluglari, sonrakiYuva, altyazi, varlikVar, kapakKunyesi, yayinlananlariIsaretle, gecikenleriKaydir } from "./sosyal-otomasyon.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
@@ -1352,16 +1352,16 @@ export default { async scheduled(controller, env, ctx){
 
   if(url.pathname==='/api/admin/sabah-masasi'){
     if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
-    if(request.method==='GET') return json({ok:true,ayarlar:await sabahAyarlari(env),rapor:await sabahRaporu(env),ai:Boolean(env.AI)});
+    if(request.method==='GET') return json({ok:true,ayarlar:await sabahAyarlari(env),rapor:await sabahRaporu(env),ai:Boolean(env.AI),kategoriler:KATEGORILER.map(k=>({anahtar:k.anahtar,kategori:k.kategori}))});
     if(request.method==='PUT'){
       const b=await request.json().catch(()=>null);
       if(!b||typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
-      const izinli={}; for(const k of ['etkin','otomatikYayin','gunlukAzami']) if(k in b) izinli[k]=b[k];
+      const izinli={}; for(const k of ['etkin','otomatikYayin','gunlukAzami','kategoriler']) if(k in b) izinli[k]=b[k];
       return json({ok:true,ayarlar:await sabahAyarlariYaz(env,izinli)});
     }
     if(request.method==='POST'){
       const b=await request.json().catch(()=>({}));
-      const rapor=await sabahMasasi(env,{kuru:b.kuru===true,zorla:true});
+      const rapor=await sabahMasasi(env,{kuru:b.kuru===true,deneme:b.deneme===true,kategoriler:Array.isArray(b.kategoriler)?b.kategoriler:null,zorla:true});
       return json({ok:true,rapor});
     }
     return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,PUT,POST'});

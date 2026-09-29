@@ -55,7 +55,7 @@ async function publicMediaUrl(env, key){
 
 async function yapayZekaMi(env, key){
   if(String(key||"").startsWith("otomasyon/")) return false;
-  if(/^static\\/kategori-kapak\\//.test(String(key||""))) return false;
+  if(/^static\/kategori-kapak\//.test(String(key||""))) return false;
   const statik=await statikGorselAiMi(env,key);
   if(statik!==null) return statik;
   if(!key || !env.DB) return true;

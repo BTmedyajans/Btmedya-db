@@ -8,7 +8,8 @@ const DB={prepare:(sql)=>({bind:(...a)=>({first:async()=>dolu.some(t=>t>=a[0]&&t
 const kv=new Map(); const KV={get:async k=>kv.get(k)??null,put:async(k,v)=>kv.set(k,v)};
 const env={DB,KV};
 let a=await ayarlariOku(env);
-assert.deepEqual(a.aglar,['instagram','facebook','tiktok']); assert.equal(a.otomatikPlanla,false);
+// Varsayilan: yalniz Metricool'da dogrulanmis ag (TikTok), otomatik planlama acik.
+assert.deepEqual(a.aglar,['tiktok']); assert.equal(a.otomatikPlanla,true);
 a=await ayarlariYaz(env,{aglar:['tiktok','x','TikTok'],saatler:['18:00','9:5','10:00','25:00'],otomatikPlanla:true,tazelikSaat:-3});
 assert.deepEqual(a.aglar,['tiktok']); assert.deepEqual(a.saatler,['10:00','18:00']); assert.equal(a.tazelikSaat,72);
 assert.deepEqual(platformSluglari(a),['tiktok']);

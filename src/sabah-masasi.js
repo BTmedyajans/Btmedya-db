@@ -2,9 +2,10 @@
  * sosyal otomasyonu.
  *
  * Akış: Google Trends TR -> kategori kaynakları -> trend puanı -> kategori
- * başına bir haber -> kaynak metin -> Workers AI ile özgün metin -> rakam ve
- * özel ad denetimi -> lisanslı temsili fotoğraf (Openverse) -> R2 ->
- * yayın ya da taslak -> sosyal zincir (sosyal-otomasyon.js) -> e-posta özeti.
+ * başına bir haber -> kaynak metin -> Workers AI ile özgün metin (tüm
+ * kategoriler eş zamanlı) -> rakam, özel ad ve kalite denetimi -> lisanslı
+ * temsili fotoğraf (Openverse) -> R2 -> yayın ya da taslak -> sosyal zincir
+ * (sosyal-otomasyon.js) -> e-posta özeti.
  *
  * EDİTORYAL SINIRLAR (AGENTS.md "Uydurmayın")
  * - Model yalnız kaynak metindeki bilgiyi kullanabilir. Çıktıdaki her rakam
@@ -22,11 +23,15 @@ import { ayarlariOku as sosyalAyarlari } from './sosyal-otomasyon.js';
 
 const AYAR = 'sabah:ayarlar';
 const RAPOR = 'sabah:son';
+/* Model ayarlarda saklanmaz, koddan gelir: llama-3.3 ile yapılan canlı
+   denemede başlıklar yarım kalıyor ("Okula Uyumu"), Türkçe ekler bozuluyordu
+   ("4-1'lık"). Model değişikliği kalite denetimiyle birlikte kodda yapılır. */
+const MODEL = '@cf/openai/gpt-oss-120b';
 const VARSAYILAN = Object.freeze({
   etkin: true,
   otomatikYayin: true,
-  model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-  gunlukAzami: 8
+  gunlukAzami: 8,
+  kategoriler: null // null: hepsi
 });
 
 /* Sitenin 8 kategorisi (public/home.js BTMEDYA_RELEVANCE ile aynı sıra).
@@ -35,12 +40,13 @@ export const KATEGORILER = [
   { anahtar: 'balikesir', kategori: 'Yerel', kaynaklar: ['balikesir-bel', 'cumha-balikesir'] },
   { anahtar: 'gundem', kategori: 'Gündem', kaynaklar: ['trt-gundem', 'trt-turkiye'] },
   { anahtar: 'ekonomi', kategori: 'Ekonomi', kaynaklar: ['trt-ekonomi'] },
-  { anahtar: 'kultur', kategori: 'Kültür', kaynaklar: ['trt-kultur'] },
+  // TRT kültür-sanat akışı günde bir-iki haber veriyor; AA ve Sabah yedek.
+  { anahtar: 'kultur', kategori: 'Kültür', kaynaklar: ['trt-kultur', 'aa-kultur', 'sabah-kultur'] },
   { anahtar: 'egitim', kategori: 'Eğitim', kaynaklar: ['trt-egitim', 'hurriyet-egitim'] },
-  { anahtar: 'saglik', kategori: 'Sağlık', kaynaklar: ['trt-saglik'] },
+  { anahtar: 'saglik', kategori: 'Sağlık', kaynaklar: ['trt-saglik', 'sabah-saglik'] },
   // TRT spor akışı günlerce güncellenmeyebiliyor; Hürriyet ve Sabah yedek.
   { anahtar: 'spor', kategori: 'Spor', kaynaklar: ['trt-spor', 'hurriyet-spor', 'sabah-spor'] },
-  { anahtar: 'teknoloji', kategori: 'Yapay Zekâ', kaynaklar: ['trt-teknoloji', 'hurriyet-teknoloji'] }
+  { anahtar: 'teknoloji', kategori: 'Yapay Zekâ', kaynaklar: ['trt-teknoloji', 'hurriyet-teknoloji', 'aa-teknoloji'] }
 ];
 
 const KAYNAK = {
@@ -57,13 +63,19 @@ const KAYNAK = {
   'hurriyet-spor': { ad: 'Hürriyet', tur: 'rss', url: 'https://www.hurriyet.com.tr/rss/spor' },
   'sabah-spor': { ad: 'Sabah', tur: 'rss', url: 'https://www.sabah.com.tr/rss/spor.xml' },
   'hurriyet-egitim': { ad: 'Hürriyet', tur: 'rss', url: 'https://www.hurriyet.com.tr/rss/egitim' },
-  'hurriyet-teknoloji': { ad: 'Hürriyet', tur: 'rss', url: 'https://www.hurriyet.com.tr/rss/teknoloji' }
+  'hurriyet-teknoloji': { ad: 'Hürriyet', tur: 'rss', url: 'https://www.hurriyet.com.tr/rss/teknoloji' },
+  'aa-kultur': { ad: 'Anadolu Ajansı', tur: 'rss', url: 'https://www.aa.com.tr/tr/rss/default?cat=kultur' },
+  'aa-teknoloji': { ad: 'Anadolu Ajansı', tur: 'rss', url: 'https://www.aa.com.tr/tr/rss/default?cat=bilim-teknoloji' },
+  'sabah-kultur': { ad: 'Sabah', tur: 'rss', url: 'https://www.sabah.com.tr/rss/kultur-sanat.xml' },
+  'sabah-saglik': { ad: 'Sabah', tur: 'rss', url: 'https://www.sabah.com.tr/rss/saglik.xml' }
 };
 
 const UA = { 'user-agent': 'Mozilla/5.0 (compatible; BTMEDYA-SabahMasasi/1.0; +https://btmedya.com.tr)' };
 
 /* Otomatik akışa alınmayan konular. Tam kelime, Türkçe harfler düzleştirilmiş. */
-const HASSAS = /\b(chp|akp|ak parti|mhp|dem parti|iyi parti|yeni parti|zafer partisi|erdogan|ozgur ozel|kilicdaroglu|bahceli|imamoglu|yavas|secim|milletvekili|miting|tutuklan\w*|gozalti\w*|sorusturma\w*|iddianame|sanik|cinayet|oldur\w*|bicakla\w*|silahli|taciz|istismar|intihar|feto|teror\w*|casus\w*)\b/;
+// Ölüm ve yaralanma haberleri de dışarıda: yakınlara ulaşılmadan ad, yaş ve
+// ayrıntı yayınlamak editör kararıdır.
+const HASSAS = /\b(chp|akp|ak parti|mhp|dem parti|iyi parti|yeni parti|zafer partisi|erdogan|ozgur ozel|kilicdaroglu|bahceli|imamoglu|yavas|secim|milletvekili|miting|tutuklan\w*|gozalti\w*|sorusturma\w*|iddianame|sanik|cinayet|oldur\w*|bicakla\w*|silahli|taciz|istismar|intihar|feto|teror\w*|casus\w*|olu|oluler\w*|olum|olumu|olumun\w*|olume|olumle|hayatini kaybet\w*|can verdi|ceset\w*|yarali|yaralilar\w*|yaralandi|yaralanan)\b/;
 
 export function duz(s) {
   return String(s || '').toLocaleLowerCase('tr-TR')
@@ -81,16 +93,21 @@ export async function sabahAyarlari(env) {
   const ham = env.KV ? await env.KV.get(AYAR).catch(() => null) : null;
   if (ham) try { k = JSON.parse(ham); } catch {}
   const a = { ...VARSAYILAN, ...k };
+  const gecerli = new Set(KATEGORILER.map(x => x.anahtar));
+  const secili = Array.isArray(a.kategoriler) ? a.kategoriler.map(String).filter(x => gecerli.has(x)) : null;
   return {
     etkin: a.etkin !== false,
     otomatikYayin: a.otomatikYayin === true,
-    model: /^@cf\/[\w.\/-]+$/.test(String(a.model)) ? String(a.model) : VARSAYILAN.model,
-    gunlukAzami: Math.max(1, Math.min(8, Number(a.gunlukAzami) || 8))
+    model: MODEL,
+    gunlukAzami: Math.max(1, Math.min(8, Number(a.gunlukAzami) || 8)),
+    // Boş seçim "hiçbiri" değil "hepsi" sayılır: yanlışlıkla boşaltılan
+    // liste sabah akışını sessizce durdurmasın.
+    kategoriler: secili && secili.length ? [...new Set(secili)] : KATEGORILER.map(x => x.anahtar)
   };
 }
 export async function sabahAyarlariYaz(env, b) {
   if (!env.KV) throw new Error('KV yapılandırılmadı');
-  const yeni = { ...(await sabahAyarlari(env)), ...(b || {}) };
+  const { model, ...yeni } = { ...(await sabahAyarlari(env)), ...(b || {}) };
   await env.KV.put(AYAR, JSON.stringify(yeni));
   return sabahAyarlari(env);
 }
@@ -168,7 +185,7 @@ export async function metinCek(url) {
     }
   }
   const paragraflar = satirlar
-    .filter(p => p.length > 60 && !/çerez|cookie|abone ol|tüm hakları|copyright/i.test(p));
+    .filter(p => p.length > 60 && !/çerez|cookie|abone ol|tüm hakları|copyright|bu haberde bir hata mı var|okur temsilcimiz/i.test(p));
   const benzersiz = [...new Set(paragraflar)].slice(0, 30);
   return { baslik, tarih, spot, paragraflar: benzersiz, metin: [spot, ...benzersiz].join('\n') };
 }
@@ -228,58 +245,163 @@ export function adDenetimi(cikti, kaynak) {
   return { gecti: eksik.length === 0, eksik: eksik.slice(0, 12) };
 }
 
-/* ---------- Yazım (Workers AI) ---------- */
-const SEMA = {
-  type: 'object',
-  properties: {
-    baslik: { type: 'string' },
-    spot: { type: 'string' },
-    paragraflar: { type: 'array', items: { type: 'string' } },
-    vurgu_deger: { type: 'string' },
-    vurgu_etiket: { type: 'string' },
-    gorsel_anahtar: { type: 'string' }
-  },
-  required: ['baslik', 'spot', 'paragraflar', 'gorsel_anahtar']
-};
+/* ---------- Kalite denetimi ---------- */
+/* Rakam ve ad denetimi doğruluğu korur; bu denetim okunurluğu. llama-3.3
+   denemesinde çıkan kusurlar ölçüte çevrildi: yarım başlık, Başlık Gibi Her
+   Kelimesi Büyük yazım, kısa spot, iki paragraflık gövde ve kaynağın
+   cümlelerini olduğu gibi aktarmak. */
+function kelimeSay(s) { return String(s || '').trim().split(/\s+/).filter(Boolean).length; }
 
+function kopyaOrani(paragraflar, kaynakMetin) {
+  // 8 kelimelik dizilerin kaynakta aynen geçme oranı.
+  const k = ' ' + duz(kaynakMetin).replace(/[^a-z0-9]+/g, ' ') + ' ';
+  let toplam = 0, ayni = 0;
+  for (const p of paragraflar) {
+    const w = duz(p).replace(/[^a-z0-9]+/g, ' ').trim().split(' ');
+    for (let i = 0; i + 8 <= w.length; i += 4) {
+      toplam++;
+      if (k.includes(' ' + w.slice(i, i + 8).join(' ') + ' ')) ayni++;
+    }
+  }
+  return toplam ? ayni / toplam : 0;
+}
+
+export function kaliteDenetimi(y, kaynakMetin = '') {
+  const sorun = [];
+  const baslik = String(y.baslik || '').trim();
+  const spot = String(y.spot || '').trim();
+  const govde = (y.paragraflar || []).join(' ');
+  if (baslik.length < 40 || kelimeSay(baslik) < 5) sorun.push('başlık kısa veya yarım (en az 40 karakter, 5 kelime)');
+  if (baslik.length > 110) sorun.push('başlık 110 karakteri aşıyor');
+  const sozcukler = baslik.split(/\s+/).filter(w => /^[a-zçğıöşü]/i.test(w) && w.length > 3);
+  const buyuk = sozcukler.filter(w => /^[A-ZÇĞİÖŞÜ]/.test(w)).length;
+  if (sozcukler.length >= 4 && buyuk / sozcukler.length > 0.7) sorun.push('başlık Her Kelimesi Büyük biçiminde; cümle düzeninde yazılmalı');
+  if (/[!?]$|\b(şok|flaş|son dakika|bomba)\b/i.test(baslik)) sorun.push('başlıkta sansasyon ifadesi');
+  if (spot.length < 90) sorun.push('spot 90 karakterden kısa');
+  if (spot.length > 300) sorun.push('spot 300 karakteri aşıyor');
+  if ((y.paragraflar || []).length < 3) sorun.push('gövde 3 paragraftan az');
+  if (govde.length < 650) sorun.push('gövde 650 karakterden kısa');
+  if (/\d+-\d+'l[ıi]k\b/.test(govde + ' ' + baslik)) sorun.push("skor eki hatalı (ör. 4-1'lik)");
+  const oran = kopyaOrani(y.paragraflar || [], kaynakMetin);
+  if (oran > 0.4) sorun.push(`gövdenin %${Math.round(oran * 100)}'i kaynaktan aynen alınmış`);
+  return { gecti: sorun.length === 0, sorun, kopya: Math.round(oran * 100) / 100 };
+}
+
+/* ---------- Yazım (Workers AI) ---------- */
 function yonerge(kategori) {
   return [
-    'Sen BTMEDYA haber merkezinin kıdemli editörüsün. Görevin, verilen KAYNAK METİN\'i kullanarak özgün bir Türkçe haber yazmak.',
-    'KURALLAR:',
-    '1. Yalnız kaynak metinde açıkça yazan bilgiyi kullan. Kaynakta olmayan hiçbir rakam, tarih, isim, unvan, alıntı veya yorum ekleme.',
-    '2. Kaynağın cümlelerini kopyalama; yeniden yaz. Alıntıları tırnak içinde ve kime ait olduğunu belirterek aynen koruyabilirsin.',
-    '3. 5N1K: ilk paragraf ne, kim, nerede, ne zaman sorularını yanıtlasın.',
-    '4. Sansasyon, ünlem, "şok", "flaş" gibi ifadeler yok. Tarafsız, sade haber dili.',
-    '5. Başlık en fazla 90 karakter; spot 1-2 cümle, en fazla 260 karakter; gövde 3-6 paragraf.',
-    '6. vurgu_deger: haberin en çarpıcı, kaynakta aynen geçen rakamı (örn. "179.779", "1-4", "401."). Yoksa kısa bir ifade. vurgu_etiket: bu rakamın ne olduğu, en fazla 6 kelime.',
-    '7. gorsel_anahtar: haberi temsil edecek, İNSAN YÜZÜ İÇERMEYEN bir nesne ya da mekân fotoğrafı için 2-4 kelimelik İNGİLİZCE arama ifadesi (örn. "cigarette ashtray", "football stadium night"). Kişi adı, marka, logo yazma.',
-    '8. Kategori: ' + kategori + '. Yanıtı yalnız istenen JSON biçiminde ver.'
+    'Sen BTMEDYA haber merkezinin kıdemli editörüsün. Görevin, verilen KAYNAK METİN\'den yayına hazır, özgün bir Türkçe haber yazmak.',
+    '',
+    'DOĞRULUK',
+    '1. Yalnız kaynak metinde açıkça yazan bilgiyi kullan. Kaynakta olmayan rakam, tarih, isim, unvan, kurum, alıntı, yorum ya da tahmin ekleme.',
+    '2. Kaynaktaki rakamları kaynaktaki biçimiyle yaz (örn. "108 bin 321", "yüzde 24"). Rakamı yazıya çevirme, yuvarlama, hesaplama yapma.',
+    '3. Kişi ve kurum adlarını kaynaktaki yazımla ver. Unvanı kaynakta yoksa unvan uydurma.',
+    '4. Alıntı yalnız kaynakta tırnak içinde geçiyorsa, kime ait olduğu belirtilerek aynen kullanılabilir.',
+    '',
+    'DİL VE BİÇİM',
+    '5. BAŞLIK: 55-95 karakter, yüklemi olan tam bir haber cümlesi; özne + ne oldu. Cümle düzeninde yaz: yalnız ilk harf ve özel adlar büyük. Ünlem, soru, "şok", "flaş" yok. Kötü örnek: "Okula Uyumu". İyi örnek: "Balıkesir\'de tarım fuarı dört günde 108 bin ziyaretçiyi ağırladı".',
+    '6. SPOT: 1-2 cümle, 140-260 karakter; başlığı tekrarlamadan haberin en önemli bilgisini ve bağlamını versin.',
+    '7. GÖVDE: 4-6 paragraf, her biri 2-4 cümle. İlk paragraf 5N1K\'yı (ne, kim, nerede, ne zaman, nasıl, neden) yanıtlasın; sonrakiler ayrıntı, bağlam ve varsa açıklamaları versin. Kaynağın cümlelerini kopyalama; kendi cümlelerinle yeniden kur.',
+    '8. Türkçe ekleri doğru yaz: özel adlara ek kesme işaretiyle (Balıkesir\'de, TRT\'nin); skorlar "4-1\'lik", "2-0\'lık" biçiminde; sayılara gelen ekler okunuşa göre (3\'te, 5\'i, 1990\'lı).',
+    '9. Tarafsız, sade, ajans dili. Sıfat yığını, klişe ve pazarlama dili yok.',
+    '',
+    'EK ALANLAR',
+    '10. vurgu_deger: kaynakta aynen geçen en çarpıcı rakam (örn. "108 bin", "1-4"); yoksa boş bırak. vurgu_etiket: bu rakamın ne olduğu, en fazla 6 kelime.',
+    '11. gorsel_anahtar: haberi temsil edecek, İNSAN YÜZÜ İÇERMEYEN bir nesne ya da mekân fotoğrafı için 2-4 kelimelik İNGİLİZCE arama ifadesi (örn. "agricultural fair tractors", "hospital corridor"). Kişi adı, marka, logo yazma.',
+    '',
+    'Kategori: ' + kategori + '.',
+    'YANIT: Yalnız tek bir JSON nesnesi döndür; açıklama, kod bloğu ya da başka metin ekleme. Anahtarlar: "baslik" (metin), "spot" (metin), "paragraflar" (metin dizisi), "vurgu_deger" (metin), "vurgu_etiket" (metin), "gorsel_anahtar" (metin).'
   ].join('\n');
 }
 
-export async function yaz(env, ayar, kaynak, kategori) {
+/* Workers AI modelleri yanıtı farklı biçimlerde verir: eski modeller
+   { response }, Chat Completions { choices[].message.content }, Responses
+   { output[].content[].text }. Hepsi tek metne indirilir. */
+export function yanitMetni(r) {
+  if (!r) return '';
+  if (typeof r === 'string') return r;
+  if (typeof r.response === 'string') return r.response;
+  if (r.response && typeof r.response === 'object') return JSON.stringify(r.response);
+  if (typeof r.output_text === 'string') return r.output_text;
+  if (Array.isArray(r.choices) && r.choices[0]) {
+    const m = r.choices[0].message || {};
+    if (typeof m.content === 'string' && m.content) return m.content;
+    if (typeof r.choices[0].text === 'string') return r.choices[0].text;
+  }
+  if (Array.isArray(r.output)) {
+    // Akıl yürütme ("reasoning") bölümü atlanır; yalnız mesaj metni alınır.
+    const parca = [];
+    for (const o of r.output) {
+      if (o && o.type === 'reasoning') continue;
+      for (const c of (o && o.content) || []) if (typeof c.text === 'string') parca.push(c.text);
+    }
+    if (parca.length) return parca.join('\n');
+  }
+  return '';
+}
+
+export function jsonAyikla(metin) {
+  const t = String(metin || '').replace(/```(?:json)?/gi, '');
+  const bas = t.indexOf('{'), son = t.lastIndexOf('}');
+  if (bas < 0 || son <= bas) return null;
+  try { return JSON.parse(t.slice(bas, son + 1)); } catch { return null; }
+}
+
+function temizle(j) {
+  const tek = s => String(s || '').replace(/\s+/g, ' ').trim();
+  return {
+    baslik: tek(j.baslik).replace(/[.。]+$/, '').slice(0, 200),
+    spot: tek(j.spot).slice(0, 400),
+    paragraflar: (Array.isArray(j.paragraflar) ? j.paragraflar : String(j.paragraflar || '').split(/\n{2,}/))
+      .map(tek).filter(p => p.length > 30).slice(0, 8),
+    vurgu: { deger: tek(j.vurgu_deger).slice(0, 14), etiket: tek(j.vurgu_etiket).slice(0, 60) },
+    gorselAnahtar: String(j.gorsel_anahtar || '').replace(/[^a-zA-Z ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60)
+  };
+}
+
+/* Yazar, üç denetimden geçirir; geçemezse sorunları modele geri verip bir
+   kez daha yazdırır. En iyi (en az sorunlu) deneme döner; yayın kararı
+   çağırandadır. */
+export async function yaz(env, ayar, kaynak, kategori, denemeSayisi = 2) {
+  const kaynakMetin = kaynak.metin + '\n' + kaynak.baslik;
   const girdi = [
     'KAYNAK BAŞLIK: ' + kaynak.baslik,
     'KAYNAK TARİH: ' + (kaynak.tarih || 'belirtilmemiş'),
     'KAYNAK METİN:',
     kaynak.metin.slice(0, 9000)
   ].join('\n');
-  const r = await env.AI.run(ayar.model, {
-    messages: [{ role: 'system', content: yonerge(kategori) }, { role: 'user', content: girdi }],
-    response_format: { type: 'json_schema', json_schema: SEMA },
-    max_tokens: 1800,
-    temperature: 0.3
-  });
-  let j = r && r.response;
-  if (typeof j === 'string') { try { j = JSON.parse(j.slice(j.indexOf('{'), j.lastIndexOf('}') + 1)); } catch { j = null; } }
-  if (!j || !j.baslik || !Array.isArray(j.paragraflar)) throw new Error('Model geçerli JSON döndürmedi');
-  return {
-    baslik: String(j.baslik).trim().slice(0, 200),
-    spot: String(j.spot || '').trim().slice(0, 400),
-    paragraflar: j.paragraflar.map(p => String(p).trim()).filter(p => p.length > 30).slice(0, 8),
-    vurgu: { deger: String(j.vurgu_deger || '').slice(0, 14), etiket: String(j.vurgu_etiket || '').slice(0, 60) },
-    gorselAnahtar: String(j.gorsel_anahtar || '').replace(/[^a-zA-Z ]/g, ' ').trim().slice(0, 60)
-  };
+  const mesajlar = [{ role: 'system', content: yonerge(kategori) }, { role: 'user', content: girdi }];
+  let enIyi = null, sonHata = null;
+  for (let d = 0; d < denemeSayisi; d++) {
+    let y;
+    try {
+      const r = await env.AI.run(ayar.model, { messages: mesajlar, max_tokens: 6000, temperature: 0.4 });
+      const j = jsonAyikla(yanitMetni(r));
+      if (!j || !j.baslik) throw new Error('Model geçerli JSON döndürmedi');
+      y = temizle(j);
+    } catch (e) { sonHata = e; continue; }
+    const cikti = [y.baslik, y.spot, ...y.paragraflar, y.vurgu.deger].join('\n');
+    y.denetim = {
+      rakam: rakamDenetimi(cikti, kaynakMetin),
+      ad: adDenetimi(cikti, kaynakMetin + '\n' + (kaynak.kaynakAd || '')),
+      kalite: kaliteDenetimi(y, kaynakMetin)
+    };
+    y.deneme = d + 1;
+    const sorun = [
+      ...y.denetim.kalite.sorun,
+      ...(y.denetim.rakam.gecti ? [] : ['kaynakta bulunmayan sayılar: ' + y.denetim.rakam.eksik.join(', ')]),
+      ...(y.denetim.ad.gecti ? [] : ['kaynakta bulunmayan adlar: ' + y.denetim.ad.eksik.join(', ')])
+    ];
+    y.sorunSayisi = sorun.length;
+    if (!enIyi || y.sorunSayisi < enIyi.sorunSayisi) enIyi = y;
+    if (!sorun.length) break;
+    mesajlar.push(
+      { role: 'assistant', content: JSON.stringify({ baslik: y.baslik, spot: y.spot, paragraflar: y.paragraflar }) },
+      { role: 'user', content: 'Bu taslak denetimden geçmedi:\n- ' + sorun.join('\n- ') + '\nSorunları düzelterek haberi baştan yaz. Kaynakta olmayan sayı ya da adı çıkar, yerine başka bilgi uydurma. Yalnız JSON döndür.' }
+    );
+  }
+  if (!enIyi) throw sonHata || new Error('Model yanıt vermedi');
+  return enIyi;
 }
 
 /* ---------- Görsel ---------- */
@@ -341,31 +463,42 @@ async function ozetGonder(env, rapor) {
 function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
 /* ---------- Ana akış ---------- */
+/* secenek.kuru: yalnız seçim, yazım yok.
+   secenek.deneme: yazar ve denetler ama veritabanına, R2'ye ve e-postaya
+   dokunmaz; tam metin rapora konur. Panelde kaliteyi yayına çıkmadan görmek
+   için.
+   secenek.kategoriler: yalnız bu anahtarlar (panelden tek kategori denemesi). */
 export async function sabahMasasi(env, secenek = {}) {
   const ayar = await sabahAyarlari(env);
   const kuru = secenek.kuru === true;
-  const rapor = { baslangic: new Date().toISOString(), kuru, ayar, trendler: [], secilen: [], yayinlanan: 0, taslak: 0, hatalar: [] };
+  const deneme = !kuru && secenek.deneme === true;
+  const istenen = Array.isArray(secenek.kategoriler) && secenek.kategoriler.length ? new Set(secenek.kategoriler.map(String)) : new Set(ayar.kategoriler);
+  const rapor = { baslangic: new Date().toISOString(), kuru, deneme, ayar, trendler: [], secilen: [], yayinlanan: 0, taslak: 0, hatalar: [] };
   if (!env.DB) { rapor.hatalar.push('D1 yok'); return rapor; }
   if (!ayar.etkin && !secenek.zorla) { rapor.hatalar.push('Sabah Masası kapalı'); return rapor; }
 
   try { rapor.trendler = await trendleriOku(); } catch (e) { rapor.hatalar.push('Trendler okunamadı: ' + e.message); }
   const agirlik = trendAgirliklari(rapor.trendler);
+  const kategoriler = KATEGORILER.filter(k => istenen.has(k.anahtar));
 
   // Kaynakları paralel oku; biri düşerse diğerleri devam eder.
-  const idler = [...new Set(KATEGORILER.flatMap(k => k.kaynaklar))];
+  const idler = [...new Set(kategoriler.flatMap(k => k.kaynaklar))];
   const okunan = await Promise.all(idler.map(id => kaynakOku(id).then(x => [id, x]).catch(e => { rapor.hatalar.push(id + ': ' + e.message); return [id, []]; })));
   const havuz = Object.fromEntries(okunan);
 
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS kaynak_gorulen (link TEXT PRIMARY KEY, created_at TEXT NOT NULL)').run();
   const gorulmus = async link => Boolean(await env.DB.prepare('SELECT 1 FROM kaynak_gorulen WHERE link=? UNION SELECT 1 FROM news WHERE source_url=? LIMIT 1').bind(link, link).first());
+  const gorulduYaz = async link => { if (!deneme) await env.DB.prepare('INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) VALUES(?,?)').bind(link, new Date().toISOString()).run(); };
 
   // Son 4 günün başlıkları: aynı konu farklı kaynaktan ikinci kez girmesin.
   const son = ((await env.DB.prepare("SELECT title FROM news WHERE COALESCE(published_at,updated_at) > ?").bind(new Date(Date.now() - 4 * 86400000).toISOString()).all().catch(() => ({ results: [] }))).results || []).map(x => new Set(kelimeler(x.title)));
   const tekrarMi = baslik => { const a = new Set(kelimeler(baslik)); return a.size > 2 && son.some(b => { let o = 0; for (const k of a) if (b.has(k)) o++; return o / Math.min(a.size, b.size) >= 0.5; }); };
 
-  let islenen = 0;
-  for (const kat of KATEGORILER) {
-    if (islenen >= ayar.gunlukAzami) break;
+  // 1) Seçim: sıralı, çünkü bir kategoride seçilen konu diğerlerinde
+  // tekrar sayılmalı.
+  const secilenler = [];
+  for (const kat of kategoriler) {
+    if (secilenler.length >= ayar.gunlukAzami) break;
     const adaylar = kat.kaynaklar.flatMap(id => havuz[id] || [])
       // Akış tarihi bilinen ve 72 saatten eski haber puanlanmadan elenir:
       // trend eşleşmesi eski bir haberi öne çekmesin.
@@ -374,7 +507,7 @@ export async function sabahMasasi(env, secenek = {}) {
       .filter(o => kat.anahtar === 'spor' || !SPOR_KELIME.test(duz(o.baslik)))
       // Video/canlı yayın sayfalarında haber metni yok.
       .filter(o => !/\b(izle|canli yayin|video)\b/.test(duz(o.baslik)))
-      .filter(o => !o.baslik || !tekrarMi(o.baslik))
+      .filter(o => !o.baslik || (!tekrarMi(o.baslik) && !hassasMi(o.baslik)))
       .map(o => ({ ...o, ...puanla(o, agirlik) }))
       .sort((a, b) => b.puan - a.puan);
     let secildi = null;
@@ -384,8 +517,8 @@ export async function sabahMasasi(env, secenek = {}) {
       try { kaynak = await metinCek(o.link); } catch (e) { continue; }
       if (kaynak.paragraflar.length < 2 || kaynak.metin.length < 500) continue;
       if (hassasMi(kaynak.baslik + ' ' + kaynak.spot + ' ' + kaynak.metin.slice(0, 1500))) {
-        rapor.secilen.push({ kategori: kat.kategori, durum: 'hassas-atlandi', kaynakBaslik: kaynak.baslik || o.baslik, kaynak: o.link });
-        await env.DB.prepare('INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) VALUES(?,?)').bind(o.link, new Date().toISOString()).run();
+        rapor.secilen.push({ kategori: kat.kategori, anahtar: kat.anahtar, durum: 'hassas-atlandi', kaynakBaslik: kaynak.baslik || o.baslik, kaynak: o.link });
+        await gorulduYaz(o.link);
         continue;
       }
       if (tekrarMi(kaynak.baslik)) continue;
@@ -393,49 +526,72 @@ export async function sabahMasasi(env, secenek = {}) {
       // Belediye haberlerinde tarih sayfadan gelir; 4 günden eskisi atlanır.
       const t = Date.parse(kaynak.tarih.replace(/^(\d{2})\.(\d{2})\.(\d{4})$/, '$3-$2-$1'));
       if (!Number.isNaN(t) && Date.now() - t > 4 * 86400000) continue;
-      secildi = { o, kaynak };
+      secildi = { o, kaynak: { ...kaynak, kaynakAd: o.kaynakAd } };
+      // Seçilen konu, sıradaki kategorilerde tekrar sayılsın.
+      son.push(new Set(kelimeler(kaynak.baslik || o.baslik)));
       break;
     }
-    if (!secildi) { rapor.secilen.push({ kategori: kat.kategori, durum: 'uygun-kaynak-yok' }); continue; }
-    islenen++;
-    const { o, kaynak } = secildi;
-    const kayit = { kategori: kat.kategori, kaynakBaslik: kaynak.baslik || o.baslik, kaynak: o.link, puan: o.puan, trend: o.eslesen };
+    if (!secildi) { rapor.secilen.push({ kategori: kat.kategori, anahtar: kat.anahtar, durum: 'uygun-kaynak-yok' }); continue; }
+    const kayit = { kategori: kat.kategori, anahtar: kat.anahtar, kaynakBaslik: secildi.kaynak.baslik || secildi.o.baslik, kaynak: secildi.o.link, puan: secildi.o.puan, trend: secildi.o.eslesen };
     rapor.secilen.push(kayit);
-    if (kuru) { kayit.durum = 'kuru-calisma'; continue; }
-    try {
-      if (!env.AI) throw new Error('Workers AI bağlaması (AI) yok');
-      const y = await yaz(env, ayar, kaynak, kat.kategori);
-      const cikti = [y.baslik, y.spot, ...y.paragraflar, y.vurgu.deger].join('\n');
-      const rd = rakamDenetimi(cikti, kaynak.metin + '\n' + kaynak.baslik);
-      const ad = adDenetimi(cikti, kaynak.metin + '\n' + kaynak.baslik + '\n' + o.kaynakAd);
-      let slug = slugUret(y.baslik);
-      if (await env.DB.prepare('SELECT 1 FROM news WHERE slug=?').bind(slug).first()) slug += '-' + Date.now().toString(36).slice(-4);
-      const gorsel = await gorselBul(env, y.gorselAnahtar, slug).catch(() => null);
-      const yayinla = ayar.otomatikYayin && rd.gecti && ad.gecti;
-      const not = [
-        `Bu haber, ${o.kaynakAd} kaynağındaki bilgilerden BTMEDYA Sabah Masası tarafından yapay zekâ desteğiyle derlenmiştir${yayinla ? ' ve otomatik denetimlerden (rakam ve özel ad) geçerek yayımlanmıştır; editör denetiminden geçmemiştir' : ''}.`,
-        gorsel ? `Kapaktaki görsel ${gorsel.kunye} lisanslıdır ve olayın kendisini göstermez.` : 'Kapak, BTMEDYA kategori grafiğidir; fotoğraf değildir.',
-        !rd.gecti ? `Rakam denetimi: kaynakta bulunmayan ${rd.eksik.join(', ')}.` : '',
-        !ad.gecti ? `Özel ad denetimi: kaynakta bulunmayan ${ad.eksik.join(', ')}.` : ''
-      ].filter(Boolean).join(' ');
-      const govde = [...y.paragraflar, gorsel ? `Görsel: ${gorsel.kunye}.` : ''].filter(Boolean).join('\n\n');
-      const simdi = new Date().toISOString();
-      await env.DB.prepare(
-        'INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
-      ).bind(slug, y.baslik, y.spot, govde, kat.kategori, 'BTMEDYA Sabah Masası', gorsel ? gorsel.url : `/assets/kategori-kapak/${kat.anahtar}.webp`, '', yayinla ? 'published' : 'draft', yayinla ? simdi : null, o.link, kaynak.tarih || null, not, simdi).run();
-      await env.DB.prepare('INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) VALUES(?,?)').bind(o.link, simdi).run();
-      Object.assign(kayit, { slug, baslik: y.baslik, durum: yayinla ? 'yayinlandi' : 'taslak', gorsel: Boolean(gorsel), vurgu: y.vurgu, not: [!rd.gecti ? 'rakam' : '', !ad.gecti ? 'özel ad: ' + ad.eksik.slice(0, 3).join(', ') : ''].filter(Boolean).join(' · ') });
-      if (yayinla) rapor.yayinlanan++; else rapor.taslak++;
-    } catch (e) {
-      kayit.durum = 'hata'; kayit.not = String(e.message || e).slice(0, 200);
-      rapor.hatalar.push(kat.kategori + ': ' + kayit.not);
-    }
+    secilenler.push({ kat, ...secildi, kayit });
   }
+
+  // 2) Yazım: tüm kategoriler eş zamanlı. Her biri kendi hatasını kendi
+  // kaydına yazar; biri düşerse diğerleri yayına çıkar.
+  if (kuru) secilenler.forEach(x => { x.kayit.durum = 'kuru-calisma'; });
+  else await Promise.all(secilenler.map(x => kategoriYaz(env, ayar, x, deneme, rapor)));
+
   rapor.bitis = new Date().toISOString();
   rapor.sosyal = await sosyalAyarlari(env).then(a => ({ otomatikPlanla: a.otomatikPlanla, aglar: a.aglar })).catch(() => null);
-  if (!kuru) {
+  if (!kuru && !deneme) {
     rapor.eposta = await ozetGonder(env, rapor).catch(() => false);
     if (env.KV) await env.KV.put(RAPOR, JSON.stringify(rapor), { expirationTtl: 60 * 86400 }).catch(() => {});
   }
   return rapor;
+}
+
+async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit }, deneme, rapor) {
+  try {
+    if (!env.AI) throw new Error('Workers AI bağlaması (AI) yok');
+    const y = await yaz(env, ayar, kaynak, kat.kategori);
+    const { rakam: rd, ad, kalite } = y.denetim;
+    const denetimTamam = rd.gecti && ad.gecti && kalite.gecti;
+    const yayinla = ayar.otomatikYayin && denetimTamam;
+    const nedenler = [
+      !rd.gecti ? 'rakam: ' + rd.eksik.slice(0, 3).join(', ') : '',
+      !ad.gecti ? 'özel ad: ' + ad.eksik.slice(0, 3).join(', ') : '',
+      !kalite.gecti ? 'kalite: ' + kalite.sorun.slice(0, 2).join('; ') : ''
+    ].filter(Boolean);
+    Object.assign(kayit, {
+      baslik: y.baslik, spot: y.spot, vurgu: y.vurgu, deneme: y.deneme,
+      kalite: { gecti: kalite.gecti, kopya: kalite.kopya },
+      not: nedenler.join(' · ')
+    });
+    if (deneme) {
+      Object.assign(kayit, { durum: denetimTamam ? 'deneme-gecti' : 'deneme-kaldi', paragraflar: y.paragraflar, gorselAnahtar: y.gorselAnahtar });
+      return;
+    }
+    let slug = slugUret(y.baslik);
+    if (await env.DB.prepare('SELECT 1 FROM news WHERE slug=?').bind(slug).first()) slug += '-' + Date.now().toString(36).slice(-4);
+    const gorsel = await gorselBul(env, y.gorselAnahtar, slug).catch(() => null);
+    const not = [
+      `Bu haber, ${o.kaynakAd} kaynağındaki bilgilerden BTMEDYA Sabah Masası tarafından yapay zekâ desteğiyle derlenmiştir${yayinla ? ' ve otomatik denetimlerden (rakam, özel ad ve dil kalitesi) geçerek yayımlanmıştır; editör denetiminden geçmemiştir' : ''}.`,
+      gorsel ? `Kapaktaki görsel ${gorsel.kunye} lisanslıdır ve olayın kendisini göstermez.` : 'Kapak, BTMEDYA kategori grafiğidir; fotoğraf değildir.',
+      !rd.gecti ? `Rakam denetimi: kaynakta bulunmayan ${rd.eksik.join(', ')}.` : '',
+      !ad.gecti ? `Özel ad denetimi: kaynakta bulunmayan ${ad.eksik.join(', ')}.` : '',
+      !kalite.gecti ? `Kalite denetimi: ${kalite.sorun.join('; ')}.` : ''
+    ].filter(Boolean).join(' ');
+    const govde = [...y.paragraflar, gorsel ? `Görsel: ${gorsel.kunye}.` : ''].filter(Boolean).join('\n\n');
+    const simdi = new Date().toISOString();
+    await env.DB.prepare(
+      'INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+    ).bind(slug, y.baslik, y.spot, govde, kat.kategori, 'BTMEDYA Sabah Masası', gorsel ? gorsel.url : `/assets/kategori-kapak/${kat.anahtar}.webp`, '', yayinla ? 'published' : 'draft', yayinla ? simdi : null, o.link, kaynak.tarih || null, not, simdi).run();
+    await env.DB.prepare('INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) VALUES(?,?)').bind(o.link, simdi).run();
+    Object.assign(kayit, { slug, durum: yayinla ? 'yayinlandi' : 'taslak', gorsel: Boolean(gorsel) });
+    if (yayinla) rapor.yayinlanan++; else rapor.taslak++;
+  } catch (e) {
+    kayit.durum = 'hata'; kayit.not = String(e.message || e).slice(0, 200);
+    rapor.hatalar.push(kat.kategori + ': ' + kayit.not);
+  }
 }
