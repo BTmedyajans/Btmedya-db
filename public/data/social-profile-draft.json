@@ -1,0 +1,54 @@
+{
+  "status": "draft",
+  "publish": false,
+  "source_policy": "real_media_first",
+  "ai_policy": "ai_lab_explicit_label",
+  "platforms": {
+    "instagram": {
+      "profile": "btmedyajans",
+      "bio": "BTMEDYA\nHaber • Medya • Prodüksiyon • AI LAB\nGerçek sahadan, gerçek görüntüden.\nBalıkesir merkezli medya üretimi.\nbtmedya.com.tr",
+      "formats": ["4:5","9:16","1:1"],
+      "priority_assets": [
+        "media/portfoy/buse-tuncay-saha-roportaj.webp",
+        "media/portfoy/buse-tuncay-kamera-arkasi.webp",
+        "media/portfoy/buse-tuncay-portre-siyah-beyaz.webp",
+        "media/web/hero-story-mobile.mp4"
+      ]
+    },
+    "tiktok": {
+      "profile": "btmedya1010",
+      "bio": "BTMEDYA | Haber • Medya • Prodüksiyon\nGerçek saha görüntüleri + açık etiketli AI LAB.\nBalıkesir / Türkiye",
+      "formats": ["9:16"],
+      "priority_assets": [
+        "media/portfoy/btmedya-saha-showreel.mp4",
+        "media/portfoy/buse-tuncay-saha-roportaj.webp",
+        "media/portfoy/buse-tuncay-kamera-arkasi.webp"
+      ]
+    },
+    "youtube": {
+      "channel": "UCGyRifwCyrKJQAbmo4uoO9g",
+      "description": "BTMEDYA; haber, saha röportajı, medya üretimi ve prodüksiyon içerikleri üretir. Gerçek çekimler ana arşivimizi oluşturur. AI destekli çalışmalar ayrı bir AI LAB alanında açıkça belirtilir. Site: btmedya.com.tr",
+      "formats": ["16:9","9:16"],
+      "priority_assets": [
+        "media/web/hero-story.mp4",
+        "media/web/showreel-action.mp4",
+        "media/portfoy/btmedya-saha-showreel.mp4"
+      ]
+    },
+    "facebook": {
+      "status": "draft_only",
+      "bio": "BTMEDYA | Haber, medya üretimi ve prodüksiyon. Balıkesir'den saha haberleri, röportajlar, gerçek çekimler ve medya projeleri. AI destekli üretimler AI LAB etiketiyle ayrı tutulur.",
+      "formats": ["4:5","9:16","16:9"]
+    }
+  },
+  "asset_order": [
+    "media/portfoy/buse-tuncay-saha-roportaj.webp",
+    "media/portfoy/buse-tuncay-kamera-arkasi.webp",
+    "media/portfoy/btmedya-saha-showreel.mp4",
+    "media/portfoy/buse-tuncay-yesil-perde-studyo.webp",
+    "media/portfoy/buse-tuncay-iletisim-fakultesi.webp",
+    "media/portfoy/buse-tuncay-portre-siyah-beyaz.webp",
+    "media/portfoy/buse-tuncay-studyo-kelebek.webp"
+  ],
+  "publish_gate": "manual_approval_required"
+}
