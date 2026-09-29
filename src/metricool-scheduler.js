@@ -88,8 +88,9 @@ function youtubeDataFor(providers,row){
 export async function scheduleToMetricool(env,row){
   if(!env.METRICOOL_USER_TOKEN) return {ok:false,skipped:true,retryable:false,error:"METRICOOL_USER_TOKEN eksik"};
   const userId=String(env.METRICOOL_USER_ID||env.METRICOOL_KULLANICI_NO||"");
-  const blogId=String(env.METRICOOL_BRAND_ID||"6858384");
+  const blogId=String(env.METRICOOL_BRAND_ID||"");
   if(!userId) return {ok:false,retryable:false,error:"METRICOOL_USER_ID eksik"};
+  if(!blogId) return {ok:false,retryable:false,error:"METRICOOL_BRAND_ID eksik"};
   const timezone=String(env.METRICOOL_TIMEZONE||"Europe/Istanbul");
   const scheduledMs=new Date(row.scheduled_at||"").getTime();
   const dateTime=localDateTime(row.scheduled_at,timezone);
@@ -124,7 +125,20 @@ export async function scheduleToMetricool(env,row){
     saveExternalMediaFiles:Boolean(mediaUrl),
     creatorUserMail:env.METRICOOL_CREATOR_EMAIL||undefined
   };
-  if(mediaUrl) body.media=[mediaUrl];
+  if(mediaUrl) {
+    const normalizeBase=String(env.METRICOOL_API_BASE||"https://app.metricool.com").replace(/\/$/,"");
+    const normalizeUrl=`${normalizeBase}/api/actions/normalize/image/url?url=${encodeURIComponent(mediaUrl)}`;
+    const mediaRes=await fetch(normalizeUrl,{headers:{"X-Mc-Auth":String(env.METRICOOL_USER_TOKEN)}});
+    const mediaRaw=await mediaRes.text();
+    let mediaData=null; try{ mediaData=JSON.parse(mediaRaw); }catch{}
+    if(!mediaRes.ok){
+      const detail=typeof mediaData==="object"&&mediaData?JSON.stringify(mediaData):mediaRaw.slice(0,800);
+      return {ok:false,status:mediaRes.status,retryable:mediaRes.status===429||mediaRes.status>=500,error:detail||`Metricool media normalize HTTP ${mediaRes.status}`};
+    }
+    const mediaId=mediaData?.mediaId ?? mediaData?.id ?? mediaData?.data?.mediaId ?? mediaData?.data?.id ?? null;
+    if(!mediaId) return {ok:false,retryable:false,error:"Metricool medya normalize yanıtında mediaId bulunamadı"};
+    body.media={mediaId:String(mediaId)};
+  }
 
   const ig=providers.find(x=>x.network==="instagram");
   const fb=providers.find(x=>x.network==="facebook");
