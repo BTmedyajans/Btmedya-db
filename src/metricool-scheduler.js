@@ -47,24 +47,14 @@ async function publicMediaUrl(env, key){
   if(!key) return null;
   const origin=String(env.BTMEDYA_PUBLIC_ORIGIN||"https://btmedya.com.tr").replace(/\/$/,"");
   const k=String(key);
-  // static/ kayitlarin R2 nesnesi yok; /pub/ yonlendirir ama Metricool'un
-  // indiricisine dogrudan dosya adresini vermek daha saglam.
   if(k.startsWith("static/")) return `${origin}/assets/${k.slice(7)}`;
   if(k.startsWith("otomasyon/")) return `${origin}/gorsel/${k}`;
   return `${origin}/pub/${encodeURIComponent(k)}`;
 }
 
-/* Gonderinin gorseli/videosu AI uretimi mi? Medya kasasindaki kaydin
-   ai_generated alanindan okunur. Kayit yoksa ya da medya yoksa AI sayilir
-   (AGENTS.md: varsayilan AI URETIMI). Ilk surum her Instagram gonderisini
-   sabit "isAiGenerated:false" ile, TikTok'u da hic etiketsiz gonderiyordu. */
 async function yapayZekaMi(env, key){
-  // Haber kartlari medya kasasinda degil; turleri kapak kaynak dosyasinda.
-  // Onceden kasada kaydi olmadigi icin gercek cekim kartlari da AI
-  // beyaniyla gidecekti.
-  // Sabah Masası görselleri Openverse'ten lisanslı gerçek fotoğraflardır.
   if(String(key||"").startsWith("otomasyon/")) return false;
-  if(/^static\/kategori-kapak\//.test(String(key||""))) return false;
+  if(/^static\\/kategori-kapak\\//.test(String(key||""))) return false;
   const statik=await statikGorselAiMi(env,key);
   if(statik!==null) return statik;
   if(!key || !env.DB) return true;
@@ -72,11 +62,6 @@ async function yapayZekaMi(env, key){
   return r ? Boolean(r.ai_generated) : true;
 }
 
-/* Metricool gonderim kaydi ayri bir tabloda tutulur. Ilk surum
-   social_posts uzerinde metricool_* sutunlari ariyordu; canli tabloda bu
-   sutunlar yok ve depodaki goc dosyalari canlidaki goc gecmisiyle
-   uyusmadigi icin yeni bir goc guvenle uygulanamiyor. Tablo ilk calismada
-   kendini kurar (IF NOT EXISTS, idempotent). */
 async function takipTablosu(env){
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS metricool_gonderim (
     post_id TEXT PRIMARY KEY,
@@ -87,8 +72,6 @@ async function takipTablosu(env){
     attempts INTEGER NOT NULL DEFAULT 0,
     retryable INTEGER NOT NULL DEFAULT 1
   )`).run();
-
-  // Canlı tablo eski sürümden geldiyse yeni alanı yerinde ve idempotent ekle.
   try { await env.DB.prepare("ALTER TABLE metricool_gonderim ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0").run(); } catch {}
   try { await env.DB.prepare("ALTER TABLE metricool_gonderim ADD COLUMN retryable INTEGER NOT NULL DEFAULT 1").run(); } catch {}
 }
@@ -103,22 +86,22 @@ function youtubeDataFor(providers,row){
 
 export async function scheduleToMetricool(env,row){
   if(!env.METRICOOL_USER_TOKEN) return {ok:false,skipped:true,retryable:false,error:"METRICOOL_USER_TOKEN eksik"};
-  const userId=String(env.METRICOOL_USER_ID||"5278969");
+  const userId=String(env.METRICOOL_USER_ID||"");
   const blogId=String(env.METRICOOL_BRAND_ID||"6858384");
+  if(!userId) return {ok:false,retryable:false,error:"METRICOOL_USER_ID eksik"};
   const timezone=String(env.METRICOOL_TIMEZONE||"Europe/Istanbul");
   const scheduledMs=new Date(row.scheduled_at||"").getTime();
   const dateTime=localDateTime(row.scheduled_at,timezone);
   if(!dateTime || Number.isNaN(scheduledMs)) return {ok:false,retryable:false,error:"scheduled_at geçersiz"};
   if(scheduledMs<=Date.now()+15000) return {ok:false,retryable:false,error:"Planlanan zaman geçmiş veya Metricool için artık çok yakın"};
+
   const providers=providersFrom(row);
   if(!providers.length) return {ok:false,retryable:false,error:"Geçerli sosyal platformu yok"};
 
   const mediaUrl=await publicMediaUrl(env,row.media_key);
   const hasMedia=Boolean(mediaUrl);
   const needsMedia=providers.some(p =>
-    p.network==="instagram" ||
-    p.network==="tiktok" ||
-    p.network==="youtube" ||
+    p.network==="instagram" || p.network==="tiktok" || p.network==="youtube" ||
     (p.network==="facebook" && ["REEL","STORY"].includes(String(p.data?.type||"")))
   );
   if(needsMedia && !hasMedia) return {ok:false,retryable:false,error:"Seçilen platform için görsel/video zorunlu; media_key eksik"};
@@ -135,19 +118,23 @@ export async function scheduleToMetricool(env,row){
     creatorUserMail:env.METRICOOL_CREATOR_EMAIL||undefined
   };
   if(mediaUrl) body.media=[mediaUrl];
+
   const ig=providers.find(x=>x.network==="instagram");
   const fb=providers.find(x=>x.network==="facebook");
   const tt=providers.find(x=>x.network==="tiktok");
   if(ig) body.instagramData={...ig.data,isAiGenerated:ai};
   if(fb) body.facebookData={...fb.data};
-  // TikTok fotograf gonderisinde baslik ayri alan (en fazla 90 karakter);
-  // bos kalirsa akista metnin ilk satiri kesik gorunuyor.
+
   const video=/\.(mp4|mov|m4v|webm)(?:$|\?)/i.test(String(mediaUrl||""));
-  if(tt) body.tiktokData={...tt.data,isAigc:ai,...(video?{}:{title:String(row.title||"").slice(0,90)})};
+  if(tt) body.tiktokData={
+    ...tt.data,
+    isAigc:ai,
+    ...(video?{}:{title:String(row.title||"").slice(0,90)})
+  };
+
   const yt=youtubeDataFor(providers,row);
   if(yt) body.youtubeData=yt;
 
-  // Test icin degistirilebilir; uretimde varsayilan Metricool API'si.
   const taban=String(env.METRICOOL_API_BASE||"https://app.metricool.com").replace(/\/$/,"");
   const endpoint=`${taban}/api/v2/scheduler/posts?blogId=${encodeURIComponent(blogId)}&userId=${encodeURIComponent(userId)}`;
   const res=await fetch(endpoint,{
@@ -166,12 +153,6 @@ export async function scheduleToMetricool(env,row){
   return {ok:true,id:id?String(id):null,response:data};
 }
 
-/* Panelde durumu "Planlandı" yapilmis ve zamani gelecekte olan gonderileri
-   Metricool'a birakir. Yayini Metricool yapar; Worker yalnizca teslim eder.
-   Anahtar (METRICOOL_USER_TOKEN) yoksa hicbir sey yapmaz: bu, otomatik
-   paylasimin kullanici tarafindan bilincli olarak acilmasi demektir.
-   Bir gonderi yalnizca bir kez teslim edilir; hata alan tekrar denenmez,
-   hata metni panelde gorunsun diye kaydedilir. */
 export async function processMetricoolQueue(env,limit=10){
   const result={enabled:Boolean(env.METRICOOL_USER_TOKEN),processed:0,scheduled:0,failed:0,retried:0,skipped:0,items:[]};
   if(!env.DB || !env.METRICOOL_USER_TOKEN) return result;
@@ -179,10 +160,9 @@ export async function processMetricoolQueue(env,limit=10){
 
   const now=new Date();
   const nowIso=now.toISOString();
-  // Hatalı teslimler 5 dakika sonra tekrar denenir; kalıcı hatalar 5 denemede durur.
   const retryBefore=new Date(now.getTime()-5*60*1000).toISOString();
   const rows=(await env.DB.prepare(
-    `SELECT p.*, g.durum AS metricool_durum, g.attempts AS metricool_attempts
+    `SELECT p.*, g.durum AS metricool_durum, g.attempts AS metricool_attempts, g.updated_at AS metricool_updated_at
        FROM social_posts p
        LEFT JOIN metricool_gonderim g ON g.post_id=p.id
       WHERE p.status='planlandi'
@@ -195,51 +175,40 @@ export async function processMetricoolQueue(env,limit=10){
       ORDER BY p.scheduled_at ASC LIMIT ?`
   ).bind(nowIso,retryBefore,Number(limit)||10).all()).results||[];
 
-  const claim=async(id,attempts)=>{
-    const stamp=new Date().toISOString();
-    const r=await env.DB.prepare(
-      `INSERT INTO metricool_gonderim(post_id,metricool_id,durum,hata,updated_at,attempts,retryable)
-       VALUES(?,?,?,?,?,?,?)
-       ON CONFLICT(post_id) DO UPDATE SET
-         durum=excluded.durum,hata=excluded.hata,updated_at=excluded.updated_at,attempts=excluded.attempts,retryable=excluded.retryable`
-    ).bind(String(id),"","gonderiliyor","",stamp,attempts,1).run();
-    return Number(r.meta?.changes||0)>0;
-  };
-  const yaz=(id,metricoolId,durum,hata,attempts)=>env.DB.prepare(
+  const yaz=async(id,metricoolId,durum,hata,attempts,retryable=1)=>env.DB.prepare(
     `INSERT INTO metricool_gonderim(post_id,metricool_id,durum,hata,updated_at,attempts,retryable)
      VALUES(?,?,?,?,?,?,?)
-     ON CONFLICT(post_id) DO UPDATE SET metricool_id=excluded.metricool_id,durum=excluded.durum,hata=excluded.hata,updated_at=excluded.updated_at,attempts=excluded.attempts,retryable=excluded.retryable`
-  ).bind(String(id),String(metricoolId||""),durum,String(hata||"").slice(0,2000),new Date().toISOString(),attempts,1).run();
-  // .run() eksikti: basarili teslim kaydi hic yazilmiyor, gonderi panelde
-  // "gonderiliyor"da kaliyor ve Metricool kimligi kayboluyordu.
+     ON CONFLICT(post_id) DO UPDATE SET
+       metricool_id=excluded.metricool_id,durum=excluded.durum,hata=excluded.hata,
+       updated_at=excluded.updated_at,attempts=excluded.attempts,retryable=excluded.retryable`
+  ).bind(String(id),String(metricoolId||""),durum,String(hata||"").slice(0,2000),new Date().toISOString(),attempts,retryable);
 
   for(const row of rows){
     result.processed++;
-    const attempts=Number(row.metricool_attempts||0)+1;
-    // Aynı kaydı iki cron/Worker örneği aynı anda almaya çalışırsa gonderiliyor kilidi korur.
-    if(row.metricool_durum==="gonderiliyor" && row.metricool_attempts>=attempts-1){
+    const previous=Number(row.metricool_attempts||0);
+    const attempts=previous+1;
+    if(row.metricool_durum==="gonderiliyor" && row.metricool_updated_at && new Date(row.metricool_updated_at).getTime() > Date.now()-10*60*1000){
       result.skipped++;
       continue;
     }
-    await claim(row.id,attempts);
+
+    await yaz(row.id,"","gonderiliyor","",attempts,1).run();
 
     try{
       const out=await scheduleToMetricool(env,row);
       if(out.ok){
-        await yaz(row.id,out.id||"submitted","planlandi","",attempts);
+        await yaz(row.id,out.id||"submitted","planlandi","",attempts,0).run();
         result.scheduled++;
         if(attempts>1) result.retried++;
         result.items.push({id:row.id,status:"scheduled",metricoolId:out.id||null,attempts});
       }else{
-        await env.DB.prepare(
-          "INSERT INTO metricool_gonderim(post_id,metricool_id,durum,hata,updated_at,attempts,retryable) VALUES(?,?,?,?,?,?,?) ON CONFLICT(post_id) DO UPDATE SET durum=excluded.durum,hata=excluded.hata,updated_at=excluded.updated_at,attempts=excluded.attempts,retryable=excluded.retryable"
-        ).bind(String(row.id),"","hata",out.error||"Metricool planlamasi basarisiz",new Date().toISOString(),attempts,out.retryable===false?0:1).run();
+        await yaz(row.id,"","hata",out.error||"Metricool planlamasi basarisiz",attempts,out.retryable===false?0:1).run();
         result.failed++;
         result.items.push({id:row.id,status:"error",retryable:Boolean(out.retryable),error:String(out.error||"").slice(0,300),attempts});
       }
     }catch(e){
       const msg=String(e?.message||e);
-      await yaz(row.id,"","hata",msg,attempts).catch(()=>{});
+      await yaz(row.id,"","hata",msg,attempts,1).run().catch(()=>{});
       result.failed++;
       result.items.push({id:row.id,status:"error",retryable:true,error:msg.slice(0,300),attempts});
     }
@@ -247,9 +216,6 @@ export async function processMetricoolQueue(env,limit=10){
   return result;
 }
 
-/* Metricool'a Worker disindan (panel sahibi Metricool'da elle ya da bir
-   asistan araciyla) teslim edilen gonderiyi kaydeder. Kayit olmazsa anahtar
-   eklendiginde kuyruk ayni gonderiyi ikinci kez teslim ederdi. */
 export async function disTeslimKaydet(env,postId,metricoolId){
   if(!env.DB) return false;
   await takipTablosu(env);
@@ -261,14 +227,12 @@ export async function disTeslimKaydet(env,postId,metricoolId){
   return true;
 }
 
-/* Panel listesi icin gonderi basina teslim durumu. */
 export async function teslimDurumlari(env){
   if(!env.DB) return {};
   const r=await env.DB.prepare("SELECT post_id,metricool_id,durum,hata,attempts,updated_at FROM metricool_gonderim").all().catch(()=>null);
   return Object.fromEntries(((r&&r.results)||[]).map(x=>[x.post_id,x]));
 }
 
-/* Kontrol merkezi icin: son gonderimlerin durumu. Tablo henuz yoksa bos. */
 export async function metricoolDurumu(env){
   const d={yapilandirildi:Boolean(env.METRICOOL_USER_TOKEN),planlanan:0,hatali:0,sonHata:""};
   if(!env.DB) return d;

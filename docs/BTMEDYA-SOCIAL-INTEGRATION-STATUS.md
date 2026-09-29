@@ -1,6 +1,16 @@
 # BTMEDYA Social Integration Status
 
-Tarih: 25 Eylül 2026
+Tarih: 29 Eylül 2026
+
+## TikTok yayın zinciri
+
+TikTok hesabı: https://www.tiktok.com/@btmedya1010
+Metricool brand: 6858384
+Yayın geçidi: Metricool
+Zincir: GitHub ana dalı -> Cloudflare Worker -> D1 sosyal kuyruk -> Metricool -> TikTok
+Durum: Metricool teslim kuyruğu yarış koşullarına karşı kilitlendi; başarılı teslim kimliği D1'e kaydedilir; geçici API hataları 5 dakikalık geri çekilmeyle sınırlı tekrar denenir.
+
+**Güvenlik:** Token/secret değerleri kaynak koda yazılmaz. GitHub Actions yalnızca `BTMEDYA_METRICOOL_USER_TOKEN`, `BTMEDYA_METRICOOL_USER_ID` ve `BTMEDYA_METRICOOL_BRAND_ID` secret'larını Cloudflare Worker'a aktarır.
 
 ## Dağıtım katmanı
 
