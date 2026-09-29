@@ -255,7 +255,26 @@ async function newsApi(request, env, url, ctx){
   if(url.pathname==='/api/public/social-feed' && request.method==='GET'){
     const r=await env.ASSETS.fetch(new Request(new URL('/data/social-feed.json',url.origin)));
     if(!r.ok) return json({ok:false,error:'Sosyal akış snapshot bulunamadı'},404);
-    return new Response(r.body,{status:200,headers:{'content-type':'application/json; charset=utf-8','cache-control':'public, max-age=300'}});
+    const snapshot=await r.json().catch(()=>({}));
+    const live=socialProviderStatus(env);
+    const profiles=Array.isArray(snapshot.profiles)?snapshot.profiles.map(p=>{
+      const state=live[p.key];
+      if(!state) return p;
+      return {
+        ...p,
+        status: state.configured ? 'connected' : (state.connected ? 'connection_pending_token' : (state.missing?.includes('Metricool bağlantısı') ? 'verification_pending' : 'not_configured')),
+        note: state.configured
+          ? 'Metricool bağlantısı Worker tarafından canlı yapılandırmadan doğrulanıyor.'
+          : (state.note || p.note || '')
+      };
+    }):[];
+    return json({
+      ...snapshot,
+      generated_at:new Date().toISOString(),
+      source:'Metricool+live-connection',
+      live_connections:live,
+      profiles
+    },200,{'cache-control':'public, max-age=300'});
   }
 
   if(url.pathname==='/api/health'){
