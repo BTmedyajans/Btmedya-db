@@ -654,7 +654,7 @@ async function socialApi(request, env, url, ctx){
   }
 
   if(url.pathname==='/api/admin/social/settings'){
-    if(request.method==='GET') return json({ok:true,ayarlar:await ayarlariOku(env),metricool:Boolean(env.METRICOOL_USER_TOKEN)});
+    if(request.method==='GET') return json({ok:true,ayarlar:await ayarlariOku(env),metricool:Boolean(env.METRICOOL_USER_TOKEN),providers:socialProviderStatus(env)});
     if(request.method==='PUT'){
       const b=await request.json().catch(()=>null);
       if(!b || typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
