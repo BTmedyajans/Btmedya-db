@@ -109,7 +109,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
         // Sekme degil filtre: tabpanel yok, ayni izgarayi daraltiyor. Bu yuzden
         // role="tab" yerine basili/basili degil durumu bildiren dugme.
         '<button class="portfoy-sekme' + (i === 0 ? ' secili' : '') + '" type="button"' +
-        ' aria-pressed="' + (i === 0) + '" data-kategori=""' + esc(c.ad) + '">' + esc(c.etiket) + '</button>'
+        ' aria-pressed="' + (i === 0) + '" data-kategori="' + esc(c.ad) + '">' + esc(c.etiket) + '</button>'
       ).join('');
       filtre.addEventListener('click', e => {
         const b = e.target.closest('.portfoy-sekme');
