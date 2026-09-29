@@ -117,7 +117,7 @@ export async function sabahRaporu(env) {
 }
 
 /* ---------- Okuma ---------- */
-function xml(s) { return String(s || '').replace(/<!\[CDATA\[|\]\]>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n)); }
+function xml(s) { return String(s || '').replace(/<!\[CDATA\[|\]\]>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n)).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16))); }
 function etiketsiz(s) { return xml(String(s || '').replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim(); }
 function al(blok, tag) { const m = blok.match(new RegExp('<' + tag + '(?:\\s[^>]*)?>([\\s\\S]*?)<\\/' + tag + '>', 'i')); return m ? xml(m[1]).trim() : ''; }
 
@@ -288,6 +288,14 @@ export function skorEkiHatasi(metin) {
   return '';
 }
 
+/* TDK: belirli tarih bildiren ay adı büyük harfle başlar ("30 Eylül").
+   29 Eylül canlı yayında "30 eylül-4 ekim" başlığı çıktı. */
+const AYLAR_KUCUK = 'ocak|şubat|mart|nisan|mayıs|haziran|temmuz|ağustos|eylül|ekim|kasım|aralık';
+export function kucukAyAdi(metin) {
+  const m = String(metin).match(new RegExp('\\b\\d{1,2}\\s+(' + AYLAR_KUCUK + ')(?![a-zçğıöşü])', 'u'));
+  return m ? m[0] : '';
+}
+
 /* Aynı 8 sözcüklük dizinin gövdede ikinci kez geçmesi: modelin dolgu için
    önceki paragrafı yeniden anlatması. */
 export function tekrarEdenIfade(paragraflar) {
@@ -320,6 +328,8 @@ export function kaliteDenetimi(y, kaynakMetin = '') {
   if (govde.length < 650) sorun.push('gövde 650 karakterden kısa');
   const ekHata = skorEkiHatasi(govde + ' ' + baslik + ' ' + spot);
   if (ekHata) sorun.push(`skor eki hatalı: ${ekHata}`);
+  const ay = kucukAyAdi([baslik, spot, govde].join(' '));
+  if (ay) sorun.push(`tarih bildiren ay adı küçük yazılmış: "${ay}" (TDK: büyük harfle)`);
   const tekrar = tekrarEdenIfade(y.paragraflar || []);
   if (tekrar) sorun.push(`gövdede aynı ifade tekrar ediyor: "${tekrar}"`);
   const oran = kopyaOrani(y.paragraflar || [], kaynakMetin);
@@ -344,10 +354,11 @@ function yonerge(kategori) {
     '7. GÖVDE: 4-6 paragraf, her biri 2-4 cümle. İlk paragraf 5N1K\'yı (ne, kim, nerede, ne zaman, nasıl, neden) yanıtlasın; sonrakiler ayrıntı, bağlam ve varsa açıklamaları versin. Kaynağın cümlelerini kopyalama; kendi cümlelerinle yeniden kur.',
     '8. Türkçe ekleri doğru yaz: özel adlara ek kesme işaretiyle (Balıkesir\'de, TRT\'nin); skorlar "4-1\'lik", "2-0\'lık" biçiminde; sayılara gelen ekler okunuşa göre (3\'te, 5\'i, 1990\'lı).',
     '9. Tarafsız, sade, ajans dili. Sıfat yığını, klişe ve pazarlama dili yok.',
+    '10. Belirli bir tarih bildiren ay ve gün adları büyük harfle başlar: "30 Eylül", "4 Ekim Cuma"; başlıkta da.',
     '',
     'EK ALANLAR',
-    '10. vurgu_deger: kaynakta aynen geçen en çarpıcı rakam (örn. "108 bin", "1-4"); yoksa boş bırak. vurgu_etiket: bu rakamın ne olduğu, en fazla 6 kelime.',
-    '11. gorsel_anahtar: haberi temsil edecek, İNSAN YÜZÜ İÇERMEYEN bir nesne ya da mekân fotoğrafı için 2-4 kelimelik İNGİLİZCE arama ifadesi (örn. "agricultural fair tractors", "hospital corridor"). Kişi adı, marka, logo yazma.',
+    '11. vurgu_deger: kaynakta aynen geçen en çarpıcı rakam (örn. "108 bin", "1-4"); yoksa boş bırak. vurgu_etiket: bu rakamın ne olduğu, en fazla 6 kelime.',
+    '12. gorsel_anahtar: haberi temsil edecek, İNSAN YÜZÜ İÇERMEYEN bir nesne ya da mekân fotoğrafı için 2-4 kelimelik İNGİLİZCE arama ifadesi (örn. "agricultural fair tractors", "hospital corridor"). Kişi adı, marka, logo yazma.',
     '',
     'Kategori: ' + kategori + '.',
     'YANIT: Yalnız tek bir JSON nesnesi döndür; açıklama, kod bloğu ya da başka metin ekleme. Anahtarlar: "baslik" (metin), "spot" (metin), "paragraflar" (metin dizisi), "vurgu_deger" (metin), "vurgu_etiket" (metin), "gorsel_anahtar" (metin).'
@@ -505,11 +516,22 @@ async function ozetGonder(env, rapor) {
 function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
 /* ---------- Ana akış ---------- */
-/* secenek.kuru: yalnız seçim, yazım yok.
+/* Ücretsiz Workers planında bir çağrı en fazla 50 dış istek yapabilir.
+   8 kategorinin kaynak sayfaları, Openverse ve görsel indirmeleri tek
+   çağrıda bu sınırı aşıyordu (29 Eylül canlı çalıştırma: "Too many
+   subrequests"). Bu yüzden iş ikiye bölünür:
+   - Ana çağrı: trendler, RSS akışları ve aday listesi (≈18 dış istek).
+   - Kategori başına ayrı çağrı (SABAH_YAZICI servis bağlaması, worker.js
+     SabahYazici): kaynak sayfa, yazım, denetim, görsel ve kayıt. Her biri
+     kendi 50'lik bütçesiyle, hepsi eş zamanlı çalışır.
+   Bağlama yoksa (yerel test) aynı iş bu çağrıda yapılır.
+
+   secenek.kuru: yalnız seçim, yazım yok.
    secenek.deneme: yazar ve denetler ama veritabanına, R2'ye ve e-postaya
-   dokunmaz; tam metin rapora konur. Panelde kaliteyi yayına çıkmadan görmek
-   için.
+   dokunmaz; tam metin rapora konur.
    secenek.kategoriler: yalnız bu anahtarlar (panelden tek kategori denemesi). */
+const KATEGORI_BASINA_ADAY = 8;
+
 export async function sabahMasasi(env, secenek = {}) {
   const ayar = await sabahAyarlari(env);
   const kuru = secenek.kuru === true;
@@ -521,7 +543,7 @@ export async function sabahMasasi(env, secenek = {}) {
 
   try { rapor.trendler = await trendleriOku(); } catch (e) { rapor.hatalar.push('Trendler okunamadı: ' + e.message); }
   const agirlik = trendAgirliklari(rapor.trendler);
-  const kategoriler = KATEGORILER.filter(k => istenen.has(k.anahtar));
+  const kategoriler = KATEGORILER.filter(k => istenen.has(k.anahtar)).slice(0, ayar.gunlukAzami);
 
   // Kaynakları paralel oku; biri düşerse diğerleri devam eder.
   const idler = [...new Set(kategoriler.flatMap(k => k.kaynaklar))];
@@ -530,18 +552,18 @@ export async function sabahMasasi(env, secenek = {}) {
 
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS kaynak_gorulen (link TEXT PRIMARY KEY, created_at TEXT NOT NULL)').run();
   const gorulmus = async link => Boolean(await env.DB.prepare('SELECT 1 FROM kaynak_gorulen WHERE link=? UNION SELECT 1 FROM news WHERE source_url=? LIMIT 1').bind(link, link).first());
-  const gorulduYaz = async link => { if (!deneme) await env.DB.prepare('INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) VALUES(?,?)').bind(link, new Date().toISOString()).run(); };
 
   // Son 4 günün başlıkları: aynı konu farklı kaynaktan ikinci kez girmesin.
-  const son = ((await env.DB.prepare("SELECT title FROM news WHERE COALESCE(published_at,updated_at) > ?").bind(new Date(Date.now() - 4 * 86400000).toISOString()).all().catch(() => ({ results: [] }))).results || []).map(x => new Set(kelimeler(x.title)));
-  const tekrarMi = baslik => { const a = new Set(kelimeler(baslik)); return a.size > 2 && son.some(b => { let o = 0; for (const k of a) if (b.has(k)) o++; return o / Math.min(a.size, b.size) >= 0.5; }); };
+  const sonBasliklar = ((await env.DB.prepare("SELECT title FROM news WHERE COALESCE(published_at,updated_at) > ?").bind(new Date(Date.now() - 4 * 86400000).toISOString()).all().catch(() => ({ results: [] }))).results || []).map(x => String(x.title || ''));
+  const son = sonBasliklar.map(t => new Set(kelimeler(t)));
+  const tekrarMi = baslik => benzerBaslik(baslik, son);
 
-  // 1) Seçim: sıralı, çünkü bir kategoride seçilen konu diğerlerinde
-  // tekrar sayılmalı.
-  const secilenler = [];
+  // 1) Aday listesi: akış başlığı ve tarihine göre süzülür, puanlanır.
+  // Aynı bağlantı iki kategoriye birden verilmez.
+  const verilen = new Set();
+  const isler = [];
   for (const kat of kategoriler) {
-    if (secilenler.length >= ayar.gunlukAzami) break;
-    const adaylar = kat.kaynaklar.flatMap(id => havuz[id] || [])
+    const sirali = kat.kaynaklar.flatMap(id => havuz[id] || [])
       // Akış tarihi bilinen ve 72 saatten eski haber puanlanmadan elenir:
       // trend eşleşmesi eski bir haberi öne çekmesin.
       .filter(o => { const t = Date.parse(o.tarih); return Number.isNaN(t) || Date.now() - t < 72 * 3600000; })
@@ -552,37 +574,30 @@ export async function sabahMasasi(env, secenek = {}) {
       .filter(o => !o.baslik || (!tekrarMi(o.baslik) && !hassasMi(o.baslik)))
       .map(o => ({ ...o, ...puanla(o, agirlik) }))
       .sort((a, b) => b.puan - a.puan);
-    let secildi = null;
-    for (const o of adaylar.slice(0, 15)) {
-      if (await gorulmus(o.link)) continue;
-      let kaynak;
-      try { kaynak = await metinCek(o.link); } catch (e) { continue; }
-      if (kaynak.paragraflar.length < 2 || kaynak.metin.length < 500) continue;
-      if (hassasMi(kaynak.baslik + ' ' + kaynak.spot + ' ' + kaynak.metin.slice(0, 1500))) {
-        rapor.secilen.push({ kategori: kat.kategori, anahtar: kat.anahtar, durum: 'hassas-atlandi', kaynakBaslik: kaynak.baslik || o.baslik, kaynak: o.link });
-        await gorulduYaz(o.link);
-        continue;
-      }
-      if (tekrarMi(kaynak.baslik)) continue;
-      if (kat.anahtar !== 'spor' && (duz(kaynak.metin.slice(0, 1500)).match(new RegExp(SPOR_KELIME.source, 'g')) || []).length >= 2) continue;
-      // Belediye haberlerinde tarih sayfadan gelir; 4 günden eskisi atlanır.
-      const t = Date.parse(kaynak.tarih.replace(/^(\d{2})\.(\d{2})\.(\d{4})$/, '$3-$2-$1'));
-      if (!Number.isNaN(t) && Date.now() - t > 4 * 86400000) continue;
-      secildi = { o, kaynak: { ...kaynak, kaynakAd: o.kaynakAd } };
-      // Seçilen konu, sıradaki kategorilerde tekrar sayılsın.
-      son.push(new Set(kelimeler(kaynak.baslik || o.baslik)));
-      break;
+    const adaylar = [];
+    for (const o of sirali) {
+      if (adaylar.length >= KATEGORI_BASINA_ADAY) break;
+      if (verilen.has(o.link) || await gorulmus(o.link)) continue;
+      verilen.add(o.link);
+      adaylar.push(o);
     }
-    if (!secildi) { rapor.secilen.push({ kategori: kat.kategori, anahtar: kat.anahtar, durum: 'uygun-kaynak-yok' }); continue; }
-    const kayit = { kategori: kat.kategori, anahtar: kat.anahtar, kaynakBaslik: secildi.kaynak.baslik || secildi.o.baslik, kaynak: secildi.o.link, puan: secildi.o.puan, trend: secildi.o.eslesen };
-    rapor.secilen.push(kayit);
-    secilenler.push({ kat, ...secildi, kayit });
+    isler.push({ kat, adaylar, ayar, kuru, deneme, sonBasliklar });
   }
 
-  // 2) Yazım: tüm kategoriler eş zamanlı. Her biri kendi hatasını kendi
-  // kaydına yazar; biri düşerse diğerleri yayına çıkar.
-  if (kuru) secilenler.forEach(x => { x.kayit.durum = 'kuru-calisma'; });
-  else await Promise.all(secilenler.map(x => kategoriYaz(env, ayar, x, deneme, rapor)));
+  // 2) Kategoriler eş zamanlı işlenir; her biri ayrı Worker çağrısında.
+  const isle = env.SABAH_YAZICI && typeof env.SABAH_YAZICI.kategoriIsle === 'function'
+    ? is => env.SABAH_YAZICI.kategoriIsle(is)
+    : is => kategoriIsle(env, is);
+  const sonuclar = await Promise.all(isler.map(is => Promise.resolve().then(() => isle(is)).catch(e => ({
+    secilen: [{ kategori: is.kat.kategori, anahtar: is.kat.anahtar, durum: 'hata', not: String(e && e.message || e).slice(0, 200) }],
+    yayinlanan: 0, taslak: 0, hatalar: [is.kat.kategori + ': ' + String(e && e.message || e).slice(0, 200)]
+  }))));
+  for (const x of sonuclar) {
+    rapor.secilen.push(...(x.secilen || []));
+    rapor.yayinlanan += x.yayinlanan || 0;
+    rapor.taslak += x.taslak || 0;
+    rapor.hatalar.push(...(x.hatalar || []));
+  }
 
   rapor.bitis = new Date().toISOString();
   rapor.sosyal = await sosyalAyarlari(env).then(a => ({ otomatikPlanla: a.otomatikPlanla, aglar: a.aglar })).catch(() => null);
@@ -591,6 +606,44 @@ export async function sabahMasasi(env, secenek = {}) {
     if (env.KV) await env.KV.put(RAPOR, JSON.stringify(rapor), { expirationTtl: 60 * 86400 }).catch(() => {});
   }
   return rapor;
+}
+
+function benzerBaslik(baslik, son) {
+  const a = new Set(kelimeler(baslik));
+  return a.size > 2 && son.some(b => { let o = 0; for (const k of a) if (b.has(k)) o++; return o / Math.min(a.size, b.size) >= 0.5; });
+}
+
+/* Tek kategori: adayların kaynak sayfasını okur, ilk uygun olanı yazar,
+   denetler, görsel ekler ve kaydeder. Ayrı Worker çağrısında çalışabilsin
+   diye girdisi ve çıktısı düz nesnedir. */
+export async function kategoriIsle(env, { kat, adaylar = [], ayar, kuru = false, deneme = false, sonBasliklar = [] }) {
+  const sonuc = { secilen: [], yayinlanan: 0, taslak: 0, hatalar: [] };
+  const son = sonBasliklar.map(t => new Set(kelimeler(t)));
+  const gorulduYaz = async link => { if (!deneme && !kuru) await env.DB.prepare('INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) VALUES(?,?)').bind(link, new Date().toISOString()).run(); };
+  let secildi = null;
+  for (const o of adaylar) {
+    let kaynak;
+    try { kaynak = await metinCek(o.link); } catch (e) { continue; }
+    if (kaynak.paragraflar.length < 2 || kaynak.metin.length < 500) continue;
+    if (hassasMi(kaynak.baslik + ' ' + kaynak.spot + ' ' + kaynak.metin.slice(0, 1500))) {
+      sonuc.secilen.push({ kategori: kat.kategori, anahtar: kat.anahtar, durum: 'hassas-atlandi', kaynakBaslik: kaynak.baslik || o.baslik, kaynak: o.link });
+      await gorulduYaz(o.link);
+      continue;
+    }
+    if (benzerBaslik(kaynak.baslik, son)) continue;
+    if (kat.anahtar !== 'spor' && (duz(kaynak.metin.slice(0, 1500)).match(new RegExp(SPOR_KELIME.source, 'g')) || []).length >= 2) continue;
+    // Belediye haberlerinde tarih sayfadan gelir; 4 günden eskisi atlanır.
+    const t = Date.parse(kaynak.tarih.replace(/^(\d{2})\.(\d{2})\.(\d{4})$/, '$3-$2-$1'));
+    if (!Number.isNaN(t) && Date.now() - t > 4 * 86400000) continue;
+    secildi = { o, kaynak: { ...kaynak, kaynakAd: o.kaynakAd } };
+    break;
+  }
+  if (!secildi) { sonuc.secilen.push({ kategori: kat.kategori, anahtar: kat.anahtar, durum: 'uygun-kaynak-yok' }); return sonuc; }
+  const kayit = { kategori: kat.kategori, anahtar: kat.anahtar, kaynakBaslik: secildi.kaynak.baslik || secildi.o.baslik, kaynak: secildi.o.link, puan: secildi.o.puan, trend: secildi.o.eslesen };
+  sonuc.secilen.push(kayit);
+  if (kuru) { kayit.durum = 'kuru-calisma'; return sonuc; }
+  await kategoriYaz(env, ayar, { kat, o: secildi.o, kaynak: secildi.kaynak, kayit }, deneme, sonuc);
+  return sonuc;
 }
 
 async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit }, deneme, rapor) {

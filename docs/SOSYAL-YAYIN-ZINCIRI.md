@@ -50,10 +50,12 @@ Kod: `src/sabah-masasi.js`. Tetik: `wrangler.toml` içinde `0 5 * * *` (05:00 UT
 4. Kalan her haber trendle eşleşmesine ve tazeliğine göre puanlanır; her kategoriye en yüksek puanlı haber seçilir. Bir kategoride seçilen konu, sıradaki kategorilerde tekrar sayılır.
 5. Siyaset, soruşturma, gözaltı, suç, ölüm ve yaralanma haberleri otomatik akışa alınmaz (`HASSAS`). Bunlar editör kararıdır.
 6. Workers AI (`@cf/openai/gpt-oss-120b`) kaynak metinden özgün metin yazar. Seçilen kategorilerin hepsi **eş zamanlı** yazılır; biri hata verirse diğerleri etkilenmez. Model koddan gelir, panel ayarlarında saklanmaz.
+
+   Ücretsiz Workers planında bir çağrı en fazla 50 dış istek yapabilir. Bu yüzden ana çağrı yalnız trendleri, RSS akışlarını ve aday listesini hazırlar. Her kategori, `SABAH_YAZICI` servis bağlamasıyla (`wrangler.toml`, `SabahYazici` giriş noktası) ayrı bir Worker çağrısında işlenir: kaynak sayfa, yazım, denetim, görsel ve kayıt. Giriş noktası internetten erişilemez.
 7. Üç denetim yapılır:
    - **Rakam denetimi:** metindeki her sayı kaynakta geçmeli.
    - **Özel ad denetimi:** metindeki her ad kaynakta geçmeli.
-   - **Kalite denetimi:** başlık tam cümle (en az 40 karakter, 5 kelime, Her Kelimesi Büyük değil, sansasyonsuz), spot 90-300 karakter, gövde en az 3 paragraf ve 650 karakter, gövdenin en fazla %40'ı kaynaktan aynen, gövdede tekrar eden ifade yok, skor ekleri ünlü uyumuna uygun (4-1'lik, 2-0'lık).
+   - **Kalite denetimi:** başlık tam cümle (en az 40 karakter, 5 kelime, Her Kelimesi Büyük değil, sansasyonsuz), spot 90-300 karakter, gövde en az 3 paragraf ve 650 karakter, gövdenin en fazla %40'ı kaynaktan aynen, gövdede tekrar eden ifade yok, belirli tarihteki ay adları büyük harfle ("30 Eylül"), skor ekleri ünlü uyumuna uygun (4-1'lik, 2-0'lık).
 
    Denetimden kalan taslak, sorunlar modele geri verilerek en fazla üç denemeye kadar yeniden yazdırılır. Üçünü de geçen haber yayınlanır (panelde "Denetimi geçenleri otomatik yayınla" açıksa); geçemeyen haber taslak kalır ve nedeni panelde görünür.
 8. Görsel: Openverse'ten ticari kullanıma açık CC lisanslı temsili fotoğraf alınır, `otomasyon/<slug>.jpg` olarak R2'ye kaydedilir ve `/gorsel/otomasyon/...` adresinden servis edilir. Künye metne ve nota yazılır. Fotoğraf bulunamazsa `public/assets/kategori-kapak/` altındaki kategori grafiği kullanılır.

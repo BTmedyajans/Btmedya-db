@@ -7,7 +7,8 @@ import { salesApi } from "./sales-router.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
-import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu, KATEGORILER } from "./sabah-masasi.js";
+import { WorkerEntrypoint } from "cloudflare:workers";
+import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu, KATEGORILER, kategoriIsle } from "./sabah-masasi.js";
 import { ayarlariOku, ayarlariYaz, platformSluglari, sonrakiYuva, altyazi, varlikVar, kapakKunyesi, yayinlananlariIsaretle, gecikenleriKaydir } from "./sosyal-otomasyon.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
@@ -1703,4 +1704,12 @@ async function servisEt(request, env) {
 
 
 // Cloudflare Workflows / Durable Objects exports
-export { BtmedyaWorkflow, WorkflowStatusDO };
+/* Sabah Masası'nın kategori işçisi. SABAH_YAZICI servis bağlamasıyla
+   (wrangler.toml) çağrılır; her çağrı ayrı bir Worker çağrısıdır ve kendi
+   50'lik dış istek bütçesini kullanır. Adlandırılmış giriş noktası olduğu
+   için internetten erişilemez, yalnız bu Worker'ın bağlamasından çağrılır. */
+class SabahYazici extends WorkerEntrypoint {
+  async kategoriIsle(is){ return kategoriIsle(this.env, is); }
+}
+
+export { BtmedyaWorkflow, WorkflowStatusDO, SabahYazici };

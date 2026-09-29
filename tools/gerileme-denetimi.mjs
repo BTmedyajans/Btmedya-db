@@ -29,14 +29,21 @@ if (!/async function medyaListesi\(/.test(worker) || !/await medyaListesi\(/.tes
     'Medya kasasi uretilen listeden beslenmeli (PR #72).');
 }
 
-/* 2) Regex literalinde iki ters bolu (\\.) ters bolu arar, nokta degil.
-      Bu hata once mime tespitini, sonra baslik uretimini bozdu; ikisi de sessizce.
-      Kaynak metnini dogrudan kontrol ediyoruz; onceki regex denetimi tek ters
-      boluyu de esleyerek gecerli /\./ kaliplarini yanlis bildiriyordu. */
-for (const satir of worker.split('\n')) {
-  if (!satir.includes('\\\\.')) continue;
-  bulgular.push(`src/worker.js regex literalinde \\\\. var: ${satir.trim().slice(0, 60)} ` +
-    '— bu nokta degil ters bolu arar.');
+/* 2) Regex literalinde iki ters bolu (\\. ya da \\/) ters bolu arar,
+      nokta ya da egik cizgi degil. Bu hata once mime tespitini, sonra baslik
+      uretimini bozdu; 29 Eylul'de src/metricool-scheduler.js'teki
+      /^static\\/kategori-kapak\\// Workers Builds derlemesini 1,5 saat
+      kirdi. Artik src/ altindaki tum .js dosyalarina bakilir. new RegExp('...')
+      icindeki cift ters bolu gecerlidir; bu yuzden once dize sabitleri
+      satirdan atilir, kalan (regex literali) metinde aranir. */
+for (const f of readdirSync('src').filter(x => x.endsWith('.js'))) {
+  const kod = readFileSync(join('src', f), 'utf8');
+  for (const satir of kod.split('\n')) {
+    const dizesiz = satir.replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g, "''");
+    if (!/\\\\[./]/.test(dizesiz)) continue;
+    bulgular.push(`src/${f} regex literalinde cift ters bolu var: ${satir.trim().slice(0, 60)} ` +
+      '— bu nokta/egik cizgi degil ters bolu arar (ya da derlemeyi kirar).');
+  }
 }
 
 /* 3) Kaynak etiketi ogenin kendi kaydindan turemeli. Sabit 'gercek' /
