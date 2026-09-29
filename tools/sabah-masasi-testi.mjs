@@ -105,4 +105,9 @@ assert.doesNotThrow(() => structuredClone(bos), 'RPC dönüşü klonlanabilir ol
 assert.equal(M.kucukAyAdi("Şanlıurfa, 30 eylül-4 ekim TEKNOFEST"), '30 eylül');
 assert.equal(M.kucukAyAdi('30 Eylül-4 Ekim tarihleri arasında'), '');
 assert.equal(M.kucukAyAdi('mart ayında 3 martı gördük'), '');
+// Konu tekrarı sözcük köküyle: 29 Eylül'de ikinci kez giren fuar haberi.
+const eski = [M.kokler('Balıkesir Tarım ve Hayvancılık Fuarı dört günde 108 bin ziyaretçiyi ağırladı')];
+assert.equal(M.benzerBaslik('Balıkesir’de tarım ve hayvancılığın büyük buluşmasına 108 bin 321 ziyaretçi katıldı', eski), true);
+assert.equal(M.benzerBaslik("Balıkesir'de 3. Tarım ve Hayvancılık Fuarı dört günde 108 bin 321 ziyaretçiyi karşıladı", eski), true);
+assert.equal(M.benzerBaslik('Balıkesir Büyükşehir kütüphaneleri tek dijital portalda toplandı', eski), false);
 console.log('SABAH MASASI KATEGORI ISCISI TESTI GECTI');
