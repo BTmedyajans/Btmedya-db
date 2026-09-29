@@ -110,4 +110,16 @@ const eski = [M.kokler('Balıkesir Tarım ve Hayvancılık Fuarı dört günde 1
 assert.equal(M.benzerBaslik('Balıkesir’de tarım ve hayvancılığın büyük buluşmasına 108 bin 321 ziyaretçi katıldı', eski), true);
 assert.equal(M.benzerBaslik("Balıkesir'de 3. Tarım ve Hayvancılık Fuarı dört günde 108 bin 321 ziyaretçiyi karşıladı", eski), true);
 assert.equal(M.benzerBaslik('Balıkesir Büyükşehir kütüphaneleri tek dijital portalda toplandı', eski), false);
+// Tanıtım: özel hastane tanıtımı otomatik akışa girmez; kamu hastanesi haberi girer.
+assert.equal(M.tanitimMi("Göz kapağı estetiği... Dünyagöz Etiler Hastanesi'nden Prof. Dr."), true);
+assert.equal(M.tanitimMi('Özel Balıkesir Park Hastanesi yeni bölüm açtı'), true);
+assert.equal(M.tanitimMi('Balıkesir Atatürk Şehir Hastanesi yeni poliklinik açtı'), false);
+// Kulis: canlıdaki Spor taslağı atıfsızdı; atıflı hâli geçer.
+const kulisKaynak = "Fenerbahçe'de devre arası 50 milyon euroluk golcü operasyonu! Sarı-lacivertliler Balogun'u kadrosuna katmak istiyor.";
+const atifsiz = { ...iyi, baslik: "Fenerbahçe, Lukaku performans düşerse Balogun transferi hedefliyor", spot: 'Fenerbahçe, ocak ayında Monaco forveti Folarin Balogun için hamle yapmayı planlıyor; oyuncunun piyasa değeri 50 milyon euro olarak gösteriliyor ve sözleşmesi iki yıl daha sürüyor.' };
+assert.ok(M.kaliteDenetimi(atifsiz, '', kulisKaynak).sorun.some(x => x.includes('atıf')));
+const atifli = { ...atifsiz, baslik: "Hürriyet: Fenerbahçe, Lukaku istenen seviyeye gelmezse Balogun'u istiyor", spot: "Hürriyet'in haberine göre " + atifsiz.spot };
+assert.ok(!M.kaliteDenetimi(atifli, '', kulisKaynak).sorun.some(x => x.includes('atıf')));
+// Sıradan haber kulis sayılmaz.
+assert.equal(M.kulisMi("Valilik vatandaşların dikkatli olmasını istiyor; yaz transfer döneminde"), false);
 console.log('SABAH MASASI KATEGORI ISCISI TESTI GECTI');

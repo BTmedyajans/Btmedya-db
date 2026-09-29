@@ -85,6 +85,21 @@ export function duz(s) {
 }
 
 export function hassasMi(metin) { return HASSAS.test(duz(metin)); }
+
+/* Tanıtım içerikleri (özel hastane/klinik tanıtımı) haber gibi yayınlanmaz.
+   29 Eylül: "Provalı göz kapağı operasyonu" başlıklı yazı bir özel hastanenin
+   tanıtımıydı ve Sağlık taslağı olarak çıktı. Metnin başında adı geçen özel
+   sağlık markası ya da "Özel ... Hastanesi" varsa aday atlanır. */
+const TANITIM = /\b(dunyagoz|acibadem|memorial|medical park|liv hospital|medipol|florence nightingale|anadolu saglik merkezi|medicana|medline|hisar intercontinental|amerikan hastanesi|american hospital|guven hastanesi|istinye universitesi hastanesi|koc universitesi hastanesi|ozel [a-z]{2,20}( [a-z]{2,20}){0,3} (hastanesi|poliklinigi|klinigi|tip merkezi)|estetik (merkezi|klinigi))\b/;
+export function tanitimMi(metin) { return TANITIM.test(duz(metin)); }
+
+/* Kulis, iddia ve transfer söylentisi kesin bilgi gibi yazılmaz; kaynağa
+   atfedilir. 29 Eylül Spor taslağı bir transfer iddiasını "hedefliyor" diye
+   kesinleştirmiş, piyasa değerini "bonservis" yapmıştı. */
+const KULIS = /\b(iddia\w*|kulis\w*|gundeminde|bombasi|golcu operasyonu|transfer operasyonu|transfer hamlesi|ilgileniyor|kadrosuna katmak istiyor|masada)\b/;
+const ATIF = /\b(gore|iddia\w*|ileri suruldu|one suruldu|haberine|aktardi|yazdi|bildirildi)\b/;
+export function kulisMi(metin) { return KULIS.test(duz(metin)); }
+export function atifVarMi(metin) { return ATIF.test(duz(metin)); }
 const SPOR_KELIME = /\b(futbol|mac|maci|milli takim|uefa|super lig|gol|teknik direktor|transfer|basketbol|voleybol|fenerbahce|galatasaray|besiktas|trabzonspor)\b/;
 
 /* ---------- Ayarlar ve rapor ---------- */
@@ -311,7 +326,7 @@ export function tekrarEdenIfade(paragraflar) {
   return '';
 }
 
-export function kaliteDenetimi(y, kaynakMetin = '') {
+export function kaliteDenetimi(y, kaynakMetin = '', kaynakOzet = '') {
   const sorun = [];
   const baslik = String(y.baslik || '').trim();
   const spot = String(y.spot || '').trim();
@@ -328,6 +343,9 @@ export function kaliteDenetimi(y, kaynakMetin = '') {
   if (govde.length < 650) sorun.push('gövde 650 karakterden kısa');
   const ekHata = skorEkiHatasi(govde + ' ' + baslik + ' ' + spot);
   if (ekHata) sorun.push(`skor eki hatalı: ${ekHata}`);
+  if (kulisMi(kaynakOzet || String(kaynakMetin).slice(0, 600)) && !atifVarMi([baslik, spot, (y.paragraflar || [])[0] || ''].join(' '))) {
+    sorun.push('kaynak bir iddia/kulis aktarıyor ama başlık, spot ve ilk paragrafta kaynağa atıf yok ("... haberine göre")');
+  }
   const ay = kucukAyAdi([baslik, spot, govde].join(' '));
   if (ay) sorun.push(`tarih bildiren ay adı küçük yazılmış: "${ay}" (TDK: büyük harfle)`);
   const tekrar = tekrarEdenIfade(y.paragraflar || []);
@@ -355,10 +373,12 @@ function yonerge(kategori) {
     '8. Türkçe ekleri doğru yaz: özel adlara ek kesme işaretiyle (Balıkesir\'de, TRT\'nin); skorlar "4-1\'lik", "2-0\'lık" biçiminde; sayılara gelen ekler okunuşa göre (3\'te, 5\'i, 1990\'lı).',
     '9. Tarafsız, sade, ajans dili. Sıfat yığını, klişe ve pazarlama dili yok.',
     '10. Belirli bir tarih bildiren ay ve gün adları büyük harfle başlar: "30 Eylül", "4 Ekim Cuma"; başlıkta da.',
+    '11. Kaynak bir iddia, kulis ya da transfer söylentisi aktarıyorsa bunu kesin bilgi gibi yazma: başlıkta ve ilk paragrafta kaynağa atfet ("Hürriyet\'in haberine göre", "iddia edildi"). Piyasa değeri, bonservis, maaş gibi kavramları birbirine dönüştürme.',
+    '12. Kaynakta olmayan değerlendirme ya da sonuç cümlesi ekleme ("bu hamleyle ... amaçlıyor", "... umuyor" gibi). Gövdeyi kaynaktaki bilgi bitince bitir.',
     '',
     'EK ALANLAR',
-    '11. vurgu_deger: kaynakta aynen geçen en çarpıcı rakam (örn. "108 bin", "1-4"); yoksa boş bırak. vurgu_etiket: bu rakamın ne olduğu, en fazla 6 kelime.',
-    '12. gorsel_anahtar: haberi temsil edecek, İNSAN YÜZÜ İÇERMEYEN bir nesne ya da mekân fotoğrafı için 2-4 kelimelik İNGİLİZCE arama ifadesi (örn. "agricultural fair tractors", "hospital corridor"). Kişi adı, marka, logo yazma.',
+    '13. vurgu_deger: kaynakta aynen geçen en çarpıcı rakam (örn. "108 bin", "1-4"); yoksa boş bırak. vurgu_etiket: bu rakamın ne olduğu, en fazla 6 kelime.',
+    '14. gorsel_anahtar: haberi temsil edecek, İNSAN YÜZÜ İÇERMEYEN bir nesne ya da mekân fotoğrafı için 2-4 kelimelik İNGİLİZCE arama ifadesi (örn. "agricultural fair tractors", "hospital corridor"). Kişi adı, marka, logo yazma.',
     '',
     'Kategori: ' + kategori + '.',
     'YANIT: Yalnız tek bir JSON nesnesi döndür; açıklama, kod bloğu ya da başka metin ekleme. Anahtarlar: "baslik" (metin), "spot" (metin), "paragraflar" (metin dizisi), "vurgu_deger" (metin), "vurgu_etiket" (metin), "gorsel_anahtar" (metin).'
@@ -437,7 +457,7 @@ export async function yaz(env, ayar, kaynak, kategori, denemeSayisi = 3) {
     y.denetim = {
       rakam: rakamDenetimi(cikti, kaynakMetin),
       ad: adDenetimi(cikti, kaynakMetin + '\n' + (kaynak.kaynakAd || '')),
-      kalite: kaliteDenetimi(y, kaynakMetin)
+      kalite: kaliteDenetimi(y, kaynakMetin, kaynak.baslik + ' ' + (kaynak.spot || '') + ' ' + (kaynak.paragraflar || []).slice(0, 3).join(' '))
     };
     y.deneme = d + 1;
     const sorun = [
@@ -636,6 +656,11 @@ export async function kategoriIsle(env, { kat, adaylar = [], ayar, kuru = false,
     if (kaynak.paragraflar.length < 2 || kaynak.metin.length < 500) continue;
     if (hassasMi(kaynak.baslik + ' ' + kaynak.spot + ' ' + kaynak.metin.slice(0, 1500))) {
       sonuc.secilen.push({ kategori: kat.kategori, anahtar: kat.anahtar, durum: 'hassas-atlandi', kaynakBaslik: kaynak.baslik || o.baslik, kaynak: o.link });
+      await gorulduYaz(o.link);
+      continue;
+    }
+    if (tanitimMi(kaynak.baslik + ' ' + kaynak.spot + ' ' + kaynak.metin.slice(0, 1500))) {
+      sonuc.secilen.push({ kategori: kat.kategori, anahtar: kat.anahtar, durum: 'tanitim-atlandi', kaynakBaslik: kaynak.baslik || o.baslik, kaynak: o.link });
       await gorulduYaz(o.link);
       continue;
     }

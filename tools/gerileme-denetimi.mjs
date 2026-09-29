@@ -239,19 +239,24 @@ tara('public'); tara('src');
   }
 }
 
-/* 8b) Giris filmi rozeti baska bir betikte elle yazilmamali.
-       29 Eylul 2026 (3567196, d12694f): public/mobile-motion.js mobilde
-       sahneleri kendi dizisiyle yeniden kurdu ve dort AI sahnesine sabit
-       "GERCEK CEKIM" bastı; home.js'in panel verisinden turettigi rozeti
-       ezdi. 8. kural yalniz home.js'e baktigi icin yakalamadi.
-       Kural: public/ altindaki hicbir .js dosyasi bir nesne alanina sabit
-       'GERÇEK ÇEKİM' yazmaz; rozet veriden (panel yuvasi, gercek listesi) turer. */
+/* 8b) Giris filmi rozeti betiklerde elle "gercek" yazilmamali.
+       29 Eylul 2026: public/mobile-motion.js mobilde sahneleri kendi
+       dizisiyle kurdu; once dort AI sahnesine sabit "GERCEK CEKIM" (3567196),
+       sonra "GERCEK CEKIM · SAHA" / "GERCEK URETIM · STUDIO" (e7f8826), en
+       son kaynak bildirmeyen "HABER · SAHA" (3a75d7e) basti. 8. kural yalniz
+       home.js'e baktigi icin hicbirini yakalamadi.
+       Kural: public/ altindaki .js dosyalarinda sabit yazilan her rozet
+       (source:/kaynak: alani) "AI ÜRETİMİ" ile baslar. GERCEK CEKIM yalniz
+       veriden (panel yuvasi, gercek listesi) turer. */
 {
   const dosyalar = readdirSync('public').filter(f => f.endsWith('.js')).map(f => 'public/' + f);
   for (const f of dosyalar) {
     const kod = readFileSync(f, 'utf8');
-    const m = kod.match(/[A-Za-z_]+\s*:\s*['"]GERÇEK ÇEKİM['"]/g);
-    if (m) bulgular.push(`${f} rozeti sabit "GERÇEK ÇEKİM" olarak yaziyor (${m.length} yer). Rozet panel verisinden turemeli; varsayilan AI ÜRETİMİ.`);
+    for (const m of kod.matchAll(/\b(source|kaynak)\s*:\s*'([^']*)'/g)) {
+      if (!m[2].startsWith('AI ÜRETİMİ')) {
+        bulgular.push(`${f} sahne rozeti sabit "${m[2]}" yaziyor. Sabit rozet "AI ÜRETİMİ" olmali; GERÇEK ÇEKİM panel verisinden turer (AGENTS.md).`);
+      }
+    }
   }
 }
 
