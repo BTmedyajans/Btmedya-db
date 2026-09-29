@@ -14,7 +14,7 @@
 const AYAR_ANAHTARI = 'social:ayarlar';
 const VARSAYILAN = Object.freeze({
   aglar: ['instagram', 'facebook', 'tiktok'],
-  otomatikPlanla: false,
+  otomatikPlanla: true,
   // Metricool'un TikTok verisine gore zirve saatler (Europe/Istanbul).
   saatler: ['10:00', '12:00', '18:00'],
   // Arsiv haberleri otomatik paylasilmasin: yalniz bu kadar saat icinde
