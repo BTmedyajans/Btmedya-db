@@ -17,6 +17,8 @@ on:
     branches: [main]
     paths:
       - "public/**"
+      - "src/**"
+      - "wrangler.toml"
       - "tools/site-denetimi.mjs"
       - "tools/a11y-denetimi.mjs"
       - "tools/link-denetimi.mjs"
