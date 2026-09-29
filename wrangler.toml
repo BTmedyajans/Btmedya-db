@@ -64,6 +64,11 @@ METRICOOL_CONNECTED_NETWORKS = "tiktok,youtube"
 # METRICOOL_USER_TOKEN ister). Burada durduğu için GitHub'a yalnız anahtar
 # eklemek yeter. Secret adı METRICOOL_USER_ID ile çakışmasın diye farklı ad.
 METRICOOL_KULLANICI_NO = "5278969"
+METRICOOL_USER_ID = "5278969"
+METRICOOL_BRAND_ID = "6858384"
+METRICOOL_CREATOR_EMAIL = "busetuncay74@gmail.com"
+METRICOOL_ACCOUNT_EMAIL = "busetuncay74@gmail.com"
+METRICOOL_TIMEZONE = "Europe/Istanbul"
 
 # Secret değerleri GitHub'a veya bu dosyaya yazılmaz.
 # Cloudflare Worker > Settings > Variables and Secrets altında Secret olarak eklenir.
