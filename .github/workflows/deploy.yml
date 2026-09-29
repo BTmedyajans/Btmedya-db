@@ -57,6 +57,9 @@ jobs:
           grep -q 'social' public/home.js
           python3 tools/validate-assets.py
           node tools/a11y-denetimi.mjs
+          # Etiket, sitemap/JSON-LD ve hero butunlugu: sessiz editoryal gerilemeleri yakalar.
+          node tools/gerileme-denetimi.mjs
+          node --check src/sosyal-otomasyon.js
           node tools/link-denetimi.mjs
           grep -q 'mobile-fixes.css' public/index.html
           grep -q 'mobile-motion.css' public/index.html
