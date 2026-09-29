@@ -1,4 +1,5 @@
 import { statikGorselAiMi } from "./sosyal-otomasyon.js";
+import { metricoolConnectedNetworks } from "./social-platforms.js";
 
 const NETWORKS = new Set(["facebook","instagram","tiktok","youtube","linkedin","twitter","threads","pinterest","gmb","bluesky"]);
 
@@ -97,6 +98,12 @@ export async function scheduleToMetricool(env,row){
 
   const providers=providersFrom(row);
   if(!providers.length) return {ok:false,retryable:false,error:"Geçerli sosyal platformu yok"};
+
+  const connected=metricoolConnectedNetworks(env);
+  const disconnected=providers.filter(p=>!connected.has(p.network)).map(p=>p.network);
+  if(disconnected.length){
+    return {ok:false,retryable:false,error:"Metricool Brand bağlantısı yok: "+disconnected.join(", ")};
+  }
 
   const mediaUrl=await publicMediaUrl(env,row.media_key);
   const hasMedia=Boolean(mediaUrl);
