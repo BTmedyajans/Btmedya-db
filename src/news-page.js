@@ -77,7 +77,8 @@ export function renderNewsPage(n, origin, vlib){
   const vid=(vlib&&(vlib.own_youtube_id||vlib.youtube_id))||kaynakVid;
   const kanal=vlib?(vlib.own_youtube_id?'BTMEDYA':(vlib.source_channel||'')):'';
   const kapak=n.cover_url || `${origin}/assets/haber-kapak/${encodeURIComponent(n.slug)}.webp`;
-  const tarihTr=n.original_date||trTarih(n.published_at);
+  // Sabah Masası özgün tarihi ISO yazıyor; ham görünmesin.
+  const tarihTr=(/^\d{4}-\d{2}-\d{2}T/.test(String(n.original_date||''))?trTarih(n.original_date):n.original_date)||trTarih(n.published_at);
   const tarihIso=isoTam(n.published_at);
   const guncelIso=isoTam(n.updated_at)||tarihIso;
   const durumNotu=String(n.archive_note||'');
@@ -151,6 +152,7 @@ ${kanal?`<p class="video-credit">Video ${esc(kanal)} kanalında yayında. <a hre
 <meta name="description" content="${esc(kisaOzet(ozet))}"/>
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"/>
 <link rel="canonical" href="${esc(url)}"/>
+<link rel="alternate" type="text/markdown" href="${esc(url)}.md" title="Markdown (AI ajanları için)"/>
 <link rel="alternate" type="application/rss+xml" title="BTMEDYA Haber" href="/rss.xml"/>
 <meta property="og:site_name" content="BTMEDYA"/>
 <meta property="og:locale" content="tr_TR"/>

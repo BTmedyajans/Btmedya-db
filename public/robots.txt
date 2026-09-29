@@ -1,8 +1,107 @@
+# BTMEDYA robots.txt
+#
+# Yapay zekâ ajanlarına açık: haberler alıntılanabilir ve yanıtlarda
+# kaynak gösterilebilir; model eğitimi için kullanım izni yoktur
+# (Content-Signal, https://contentsignals.org).
+#
+# Her ajan grubu yasak yolları yeniden yazar: belirli bir User-agent grubu
+# "*" grubunu tamamen geçersiz kılar; yazılmazsa /admin/ ve /api/ açılırdı.
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /social-studio/
+Content-Signal: ai-input=yes, search=yes, ai-train=no
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /social-studio/
+Content-Signal: ai-input=yes, search=yes, ai-train=no
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /social-studio/
+Content-Signal: ai-input=yes, search=yes, ai-train=no
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /social-studio/
+Content-Signal: ai-input=yes, search=yes, ai-train=no
+
+User-agent: Claude-User
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /social-studio/
+Content-Signal: ai-input=yes, search=yes, ai-train=no
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /social-studio/
+Content-Signal: ai-input=yes, search=yes, ai-train=no
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /social-studio/
+Content-Signal: ai-input=yes, search=yes, ai-train=no
+
+User-agent: Perplexity-User
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /social-studio/
+Content-Signal: ai-input=yes, search=yes, ai-train=no
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /social-studio/
+Content-Signal: ai-input=yes, search=yes, ai-train=no
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /social-studio/
+Content-Signal: ai-input=yes, search=yes, ai-train=no
+
+User-agent: Bytespider
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /social-studio/
+Content-Signal: ai-input=yes, search=yes, ai-train=no
+
+User-agent: CCBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /social-studio/
+Content-Signal: ai-input=yes, search=yes, ai-train=no
+
 User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /api/
 Disallow: /social-studio/
+Content-Signal: ai-input=yes, search=yes, ai-train=no
+
 Sitemap: https://btmedya.com.tr/sitemap.xml
 Sitemap: https://btmedya.com.tr/news-sitemap.xml
-Contact: https://btmedya.com.tr/.well-known/security.txt
+
+# Makine tarafından okunabilir dizinler:
+# - https://btmedya.com.tr/llms.txt
+# - https://btmedya.com.tr/index.json
+# Güvenlik iletişimi: https://btmedya.com.tr/.well-known/security.txt
