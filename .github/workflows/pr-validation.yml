@@ -39,6 +39,8 @@ jobs:
           node --check src/metricool-scheduler.js
           node --check src/sosyal-otomasyon.js
           node tools/sosyal-otomasyon-testi.mjs
+          node --check src/sabah-masasi.js
+          node tools/sabah-masasi-testi.mjs
           node --check public/home.js
           python3 tools/validate-assets.py
           node tools/a11y-denetimi.mjs

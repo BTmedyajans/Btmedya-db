@@ -6,6 +6,7 @@ import { recoveryPasswordValid } from "./auth-recovery.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
+import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu } from "./sabah-masasi.js";
 import { ayarlariOku, ayarlariYaz, platformSluglari, sonrakiYuva, altyazi, varlikVar, kapakKunyesi, yayinlananlariIsaretle, gecikenleriKaydir } from "./sosyal-otomasyon.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
@@ -1202,7 +1203,12 @@ async function autoPrepareSocialDrafts(env, limit=3){
       if(exists){ result.skipped++; continue; }
       const kart=`/assets/sosyal-kart/${n.slug}.jpg`;
       const cover=String(n.cover_url||'');
+      // Sabah Masası kapakları: R2'deki lisanslı fotoğraf ya da kategori
+      // grafiğinin 4:5 JPEG karşılığı (webp Instagram'da reddedilir).
+      const katKapak=cover.match(/^\/assets\/kategori-kapak\/([a-z]+)\.webp$/);
       const mediaKey=(await varlikVar(env,kart)) ? 'static/sosyal-kart/'+n.slug+'.jpg'
+        : cover.startsWith('/gorsel/otomasyon/') ? cover.slice('/gorsel/'.length)
+        : katKapak ? `static/kategori-kapak/${katKapak[1]}-sosyal.jpg`
         : cover.startsWith('/assets/') ? 'static/'+cover.slice('/assets/'.length) : '';
       const body=altyazi(n,await kapakKunyesi(env,n.slug));
       const yas=(Date.now()-new Date(n.published_at||0).getTime())/3600000;
@@ -1268,6 +1274,16 @@ async function hydrateR2FromManifest(env, limit=3){
 
 /* production-reconcile: keep GitHub main as the sole Cloudflare Workers Builds source of truth. */
 export default { async scheduled(controller, env, ctx){
+  /* Sabah Masası: her gün 08:00 İstanbul (05:00 UTC). Diğer 5 dakikalık
+     işler bu tetikte de çalışır; masa yeni haberleri yayınladığında sosyal
+     taslaklar bir sonraki 5 dakikalık turda hazırlanır. */
+  if(controller && controller.cron==='0 5 * * *'){
+    const masa=sabahMasasi(env)
+      .then(r=>console.log('[btmedya] sabah masasi',r.yayinlanan,'yayinda',r.taslak,'taslak',r.hatalar.length,'hata'))
+      .catch(e=>console.error('[btmedya] sabah masasi:',e?.message||e));
+    if(ctx?.waitUntil) ctx.waitUntil(masa); else await masa;
+    return;
+  }
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
   /* Yayındaki yeni haberleri sosyal panelde onay kuyruğuna hazırlar.
      Otomatik yayın yapmaz: son yayın kararı kullanıcı onayından sonra Metricool'a gider. */
@@ -1321,6 +1337,33 @@ export default { async scheduled(controller, env, ctx){
   if(url.pathname.startsWith('/haber/') && url.pathname.length > 7){
     const slug = url.pathname.slice('/haber/'.length).replace(/\/$/, '');
     return Response.redirect(`${url.origin}/haberler/${slug}.html${url.search}`, 301);
+  }
+
+  /* Sabah Masası'nın R2'ye kopyaladığı lisanslı temsili fotoğraflar.
+     Yalnız otomasyon/ önekine izin verilir; kasadaki diğer dosyalar
+     "Siteye ekle" onayı olmadan buradan açılamaz. */
+  if(url.pathname.startsWith('/gorsel/otomasyon/') && (request.method==='GET'||request.method==='HEAD')){
+    const key=decodeURIComponent(url.pathname.slice('/gorsel/'.length));
+    if(!/^otomasyon\/[a-z0-9-]+\.jpg$/.test(key) || !env.MEDIA) return text('Bulunamadı',404);
+    const obj=await env.MEDIA.get(key); if(!obj) return text('Bulunamadı',404);
+    return new Response(request.method==='HEAD'?null:obj.body,{headers:{'content-type':'image/jpeg','cache-control':'public, max-age=604800','access-control-allow-origin':'*'}});
+  }
+
+  if(url.pathname==='/api/admin/sabah-masasi'){
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(request.method==='GET') return json({ok:true,ayarlar:await sabahAyarlari(env),rapor:await sabahRaporu(env),ai:Boolean(env.AI)});
+    if(request.method==='PUT'){
+      const b=await request.json().catch(()=>null);
+      if(!b||typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
+      const izinli={}; for(const k of ['etkin','otomatikYayin','gunlukAzami']) if(k in b) izinli[k]=b[k];
+      return json({ok:true,ayarlar:await sabahAyarlariYaz(env,izinli)});
+    }
+    if(request.method==='POST'){
+      const b=await request.json().catch(()=>({}));
+      const rapor=await sabahMasasi(env,{kuru:b.kuru===true,zorla:true});
+      return json({ok:true,rapor});
+    }
+    return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,PUT,POST'});
   }
 
   /* KALICI PUBLIC BAGLANTI — yalnizca "Siteye ekle" isaretli dosyalar.

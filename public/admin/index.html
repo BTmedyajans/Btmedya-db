@@ -319,6 +319,22 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   <!-- TAB: GELEN MESAJLAR -->
   <div class="tab-content" id="tab-social">
     <div class="panel">
+      <h2>Sabah Masası · her gün 08:00</h2>
+      <p class="muted" style="margin-top:0">Google Trends TR ve kategori kaynaklarından günün öne çıkan haberlerini seçer, yapay zekâ ile özgün metin yazar, rakam ve özel ad denetiminden geçenleri yayınlar, lisanslı temsili görsel ekler ve sosyal kuyruğa verir. Siyaset, soruşturma ve suç haberleri otomatik akışa alınmaz.</p>
+      <div class="row" style="gap:16px;flex-wrap:wrap;margin:6px 0 12px">
+        <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="mEtkin" style="width:18px;height:18px;margin:0"> Her sabah çalışsın</label>
+        <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="mYayin" style="width:18px;height:18px;margin:0"> Denetimi geçenleri otomatik yayınla</label>
+        <label style="display:flex;gap:6px;align-items:center">Günlük en fazla <input type="number" id="mAzami" min="1" max="8" style="width:64px"> haber</label>
+      </div>
+      <div class="row" style="margin-top:4px;flex-wrap:wrap">
+        <button class="btn primary" id="mKaydet">Ayarları kaydet</button>
+        <button class="btn" id="mKuru">Önizle (yazmadan seç)</button>
+        <button class="btn" id="mCalistir">Şimdi çalıştır</button>
+      </div>
+      <p id="mMsg" class="status"></p>
+      <div id="mRapor"><p class="muted">Yükleniyor…</p></div>
+    </div>
+    <div class="panel">
       <h2>Otomatik Yayın Ayarları</h2>
       <p class="muted" id="oDurum" style="margin-top:0">Yükleniyor…</p>
       <label>PAYLAŞILACAK AĞLAR</label>
@@ -1054,8 +1070,41 @@ $('#oKaydet').onclick=async()=>{
   $('#oMsg').textContent=r.ok?'Kaydedildi.':'Kaydedilemedi: '+(r.error||'');
   loadSocialSettings();
 };
+// Sabah Masası raporu: her kategori için seçilen kaynak, durum ve neden.
+const MASA_DURUM={yayinlandi:'✅ yayında',taslak:'📝 taslak (onay bekliyor)','hassas-atlandi':'⛔ hassas konu, atlandı','uygun-kaynak-yok':'— uygun kaynak yok','kuru-calisma':'👁 önizleme',hata:'✗ hata'};
+function masaRaporu(r){
+  if(!r) return '<p class="muted">Henüz çalışmadı. İlk çalışma yarın 08:00\'de ya da "Şimdi çalıştır" ile.</p>';
+  const tr=(r.trendler||[]).slice(0,10).map(t=>escStr(t.sorgu)).join(' · ');
+  return '<p class="muted" style="margin:6px 0"><b>'+escStr(tarihTr(r.baslangic))+'</b>'+(r.kuru?' (önizleme)':'')+' · '+(r.yayinlanan||0)+' yayında · '+(r.taslak||0)+' taslak'+(r.hatalar&&r.hatalar.length?' · <span style="color:#f77">'+r.hatalar.length+' uyarı</span>':'')+'</p>'
+   +(tr?'<p class="muted" style="font-size:12px;margin:0 0 8px">Trendler: '+tr+'</p>':'')
+   +'<div class="news-list">'+(r.secilen||[]).map(s=>'<div class="news-row" style="margin-bottom:4px"><div class="news-row-info"><b>'+escStr(s.kategori)+' · '+escStr(MASA_DURUM[s.durum]||s.durum||'')+'</b><small>'+escStr(s.baslik||s.kaynakBaslik||'')+(s.not?' · '+escStr(s.not):'')+'</small>'+(s.slug?'<small><a href="/haberler/'+encodeURIComponent(s.slug)+'" target="_blank" rel="noopener">habere git ↗</a></small>':s.kaynak?'<small><a href="'+escStr(s.kaynak)+'" target="_blank" rel="noopener">kaynak ↗</a></small>':'')+'</div></div>').join('')+'</div>';
+}
+async function loadMasa(){
+  try{
+    const r=await req('/api/admin/sabah-masasi');
+    $('#mEtkin').checked=r.ayarlar.etkin; $('#mYayin').checked=r.ayarlar.otomatikYayin; $('#mAzami').value=r.ayarlar.gunlukAzami;
+    $('#mRapor').innerHTML=(r.ai?'':'<p style="color:#f77">Workers AI bağlaması yok; metin yazılamaz.</p>')+masaRaporu(r.rapor);
+  }catch(e){$('#mRapor').textContent='Sabah Masası durumu alınamadı.';}
+}
+$('#mKaydet').onclick=async()=>{
+  const r=await req('/api/admin/sabah-masasi',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({etkin:$('#mEtkin').checked,otomatikYayin:$('#mYayin').checked,gunlukAzami:Number($('#mAzami').value)||8})});
+  $('#mMsg').textContent=r.ok?'Kaydedildi.':'Kaydedilemedi.'; loadMasa();
+};
+async function masaCalistir(kuru){
+  $('#mMsg').textContent=kuru?'Kaynaklar taranıyor…':'Sabah Masası çalışıyor; 1-3 dakika sürebilir…';
+  $('#mKuru').disabled=$('#mCalistir').disabled=true;
+  try{
+    const r=await req('/api/admin/sabah-masasi',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({kuru})});
+    $('#mRapor').innerHTML=masaRaporu(r.rapor); $('#mMsg').textContent=kuru?'Önizleme hazır; hiçbir şey yayınlanmadı.':'Tamamlandı.';
+    if(!kuru) loadSocial();
+  }catch(e){$('#mMsg').textContent='Çalıştırılamadı.';}
+  $('#mKuru').disabled=$('#mCalistir').disabled=false;
+}
+$('#mKuru').onclick=()=>masaCalistir(true);
+$('#mCalistir').onclick=()=>{ if(confirm('Sabah Masası şimdi çalışsın mı? Denetimi geçen haberler ayarlara göre yayınlanır.')) masaCalistir(false); };
 async function loadSocial(){
   loadSocialSettings();
+  loadMasa();
   const box=$('#socialList');
   try{
     const r=await req('/api/admin/social');
