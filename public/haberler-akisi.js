@@ -27,14 +27,14 @@
     return k==='gercek'?'GERÇEK ÇEKİM':k==='arsiv'?'ARŞİV GÖRSELİ':k==='grafik'?'BTMEDYA GRAFİĞİ':k==='harita'?'HARİTA / VERİ':'TEMSİLİ GÖRSEL';
   }
   function row(n,coverMap){
-    var im=n.cover_url?'<span class="latest-kapak"><img src="'+esc(imgUrl(n.cover_url))+'" alt="" loading="lazy" decoding="async"></span>':'';
+    var im=n.cover_url?'<span class="latest-kapak"><img src="'+esc(imgUrl(n.cover_url))+'" alt="'+esc(n.title)+'" loading="lazy" decoding="async"></span>':'';
     var badge=coverMap?'<small class="news-source-badge">'+esc(sourceLabel(n,coverMap))+'</small>':'';
     return '<a class="latest-item'+(im?' kapakli':'')+'" href="/haberler/'+encodeURIComponent(n.slug)+'">'+im+
       '<span class="latest-metin">'+badge+'<small>'+esc(n.category||'HABER')+'</small><h3>'+esc(n.title)+'</h3><p>'+esc(n.excerpt||'')+
       '</p><span class="news-meta">'+esc(date(n))+' · <span class="source">Kaynak: '+esc(source(n))+'</span></span></span></a>';
   }
   function heroCard(n,big,coverMap){
-    var im=n.cover_url?'<img class="kart-gorsel" src="'+esc(imgUrl(n.cover_url))+'" alt="" loading="'+(big?'eager':'lazy')+'" decoding="async">':'';
+    var im=n.cover_url?'<img class="kart-gorsel" src="'+esc(imgUrl(n.cover_url))+'" alt="'+esc(n.title)+'" loading="'+(big?'eager':'lazy')+'" decoding="async">':'';
     var badge=coverMap?'<span class="news-source-badge hero-badge">'+esc(sourceLabel(n,coverMap))+'</span>':'';
     return im+'<div class="veil"></div><div class="inner">'+badge+'<span class="news-tag">'+esc(n.category||'HABER')+
       '</span>'+(big?'<h2>':'<h3>')+esc(n.title)+(big?'</h2>':'</h3>')+'<p>'+esc(n.excerpt||'')+
@@ -95,7 +95,7 @@
     var c=items.filter(function(n){return n.cover_url;}).sort(function(a,b){return (b._relevance||0)-(a._relevance||0);}).slice(0,3);if(!c.length)return;
     var s=document.createElement('section');s.className='editorial-special';s.id='haber-akisi';
     s.innerHTML='<div class="section-head"><div><h2>BTMEDYA Özel Haber</h2><p>Gerçek kapak görselleri · saha · kaynak · editoryal dosya</p></div></div>'+
-      '<div class="editorial-special-grid">'+c.map(function(n,i){return '<a class="editorial-special-card'+(i===0?' featured':'')+'" href="/haberler/'+encodeURIComponent(n.slug)+'"><img src="'+esc(imgUrl(n.cover_url))+'" alt="" loading="lazy" decoding="async"><div class="editorial-special-copy"><small>'+esc(n.category||'SAHA HABERİ')+'</small><h3>'+esc(n.title)+'</h3><p>'+esc(n.excerpt||'')+'</p><div class="editorial-special-meta">'+esc(date(n))+' · '+esc(source(n))+'</div></div></a>';}).join('')+'</div>'+
+      '<div class="editorial-special-grid">'+c.map(function(n,i){return '<a class="editorial-special-card'+(i===0?' featured':'')+'" href="/haberler/'+encodeURIComponent(n.slug)+'"><img src="'+esc(imgUrl(n.cover_url))+'" alt="'+esc(n.title)+'" loading="lazy" decoding="async"><div class="editorial-special-copy"><small>'+esc(n.category||'SAHA HABERİ')+'</small><h3>'+esc(n.title)+'</h3><p>'+esc(n.excerpt||'')+'</p><div class="editorial-special-meta">'+esc(date(n))+' · '+esc(source(n))+'</div></div></a>';}).join('')+'</div>'+
       '<div class="editorial-source-note">BTMEDYA burada üçüncü taraf sitelerin metin veya görsellerini kopyalamaz. Kendi yayın kayıtları, gerçek kapak havuzu ve doğrulanmış kaynak künyeleri kullanılır.</div>';
     var anchor=document.querySelector('#balikesir');if(anchor)anchor.before(s);
   }
