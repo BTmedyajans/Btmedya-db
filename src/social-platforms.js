@@ -14,21 +14,31 @@ export const SOCIAL_PROVIDERS = {
   youtube: { label: "YouTube", managedBy: "Metricool" }
 };
 
+export function metricoolConnectedNetworks(env) {
+  const raw = String(env?.METRICOOL_CONNECTED_NETWORKS || "tiktok,youtube");
+  return new Set(raw.split(",").map(x => x.trim().toLowerCase()).filter(x => SOCIAL_PROVIDERS[x]));
+}
+
 export function socialProviderStatus(env) {
   const metricool = Boolean(String(env?.METRICOOL_USER_TOKEN ?? "").trim());
+  const connected = metricoolConnectedNetworks(env);
   return Object.fromEntries(
-    Object.entries(SOCIAL_PROVIDERS).map(([key, p]) => [
-      key,
-      {
-        label: p.label,
-        api: "Metricool",
-        managedBy: p.managedBy,
-        configured: metricool,
-        missing: metricool ? [] : ["METRICOOL_USER_TOKEN"],
-        note: metricool
-          ? "Yayın Metricool üzerinden yönetiliyor."
-          : "Metricool Worker bağlantısı henüz kurulmadı."
-      }
-    ])
+    Object.entries(SOCIAL_PROVIDERS).map(([key, p]) => {
+      const isConnected = connected.has(key);
+      return [
+        key,
+        {
+          label: p.label,
+          api: "Metricool",
+          managedBy: p.managedBy,
+          configured: metricool && isConnected,
+          connected: isConnected,
+          missing: !metricool ? ["METRICOOL_USER_TOKEN"] : (!isConnected ? ["Metricool bağlantısı"] : []),
+          note: !metricool
+            ? "Metricool Worker bağlantısı henüz kurulmadı."
+            : (isConnected ? "Metricool üzerinden yönetiliyor." : "Bu ağ Metricool Brand bağlantılarında doğrulanmadı.")
+        }
+      ];
+    })
   );
 }
