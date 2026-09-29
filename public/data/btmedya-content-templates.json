@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "1.0",
+  "brand": "BTMEDYA",
+  "purpose": "Doldurulabilir alanlarla tutarlı site ve sosyal içerik üretimi.",
+  "rules": {
+    "real_media_first": true,
+    "ai_only_in_ai_lab": true,
+    "source_visible": true,
+    "sponsored_content_labeled": true,
+    "full_source_text_not_copied": true
+  },
+  "templates": [
+    {
+      "id": "haber-son-dakika",
+      "channel": "site",
+      "layout": "lead-support",
+      "fields": [
+        "etiket",
+        "baslik",
+        "spot",
+        "konum",
+        "tarih",
+        "yazar",
+        "kaynak",
+        "kaynakUrl",
+        "kapakUrl",
+        "kapakKaynagi",
+        "guncelleme",
+        "videoUrl"
+      ],
+      "story": [
+        "Ne oldu?",
+        "Nerede ve ne zaman?",
+        "Kaynak ne diyor?",
+        "Okur neden bilmeli?",
+        "Sonraki bilgi"
+      ],
+      "visual": "Gerçek saha/kurum kaydı; doğrulanmayan görsel iddiası üretme."
+    },
+    {
+      "id": "haber-standart",
+      "channel": "site",
+      "layout": "three-card-editorial",
+      "fields": [
+        "kategori",
+        "baslik",
+        "spot",
+        "tarih",
+        "kaynak",
+        "kaynakUrl",
+        "kapakUrl",
+        "kapakKaynagi"
+      ],
+      "story": [
+        "Başlık",
+        "1 cümle özet",
+        "Kaynak+tarih",
+        "Devam bağlantısı"
+      ],
+      "visual": "16:9 kapak + kaynak/provenance rozeti."
+    },
+    {
+      "id": "ozel-haber",
+      "channel": "site",
+      "layout": "immersive-story",
+      "eligibility": "kapakKaynagi=gercek|arsiv",
+      "fields": [
+        "baslik",
+        "altBaslik",
+        "giris",
+        "sahaNotu",
+        "alıntılar",
+        "timeline",
+        "kaynaklar",
+        "kapakUrl",
+        "kapakKaynagi",
+        "videoUrl"
+      ],
+      "story": [
+        "Sahne",
+        "İnsan/yer",
+        "Kanıt",
+        "Bağlam",
+        "Kaynaklar",
+        "Sonuç"
+      ],
+      "visual": "Gerçek çekim veya arşiv; temsili/grafik kapak vitrininde kullanılmaz."
+    },
+    {
+      "id": "vaka-calismasi",
+      "channel": "site",
+      "layout": "proof-case",
+      "fields": [
+        "musteri",
+        "problem",
+        "cozum",
+        "cekimeGiris",
+        "uretim",
+        "teslimler",
+        "sonuc",
+        "medya",
+        "kanallar",
+        "etiket"
+      ],
+      "story": [
+        "Problem",
+        "Yaklaşım",
+        "Üretim",
+        "Teslim",
+        "Kanıt"
+      ],
+      "visual": "Gerçek iş fotoğraf/video + mümkünse sonuç ekranı."
+    },
+    {
+      "id": "sosyal-reel-remix",
+      "channel": "social",
+      "aspect": "9:16",
+      "remotionTemplate": "social-remix",
+      "fields": [
+        "hook",
+        "videoUrl",
+        "kanitlar",
+        "takeaway",
+        "cta",
+        "kapak",
+        "kaynak"
+      ],
+      "story": [
+        "Hook",
+        "Görüntü",
+        "3 kısa kanıt",
+        "Takeaway",
+        "CTA"
+      ]
+    },
+    {
+      "id": "sosyal-duyuru",
+      "channel": "social",
+      "aspect": "9:16",
+      "remotionTemplate": "announcement-brief",
+      "fields": [
+        "baslik",
+        "kanıtlar",
+        "cta",
+        "kaynak"
+      ],
+      "story": [
+        "Duyuru",
+        "Kanıt",
+        "Kanıt",
+        "Kanıt",
+        "Sonraki adım"
+      ]
+    },
+    {
+      "id": "ai-lab-demo",
+      "channel": "site+social",
+      "layout": "lab-card",
+      "eligibility": "AI production only",
+      "fields": [
+        "baslik",
+        "arac",
+        "amac",
+        "promptOzeti",
+        "girdi",
+        "cikti",
+        "sinirlar",
+        "aiEtiketi",
+        "cta"
+      ],
+      "story": [
+        "Ne denendi?",
+        "Neden?",
+        "Nasıl?",
+        "Çıktı",
+        "Sınırlar"
+      ],
+      "visual": "AI ÜRETİMİ etiketi zorunlu; gerçek haber serisine karıştırılmaz."
+    }
+  ]
+}
