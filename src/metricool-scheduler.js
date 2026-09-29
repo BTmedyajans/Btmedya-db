@@ -87,7 +87,7 @@ function youtubeDataFor(providers,row){
 
 export async function scheduleToMetricool(env,row){
   if(!env.METRICOOL_USER_TOKEN) return {ok:false,skipped:true,retryable:false,error:"METRICOOL_USER_TOKEN eksik"};
-  const userId=String(env.METRICOOL_USER_ID||"");
+  const userId=String(env.METRICOOL_USER_ID||env.METRICOOL_KULLANICI_NO||"");
   const blogId=String(env.METRICOOL_BRAND_ID||"6858384");
   if(!userId) return {ok:false,retryable:false,error:"METRICOOL_USER_ID eksik"};
   const timezone=String(env.METRICOOL_TIMEZONE||"Europe/Istanbul");

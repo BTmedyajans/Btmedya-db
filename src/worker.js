@@ -8,6 +8,7 @@ import { salesApi } from "./sales-router.js";
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
 import { WorkerEntrypoint } from "cloudflare:workers";
+import { aiGorunurluk, ICERIK_SINYALI } from "./ai-gorunurluk.js";
 import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu, KATEGORILER, kategoriIsle } from "./sabah-masasi.js";
 import { ayarlariOku, ayarlariYaz, platformSluglari, sonrakiYuva, altyazi, varlikVar, kapakKunyesi, yayinlananlariIsaretle, gecikenleriKaydir } from "./sosyal-otomasyon.js";
 /* BTMEDYA Worker — birleşik API
@@ -1441,6 +1442,14 @@ export default { async scheduled(controller, env, ctx){
     return json({ok:false,error:'Not found'},404);
   }
 
+  /* AI görünürlüğü: llms.txt, index.json, JSON-LD ve haber başına Markdown
+     (src/ai-gorunurluk.js). Haber rotasından önce: /haberler/<slug>.md
+     haber sayfası sanılmasın. Veri okunamazsa statik dosyaya düşer. */
+  {
+    const ag = await aiGorunurluk(request, env, url);
+    if (ag) return ag;
+  }
+
   /* HABER SAYFASI — once statik dosya, yoksa D1'den uretim.
      Depodaki 27 haber oldugu gibi kalir; panelden girilen yeni haberler
      dosya olusturmadan kendi adresinde yayina girer. */
@@ -1568,7 +1577,10 @@ function guvenlikBasliklari(pathname, nonce) {
     'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
     'x-frame-options': 'SAMEORIGIN',
     'x-permitted-cross-domain-policies': 'none',
-    'cross-origin-opener-policy': 'same-origin'
+    'cross-origin-opener-policy': 'same-origin',
+    // İçerik kullanım politikası (contentsignals.org): arama ve yapay zekâ
+    // yanıtında alıntı evet, model eğitimi hayır.
+    'content-signal': ICERIK_SINYALI
   };
 }
 
