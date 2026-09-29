@@ -260,6 +260,21 @@ tara('public'); tara('src');
   }
 }
 
+/* 8c) html/body'de overflow-x:hidden, clip olmadan yazilmamali.
+       29 Eylul 2026: mobile-fixes.css'teki html,body{overflow-x:hidden!important}
+       body'yi kaydirma kabina cevirdi; giris filmindeki position:sticky
+       calismadi ve mobilde 5 ekran boyunca siyah bosluk goruldu.
+       overflow-x:clip tasmayi ayni sekilde keser, kaydirma kabi olusturmaz. */
+for (const f of readdirSync('public').filter(x => x.endsWith('.css'))) {
+  const css = readFileSync(join('public', f), 'utf8');
+  for (const m of css.matchAll(/(^|[}\s,])((?:html|body)(?:\s*,\s*(?:html|body))?)\s*\{([^{}]*)\}/g)) {
+    const govde = m[3];
+    if (/overflow(-x)?\s*:\s*hidden/.test(govde) && !/overflow(-x)?\s*:\s*clip/.test(govde)) {
+      bulgular.push(`public/${f} "${m[2]}" kuralinda overflow-x:hidden var, clip yok. Bu body'yi kaydirma kabi yapar ve giris filmindeki sticky'yi bozar; "overflow-x:hidden;overflow-x:clip" yazin.`);
+    }
+  }
+}
+
 /* 9) Panel yuvalari sitede gercek bir yere bagli olmali.
       26 Eylul 2026: bes yuva eski tasarimdan kalmisti, sitede yeri yoktu;
       "Bu yere bagla" hicbir sey degistirmiyordu. Varsayilan dosyalar da

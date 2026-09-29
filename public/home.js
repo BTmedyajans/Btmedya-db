@@ -220,7 +220,16 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
      kodda sabit durmadigi icin kare degisince etiket de degisir. */
   let kapakKaynagi = {};
 
-  const dateText = item => item.original_date || (item.published_at ? new Date(item.published_at).toLocaleDateString('tr-TR') : '');
+  /* Sabah Masasi kaynak tarihini ISO olarak yaziyor ("2026-09-28T13:00:00+03:00");
+     kartta ham gorunuyordu. ISO olan tarih okunur bicime cevrilir, elle
+     yazilmis tarih ("27 Eylul 2026") oldugu gibi kalir. */
+  const tarihOku = s => {
+    const t = String(s || '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}/.test(t)) return t;
+    const d = new Date(t);
+    return Number.isNaN(d.getTime()) ? t : d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Istanbul' });
+  };
+  const dateText = item => tarihOku(item.original_date) || (item.published_at ? tarihOku(item.published_at) : '');
   /* Kapak kurali haber detay sayfasiyla ayni olmali (src/news-page.js:57).
      Haberlerin cogunda cover_url bos ama kapak gorseli
      /assets/haber-kapak/<slug>.webp olarak zaten depoda duruyor; slug'dan

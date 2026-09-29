@@ -50,6 +50,9 @@ footer{background:#030405}
  .section,.manifesto,.story-lab,.founder-section,.contact-section,.source-section,.archive-section{padding-inline:var(--bt-gutter)}
  .section-head{margin-bottom:26px}
  .section-head h2,.manifesto h2{font-size:clamp(43px,13vw,72px);line-height:.91}
+ /* "YAYINLAMIYORUZ." 15 harf: 13vw'de 360-390 px ekranda sigmiyor ve kelime
+    ortasindan kiriliyordu. Olcum: kelime genisligi ~7.65 x font; 11.2vw sigar. */
+ .manifesto h2{font-size:clamp(32px,11.2vw,72px)}
  .cinematic-copy{left:18px!important;right:18px!important;top:auto!important;bottom:11vh;max-width:none}
  .cinematic-title{font-size:clamp(42px,13.5vw,61px)!important;line-height:.88}
  .cinematic-lead{font-size:13px;line-height:1.55;margin-top:15px}
