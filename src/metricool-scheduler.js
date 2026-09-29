@@ -50,6 +50,7 @@ async function publicMediaUrl(env, key){
   // static/ kayitlarin R2 nesnesi yok; /pub/ yonlendirir ama Metricool'un
   // indiricisine dogrudan dosya adresini vermek daha saglam.
   if(k.startsWith("static/")) return `${origin}/assets/${k.slice(7)}`;
+  if(k.startsWith("otomasyon/")) return `${origin}/gorsel/${k}`;
   return `${origin}/pub/${encodeURIComponent(k)}`;
 }
 
@@ -61,6 +62,9 @@ async function yapayZekaMi(env, key){
   // Haber kartlari medya kasasinda degil; turleri kapak kaynak dosyasinda.
   // Onceden kasada kaydi olmadigi icin gercek cekim kartlari da AI
   // beyaniyla gidecekti.
+  // Sabah Masası görselleri Openverse'ten lisanslı gerçek fotoğraflardır.
+  if(String(key||"").startsWith("otomasyon/")) return false;
+  if(/^static\/kategori-kapak\//.test(String(key||""))) return false;
   const statik=await statikGorselAiMi(env,key);
   if(statik!==null) return statik;
   if(!key || !env.DB) return true;

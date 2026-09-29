@@ -20,7 +20,7 @@ binding = "ASSETS"
 
 # API ve medya istekleri önce Worker'a gitmeli; aksi halde Static Assets
 # katmanı mevcut olmayan /api/* yollarını 404 olarak keser.
-run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/index.html", "/haber/*", "/haberler", "/haberler/*", "/hakkimizda*", "/iletisim*", "/hizmetler*", "/sosyal-medya*", "/video-produksiyon*", "/whatsapp-katalog*", "/basin-kiti*", "/vaka-calismalari*", "/gizlilik*", "/admin/*", "/social-studio/*", "/kaynak-masasi*", "/portfoy/*", "/robots.txt", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml", "/.well-known/*"]
+run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/index.html", "/haber/*", "/haberler", "/haberler/*", "/hakkimizda*", "/iletisim*", "/hizmetler*", "/sosyal-medya*", "/video-produksiyon*", "/whatsapp-katalog*", "/basin-kiti*", "/vaka-calismalari*", "/gizlilik*", "/admin/*", "/gorsel/*", "/social-studio/*", "/kaynak-masasi*", "/portfoy/*", "/robots.txt", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml", "/.well-known/*"]
 
 not_found_handling = "404-page"
 
@@ -97,8 +97,13 @@ new_sqlite_classes = ["WorkflowStatusDO"]
 # Haber Bulucu: kaynakları periyodik olarak tarar, sonuçları D1'de taslak olarak tutar.
 # Canli surumun kimligi ve yuklenme zamani; /api/health ve panel
 # Control Center bunu gosterir, dagitim bekcisi bununla kaymayi yakalar.
+# Sabah Masası özgün metin yazımı (Workers AI). Ek anahtar gerektirmez.
+[ai]
+binding = "AI"
+
 [version_metadata]
 binding = "SURUM"
 
 [triggers]
-crons = ["*/5 * * * *"]
+# */5: nabız, sosyal kuyruk, R2 köprüsü. 0 5: Sabah Masası (08:00 İstanbul).
+crons = ["*/5 * * * *", "0 5 * * *"]
