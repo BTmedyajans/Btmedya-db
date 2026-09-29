@@ -13,8 +13,8 @@
 
 const AYAR_ANAHTARI = 'social:ayarlar';
 const VARSAYILAN = Object.freeze({
-  // 29 Eylül 2026 Metricool Brand denetimi: TikTok yayın bağlantısı doğrulandı; Instagram/Facebook henüz doğrulanmadı.
-  aglar: ['tiktok'],
+  // 29 Eylül 2026 Metricool Brand denetimi: TikTok + YouTube yayın bağlantıları doğrulandı; Instagram/Facebook henüz doğrulanmadı.
+  aglar: ['tiktok', 'youtube'],
   otomatikPlanla: true,
   // Metricool'un TikTok verisine gore zirve saatler (Europe/Istanbul).
   saatler: ['10:00', '12:00', '18:00'],
@@ -22,7 +22,7 @@ const VARSAYILAN = Object.freeze({
   // yayinlanan haberler otomatik planlanir, eskiler onaya duser.
   tazelikSaat: 72
 });
-const AG_SLUG = { instagram: 'instagram-post', facebook: 'facebook-post', tiktok: 'tiktok' };
+const AG_SLUG = { instagram: 'instagram-post', facebook: 'facebook-post', tiktok: 'tiktok', youtube: 'youtube' };
 // Turkiye 2016'dan beri yaz saati uygulamiyor; UTC+3 sabit.
 const TR_OFSET_DK = 180;
 
