@@ -48,7 +48,7 @@ Kod: `src/sabah-masasi.js`. Tetik: `wrangler.toml` içinde `0 5 * * *` (05:00 UT
    - son 4 günde yayınlanmış konular,
    - daha önce alınmış bağlantılar.
 4. Kalan her haber trendle eşleşmesine ve tazeliğine göre puanlanır; her kategoriye en yüksek puanlı haber seçilir. Aynı bağlantı iki kategoriye verilmez. Konu tekrarı son 4 günün başlıklarıyla sözcük kökü (ilk 5 harf) üzerinden aranır; yazılan başlık da yeniden karşılaştırılır ve benzerse haber taslak kalır.
-5. Siyaset, soruşturma, gözaltı, suç, ölüm ve yaralanma haberleri otomatik akışa alınmaz (`HASSAS`). Bunlar editör kararıdır.
+5. Siyaset, soruşturma, gözaltı, suç, ölüm ve yaralanma haberleri otomatik akışa alınmaz (`HASSAS`). Özel hastane ve klinik tanıtımları da alınmaz (`TANITIM`). Bunlar editör kararıdır. Kulis, iddia ve transfer söylentileri kaynağa atfedilmeden yayına çıkmaz (kalite denetimi).
 6. Workers AI (`@cf/openai/gpt-oss-120b`) kaynak metinden özgün metin yazar. Seçilen kategorilerin hepsi **eş zamanlı** yazılır; biri hata verirse diğerleri etkilenmez. Model koddan gelir, panel ayarlarında saklanmaz.
 
    Ücretsiz Workers planında bir çağrı en fazla 50 dış istek yapabilir. Bu yüzden ana çağrı yalnız trendleri, RSS akışlarını ve aday listesini hazırlar. Her kategori, `SABAH_YAZICI` servis bağlamasıyla (`wrangler.toml`, `SabahYazici` giriş noktası) ayrı bir Worker çağrısında işlenir: kaynak sayfa, yazım, denetim, görsel ve kayıt. Giriş noktası internetten erişilemez.
