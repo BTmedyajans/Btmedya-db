@@ -1,7 +1,7 @@
-/* BTMEDYA Mobile Motion Engine — 2026-09-29 / V2
-   Mobile-first hero: no autoplay video download on phones.
-   Each scroll scene uses an existing poster/AI visual, while the copy changes.
-   This keeps the opening fast and legible on small screens. */
+/* BTMEDYA Mobile Motion Engine — 2026-09-29 / V3
+   Mobile-first hero: the real mobile hero video now plays softly behind the opening.
+   Other scenes remain poster-first so the page does not download the whole video stack.
+   Scroll still drives the editorial story beats. */
 (()=>{
   const root=document.querySelector('.cinematic-hero');
   if(!root || window.innerWidth>720) return;
@@ -21,6 +21,20 @@
   ];
 
   const state={active:-1,raf:0};
+  const mobileHero=videos[0];
+  const prepareMobileHero=()=>{
+    if(!mobileHero) return;
+    const mobileSrc=mobileHero.dataset.mobile;
+    if(mobileSrc && mobileHero.getAttribute('src')!==mobileSrc){
+      mobileHero.src=mobileSrc;
+      mobileHero.setAttribute('preload','metadata');
+      mobileHero.load();
+    }
+    mobileHero.muted=true;
+    mobileHero.defaultMuted=true;
+    mobileHero.playsInline=true;
+    mobileHero.loop=true;
+  };
 
   window.btYuvalar&&window.btYuvalar.then(y=>{
     scenes.forEach((s,i)=>{
@@ -55,12 +69,15 @@
         if(active&&!reduced){v.currentTime=0;v.play().catch(()=>{});}
       });
     } else {
-      // Mobilde poster katmanı kullanılır; data-src'lı videolar indirilmez.
-      videos.forEach(v=>{
-        v.pause();
-        v.style.opacity='0';
-        v.style.transform='none';
+      // Mobilde yalnızca giriş videosu akar. Diğer sahneler poster-first kalır.
+      prepareMobileHero();
+      videos.forEach((v,n)=>{
+        const active=n===0 && i===0;
+        if(!active) v.pause();
+        v.style.opacity=active?'1':'0';
+        v.style.transform=active?'scale(1.02)':'none';
       });
+      if(i===0 && mobileHero && !reduced) mobileHero.play().catch(()=>{});
     }
   };
 
@@ -104,5 +121,7 @@
     window.addEventListener('resize',()=>{if(window.innerWidth<=720)resize();},{passive:true});
   }
 
+  prepareMobileHero();
   resize();
+  if(!reduced && mobileHero) mobileHero.play().catch(()=>{});
 })();
