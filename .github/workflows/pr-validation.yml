@@ -47,6 +47,12 @@ jobs:
           node tools/gerileme-denetimi.mjs
           node tools/link-denetimi.mjs
 
+          # node --check her sozdizimi hatasini yakalamiyor: 115a50e'deki
+          # /^static\\/.../ regex'i node'dan gecti ama Workers Builds'in
+          # esbuild'i reddetti ve 6 commit canliya cikmadi. Ayni paketleyiciyle
+          # kuru derleme yapilir; hicbir sey yuklenmez.
+          npx --yes wrangler@4.142.0 deploy --dry-run --outdir "$RUNNER_TEMP/kuru-derleme"
+
           grep -q 'mobile-fixes.css' public/index.html
           grep -q 'prefers-reduced-motion' public/mobile-fixes.css
           grep -q 'Control Center' public/admin/index.html

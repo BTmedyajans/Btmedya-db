@@ -327,9 +327,11 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
         <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="mYayin" style="width:18px;height:18px;margin:0"> Denetimi geçenleri otomatik yayınla</label>
         <label style="display:flex;gap:6px;align-items:center">Günlük en fazla <input type="number" id="mAzami" min="1" max="8" style="width:64px"> haber</label>
       </div>
+      <fieldset style="border:1px solid #333;border-radius:8px;padding:8px 12px;margin:0 0 12px"><legend class="muted" style="font-size:12px;padding:0 4px">Kategoriler (hepsi aynı anda yazılır)</legend><div id="mKategoriler" class="row" style="gap:14px;flex-wrap:wrap"></div></fieldset>
       <div class="row" style="margin-top:4px;flex-wrap:wrap">
         <button class="btn primary" id="mKaydet">Ayarları kaydet</button>
         <button class="btn" id="mKuru">Önizle (yazmadan seç)</button>
+        <button class="btn" id="mDeneme">Deneme yazımı (kaydetmeden)</button>
         <button class="btn" id="mCalistir">Şimdi çalıştır</button>
       </div>
       <p id="mMsg" class="status"></p>
@@ -1072,36 +1074,40 @@ $('#oKaydet').onclick=async()=>{
   loadSocialSettings();
 };
 // Sabah Masası raporu: her kategori için seçilen kaynak, durum ve neden.
-const MASA_DURUM={yayinlandi:'✅ yayında',taslak:'📝 taslak (onay bekliyor)','hassas-atlandi':'⛔ hassas konu, atlandı','uygun-kaynak-yok':'— uygun kaynak yok','kuru-calisma':'👁 önizleme',hata:'✗ hata'};
+const MASA_DURUM={'deneme-gecti':'🧪 deneme · denetimi geçti','deneme-kaldi':'🧪 deneme · denetimde kaldı',yayinlandi:'✅ yayında',taslak:'📝 taslak (onay bekliyor)','hassas-atlandi':'⛔ hassas konu, atlandı','uygun-kaynak-yok':'— uygun kaynak yok','kuru-calisma':'👁 önizleme',hata:'✗ hata'};
 function masaRaporu(r){
   if(!r) return '<p class="muted">Henüz çalışmadı. İlk çalışma yarın 08:00\'de ya da "Şimdi çalıştır" ile.</p>';
   const tr=(r.trendler||[]).slice(0,10).map(t=>escStr(t.sorgu)).join(' · ');
-  return '<p class="muted" style="margin:6px 0"><b>'+escStr(tarihTr(r.baslangic))+'</b>'+(r.kuru?' (önizleme)':'')+' · '+(r.yayinlanan||0)+' yayında · '+(r.taslak||0)+' taslak'+(r.hatalar&&r.hatalar.length?' · <span style="color:#f77">'+r.hatalar.length+' uyarı</span>':'')+'</p>'
+  return '<p class="muted" style="margin:6px 0"><b>'+escStr(tarihTr(r.baslangic))+'</b>'+(r.kuru?' (önizleme)':r.deneme?' (deneme; hiçbir şey kaydedilmedi)':'')+' · '+(r.yayinlanan||0)+' yayında · '+(r.taslak||0)+' taslak'+(r.hatalar&&r.hatalar.length?' · <span style="color:#f77">'+r.hatalar.length+' uyarı</span>':'')+'</p>'
    +(tr?'<p class="muted" style="font-size:12px;margin:0 0 8px">Trendler: '+tr+'</p>':'')
-   +'<div class="news-list">'+(r.secilen||[]).map(s=>'<div class="news-row" style="margin-bottom:4px"><div class="news-row-info"><b>'+escStr(s.kategori)+' · '+escStr(MASA_DURUM[s.durum]||s.durum||'')+'</b><small>'+escStr(s.baslik||s.kaynakBaslik||'')+(s.not?' · '+escStr(s.not):'')+'</small>'+(s.slug?'<small><a href="/haberler/'+encodeURIComponent(s.slug)+'" target="_blank" rel="noopener">habere git ↗</a></small>':s.kaynak?'<small><a href="'+escStr(s.kaynak)+'" target="_blank" rel="noopener">kaynak ↗</a></small>':'')+'</div></div>').join('')+'</div>';
+   +'<div class="news-list">'+(r.secilen||[]).map(s=>'<div class="news-row" style="margin-bottom:4px"><div class="news-row-info"><b>'+escStr(s.kategori)+' · '+escStr(MASA_DURUM[s.durum]||s.durum||'')+'</b><small>'+escStr(s.baslik||s.kaynakBaslik||'')+(s.not?' · '+escStr(s.not):'')+'</small>'+(s.spot?'<small style="color:#bbb">'+escStr(s.spot)+'</small>':'')+(s.paragraflar&&s.paragraflar.length?'<details><summary style="cursor:pointer;font-size:12px">Metni göster</summary>'+s.paragraflar.map(p=>'<p style="font-size:13px;margin:6px 0">'+escStr(p)+'</p>').join('')+'</details>':'')+(s.slug?'<small><a href="/haberler/'+encodeURIComponent(s.slug)+'" target="_blank" rel="noopener">habere git ↗</a></small>':s.kaynak?'<small><a href="'+escStr(s.kaynak)+'" target="_blank" rel="noopener">kaynak ↗</a></small>':'')+'</div></div>').join('')+'</div>';
 }
 async function loadMasa(){
   try{
     const r=await req('/api/admin/sabah-masasi');
     $('#mEtkin').checked=r.ayarlar.etkin; $('#mYayin').checked=r.ayarlar.otomatikYayin; $('#mAzami').value=r.ayarlar.gunlukAzami;
+    const secili=new Set(r.ayarlar.kategoriler||[]);
+    $('#mKategoriler').innerHTML=(r.kategoriler||[]).map(k=>'<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="mKat" value="'+escStr(k.anahtar)+'"'+(secili.has(k.anahtar)?' checked':'')+' style="width:18px;height:18px;margin:0"> '+escStr(k.kategori)+'</label>').join('');
     $('#mRapor').innerHTML=(r.ai?'':'<p style="color:#f77">Workers AI bağlaması yok; metin yazılamaz.</p>')+masaRaporu(r.rapor);
   }catch(e){$('#mRapor').textContent='Sabah Masası durumu alınamadı.';}
 }
 $('#mKaydet').onclick=async()=>{
-  const r=await req('/api/admin/sabah-masasi',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({etkin:$('#mEtkin').checked,otomatikYayin:$('#mYayin').checked,gunlukAzami:Number($('#mAzami').value)||8})});
+  const r=await req('/api/admin/sabah-masasi',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({etkin:$('#mEtkin').checked,otomatikYayin:$('#mYayin').checked,gunlukAzami:Number($('#mAzami').value)||8,kategoriler:masaKategorileri()})});
   $('#mMsg').textContent=r.ok?'Kaydedildi.':'Kaydedilemedi.'; loadMasa();
 };
-async function masaCalistir(kuru){
-  $('#mMsg').textContent=kuru?'Kaynaklar taranıyor…':'Sabah Masası çalışıyor; 1-3 dakika sürebilir…';
-  $('#mKuru').disabled=$('#mCalistir').disabled=true;
+function masaKategorileri(){return [...document.querySelectorAll('input[name="mKat"]:checked')].map(x=>x.value);}
+async function masaCalistir(kuru,deneme){
+  $('#mMsg').textContent=kuru?'Kaynaklar taranıyor…':deneme?'Deneme yazımı sürüyor; kategoriler aynı anda yazılıyor (1-3 dakika)…':'Sabah Masası çalışıyor; kategoriler aynı anda yazılıyor (1-3 dakika)…';
+  $('#mKuru').disabled=$('#mCalistir').disabled=$('#mDeneme').disabled=true;
   try{
-    const r=await req('/api/admin/sabah-masasi',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({kuru})});
-    $('#mRapor').innerHTML=masaRaporu(r.rapor); $('#mMsg').textContent=kuru?'Önizleme hazır; hiçbir şey yayınlanmadı.':'Tamamlandı.';
-    if(!kuru) loadSocial();
+    const r=await req('/api/admin/sabah-masasi',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({kuru,deneme:Boolean(deneme),kategoriler:masaKategorileri()})});
+    $('#mRapor').innerHTML=masaRaporu(r.rapor); $('#mMsg').textContent=kuru?'Önizleme hazır; hiçbir şey yayınlanmadı.':deneme?'Deneme hazır; hiçbir şey kaydedilmedi.':'Tamamlandı.';
+    if(!kuru&&!deneme) loadSocial();
   }catch(e){$('#mMsg').textContent='Çalıştırılamadı.';}
-  $('#mKuru').disabled=$('#mCalistir').disabled=false;
+  $('#mKuru').disabled=$('#mCalistir').disabled=$('#mDeneme').disabled=false;
 }
 $('#mKuru').onclick=()=>masaCalistir(true);
+$('#mDeneme').onclick=()=>masaCalistir(false,true);
 $('#mCalistir').onclick=()=>{ if(confirm('Sabah Masası şimdi çalışsın mı? Denetimi geçen haberler ayarlara göre yayınlanır.')) masaCalistir(false); };
 async function loadSocial(){
   loadSocialSettings();
