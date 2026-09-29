@@ -3,6 +3,7 @@ import { WorkflowStatusDO } from "./workflow-status-do.js";
 import { renderNewsPage } from "./news-page.js";
 import { socialProviderStatus } from "./social-platforms.js";
 import { recoveryPasswordValid } from "./auth-recovery.js";
+import { locationApi } from "./location-intelligence.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
@@ -1400,6 +1401,8 @@ export default { async scheduled(controller, env, ctx){
     const rw = await workflowApi(request, env, url);
     if(rw) return rw;
 
+    const rl = await locationApi(request, env, url, json, (req, secret) => validSession(req, secret));
+    if(rl) return rl;
     const rcc = await controlCenterApi(request, env, url);
     if(rcc) return rcc;
     const r1 = await newsApi(request, env, url, ctx);
@@ -1540,7 +1543,7 @@ function guvenlikBasliklari(pathname, nonce) {
     'content-security-policy': cspKur(pathname, nonce || nonceUret()),
     'x-content-type-options': 'nosniff',
     'referrer-policy': 'strict-origin-when-cross-origin',
-    'permissions-policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+    'permissions-policy': 'camera=(), microphone=(), geolocation=(self), interest-cohort=()',
     'strict-transport-security': 'max-age=31536000; includeSubDomains',
     'cross-origin-opener-policy': 'same-origin'
   };
