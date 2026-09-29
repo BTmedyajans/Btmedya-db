@@ -13,10 +13,10 @@
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const scenes=[
-    {yuva:'hero-video',k:'01 / GİRİŞ',source:'GERÇEK ÇEKİM · ARŞİV',t:'GERÇEK<br><span>HİKÂYELER.</span>',d:'Balıkesir’den sahaya, içerikten yayına tek üretim zinciri.',bg:'/assets/media/web/hero-story-poster.jpg'},
-    {yuva:'kategori-haber',k:'02 / HABER · SAHA',source:'GERÇEK ÇEKİM · ARŞİV',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.',bg:'/assets/media/web/poster-state-haber.webp'},
-    {yuva:'kategori-medya',k:'03 / MEDYA · İÇERİK',source:'GERÇEK ÇEKİM · ARŞİV',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, kısa video ve sosyal medya için platforma uygun üretim.',bg:'/assets/media/web/poster-state-medya.webp'},
-    {yuva:'kategori-prod',k:'04 / PRODÜKSİYON',source:'GERÇEK ÇEKİM · ARŞİV',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj, kurgu ve yayın: fikri görüntüye dönüştürüyoruz.',bg:'/assets/media/web/poster-state-produksiyon.webp'},
+    {yuva:'hero-video',k:'01 / GİRİŞ',source:'AI ÜRETİMİ',gercek:true,t:'GERÇEK<br><span>HİKÂYELER.</span>',d:'Balıkesir’den sahaya, içerikten yayına tek üretim zinciri.',bg:'/assets/media/web/hero-story-poster.jpg'},
+    {yuva:'kategori-haber',k:'02 / HABER · SAHA',source:'AI ÜRETİMİ',gercek:true,t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.',bg:'/assets/media/web/poster-state-haber.webp'},
+    {yuva:'kategori-medya',k:'03 / MEDYA · İÇERİK',source:'AI ÜRETİMİ',gercek:true,t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, kısa video ve sosyal medya için platforma uygun üretim.',bg:'/assets/media/web/poster-state-medya.webp'},
+    {yuva:'kategori-prod',k:'04 / PRODÜKSİYON',source:'AI ÜRETİMİ',gercek:true,t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj, kurgu ve yayın: fikri görüntüye dönüştürüyoruz.',bg:'/assets/media/web/poster-state-produksiyon.webp'},
     {k:'05 / AI LAB · AÇIK ETİKET',source:'AI ÜRETİMİ · AÇIKÇA ETİKETLİ',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI video, AI görsel ve otomasyon ayrı, açık ve kontrollü bir üretim alanı.',bg:'/assets/media/ai-lab/ai-portre-studyo.webp'}
   ];
 
@@ -26,7 +26,7 @@
     scenes.forEach((s,i)=>{
       const a=s.yuva&&y&&y[s.yuva];
       if(!a||a.tur!=='video') return;
-      s.source=a.gercek?'GERÇEK ÇEKİM · ARŞİV':'AI ÜRETİMİ';
+      s.source=a.gercek?'GERÇEK ÇEKİM':'AI ÜRETİMİ';
       if(i===state.active&&source) source.textContent=s.source;
     });
   }).catch(()=>{});
