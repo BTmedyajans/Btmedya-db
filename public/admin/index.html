@@ -241,7 +241,20 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
         <h2 style="margin:0;flex:1" id="newsFormTitle">2. Haber oluştur</h2>
         <button class="btn sm" id="newNewsBtn">+ Yeni haber</button>
       </div>
-      <div id="newsForm">
+      <div class="panel bt-template-panel" id="btTemplatePanel">
+  <div class="row" style="align-items:center;gap:10px">
+    <div style="flex:1">
+      <strong>Şablon Kütüphanesi</strong>
+      <div class="muted">Haber metnini yeniden tasarlamak yerine doğru alanlara yerleştirin. Kaynak, medya ve AI etiketi korunur.</div>
+    </div>
+    <select id="btTemplateSelect" aria-label="İçerik şablonu seçin" style="min-width:220px">
+      <option value="">Şablon seç…</option>
+    </select>
+  </div>
+  <div id="btTemplateMeta" class="muted" style="margin-top:10px"></div>
+  <button class="btn" type="button" id="btTemplateApply" style="margin-top:10px">Şablon iskeletini forma uygula</button>
+</div>
+    <div id="newsForm">
         <div class="form-2col">
           <div>
             <label>BAŞLIK *</label>
