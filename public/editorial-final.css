@@ -82,6 +82,31 @@ footer{background:#030405}
  .service-grid article,.ai-grid article,.source-grid a{border-radius:15px!important}
  .floating-whatsapp{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
 }
+@media(max-width:760px){
+ .news-card.gorselli .kart-gorsel{
+   width:100%!important;
+   min-height:0!important;
+   height:auto!important;
+   aspect-ratio:16/10;
+   object-fit:cover;
+   object-position:center;
+   flex:0 0 auto!important;
+ }
+ .news-card.gorselli .inner{padding:16px!important}
+ .news-card.gorselli h2{
+   font-size:clamp(26px,7.6vw,38px)!important;
+   line-height:1.02!important;
+   letter-spacing:-.035em;
+ }
+ .news-card.gorselli h3{
+   font-size:clamp(21px,6.2vw,29px)!important;
+   line-height:1.04!important;
+ }
+ .news-card.gorselli p{
+   font-size:13px!important;
+   line-height:1.55!important;
+ }
+}
 @media(max-width:430px){
  .topbar{padding-inline:14px!important}
  .topbar .brand img{max-width:52vw}
