@@ -42,6 +42,7 @@ jobs:
           node --check public/home.js
           python3 tools/validate-assets.py
           node tools/a11y-denetimi.mjs
+          node tools/gerileme-denetimi.mjs
           node tools/link-denetimi.mjs
 
           grep -q 'mobile-fixes.css' public/index.html

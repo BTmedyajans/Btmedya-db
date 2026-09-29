@@ -39,6 +39,8 @@ body{background:var(--bt-black);color:var(--bt-ink)}
 .offer-card{padding:30px;min-height:330px}
 .offer-card-featured{background:var(--bt-accent)!important;color:#071000}
 .offer-card-featured p,.offer-card-featured .offer-meta{color:#263117}
+/* Limon zeminde home.css'in altin etiketi (1.9:1) ve beyaz baglantisi (1.1:1) okunmuyordu. */
+.offer-card-featured .offer-index,.offer-card-featured .offer-link,.offer-card-featured .offer-link:hover{color:#071000}
 .offer-link{display:inline-flex;margin-top:22px;min-height:44px;padding:0 18px;align-items:center;border:1px solid currentColor;text-decoration:none}
 .portfoy-grid,.social-feed-grid,.archive-grid{gap:12px}
 .ai-section{background:#0b0d0e;max-width:none;padding-inline:clamp(18px,8vw,120px)}
