@@ -78,6 +78,13 @@ jobs:
           test -s public/.well-known/security.txt
           test -s public/site.webmanifest
           test -s public/admin/manifest.webmanifest
+          test -s public/sosyal-medya-kit/index.html
+          grep -q "00 / REAL PHOTO SYSTEM" public/sosyal-medya-kit/index.html
+          grep -q "buse-tuncay-saha-roportaj.webp" public/sosyal-medya-kit/index.html
+          grep -q "buse-tuncay-kamera-arkasi.webp" public/sosyal-medya-kit/index.html
+          grep -q "buse-tuncay-portre-siyah-beyaz.webp" public/sosyal-medya-kit/index.html
+          grep -q "buse-tuncay-yesil-perde-studyo.webp" public/sosyal-medya-kit/index.html
+          grep -q "YAPAY ZEKÂ ÜRETİMİ" public/sosyal-medya-kit/index.html
           test -s public/admin/sw.js
           test -s public/admin/mobile-admin.css
           test ! -e .github/workflows/media-smoke.yml
