@@ -69,15 +69,14 @@
         if(active&&!reduced){v.currentTime=0;v.play().catch(()=>{});}
       });
     } else {
-      // Mobilde yalnızca giriş videosu akar. Diğer sahneler poster-first kalır.
+      // Mobilde giriş videosu tüm açılış hikâyesinin altında akar.
+      // İkincil videolar oynatılmaz ve yalnızca poster katmanı devreye girer.
       prepareMobileHero();
       videos.forEach((v,n)=>{
-        const active=n===0 && i===0;
-        if(!active) v.pause();
-        v.style.opacity=active?'1':'0';
-        v.style.transform=active?'scale(1.02)':'none';
+        if(n!==0) v.pause();
+        v.style.transform=n===0?'scale(1.02)':'none';
       });
-      if(i===0 && mobileHero && !reduced) mobileHero.play().catch(()=>{});
+      if(mobileHero && !reduced) mobileHero.play().catch(()=>{});
     }
   };
 
@@ -92,6 +91,9 @@
     root.style.setProperty('--mm-progress',p.toFixed(4));
     root.style.setProperty('--hero-progress',p.toFixed(4));
     if(progress)progress.style.width=(p*100)+'%';
+    /* Intro video first: it remains the visual thread through the opening
+       story beats, then fades toward the AI LAB transition. */
+    root.style.setProperty('--mm-video-opacity',String(Math.max(0,Math.min(1,(.84-p)/.16))));
     root.style.setProperty('--mm-copy-y',(local*18)+'px');
     root.style.setProperty('--mm-copy-opacity',String(1-Math.min(1,local*2.2)*.24));
     sticky.style.setProperty('--hero-progress',p.toFixed(4));
