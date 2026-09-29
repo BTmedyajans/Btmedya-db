@@ -288,6 +288,14 @@ export function skorEkiHatasi(metin) {
   return '';
 }
 
+/* TDK: belirli tarih bildiren ay adı büyük harfle başlar ("30 Eylül").
+   29 Eylül canlı yayında "30 eylül-4 ekim" başlığı çıktı. */
+const AYLAR_KUCUK = 'ocak|şubat|mart|nisan|mayıs|haziran|temmuz|ağustos|eylül|ekim|kasım|aralık';
+export function kucukAyAdi(metin) {
+  const m = String(metin).match(new RegExp('\\b\\d{1,2}\\s+(' + AYLAR_KUCUK + ')(?![a-zçğıöşü])', 'u'));
+  return m ? m[0] : '';
+}
+
 /* Aynı 8 sözcüklük dizinin gövdede ikinci kez geçmesi: modelin dolgu için
    önceki paragrafı yeniden anlatması. */
 export function tekrarEdenIfade(paragraflar) {
@@ -320,6 +328,8 @@ export function kaliteDenetimi(y, kaynakMetin = '') {
   if (govde.length < 650) sorun.push('gövde 650 karakterden kısa');
   const ekHata = skorEkiHatasi(govde + ' ' + baslik + ' ' + spot);
   if (ekHata) sorun.push(`skor eki hatalı: ${ekHata}`);
+  const ay = kucukAyAdi([baslik, spot, govde].join(' '));
+  if (ay) sorun.push(`tarih bildiren ay adı küçük yazılmış: "${ay}" (TDK: büyük harfle)`);
   const tekrar = tekrarEdenIfade(y.paragraflar || []);
   if (tekrar) sorun.push(`gövdede aynı ifade tekrar ediyor: "${tekrar}"`);
   const oran = kopyaOrani(y.paragraflar || [], kaynakMetin);
@@ -344,10 +354,11 @@ function yonerge(kategori) {
     '7. GÖVDE: 4-6 paragraf, her biri 2-4 cümle. İlk paragraf 5N1K\'yı (ne, kim, nerede, ne zaman, nasıl, neden) yanıtlasın; sonrakiler ayrıntı, bağlam ve varsa açıklamaları versin. Kaynağın cümlelerini kopyalama; kendi cümlelerinle yeniden kur.',
     '8. Türkçe ekleri doğru yaz: özel adlara ek kesme işaretiyle (Balıkesir\'de, TRT\'nin); skorlar "4-1\'lik", "2-0\'lık" biçiminde; sayılara gelen ekler okunuşa göre (3\'te, 5\'i, 1990\'lı).',
     '9. Tarafsız, sade, ajans dili. Sıfat yığını, klişe ve pazarlama dili yok.',
+    '10. Belirli bir tarih bildiren ay ve gün adları büyük harfle başlar: "30 Eylül", "4 Ekim Cuma"; başlıkta da.',
     '',
     'EK ALANLAR',
-    '10. vurgu_deger: kaynakta aynen geçen en çarpıcı rakam (örn. "108 bin", "1-4"); yoksa boş bırak. vurgu_etiket: bu rakamın ne olduğu, en fazla 6 kelime.',
-    '11. gorsel_anahtar: haberi temsil edecek, İNSAN YÜZÜ İÇERMEYEN bir nesne ya da mekân fotoğrafı için 2-4 kelimelik İNGİLİZCE arama ifadesi (örn. "agricultural fair tractors", "hospital corridor"). Kişi adı, marka, logo yazma.',
+    '11. vurgu_deger: kaynakta aynen geçen en çarpıcı rakam (örn. "108 bin", "1-4"); yoksa boş bırak. vurgu_etiket: bu rakamın ne olduğu, en fazla 6 kelime.',
+    '12. gorsel_anahtar: haberi temsil edecek, İNSAN YÜZÜ İÇERMEYEN bir nesne ya da mekân fotoğrafı için 2-4 kelimelik İNGİLİZCE arama ifadesi (örn. "agricultural fair tractors", "hospital corridor"). Kişi adı, marka, logo yazma.',
     '',
     'Kategori: ' + kategori + '.',
     'YANIT: Yalnız tek bir JSON nesnesi döndür; açıklama, kod bloğu ya da başka metin ekleme. Anahtarlar: "baslik" (metin), "spot" (metin), "paragraflar" (metin dizisi), "vurgu_deger" (metin), "vurgu_etiket" (metin), "gorsel_anahtar" (metin).'

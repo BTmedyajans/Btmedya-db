@@ -101,4 +101,8 @@ const bos = await M.kategoriIsle({ DB: null }, { kat: M.KATEGORILER[0], adaylar:
 assert.deepEqual(bos.secilen, [{ kategori: 'Yerel', anahtar: 'balikesir', durum: 'uygun-kaynak-yok' }]);
 assert.equal(bos.yayinlanan + bos.taslak, 0);
 assert.doesNotThrow(() => structuredClone(bos), 'RPC dönüşü klonlanabilir olmalı');
+// Ay adı: belirli tarih büyük harfle.
+assert.equal(M.kucukAyAdi("Şanlıurfa, 30 eylül-4 ekim TEKNOFEST"), '30 eylül');
+assert.equal(M.kucukAyAdi('30 Eylül-4 Ekim tarihleri arasında'), '');
+assert.equal(M.kucukAyAdi('mart ayında 3 martı gördük'), '');
 console.log('SABAH MASASI KATEGORI ISCISI TESTI GECTI');
