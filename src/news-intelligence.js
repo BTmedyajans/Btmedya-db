@@ -110,7 +110,7 @@ export async function runNewsIntelligence(env,{limit=8}={}){
   for(const {feed,items} of fetched){
     for(const item of items.slice(0,12)){
       result.scanned++;
-      const score=scoreItem(item,feed,trendMap);
+      const score=score(item,feed,trendMap);
       const risk=HASSAS.test(duz(item.title+' '+item.description))?1:0;
       const commercial=TICARI.test(duz(item.title+' '+item.description))?1:0;
       candidates.push({...item,feed,score,risk,commercial,trend:Math.min(18,score)});
