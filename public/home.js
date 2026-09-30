@@ -589,24 +589,29 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     return '<article class="social-feed-card"><div class="social-feed-card-top"><span>'+platform+'</span><time datetime="'+date+'">'+date+'</time></div><h3>'+title+'</h3><p>'+escSocial(item.archive_context||'')+'</p><a href="'+escSocial(item.url)+'" target="_blank" rel="noopener">Yayını aç ↗</a></article>';
   }
   async function loadSocialFeedHome(){
-    /* Bu blok ana IIFE'nin disinda; oradaki 'const d = document' burada yok.
-       'd' ile yazildiginda sayfa ReferenceError verip sosyal akisi hic yuklemiyordu. */
-    const profiles=document.getElementById('socialProfiles'), meta=document.getElementById('socialFeedMeta'), grid=document.getElementById('socialFeedGrid');
+    const profiles=document.getElementById('socialProfiles'),meta=document.getElementById('socialFeedMeta'),grid=document.getElementById('socialFeedGrid');
     const markReady=()=>{profiles?.setAttribute('aria-busy','false');grid?.setAttribute('aria-busy','false')};
     if(!profiles||!meta||!grid)return;
     try{
-      const r=await fetch('/api/public/social-feed',{headers:{accept:'application/json'}});
-      if(!r.ok)throw new Error('HTTP '+r.status);
-      const data=await r.json();
+      let data=null;
+      try{
+        const r=await fetch('/api/public/social-feed',{headers:{accept:'application/json'}});
+        if(r.ok)data=await r.json();
+      }catch(e){}
+      if(!data||!Array.isArray(data.profiles)||!Array.isArray(data.items)){
+        const r=await fetch('/data/social-feed.json',{headers:{accept:'application/json'}});
+        if(!r.ok)throw new Error('snapshot '+r.status);
+        data=await r.json();
+      }
       profiles.innerHTML=(Array.isArray(data.profiles)?data.profiles:[]).map(profileCardSocial).join('');
       const count=Array.isArray(data.items)?data.items.length:0;
-      meta.textContent='Kaynak: '+String(data.source||'Metricool')+' · '+count+' doğrulanmış yayın snapshotı · '+String(data.generated_at||'');
-      grid.innerHTML=count ? data.items.map(feedCardSocial).join('') : '<div class="social-feed-empty">Doğrulanmış yayın kaydı yok.</div>';
+      meta.textContent='Kaynak: '+String(data.source||'Metricool')+' · '+count+' doğrulanmış yayın · '+String(data.generated_at||'');
+      grid.innerHTML=count?data.items.map(feedCardSocial).join(''):'<div class="social-feed-empty">Doğrulanmış yayın kaydı yok.</div>';
       markReady();
     }catch(err){
-      profiles.innerHTML='';
-      meta.textContent='Sosyal profil bağlantıları korunuyor; son yayın snapshotı şu anda okunamadı.';
-      grid.innerHTML='<div class="social-feed-empty">Sosyal akış geçici olarak kullanılamıyor.</div>';
+      profiles.innerHTML='<article class="social-profile-card"><div><span class="social-platform-tag">Instagram</span><small>PROFİL</small></div><div><a href="https://www.instagram.com/btmedyajans/" target="_blank" rel="noopener">Profili aç ↗</a></div></article><article class="social-profile-card"><div><span class="social-platform-tag">YouTube</span><small>PROFİL</small></div><div><a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">Kanalı aç ↗</a></div></article><article class="social-profile-card"><div><span class="social-platform-tag">TikTok</span><small>PROFİL</small></div><div><a href="https://www.tiktok.com/@btmedya1010" target="_blank" rel="noopener">Profili aç ↗</a></div></article>';
+      meta.textContent='Sosyal profil bağlantıları kullanılabilir; yayın snapshotı geçici olarak okunamadı.';
+      grid.innerHTML='<div class="social-feed-empty">Son yayın snapshotı şu anda okunamadı.</div>';
       markReady();
     }
   }
