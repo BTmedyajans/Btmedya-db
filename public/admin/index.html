@@ -134,7 +134,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <button class="tab" data-tab="media">Medya Kasası</button>
     <button class="tab" data-tab="news">Haberler</button>
     <button class="tab" data-tab="social">Sosyal İçerik</button>
-    <button class="tab" data-tab="automation">Otomasyon</button>
+    <button class="tab" data-tab="automation">Otomasyon</button><button class="tab" data-tab="intel">Haber İstihbaratı</button>
     <button class="tab" data-tab="videos">Videolar</button>
     <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button><button class="tab" data-tab="control">Control Center</button>
   </div>
@@ -181,7 +181,21 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <div class="workflow-step"><strong><i>4</i> Yayınla</strong><p>Önizle, kaydet ve paylaş.</p></div>
   </section>
 
-  <!-- TAB: MEDYA KASASI -->
+  <!-- TAB: HABER İSTİHBARATI -->
+<div class="tab-content" id="tab-intel">
+  <div class="panel">
+    <h2>Haber İstihbaratı · canlı keşif</h2>
+    <p class="muted">15 dakikalık tarama kuyruğu: Google Trends, Balıkesir, ulusal kaynaklar ve seçili rakip görünürlük sinyalleri. Keşif katmanı tek başına yayın yapmaz; güvenli otomatik yayın mevcut Sabah Masası doğrulama zincirinden geçer.</p>
+    <div class="row" style="margin:12px 0">
+      <button class="btn primary" type="button" id="intelScanBtn">Şimdi tara</button>
+      <button class="btn" type="button" id="intelRefreshBtn">Yenile</button>
+    </div>
+    <p class="status" id="intelStatus"></p>
+    <div id="intelRevenue" class="panel" style="margin-top:12px"></div>
+    <div id="intelList" class="news-list"></div>
+  </div>
+</div>
+<!-- TAB: MEDYA KASASI -->
   <div class="tab-content active" id="tab-durum">
     <div class="panel">
       <h2>Sitede ne eksik</h2>
@@ -1212,5 +1226,33 @@ $('#sSaveBtn').onclick=async()=>{
 $('#sRefreshBtn').onclick=loadSocial;
 
 </script>
-<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/admin/sw.js",{scope:"/admin/"}).catch(()=>{});}</script></body>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/admin/sw.js",{scope:"/admin/"}).catch(()=>{});}</script><script>
+(function(){
+  const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  async function intel(load=false){
+    const st=document.getElementById('intelStatus'), list=document.getElementById('intelList'), rev=document.getElementById('intelRevenue');
+    if(!st||!list)return;
+    st.textContent=load?'Tarama çalışıyor…':'Yükleniyor…';
+    try{
+      const r=await fetch('/api/admin/news-intelligence',{credentials:'same-origin'});
+      if(r.status===401){st.textContent='Oturum gerekli.';return}
+      const j=await r.json();
+      const items=j.items||[];
+      st.textContent=(j.last?.at?('Son tarama: '+new Date(j.last.at).toLocaleString('tr-TR')):'Henüz tarama kaydı yok.')+' · '+items.length+' aday';
+      list.innerHTML=items.map(x=>'<div class="news-row"><div class="news-row-info"><b>'+esc(x.title)+'</b><small>'+esc(x.source_name)+' · '+esc(x.category)+' · skor '+esc(x.score)+' · trend '+esc(x.trend_signal)+(x.source_tier==='competitor'?' · rakip sinyali':'')+'</small></div><a class="btn sm" target="_blank" rel="noopener" href="'+esc(x.source_url)+'">Kaynağı aç</a></div>').join('')||'<p class="muted">Yeni aday bekleniyor.</p>';
+      const ro=j.revenueOpportunities||[];
+      rev.innerHTML='<b>Ticari trend fırsatları</b><p class="muted">'+(ro.length?ro.map(x=>esc(x.title)).join(' · '):'Henüz uygun fırsat yok.')+'</p>';
+    }catch(e){st.textContent='İstihbarat okunamadı.'}
+  }
+  document.addEventListener('click',e=>{
+    if(e.target?.id==='intelRefreshBtn')intel(false);
+    if(e.target?.id==='intelScanBtn'){
+      const st=document.getElementById('intelStatus'); if(st)st.textContent='Manuel tarama başlatılıyor…';
+      fetch('/api/admin/news-intelligence',{method:'POST',credentials:'same-origin'}).then(()=>intel(false)).catch(()=>intel(false));
+    }
+  });
+  const oldShow=window.showTab;
+  if(typeof oldShow==='function') window.showTab=function(name){oldShow(name);if(name==='intel')intel(false)};
+})();
+</script></body>
 </html>
