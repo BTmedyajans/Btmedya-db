@@ -23,6 +23,11 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     if (open) menuPreviousFocus = d.activeElement;
     menu.classList.toggle('open', open);
     menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+    menu.inert = !open;
+    const main = d.querySelector('main');
+    const footer = d.querySelector('footer');
+    if (main) main.inert = open;
+    if (footer) footer.inert = open;
     toggle.classList.toggle('open', open);
     toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     toggle.setAttribute('aria-label', open ? 'Menüyü kapat' : 'Menüyü aç');
@@ -36,7 +41,15 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   };
   toggle?.addEventListener('click', () => setMenu(!menu.classList.contains('open')));
   close?.addEventListener('click', () => setMenu(false));
-  menu?.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
+  menu?.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => setMenu(false));
+    try {
+      const href = new URL(a.href, location.href);
+      if (href.origin === location.origin && href.pathname === location.pathname && href.hash === location.hash) {
+        a.setAttribute('aria-current','page');
+      }
+    } catch {}
+  });
   d.addEventListener('keydown', e => {
     if (!menu?.classList.contains('open')) return;
     if (e.key === 'Escape') setMenu(false);

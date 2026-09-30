@@ -652,9 +652,13 @@ async function loadControlCenter(){
 
 function showTab(name){
   document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el=>{
+    el.classList.remove('active');
+    el.setAttribute('aria-selected','false');
+  });
   $('#tab-'+name).classList.add('active');
-  document.querySelector(`.tab[data-tab="${name}"]`).classList.add('active');
+  const activeTab=document.querySelector(`.tab[data-tab="${name}"]`);
+  if(activeTab){activeTab.classList.add('active');activeTab.setAttribute('aria-selected','true');}
   if(name==='durum'){loadSlots()}
   if(name==='news'){loadNewsList()}
   if(name==='social'){loadSocial()}
