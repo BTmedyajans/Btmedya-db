@@ -1339,28 +1339,6 @@ export default { async scheduled(controller, env, ctx){
      yayınlar ve rakip görünürlük sinyalleri taranır. Bu katman yalnız keşif
      kuyruğunu günceller; otomatik yayın için Sabah Masası'nın doğrulama
      zinciri geçerlidir. */
-  const intelligence=(controller && controller.cron==='*/15 * * * *')
-    ? runNewsIntelligence(env,{limit:12})
-        .then(x=>console.log('[btmedya] news intelligence',x.scanned,'tarama',x.hot,'sıcak',x.errors.length,'hata'))
-        .catch(e=>console.error('[btmedya] news intelligence:',e?.message||e))
-    : Promise.resolve(null);
-  /* Metricool teslimi. METRICOOL_USER_TOKEN yoksa hicbir sey yapmaz; hata
-     nabzi durdurmasin diye ayri yakalanir. */
-  const metricool=processMetricoolQueue(env)
-    .then(x=>{ if(x.processed) console.log('[btmedya] metricool',x.scheduled,'teslim',x.failed,'hata'); })
-    .catch(e=>console.error('[btmedya] metricool kuyrugu:',e?.message||e));
-  /* R2 arşiv köprüsü: GitHub Actions tokenı gerektirmeden, Worker'ın mevcut
-     ASSETS + R2 binding'leriyle manifestteki medya dosyalarını parça parça
-     üretim R2 arşivine taşır. Var olan nesneleri atlar. */
-  const archive=hydrateR2FromManifest(env,3)
-    .then(x=>{ if(x.processed) console.log('[btmedya] r2 archive',x.copied,'kopya',x.skipped,'mevcut',x.failed,'hata'); })
-    .catch(e=>console.error('[btmedya] r2 archive:',e?.message||e));
-  /* Teslim edilip saati gecenler "yayinlandi" olur; anahtar varken saati
-     kacmis teslim edilmemis gonderiler bir sonraki bos yuvaya kayar. */
-  const takip=ayarlariOku(env)
-    .then(ayar=>Promise.all([yayinlananlariIsaretle(env),gecikenleriKaydir(env,ayar)]))
-    .then(([y,k])=>{ if(y||k) console.log('[btmedya] sosyal takip',y,'yayinlandi',k,'kaydirildi'); })
-    .catch(e=>console.error('[btmedya] sosyal takip:',e?.message||e));
   const hepsi=Promise.all([task,metricool,archive,drafts,takip,intelligence]);
   if(ctx?.waitUntil) ctx.waitUntil(hepsi); else await hepsi;
 }, async fetch(request, env, ctx){
