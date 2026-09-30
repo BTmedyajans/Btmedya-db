@@ -249,3 +249,7 @@ footer .footer-logo{display:block;width:auto;height:54px;max-width:100%;margin-b
 .section-head:after{content:"";display:block;width:42px;height:2px;margin-top:14px;background:var(--bt-brand-accent)}
 @media(max-width:900px){.vitrine-status-inner{grid-template-columns:1fr 1fr;gap:12px;padding-top:12px;padding-bottom:12px}.vitrine-status-brand{grid-column:1/-1}.vitrine-status-links{justify-content:flex-start}.bt-template-grid{grid-template-columns:1fr}.bt-template-lead,.bt-template-support,.bt-template-compact,.bt-template-wide{grid-column:auto}}
 @media(max-width:620px){.bt-template-card-body{padding:15px}.bt-template-card h3{font-size:25px}.bt-template-card p{font-size:13px}}
+
+
+/* BTMEDYA language selector: visible on every viewport, keyboard accessible. */
+.language-switch{display:inline-flex;align-items:center;gap:7px;margin-right:12px;font-size:11px;letter-spacing:.14em;font-weight:700;text-transform:uppercase}.language-switch a{color:inherit;text-decoration:none;opacity:.58;padding:4px 2px;border-bottom:1px solid transparent}.language-switch a:hover,.language-switch a:focus-visible,.language-switch a[aria-current=page]{opacity:1;border-bottom-color:currentColor}.language-switch span{opacity:.35}@media(max-width:640px){.language-switch{margin-right:5px;gap:4px;font-size:10px}.topbar-right{gap:6px}}
