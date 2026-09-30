@@ -1,11 +1,9 @@
 name: BTMEDYA Cloudflare Control Plane
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "control-plane/**"
-      - ".github/workflows/cloudflare-control-plane.yml"
+  # Cloudflare control-plane changes are deliberately manual.
+  # Production deploy/domain reconciliation is handled by Workers Builds
+  # from wrangler.toml; this workflow is reserved for explicit API audits.
   workflow_dispatch:
     inputs:
       mode:
