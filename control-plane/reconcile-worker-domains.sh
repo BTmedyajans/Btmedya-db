@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# 2026-10-01 production repair trigger: reconcile missing apex/www Worker custom-domain DNS.
 API="https://api.cloudflare.com/client/v4"
 ZONE_NAME="${ZONE_NAME:-btmedya.com.tr}"
 ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:?CLOUDFLARE_ACCOUNT_ID gerekli}"
@@ -48,7 +49,7 @@ attach_if_dns_missing() {
   fi
 
   echo "ATTACH: $hostname -> $WORKER (public DNS kaydı yok)"
-  body="$(jq -n --arg hostname "$hostname" --arg service "$WORKER" --arg zone_id "$zone_id" --arg zone_name "$ZONE_NAME"     '{hostname:$hostname,service:$service,zone_id:$zone_id,zone_name:$zone_name}')"
+  body="$(jq -n --arg hostname "$hostname" --arg service "$WORKER" --arg zone_id "$zone_id" --arg zone_name "$ZONE_NAME" '{hostname:$hostname,service:$service,zone_id:$zone_id,zone_name:$zone_name}')"
   out="$(cf PUT "/accounts/$ACCOUNT_ID/workers/domains" "$body")"
 
   if [[ "$(jq -r '.success // false' <<<"$out")" != "true" ]]; then
