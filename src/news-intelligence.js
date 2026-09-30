@@ -72,8 +72,8 @@ function score(item,feed,trendMap,now=Date.now()){
   if(HASSAS.test(title)) s-=45;
   return Math.max(0,Math.min(100,Math.round(s)));
 }
-function host(url){try{return new URL(url).hostname.replace(/^www\\./,'')}catch{return ''}}
-function safeText(s,n){return String(s||'').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim().slice(0,n)}
+function host(url){try{return new URL(url).hostname.replace(/^www\./,'')}catch{return ''}}
+function safeText(s,n){return String(s||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,n)}
 
 export const NEWS_INTEL_FEEDS=FEEDS.map(({id,name,category,tier})=>({id,name,category,tier}));
 
