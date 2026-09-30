@@ -139,6 +139,16 @@ export async function runNewsIntelligence(env,{limit=8}={}){
     }catch(e){result.errors.push('D1: '+String(e.message||e).slice(0,120));}
   }
   if(env.KV) await env.KV.put('news-intelligence:last',JSON.stringify({at:new Date().toISOString(),scanned:result.scanned,added:result.added,hot:result.hot}),{expirationTtl:86400}).catch(()=>{});
+  // Revenue signal: yalnız editoryal keşif için, satış mesajını haber metnine
+  // karıştırmadan ticari niyetli konuları ayrıca işaretle.
+  if(env.KV){
+    const revenue=result.items.filter(x=>x.commercial && !x.risk).slice(0,8);
+    await env.KV.put('news-intelligence:revenue-opportunities',JSON.stringify({
+      at:new Date().toISOString(),items:revenue.map(x=>({
+        title:x.title,category:x.category,source:x.source,score:x.score
+      }))
+    }),{expirationTtl:86400}).catch(()=>{});
+  }
   return result;
 }
 
@@ -149,5 +159,6 @@ export async function newsIntelligenceStatus(env){
   const last=env.KV?await env.KV.get('news-intelligence:last').catch(()=>null):null;
   const rows=(await env.DB.prepare(`SELECT id,title,excerpt,category,source_name,source_host,source_tier,score,risk,trend_signal,commercial_signal,status,first_seen_at,updated_at
     FROM news_intelligence WHERE status='new' ORDER BY score DESC,updated_at DESC LIMIT 30`).all().catch(()=>({results:[]}))).results||[];
-  return {enabled:true,last:last?JSON.parse(last):null,items:rows};
+  const revenue=env.KV?await env.KV.get('news-intelligence:revenue-opportunities').catch(()=>null):null;
+  return {enabled:true,last:last?JSON.parse(last):null,items:rows,revenueOpportunities:revenue?JSON.parse(revenue):[]};
 }
