@@ -1326,6 +1326,9 @@ export default { async scheduled(controller, env, ctx){
     if(ctx?.waitUntil) ctx.waitUntil(masa); else await masa;
     return;
   }
+  const intelligence=(controller && controller.cron==='*/15 * * * *')
+    ? runNewsIntelligence(env,{limit:12}).then(x=>console.log('[btmedya] news intelligence',x.scanned,'tarama',x.hot,'sıcak',x.errors.length,'hata')).catch(e=>console.error('[btmedya] news intelligence:',e?.message||e))
+    : Promise.resolve(null);
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
   /* Yayındaki yeni haberleri sosyal panelde onay kuyruğuna hazırlar.
      Otomatik yayın yapmaz: son yayın kararı kullanıcı onayından sonra Metricool'a gider. */
