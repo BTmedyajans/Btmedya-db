@@ -1096,3 +1096,38 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
 
 /* BTMEDYA Vitrine health layer — 29 Sep 2026 */
 (()=>{const healthEl=document.querySelector('[data-vitrine-health]'),mediaEl=document.querySelector('[data-vitrine-media]'),socialEl=document.querySelector('[data-vitrine-social]');const set=(el,t)=>{if(el)el.textContent=t};Promise.all([fetch('/api/health',{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():{}).catch(()=>({})),fetch('/api/public/social-feed',{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():{}).catch(()=>({}))]).then(([h,s])=>{set(healthEl,h.ok?'CANLI':'KONTROL GEREKLİ');set(mediaEl,h.r2?'R2 / ASSETS':'ASSETS');set(socialEl,s.source==='Metricool'?'METRICOOL':'SOCIAL FEED')})})();
+
+/* BTMEDYA · International Growth Bridge */
+(function(){
+  function bootGrowthBridge(){
+    if(document.querySelector('.growth-bridge') || !document.querySelector('.ticker')) return;
+    if(!document.querySelector('link[data-growth-bridge-css]')){
+      var l=document.createElement('link');
+      l.rel='stylesheet';
+      l.href='/growth-bridge.css?v=20260930-1';
+      l.dataset.growthBridgeCss='1';
+      document.head.appendChild(l);
+    }
+    var el=document.createElement('section');
+    el.className='growth-bridge';
+    el.id='global-desk';
+    el.setAttribute('aria-label','BTMEDYA uluslararası medya ve hizmet masası');
+    el.innerHTML=[
+      '<div class="growth-bridge-inner">',
+      '<div class="growth-bridge-head">',
+      '<div><p class="kicker">05 / INTERNATIONAL MEDIA DESK</p><h2 class="display">BALIKESİR\'DEN<br><span>DÜNYAYA.</span></h2></div>',
+      '<p class="growth-bridge-lead">Haber, görsel hikâye, video prodüksiyon ve sosyal dağıtımı tek üretim zincirinde buluşturuyoruz. Gerçek çekim ve doğrulanabilir kaynaklar ana omurga; AI üretimleri yalnızca açıkça etiketlenmiş AI LAB içinde yer alır.</p>',
+      '</div>',
+      '<div class="growth-bridge-grid">',
+      '<a class="growth-card" href="/haberler/"><span class="growth-card-index">01 / NEWSROOM</span><h3>Haber ve saha içeriği</h3><p>Balıkesir odaklı gündem, röportaj, ekonomi, kültür ve özel dosyalar. Kaynak ve tarih görünür tutulur.</p><span class="growth-card-meta">HABER AKIŞI ↗</span></a>',
+      '<a class="growth-card" href="/video-produksiyon/"><span class="growth-card-index">02 / PRODUCTION</span><h3>Marka için hareketli hikâye</h3><p>Tanıtım filmi, belgesel, reklam, röportaj ve sosyal video üretimini aynı görsel dilde planlıyoruz.</p><span class="growth-card-meta">PRODÜKSİYON ↗</span></a>',
+      '<a class="growth-card" href="/sosyal-medya/"><span class="growth-card-index">03 / DISTRIBUTION</span><h3>Webden sosyal yayına</h3><p>İçerik fikrini platforma göre varyantlıyor, yayın planını ölçüyor ve uygun ağlara dağıtıyoruz.</p><span class="growth-card-meta">SOSYAL MEDYA ↗</span></a>',
+      '</div>',
+      '<div class="growth-bridge-foot"><small>GERÇEK MEDYA ÖNCELİKLİ · AI LAB AÇIK ETİKETLİ · TÜRKİYE / AVRUPA / ORTA DOĞU</small><div class="growth-bridge-actions"><a href="/en/">International desk</a><a class="primary" href="/iletisim/">Proje anlat ↗</a></div></div>',
+      '</div>'
+    ].join('');
+    document.querySelector('.ticker').before(el);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bootGrowthBridge,{once:true});
+  else bootGrowthBridge();
+})();
