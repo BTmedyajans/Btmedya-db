@@ -39,7 +39,7 @@ async function loadMedia(){
    io.observe(v);
   });
  }catch(e){
-  el.innerHTML='<div class="loading">Gerçek medya arşivi şu anda okunamadı. <a href="/admin/">Media Vault ↗</a></div>';
+  el.innerHTML='<div class="loading">Gerçek medya arşivi şu anda okunamadı. <a href="/iletisim/">Arşiv erişimi için iletişim ↗</a></div>';
  }
 }
 loadNews();
