@@ -45,6 +45,7 @@ jobs:
           test -s package.json
           node --check src/worker.js
           node --check src/metricool-scheduler.js
+          node --check src/news-intelligence.js
           node --check public/home.js
           node --check public/mobile-motion.js
           # 27 Sep 2026'da yaşanan home.js truncation regresyonunu tekrar
