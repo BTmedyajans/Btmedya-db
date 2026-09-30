@@ -23,6 +23,11 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     if (open) menuPreviousFocus = d.activeElement;
     menu.classList.toggle('open', open);
     menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+    menu.inert = !open;
+    const main = d.querySelector('main');
+    const footer = d.querySelector('footer');
+    if (main) main.inert = open;
+    if (footer) footer.inert = open;
     toggle.classList.toggle('open', open);
     toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     toggle.setAttribute('aria-label', open ? 'Menüyü kapat' : 'Menüyü aç');
