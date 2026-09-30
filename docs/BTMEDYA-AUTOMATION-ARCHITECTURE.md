@@ -23,9 +23,9 @@ Inputs:
 - manually approved source URLs
 
 Pipeline:
-source fetch -> deduplicate -> extract facts -> provenance record -> AI draft -> SEO/AEO check -> admin review -> publish
+source fetch -> Google Trends signal -> deduplicate -> competitor/official-source comparison -> provenance record -> AI draft -> accuracy/risk gate -> SEO/AEO check -> safe auto-publish or admin review -> publish
 
-Never auto-publish unverified claims.
+The continuous discovery layer runs during the day. It watches public RSS/Google News signals from Balıkesir, national publishers and selected competitor visibility queries. Discovery never makes an unverified claim true. Safe automatic publication remains limited to the existing Sabah Masası validation chain, which checks source-grounded numbers, proper names, language quality and sensitive-topic rules before publishing.
 
 ### 2. Media agent
 Inputs:
@@ -113,7 +113,16 @@ No automatic upgrade or paid API activation.
 ## Current known gaps
 
 1. Google Drive is not directly wired into the Worker.
-2. News source polling/AI editorial queue is not yet a scheduled Worker pipeline.
-3. Social D1 scheduling exists, but live account publishing is connector-dependent.
-4. SEO has production smoke tests, but no unified visual audit dashboard.
-5. The existing admin panel should become the single control center without replacing its working media/news APIs.
+2. Live social account publishing remains connector-dependent and only verified Metricool networks are treated as connected.
+3. SEO has production smoke tests, but no unified visual audit dashboard.
+4. The existing admin panel should become the single control center without replacing its working media/news APIs.
+
+## Continuous News Intelligence
+
+- Cron discovery: every 15 minutes.
+- Signals: Google Trends TR, Google News queries, CUMHA, TRT Haber, Anadolu Ajansı and selected Balıkesir competitor visibility queries.
+- Ranking signals: freshness, Balıkesir relevance, source tier, trend overlap and commercial intent.
+- Risk gate: sensitive/political/crime topics are flagged and are not auto-published by the discovery layer.
+- Provenance: source URL, publisher, host, category, score and first-seen/update times are stored in D1.
+- Admin API: `/api/admin/news-intelligence` shows the current discovery queue to the authenticated control center.
+- Revenue loop: high-interest commercial topics can be connected to BTMEDYA service CTAs, while news integrity remains separate from advertising claims.
