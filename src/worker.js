@@ -1567,18 +1567,21 @@ function nonceUret() {
    cloudflareinsights.com'a POST ediyor; ikisi de tek tek aciliyor. */
 const CF_ANALYTICS_BETIK = 'https://static.cloudflareinsights.com';
 const CF_ANALYTICS_UC = 'https://cloudflareinsights.com';
+/* Metricool web analitiği: betik tracker.metricool.com'dan yükleniyor ve
+   ölçümü aynı alan adına gönderiyor (public/metricool-izleme.js). */
+const METRICOOL_IZLEME = 'https://tracker.metricool.com';
 
 function cspKur(pathname, nonce) {
   const panel = pathname.startsWith('/admin');
   return [
     "default-src 'self'",
-    `script-src 'self' 'unsafe-inline' ${CF_ANALYTICS_BETIK}`,
+    `script-src 'self' 'unsafe-inline' ${CF_ANALYTICS_BETIK} ${METRICOOL_IZLEME}`,
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
-    "img-src 'self' data: blob: https://i.ytimg.com",
+    `img-src 'self' data: blob: https://i.ytimg.com ${METRICOOL_IZLEME}`,
     "media-src 'self' blob:",
     "frame-src https://www.youtube-nocookie.com",
-    `connect-src 'self' ${CF_ANALYTICS_UC}`,
+    `connect-src 'self' ${CF_ANALYTICS_UC} ${METRICOOL_IZLEME}`,
     "form-action 'self'",
     "frame-ancestors 'self'",
     "base-uri 'self'",
