@@ -1,6 +1,7 @@
 # Cloudflare Workers Builds bu Worker'ı otomatik deploy eder.
 # Alan adı bağlantıları da bu dosyada tutulur: GitHub = kaynak gerçek.
 # Production deploy gate: .github/workflows/deploy.yml.
+# Production sync validation trigger: preserve current live-chain state.
 # Production chain audit: 2026-09-28 — Workers Builds is the canonical live deploy path.
 # Audit trigger: 2026-09-28 production chain revalidation / live smoke retrigger.
 # Live repair: re-trigger Workers Builds so declared Custom Domains are reconciled.
