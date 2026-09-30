@@ -64,6 +64,7 @@ jobs:
           node tools/gerileme-denetimi.mjs
           node --check src/sosyal-otomasyon.js
           node --check src/sabah-masasi.js
+          node --check src/news-intelligence.js
           node tools/link-denetimi.mjs
           grep -q 'mobile-fixes.css' public/index.html
           grep -q 'mobile-motion.css' public/index.html
