@@ -30,17 +30,17 @@ const TICARI = /\b(fiyat|zam|indirim|kampanya|yatirim|istihdam|ihracat|ithalat|e
 function duz(s){
   return String(s||'').toLocaleLowerCase('tr-TR')
     .replace(/ı/g,'i').replace(/ş/g,'s').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ö/g,'o').replace(/ç/g,'c')
-    .normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 }
-function strip(s){ return String(s||'').replace(/<[^>]*>/g,' ').replace(/<!\\[CDATA\\[|\\]\\]>/g,' ').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;|&apos;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\\s+/g,' ').trim(); }
+function strip(s){ return String(s||'').replace(/<[^>]*>/g,' ').replace(/<!\[CDATA\[|\]\]>/g,' ').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;|&apos;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\s+/g,' ').trim(); }
 function rssItems(xml){
   const out=[];
-  for(const b of (String(xml||'').match(/<(?:item|entry)\\b[\\s\\S]*?<\\/(?:item|entry)>/gi)||[])){
+  for(const b of (String(xml||'').match(/<(?:item|entry)\b[\s\S]*?<\/(?:item|entry)>/gi)||[])){
     const pick=tag=>{const m=b.match(new RegExp('<'+tag+'(?:\\s[^>]*)?>([\\s\\S]*?)<\\/'+tag+'>','i'));return m?strip(m[1]):''};
     let link=pick('link');
     if(!link){const m=b.match(/<link[^>]+href=["']([^"']+)["']/i);link=m?m[1]:''}
     const title=pick('title'), description=pick('description')||pick('summary')||pick('content'), date=pick('pubDate')||pick('published')||pick('updated');
-    if(title&&/^https?:\\/\\//.test(link)) out.push({title:title.slice(0,240),link:link.slice(0,2000),description:description.slice(0,1800),date});
+    if(title&&/^https?:\/\//.test(link)) out.push({title:title.slice(0,240),link:link.slice(0,2000),description:description.slice(0,1800),date});
   }
   return out;
 }
