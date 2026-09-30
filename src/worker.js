@@ -2,6 +2,7 @@ import { BtmedyaWorkflow } from "./btmedya-workflow.js";
 import { WorkflowStatusDO } from "./workflow-status-do.js";
 import { renderNewsPage } from "./news-page.js";
 import { socialProviderStatus } from "./social-platforms.js";
+import { runNewsIntelligence, newsIntelligenceStatus } from "./news-intelligence.js";
 import { recoveryPasswordValid } from "./auth-recovery.js";
 import { salesApi } from "./sales-router.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
@@ -253,6 +254,12 @@ function indexNowBildir(ctx, origin, slug){
 }
 
 async function newsApi(request, env, url, ctx){
+  if(url.pathname==='/api/admin/news-intelligence' && (request.method==='GET'||request.method==='POST')){
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(request.method==='POST') return json(await runNewsIntelligence(env,{limit:12}));
+    return json(await newsIntelligenceStatus(env));
+  }
+
   if(url.pathname==='/api/public/social-feed' && request.method==='GET'){
     const r=await env.ASSETS.fetch(new Request(new URL('/data/social-feed.json',url.origin)));
     if(!r.ok) return json({ok:false,error:'Sosyal akış snapshot bulunamadı'},404);
@@ -1325,6 +1332,15 @@ export default { async scheduled(controller, env, ctx){
   const drafts=autoPrepareSocialDrafts(env,3)
     .then(x=>{ if(x.created) console.log('[btmedya] social drafts',x.created,'hazırlandı'); })
     .catch(e=>console.error('[btmedya] social draft generator:',e?.message||e));
+  /* Gün içi haber istihbaratı: her 15 dakikada Google Trends TR, ulusal/yerel
+     yayınlar ve rakip görünürlük sinyalleri taranır. Bu katman yalnız keşif
+     kuyruğunu günceller; otomatik yayın için Sabah Masası'nın doğrulama
+     zinciri geçerlidir. */
+  const intelligence=(controller && controller.cron==='*/15 * * * *')
+    ? runNewsIntelligence(env,{limit:12})
+        .then(x=>console.log('[btmedya] news intelligence',x.scanned,'tarama',x.hot,'sıcak',x.errors.length,'hata'))
+        .catch(e=>console.error('[btmedya] news intelligence:',e?.message||e))
+    : Promise.resolve(null);
   /* Metricool teslimi. METRICOOL_USER_TOKEN yoksa hicbir sey yapmaz; hata
      nabzi durdurmasin diye ayri yakalanir. */
   const metricool=processMetricoolQueue(env)
@@ -1342,7 +1358,7 @@ export default { async scheduled(controller, env, ctx){
     .then(ayar=>Promise.all([yayinlananlariIsaretle(env),gecikenleriKaydir(env,ayar)]))
     .then(([y,k])=>{ if(y||k) console.log('[btmedya] sosyal takip',y,'yayinlandi',k,'kaydirildi'); })
     .catch(e=>console.error('[btmedya] sosyal takip:',e?.message||e));
-  const hepsi=Promise.all([task,metricool,archive,drafts,takip]);
+  const hepsi=Promise.all([task,metricool,archive,drafts,takip,intelligence]);
   if(ctx?.waitUntil) ctx.waitUntil(hepsi); else await hepsi;
 }, async fetch(request, env, ctx){
   const url = new URL(request.url);
