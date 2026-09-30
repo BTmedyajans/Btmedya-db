@@ -1206,6 +1206,18 @@ function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
    kart yoksa kapak. Metin: baslik + spot + haber adresi + kunye + etiket.
    Otomatik planlama panelden acilir ve yalniz Metricool anahtari varken
    ve haber taze ise calisir; aksi halde gonderi "onayda" bekler. */
+function sosyalPlatformlariMedyaIleUyumla(platformlar, mediaKey){
+  const isVideo=/\\.(mp4|mov|m4v|webm)(?:$|\\?)/i.test(String(mediaKey||''));
+  return [...new Set((Array.isArray(platformlar)?platformlar:[]).map(String).map(p=>{
+    if(p==='instagram-post' && isVideo) return 'instagram-reel';
+    return p;
+  }).filter(p=>{
+    // Metricool YouTube only accepts video uploads; image-only news cards stay on TikTok/other image-capable networks.
+    if((p==='youtube'||p==='youtube-short') && !isVideo) return false;
+    return true;
+  }))];
+}
+
 async function autoPrepareSocialDrafts(env, limit=3){
   const result={enabled:Boolean(env.DB),created:0,planned:0,skipped:0,items:[]};
   if(!env.DB) return result;
@@ -1233,15 +1245,16 @@ async function autoPrepareSocialDrafts(env, limit=3){
         : katKapak ? `static/kategori-kapak/${katKapak[1]}-sosyal.jpg`
         : cover.startsWith('/assets/') ? 'static/'+cover.slice('/assets/'.length) : '';
       const body=altyazi(n,await kapakKunyesi(env,n.slug));
+      const platformlar=sosyalPlatformlariMedyaIleUyumla(platformSluglari(ayar),mediaKey);
       const yas=(Date.now()-new Date(n.published_at||0).getTime())/3600000;
-      const otomatik=ayar.otomatikPlanla && Boolean(env.METRICOOL_USER_TOKEN) && ayar.aglar.length>0 && yas>=0 && yas<=ayar.tazelikSaat;
+      const otomatik=ayar.otomatikPlanla && Boolean(env.METRICOOL_USER_TOKEN) && platformlar.length>0 && yas>=0 && yas<=ayar.tazelikSaat;
       const yuva=otomatik ? await sonrakiYuva(env,ayar) : null;
       const status=yuva ? 'planlandi' : 'onayda';
       const now=new Date().toISOString();
       const id=crypto.randomUUID();
       await env.DB.prepare(
         'INSERT INTO social_posts (id,title,body,platforms,format,media_key,source_slug,status,scheduled_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)'
-      ).bind(id,String(n.title||'BTMEDYA').slice(0,180),body,JSON.stringify(platformSluglari(ayar)),'4:5',mediaKey,String(n.slug),status,yuva,now,now).run();
+      ).bind(id,String(n.title||'BTMEDYA').slice(0,180),body,JSON.stringify(platformlar),'4:5',mediaKey,String(n.slug),status,yuva,now,now).run();
       made++; result.created++; if(yuva) result.planned++;
       result.items.push({id,slug:n.slug,status,scheduled_at:yuva});
     }
