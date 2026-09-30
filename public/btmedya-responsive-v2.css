@@ -5,7 +5,7 @@
   --bt-touch:48px;
 }
 html{scrollbar-gutter:stable}
-body{overflow-x:hidden}
+body{overflow-x:hidden;overflow-x:clip}
 img,video{max-width:100%}
 button,a{touch-action:manipulation}
 .button,.top-cta,.hamburger,.bt-world-tab,.portfoy-sekme{min-height:var(--bt-touch)}
