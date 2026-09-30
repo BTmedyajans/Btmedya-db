@@ -122,3 +122,26 @@ body{background:var(--bt-ink)}
   .news-card,.news-media img,.bt-world-tab,.service-grid article,.offer-card,.nextgen-proof-grid article,.source-grid a{transition:none}
   .news-card:hover,.bt-world-tab:hover,.service-grid article:hover,.offer-card:hover,.nextgen-proof-grid article:hover,.source-grid a:hover{transform:none}
 }
+
+/* BTMEDYA responsive polish v2: touch-first controls, safe-area spacing, stable media. */
+@media (max-width:760px){
+  body{overflow-x:clip}
+  .cinematic-hero,.cinematic-sticky{min-height:100svh}
+  .cinematic-actions a,.button,.text-link,.contact-links a,.social-profile-card a,.social-feed-card a{min-height:44px}
+  .bt-world-nav{grid-template-columns:1fr 1fr;gap:8px}
+  .bt-world-tab{min-height:64px;padding:12px}
+  .news-media,.portfoy-grid img,.bt-template-card-media{aspect-ratio:16/9}
+  .news-media img,.bt-template-card-media img,.bt-template-card-media video{object-fit:cover}
+  .social-feed-grid,.archive-grid{gap:10px}
+  .social-feed-grid>*{min-width:0}
+  .section-side{max-width:none}
+  .contact-links{display:grid;grid-template-columns:1fr;gap:8px}
+}
+@media (max-width:430px){
+  .bt-world-nav{grid-template-columns:1fr}
+  .news-card.featured .news-body h3{font-size:27px}
+  .cinematic-title{font-size:clamp(44px,14vw,64px)}
+}
+@supports(padding:max(0px)){
+  .cinematic-sticky{padding-bottom:max(0px,env(safe-area-inset-bottom))}
+}
