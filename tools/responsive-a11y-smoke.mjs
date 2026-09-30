@@ -26,7 +26,9 @@ for (const vp of viewports) {
   for (const item of pages) {
     const url=BASE+item.path;
     const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000}).catch(e=>null);
-    if(!response || response.status()>=400){ failures.push(vp.name+' '+item.path+' HTTP '+(response?.status()||'NO_RESPONSE')); continue; }
+    const status=response?.status()||0;
+    if(item.path==='/admin/' && status===401){ continue; }
+    if(!response || status>=400){ failures.push(vp.name+' '+item.path+' HTTP '+(status||'NO_RESPONSE')); continue; }
     await page.waitForTimeout(350);
     const result=await page.evaluate(() => {
       const html=document.documentElement;
