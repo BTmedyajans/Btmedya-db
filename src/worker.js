@@ -1207,7 +1207,7 @@ function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
    Otomatik planlama panelden acilir ve yalniz Metricool anahtari varken
    ve haber taze ise calisir; aksi halde gonderi "onayda" bekler. */
 function sosyalPlatformlariMedyaIleUyumla(platformlar, mediaKey){
-  const isVideo=/\\.(mp4|mov|m4v|webm)(?:$|\\?)/i.test(String(mediaKey||''));
+  const isVideo=/\.(mp4|mov|m4v|webm)(?:$|\?)/i.test(String(mediaKey||''));
   return [...new Set((Array.isArray(platformlar)?platformlar:[]).map(String).map(p=>{
     if(p==='instagram-post' && isVideo) return 'instagram-reel';
     return p;
