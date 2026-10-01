@@ -72,7 +72,7 @@
     if(/video|goruntu|kamera/.test(s))score+=8;
     return score;
   }
-  function filter(items,key){
+  function filter(items,key,coverMap){
     var list=items.filter(function(n){return categoryMatch(n,key);});
     if(!list.length){if(guncelListe)guncelListe.innerHTML='<p class="disclaimer">Bu kategoride canlı yayınlanmış içerik bulunmuyor.</p>';return;}
     var loc=list.filter(local).slice(0,6);
@@ -119,7 +119,8 @@
     current.forEach(function(n){n._relevance=relevanceScore(n,coverMap);});
     current.sort(function(a,b){return (b._relevance||0)-(a._relevance||0)||new Date(b.published_at||0)-new Date(a.published_at||0);});
     categoryBar(current);special(current,coverMap);districts(current);
-    if(requested){setTimeout(function(){var a=Array.prototype.slice.call(document.querySelectorAll('.news-category-bar a')).find(function(x){return norm(x.textContent)===norm(requested)||norm(x.textContent).replace(/\\s+/g,'-')===norm(requested);});if(a)a.click();},0);
+    var requested=(new URLSearchParams(location.search).get('kategori')||'').toLocaleLowerCase('tr-TR').trim();
+    if(requested){setTimeout(function(){var a=Array.prototype.slice.call(document.querySelectorAll('.news-category-bar a')).find(function(x){return norm(x.textContent)===norm(requested)||norm(x.textContent).replace(/\\s+/g,'-')===norm(requested);});if(a)a.click();},0);}
     var featured=choose(current);
     if(grid){var cards=grid.querySelectorAll('.news-card');featured.forEach(function(n,i){var el=cards[i];if(!el)return;el.href='/haberler/'+encodeURIComponent(n.slug);el.classList.remove('video-card');el.classList.add('gorselli');el.innerHTML=heroCard(n,i===0,coverMap);});}
     var shown=featured.slice(),loc=current.filter(function(n){return local(n)&&shown.indexOf(n)<0;}).slice(0,6);shown=shown.concat(loc);
