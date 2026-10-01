@@ -5,7 +5,7 @@ import { renderNewsPage } from "./news-page.js";
 import { socialProviderStatus, metricoolConnectedNetworks } from "./social-platforms.js";
 import { runNewsIntelligence, newsIntelligenceStatus } from "./news-intelligence.js";
 import { recoveryPasswordValid } from "./auth-recovery.js";
-import { runAutopilot, autopilotPolicy, setAutopilotPolicy, autopilotStatus, connectionMatrix } from "./autopilot.js";
+import { runAutopilot, autopilotPolicy, setAutopilotPolicy, autopilotStatus, connectionMatrix, referenceDraft } from "./autopilot.js";
 import { salesApi } from "./sales-router.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
@@ -781,6 +781,11 @@ async function autopilotApi(request, env, url){
     const b=await request.json().catch(()=>({}));
     const result=await runAutopilot(env,{force:b.force===true,limit:b.limit});
     return json(result);
+  }
+  if(url.pathname==='/api/admin/autopilot/reference-draft' && request.method==='POST'){
+    const b=await request.json().catch(()=>({}));
+    const out=await referenceDraft(env,{url:b.url,instructions:b.instructions});
+    return json(out,out.ok?200:400);
   }
   if(url.pathname==='/api/admin/autopilot/connections' && request.method==='GET'){
     return json({ok:true,connections:connectionMatrix(env)});
