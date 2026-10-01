@@ -136,7 +136,8 @@
     try{
       const d=await fetch('/data/gsc-last-check.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null});
       if(!d){box.innerHTML='<div class="muted">GSC yerel özeti henüz kaydedilmedi. Canlı Search Console bağlantısı dış araçtan açılabilir.</div>';return}
-      box.innerHTML='<div class="ops-kpi-grid"><div class="ops-kpi"><b>'+esc(d.clicks)+'</b><span>GSC tıklama</span></div><div class="ops-kpi"><b>'+esc(d.impressions)+'</b><span>GSC gösterim</span></div><div class="ops-kpi"><b>'+esc(d.ctr+'%')+'</b><span>GSC CTR</span></div><div class="ops-kpi"><b>'+esc(d.indexedHome?'✓':'—')+'</b><span>Ana sayfa indeks</span></div></div><small class="muted" style="display:block;margin-top:8px">Son doğrulama: '+esc(trDate(d.checkedAt))+' · kaynak: ChatGPT / GSC Wizard.</small>';
+      const it=d.indexingTracker||{};
+      box.innerHTML='<div class="ops-kpi-grid"><div class="ops-kpi"><b>'+esc(d.clicks)+'</b><span>GSC tıklama</span></div><div class="ops-kpi"><b>'+esc(d.impressions)+'</b><span>GSC gösterim</span></div><div class="ops-kpi"><b>'+esc(d.ctr+'%')+'</b><span>GSC CTR</span></div><div class="ops-kpi"><b>'+esc((it.indexed||0)+' / '+(it.total||0))+'</b><span>Tracker indeks</span></div></div><small class="muted" style="display:block;margin-top:8px">GSC: '+esc(trDate(d.checkedAt))+' · Tracker: '+esc(it.healthScore??'—')+' sağlık · '+esc(it.notIndexed||0)+' sayfa Google tarafından henüz bilinmiyor.</small>';
     }catch(e){}
   }
 
