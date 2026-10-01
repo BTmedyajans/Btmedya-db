@@ -1174,3 +1174,37 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bootGrowthBridge,{once:true});
   else bootGrowthBridge();
 })();
+
+/* ===== MOBILE QUICK NAV =====
+   Uzun ana sayfada mobil kullanıcıyı tekrar tekrar menüye göndermeden
+   ana içerik kümelerine ulaştırır. Aktif bölüm IntersectionObserver ile
+   belirlenir; desteklenmeyen tarayıcıda statik bağlantılar çalışmaya devam eder. */
+(function(){
+  const nav=document.querySelector('.mobile-quick-nav');
+  if(!nav) return;
+  const links=[...nav.querySelectorAll('[data-mobile-nav]')];
+  const targets=[
+    ['news',document.getElementById('news')],
+    ['portfolio',document.getElementById('portfoy')],
+    ['ai',document.getElementById('ai-lab')],
+    ['contact',document.getElementById('iletisim')]
+  ].filter(([,el])=>el);
+  const setActive=(key)=>{
+    links.forEach(a=>{
+      const active=a.dataset.mobileNav===key;
+      a.classList.toggle('is-active',active);
+      if(active) a.setAttribute('aria-current','page');
+      else a.removeAttribute('aria-current');
+    });
+  };
+  setActive('home');
+  if(!('IntersectionObserver' in window) || !targets.length) return;
+  const observer=new IntersectionObserver(entries=>{
+    const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio);
+    if(visible.length){
+      const key=targets.find(([,el])=>el===visible[0].target)?.[0];
+      if(key) setActive(key);
+    }
+  },{rootMargin:'-18% 0px -58% 0px',threshold:[0,.15,.35,.6]});
+  targets.forEach(([,el])=>observer.observe(el));
+})();
