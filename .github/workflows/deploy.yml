@@ -50,9 +50,12 @@ jobs:
           node --check src/metricool-scheduler.js
           node --check src/news-intelligence.js
           node --check src/autopilot.js
+          node --check src/agency-supervisor.js
           node --check public/home.js
           node --check public/mobile-motion.js
           node --check public/admin/next-gen.js
+          node --check public/admin/agency-os/agency-os.js
+          node --check public/admin/client-hub/client-hub.js
           node --check public/client/review/review.js
           node --check public/referanslar/referanslar.js
           python3 - <<'PY'
@@ -111,12 +114,16 @@ jobs:
           test -s public/admin/manifest.webmanifest
           test -s public/admin/autopilot/index.html
           test -s public/admin/editor/index.html
+          test -s public/admin/agency-os/index.html
+          test -s public/admin/agency-os/agency-os.css
+          test -s public/admin/agency-os/agency-os.js
           test -s public/admin/client-hub/index.html
           test -s public/admin/musteri-merkezi/index.html
           test -s public/client/review/index.html
           test -s public/client/review/review.js
           test -s public/referanslar/referanslar.js
           test -s migrations/0013_client_review.sql
+          test -s migrations/0014_agency_supervisor.sql
           grep -q 'reviewAdmin' src/sales-router.js
           grep -q 'Müşteriye önizleme linki' public/admin/client-hub/index.html
           ! grep -q '<script>const' public/client/review/index.html
@@ -206,6 +213,7 @@ jobs:
           # çalıştığını doğrular.
           check_http "hakkimizda" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/hakkimizda/" "200"
           check_http "iletisim" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/iletisim/" "200"
+          check_http "agency-os" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/agency-os/" "200"
           check_http "client-hub" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/client-hub/" "200"
           check_http "legacy-client-hub" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/musteri-merkezi/" "200"
           check_http "client-review" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/client/review/" "200"
