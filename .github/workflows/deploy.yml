@@ -53,10 +53,10 @@ jobs:
           python3 - <<'PY'
           import re, pathlib, subprocess, tempfile
           html=pathlib.Path("public/admin/index.html").read_text(encoding="utf-8")
-          blocks=re.findall(r"<script(?:\s+[^>]*)?>(.*?)</script>", html, flags=re.I|re.S)
+          blocks=re.findall(r"<script([^>]*)>(.*?)</script>", html, flags=re.I|re.S)
           checked=0
-          for i,src in enumerate(blocks):
-              if not src.strip() or "application/ld+json" in html[max(0, html.find(src)-120):html.find(src)]:
+          for attrs,src in blocks:
+              if not src.strip() or re.search(r"application/ld\\+json", attrs, flags=re.I):
                   continue
               with tempfile.NamedTemporaryFile("w",suffix=".js",delete=False,encoding="utf-8") as f:
                   f.write(src); path=f.name
