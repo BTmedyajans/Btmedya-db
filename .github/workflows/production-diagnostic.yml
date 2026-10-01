@@ -54,16 +54,21 @@ jobs:
           echo "CLOUDFLARE_DEPLOY_TOKEN configured: $DEPLOY_TOKEN_SET"
           echo "CLOUDFLARE_API_TOKEN configured: $API_TOKEN_SET"
 
-      - name: Inspect Cloudflare rules for API challenge
+      - name: Inspect Cloudflare rules for API challenge (optional)
         env:
+          CLOUDFLARE_RULESETS_TOKEN: ${{ secrets.CLOUDFLARE_RULESETS_TOKEN }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
           api="https://api.cloudflare.com/client/v4"
-          auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
+          if [ -z "${CLOUDFLARE_RULESETS_TOKEN:-}" ]; then
+            echo "INFO: CLOUDFLARE_RULESETS_TOKEN tanımlı değil; Rulesets API kontrolü atlandı. Production deploy bundan bağımsızdır." | tee -a btmedya-production-report.txt
+            exit 0
+          fi
+          auth=(-H "Authorization: Bearer ${CLOUDFLARE_RULESETS_TOKEN}" -H "Content-Type: application/json")
           if ! zones="$(curl -fsS "${api}/zones?name=btmedya.com.tr&per_page=50" "${auth[@]}")"; then
-            echo "UYARI: Cloudflare zone API erişimi 403/erişim hatası verdi; ruleset incelemesi atlandı." | tee -a btmedya-production-report.txt
+            echo "INFO: Rulesets token ile Cloudflare zone API erişimi yok; Rulesets kontrolü atlandı." | tee -a btmedya-production-report.txt
             exit 0
           fi
           zone_id="$(jq -r '.result[] | select(.name=="btmedya.com.tr") | .id' <<<"$zones" | head -n1)"
@@ -75,7 +80,7 @@ jobs:
           fi
 
           if ! rulesets="$(curl -fsS "${api}/zones/${zone_id}/rulesets" "${auth[@]}")"; then
-            echo "UYARI: Cloudflare Rulesets API 403/erişim hatası verdi. Bu kontrol atlandı; ana production diagnostic devam edecek." | tee -a btmedya-production-report.txt
+            echo "INFO: Cloudflare Rulesets API erişimi reddedildi; Rulesets kontrolü atlandı. Ana production diagnostic devam ediyor." | tee -a btmedya-production-report.txt
             exit 0
           fi
 
