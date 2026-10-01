@@ -42,6 +42,7 @@ jobs:
           }
 
           check_code "$base/" "200"
+          check_code "$base/en/" "200"
           check_code "$base/haberler/" "200"
           check_code "$base/kaynak-masasi/" "200"
           check_code "$base/hizmetler/" "200"
