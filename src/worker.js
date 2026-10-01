@@ -971,6 +971,32 @@ async function socialApi(request, env, url, ctx){
   }
 
   const byId=url.pathname.match(/^\/api\/admin\/social\/([^/]+)$/);
+  if(byId && url.pathname.endsWith('/retry') && request.method==='POST'){
+    const id=decodeURIComponent(byId[1].replace(/\/retry$/,''));
+    const row=await env.DB.prepare('SELECT id,title,platforms,media_key,status,scheduled_at FROM social_posts WHERE id=?').bind(id).first().catch(()=>null);
+    if(!row) return json({ok:false,error:'Bulunamadı'},404);
+    const teslim=await env.DB.prepare('SELECT durum,attempts,retryable,hata FROM metricool_gonderim WHERE post_id=?').bind(id).first().catch(()=>null);
+    if(!teslim || teslim.durum!=='hata') return json({ok:false,error:'Yalnızca Metricool teslim hatası olan içerikler yeniden denenebilir'},409);
+    const platforms=normalizeSocialPlatforms(JSON.parse(row.platforms||'[]'));
+    const platformCheck=socialPlatformCheck(env,platforms);
+    if(platformCheck.unknown.length) return json({ok:false,error:'Desteklenmeyen sosyal platformu',platforms:platformCheck.unknown},400);
+    if(platformCheck.disconnected.length) return json({ok:false,error:'Metricool bağlantısı doğrulanmamış ağ: '+platformCheck.disconnected.join(', '),disconnected:platformCheck.disconnected},409);
+    if(!platforms.length) return json({ok:false,error:'En az bir sosyal platform seçilmelidir'},400);
+    if(!row.media_key && platforms.some(p=>SOCIAL_PLATFORM_NETWORK[p] && ['instagram','tiktok','youtube'].includes(SOCIAL_PLATFORM_NETWORK[p])))
+      return json({ok:false,error:'Seçilen platformlar için görsel/video gerekli; medya anahtarı eksik'},400);
+    const now=new Date().toISOString();
+    let scheduledAt=String(row.scheduled_at||'');
+    if(!scheduledAt || new Date(scheduledAt).getTime()<=Date.now()+15000) scheduledAt=await sonrakiYuva(env,await ayarlariOku(env));
+    await env.DB.prepare('UPDATE social_posts SET status=?,scheduled_at=?,updated_at=? WHERE id=?').bind('planlandi',scheduledAt,now,id).run();
+    await env.DB.prepare('DELETE FROM metricool_gonderim WHERE post_id=?').bind(id).run();
+    if(ctx?.waitUntil){
+      ctx.waitUntil(processMetricoolQueue(env,1)
+        .then(x=>console.log('[btmedya] manual Metricool retry',JSON.stringify(x)))
+        .catch(e=>console.error('[btmedya] manual Metricool retry:',e?.message||e)));
+    }
+    return json({ok:true,id,scheduled_at:scheduledAt,retry:true});
+  }
+
   if(byId && request.method==='PATCH'){
     const id=decodeURIComponent(byId[1]);
     const b=await request.json().catch(()=>({}));
@@ -993,12 +1019,16 @@ async function socialApi(request, env, url, ctx){
     }else{
       r=await env.DB.prepare('UPDATE social_posts SET status=?,updated_at=? WHERE id=?').bind(status,now,id).run();
     }
-    if(status==='planlandi' && ctx?.waitUntil && (r.meta?.changes||0)>0){
-      ctx.waitUntil(
-        processMetricoolQueue(env,10)
-          .then(x=>console.log('[btmedya] immediate Metricool handoff',JSON.stringify(x)))
-          .catch(e=>console.error('[btmedya] immediate Metricool handoff:',e?.message||e))
-      );
+    if(status==='planlandi' && (r.meta?.changes||0)>0){
+      const teslim=await env.DB.prepare('SELECT durum FROM metricool_gonderim WHERE post_id=?').bind(id).first().catch(()=>null);
+      if(teslim?.durum==='hata') await env.DB.prepare('DELETE FROM metricool_gonderim WHERE post_id=?').bind(id).run().catch(()=>{});
+      if(ctx?.waitUntil){
+        ctx.waitUntil(
+          processMetricoolQueue(env,10)
+            .then(x=>console.log('[btmedya] immediate Metricool handoff',JSON.stringify(x)))
+            .catch(e=>console.error('[btmedya] immediate Metricool handoff:',e?.message||e))
+        );
+      }
     }
     return json({ok:true,changed:(r.meta?.changes||0)>0});
   }
