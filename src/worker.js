@@ -760,9 +760,9 @@ async function controlCenterApi(request, env, url){
   return json({
     ok:true,
     service:'BTMEDYA Control Center',
-    /* Calisan sosyal yayin yolu Metricool: TikTok gonderileri oradan
-       yayinlandi. Tek anahtar Instagram, Facebook, TikTok ve YouTube'u
-       birlikte kapsar; asagidaki dogrudan API anahtarlari alternatiftir. */
+    /* Metricool yayin/analitik katmani kullanilir. Bagli aglarin gercek durumu
+       Metricool hesabindan ayri olarak dogrulanir; Worker secret'in varligi
+       tek basina Instagram/Facebook/YouTube baglantisi kaniti degildir. */
     metricool,
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db',surum:surumBilgisi(env)},
     storage:{d1:!!env.DB,r2:!!env.MEDIA},
@@ -785,10 +785,11 @@ async function controlCenterApi(request, env, url){
       !env.ADMIN_PASSWORD_SECRET?'Cloudflare Worker secret: ADMIN_PASSWORD_SECRET ekle':null,
       !env.ADMIN_SESSION_SECRET_SECRET?'Cloudflare Worker secret: ADMIN_SESSION_SECRET_SECRET ekle':null,
       !env.MEDIA_SIGNING_SECRET?'Cloudflare Worker secret: MEDIA_SIGNING_SECRET ekle':null,
-      /* Once burada dort ayri gelistirici hesabi (Meta, TikTok, Google)
-         isteniyordu. Metricool hepsini tek anahtarla kapsiyor ve TikTok
-         yayinlari zaten oradan calisti; oncelik o. */
-      !env.METRICOOL_USER_TOKEN?'Metricool: Cloudflare Worker secret METRICOOL_USER_TOKEN ekle (Metricool > Hesap > API). Tek anahtar Instagram, Facebook, TikTok ve YouTube paylaşımını açar.':null,
+      !env.METRICOOL_USER_TOKEN?'Metricool: Worker secret METRICOOL_USER_TOKEN eksik.':null,
+      metricool.igBagli===false?'Metricool: Instagram bağlantısı doğrulanmamış.':null,
+      metricool.fbBagli===false?'Metricool: Facebook bağlantısı doğrulanmamış.':null,
+      metricool.youtubeBagli===false?'Metricool: YouTube bağlantısı doğrulanmamış.':null,
+      metricool.tiktokBagli===false?'Metricool: TikTok bağlantısı doğrulanmamış.':null,
       metricool.hatali?`Metricool: ${metricool.hatali} gönderi teslim edilemedi — ${metricool.sonHata||'ayrıntı için Sosyal İçerik'}`:null
     ].filter(Boolean)
   });
