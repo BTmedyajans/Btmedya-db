@@ -1564,7 +1564,7 @@ function cspKur(pathname, nonce) {
     `script-src 'self' 'unsafe-inline' ${CF_ANALYTICS_BETIK} https://tracker.metricool.com`,
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
-    "img-src 'self' data: blob: https://i.ytimg.com",
+    "img-src 'self' data: blob: https://i.ytimg.com https://tracker.metricool.com",
     "media-src 'self' blob:",
     "frame-src https://www.youtube-nocookie.com",
     `connect-src 'self' ${CF_ANALYTICS_UC} https://tracker.metricool.com`,
