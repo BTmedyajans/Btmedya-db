@@ -80,14 +80,14 @@
     if(yerelListe)yerelListe.innerHTML=(loc.length?loc:list.slice(0,6)).map(row).join('');
     if(guncelListe)guncelListe.innerHTML=rest.map(function(n){return row(n,coverMap);}).join('');
   }
-  function categoryBar(items){
+  function categoryBar(items,coverMap){
     var old=document.querySelector('.news-category-bar');if(old)old.remove();
     var target=document.querySelector('.news-nav');if(!target)return;
     var groups=[['SON DAKİKA','all','breaking'],['BALIKESİR','balikesir'],['İLÇELER','ilceler'],['TÜRKİYE','turkiye'],['DÜNYA','dunya'],['ASAYİŞ','asayis'],['GÜNDEM','gundem'],['EKONOMİ','ekonomi'],['EĞİTİM','egitim'],['SAĞLIK','saglik'],['KÜLTÜR','kultur'],['SPOR','spor'],['TEKNOLOJİ','teknoloji'],['AI','ai'],['TURİZM','turizm'],['ÖZEL HABER','ozel']];
     var requested=(new URLSearchParams(location.search).get('kategori')||'').toLocaleLowerCase('tr-TR').trim();
     var bar=document.createElement('nav');bar.className='news-category-bar';bar.setAttribute('aria-label','Haber kategorileri');
     groups.forEach(function(g,i){var a=document.createElement('a');a.href='#haber-akisi';a.textContent=g[0];if(g[2])a.className=g[2];if(i===0)a.classList.add('active');
-      a.addEventListener('click',function(e){e.preventDefault();bar.querySelectorAll('a').forEach(function(x){x.classList.remove('active');});a.classList.add('active');filter(items,g[1]);});
+      a.addEventListener('click',function(e){e.preventDefault();bar.querySelectorAll('a').forEach(function(x){x.classList.remove('active');});a.classList.add('active');filter(items,g[1],coverMap);});
       bar.appendChild(a);});
     target.after(bar);
   }
@@ -118,7 +118,7 @@
     try{var cm=await fetch('/data/haber-kapak-kaynagi.json',{headers:{Accept:'application/json'}});if(cm.ok)coverMap=await cm.json();}catch(e){}
     current.forEach(function(n){n._relevance=relevanceScore(n,coverMap);});
     current.sort(function(a,b){return (b._relevance||0)-(a._relevance||0)||new Date(b.published_at||0)-new Date(a.published_at||0);});
-    categoryBar(current);special(current,coverMap);districts(current);
+    categoryBar(current,coverMap);special(current,coverMap);districts(current);
     var requested=(new URLSearchParams(location.search).get('kategori')||'').toLocaleLowerCase('tr-TR').trim();
     if(requested){setTimeout(function(){var a=Array.prototype.slice.call(document.querySelectorAll('.news-category-bar a')).find(function(x){return norm(x.textContent)===norm(requested)||norm(x.textContent).replace(/\\s+/g,'-')===norm(requested);});if(a)a.click();},0);}
     var featured=choose(current);
