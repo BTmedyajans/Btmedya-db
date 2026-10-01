@@ -177,7 +177,10 @@ jobs:
           test "$www_status" = "301"
 
           home="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/)"
-          for marker in 'GERÇEK ÇEKİM' 'AI ÜRETİMİ' 'Kaynak Masası' 'https://www.instagram.com/btmedyajans/'; do
+          home_type="$(curl --resolve "btmedya.com.tr:443:$HOME_IP" -sS -o /dev/null -w "%{content_type}" --max-time 30 https://btmedya.com.tr/)"
+          echo "SMOKE home content-type: $home_type"
+          echo "$home_type" | grep -qi '^text/html'
+          for marker in 'GERÇEK ÇEKİM' 'AI ÜRETİMİ' 'Kaynak Masası' 'https://www.instagram.com/btmedyajans/' 'meta name="color-scheme" content="dark"' 'meta name="referrer" content="strict-origin-when-cross-origin"' 'preconnect href="https://tracker.metricool.com"'; do
             grep -q "$marker" <<<"$home"
             echo "SMOKE home marker OK: $marker"
           done
