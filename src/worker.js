@@ -5,7 +5,7 @@ import { renderNewsPage } from "./news-page.js";
 import { socialProviderStatus, metricoolConnectedNetworks } from "./social-platforms.js";
 import { runNewsIntelligence, newsIntelligenceStatus } from "./news-intelligence.js";
 import { recoveryPasswordValid } from "./auth-recovery.js";
-import { runAutopilot, autopilotPolicy, setAutopilotPolicy, autopilotStatus, connectionMatrix, referenceDraft } from "./autopilot.js";
+import { runAutopilot, autopilotPolicy, setAutopilotPolicy, autopilotStatus, connectionMatrix, referenceDraft, generateAutopilotImage } from "./autopilot.js";
 import { salesApi } from "./sales-router.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
@@ -785,6 +785,11 @@ async function autopilotApi(request, env, url){
   if(url.pathname==='/api/admin/autopilot/reference-draft' && request.method==='POST'){
     const b=await request.json().catch(()=>({}));
     const out=await referenceDraft(env,{url:b.url,instructions:b.instructions});
+    return json(out,out.ok?200:400);
+  }
+  if(url.pathname==='/api/admin/autopilot/generate-image' && request.method==='POST'){
+    const b=await request.json().catch(()=>({}));
+    const out=await generateAutopilotImage(env,{prompt:b.prompt,category:b.category,title:b.title});
     return json(out,out.ok?200:400);
   }
   if(url.pathname==='/api/admin/autopilot/connections' && request.method==='GET'){
