@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>BTMEDYA • Ajans Süpervizör</title>
+<link rel="stylesheet" href="./agency-os.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">BT<span>MEDYA</span> / AGENCY OS</div>
+  <nav class="nav">
+    <a href="/admin/autopilot/">Haber Merkezi</a>
+    <a href="/admin/client-hub/">Müşteri Merkezi</a>
+    <a href="/admin/editor/">AI Editör</a>
+  </nav>
+</header>
+
+<main class="shell">
+  <section class="hero">
+    <div>
+      <div class="eyebrow">SÜPER VİZÖR · İÇERİK · PAZARLAMA · OTOMASYON</div>
+      <h1>BTMEDYA'yı sürekli çalışan bir ajans merkezine çevir.</h1>
+      <p>Bu panel BTMEDYA'nın kendi yayınlarını ve müşterilerin içerik akışını aynı operasyon ekranında izler. Yeni içerik üretmezken bile kuyrukları, müşteri onaylarını, satış takiplerini, sosyal yayınları ve referans fırsatlarını tarar.</p>
+    </div>
+    <div class="hero-actions">
+      <button id="run" class="btn primary">Şimdi denetle</button>
+      <button id="refresh" class="btn">Yenile</button>
+    </div>
+    <div id="heartbeat" class="status">Sistem bağlantısı hazırlanıyor…</div>
+  </section>
+
+  <section class="metrics" id="metrics">
+    <article><span>Aktif müşteri</span><b id="mClients">0</b><small id="mClientHint">çalışma alanı</small></article>
+    <article><span>Bekleyen onay</span><b id="mApproval">0</b><small>müşteri / ekip</small></article>
+    <article><span>Sosyal kuyruk</span><b id="mSocial">0</b><small id="mSocialHint">planlı paylaşım</small></article>
+    <article><span>Açık satış</span><b id="mSales">0</b><small id="mSalesHint">takip gerektirenler</small></article>
+    <article><span>BTMEDYA yayın</span><b id="mNews">0</b><small>son 7 gün</small></article>
+    <article><span>Referans</span><b id="mRefs">0</b><small>yayındaki vaka</small></article>
+  </section>
+
+  <section class="grid">
+    <div class="panel">
+      <div class="panel-head"><div><div class="eyebrow">01 · ALARMLAR</div><h2>Bugün neye bakmalıyız?</h2></div><span id="alertCount" class="pill">0</span></div>
+      <div id="alerts" class="stack"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><div><div class="eyebrow">02 · AKSİYON</div><h2>Süpervizör notları</h2></div></div>
+      <div id="recommendations" class="stack"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><div><div class="eyebrow">03 · MÜŞTERİ AĞI</div><h2>İçerik ritmi ve çalışma alanları</h2></div><input id="search" class="search" placeholder="Firma ara…"></div>
+    <div id="clients" class="clients"></div>
+  </section>
+
+  <section class="grid">
+    <div class="panel">
+      <div class="eyebrow">04 · MALİYET FRENİ</div>
+      <h2>Üretimi değil, ihtiyacı otomatikleştir</h2>
+      <div class="rule"><b>Ücretsiz/az maliyetli çekirdek</b><span>D1 + R2 + KV + Cron</span></div>
+      <div class="rule"><b>AI çağrısı</b><span>Yalnız içerik üretimi ve medya gerektiğinde</span></div>
+      <div class="rule"><b>Gerçek medya</b><span>Önce BTMEDYA arşivi, AI medya ayrı etiketli</span></div>
+      <div class="rule"><b>Yayın güvenliği</b><span>Hassas veya müşteriye ait işler onay akışında</span></div>
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">05 · OPERASYON HARİTASI</div>
+      <h2>Tek döngü</h2>
+      <div class="flow"><span>Radar</span><i>→</i><span>Plan</span><i>→</i><span>Üret</span><i>→</i><span>Önizle</span><i>→</i><span>Onay</span><i>→</i><span>Yayın</span><i>→</i><span>Ölç</span></div>
+      <p class="mut">Her adım tek panelden izlenir. Denetim motoru eksik olan halkayı alarm olarak çıkarır.</p>
+    </div>
+  </section>
+
+  <footer class="foot">BTMEDYA Agency Supervisor · otomatik denetim periyodu: 15 dakika · panel güncellemesi: 60 saniye</footer>
+</main>
+<script src="./agency-os.js" defer></script>
+</body>
+</html>
