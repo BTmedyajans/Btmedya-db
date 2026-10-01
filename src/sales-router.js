@@ -17,11 +17,24 @@ const session=async(request,secret)=>{
 const clean=(v,n=500)=>String(v??'').trim().slice(0,n);
 const jsonArray=v=>{try{const x=JSON.parse(String(v||'[]'));return Array.isArray(x)?x:[]}catch{return[]}};
 
+const base64url=v=>btoa(String.fromCharCode(...new Uint8Array(v))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+async function sha256Hex(value){
+  const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(value)));
+  return Array.from(new Uint8Array(bytes)).map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+function randomToken(){
+  const bytes=new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return base64url(bytes);
+}
+
 async function ensureClientTables(env){
   if(!env.DB)return;
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS client_workspaces (id TEXT PRIMARY KEY,name TEXT NOT NULL,slug TEXT NOT NULL UNIQUE,sector TEXT NOT NULL DEFAULT '',website_url TEXT NOT NULL DEFAULT '',logo_url TEXT NOT NULL DEFAULT '',services_json TEXT NOT NULL DEFAULT '[]',brand_voice TEXT NOT NULL DEFAULT '',automation_enabled INTEGER NOT NULL DEFAULT 1,social_management_enabled INTEGER NOT NULL DEFAULT 1,web_management_enabled INTEGER NOT NULL DEFAULT 0,ads_management_enabled INTEGER NOT NULL DEFAULT 0,reference_permission INTEGER NOT NULL DEFAULT 0,status TEXT NOT NULL DEFAULT 'active',created_at TEXT NOT NULL,updated_at TEXT NOT NULL)`).run().catch(()=>{});
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS client_content (id TEXT PRIMARY KEY,client_id TEXT NOT NULL,title TEXT NOT NULL DEFAULT '',content_type TEXT NOT NULL DEFAULT 'social',engine TEXT NOT NULL DEFAULT 'btmedya',brief TEXT NOT NULL DEFAULT '',body TEXT NOT NULL DEFAULT '',media_key TEXT NOT NULL DEFAULT '',preview_json TEXT NOT NULL DEFAULT '{}',status TEXT NOT NULL DEFAULT 'draft',client_approved INTEGER NOT NULL DEFAULT 0,published_at TEXT,created_at TEXT NOT NULL,updated_at TEXT NOT NULL,FOREIGN KEY(client_id) REFERENCES client_workspaces(id) ON DELETE CASCADE)`).run().catch(()=>{});
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS client_references (id TEXT PRIMARY KEY,client_id TEXT NOT NULL,title TEXT NOT NULL DEFAULT '',slug TEXT NOT NULL UNIQUE,summary TEXT NOT NULL DEFAULT '',cover_key TEXT NOT NULL DEFAULT '',content_ids_json TEXT NOT NULL DEFAULT '[]',visibility TEXT NOT NULL DEFAULT 'draft',featured INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL,updated_at TEXT NOT NULL,FOREIGN KEY(client_id) REFERENCES client_workspaces(id) ON DELETE CASCADE)`).run().catch(()=>{});
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS client_review_tokens (id TEXT PRIMARY KEY,content_id TEXT NOT NULL,token_hash TEXT NOT NULL UNIQUE,expires_at TEXT NOT NULL,used_at TEXT,created_at TEXT NOT NULL,FOREIGN KEY(content_id) REFERENCES client_content(id) ON DELETE CASCADE)`).run().catch(()=>{});
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS client_review_events (id TEXT PRIMARY KEY,content_id TEXT NOT NULL,decision TEXT NOT NULL,comment TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL,FOREIGN KEY(content_id) REFERENCES client_content(id) ON DELETE CASCADE)`).run().catch(()=>{});
 }
 
 async function clientHubApi(request,env,url){
@@ -75,7 +88,7 @@ async function clientHubApi(request,env,url){
   const cm=url.pathname.match(/^\/api\/client-hub\/content\/([^/]+)$/);
   if(cm&&request.method==='PATCH'){const id=cm[1],b=await request.json().catch(()=>({}));const fields=[],vals=[];for(const k of ['title','content_type','engine','brief','body','media_key','status'])if(k in b){fields.push(k+'=?');vals.push(clean(b[k],k==='body'?20000:k==='brief'?3000:500));}if('preview' in b){fields.push('preview_json=?');vals.push(JSON.stringify(b.preview||{}));}if('client_approved' in b){fields.push('client_approved=?');vals.push(b.client_approved?1:0);}if('published_at' in b){fields.push('published_at=?');vals.push(b.published_at||null);}if(!fields.length)return j({ok:false,error:'Değişiklik yok'},400);fields.push('updated_at=?');vals.push(new Date().toISOString(),id);await env.DB.prepare('UPDATE client_content SET '+fields.join(',')+' WHERE id=?').bind(...vals).run();return j({ok:true,id});}
   const cr=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/reference$/);
-  if(cr&&request.method==='POST'){const clientId=cr[1],b=await request.json().catch(()=>({})),title=clean(b.title,240);if(!title)return j({ok:false,error:'Referans başlığı gerekli'},400);const id=crypto.randomUUID(),now=new Date().toISOString();const slug=clean(b.slug||title.toLocaleLowerCase('tr-TR').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),120);await env.DB.prepare('INSERT INTO client_references(id,client_id,title,slug,summary,cover_key,content_ids_json,visibility,featured,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)').bind(id,clientId,title,slug,clean(b.summary,2000),clean(b.cover_key,500),JSON.stringify(Array.isArray(b.content_ids)?b.content_ids:[]),['draft','public'].includes(b.visibility)?b.visibility:'draft',b.featured?1:0,now,now).run();return j({ok:true,id,slug,public_url:'/referanslar/'+encodeURIComponent(slug)});}
+  if(cr&&request.method==='POST'){const clientId=cr[1],b=await request.json().catch(()=>({})),title=clean(b.title,240);if(!title)return j({ok:false,error:'Referans başlığı gerekli'},400);const id=crypto.randomUUID(),now=new Date().toISOString();const slug=clean(b.slug||title.toLocaleLowerCase('tr-TR').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),120);await env.DB.prepare('INSERT INTO client_references(id,client_id,title,slug,summary,cover_key,content_ids_json,visibility,featured,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)').bind(id,clientId,title,slug,clean(b.summary,2000),clean(b.cover_key,500),JSON.stringify(Array.isArray(b.content_ids)?b.content_ids:[]),['draft','public'].includes(b.visibility)?b.visibility:'draft',b.featured?1:0,now,now).run();return j({ok:true,id,slug,public_url:'/referanslar/?ref='+encodeURIComponent(slug)});}
   return j({ok:false,error:'Client Hub endpoint bulunamadı'},404);
 }
 
