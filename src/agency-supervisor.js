@@ -83,6 +83,8 @@ export async function runAgencySupervisor(env,{force=false}={}){
     sales:{open:0,due:0},
     references:{public:0},
     media:{total:0,ai:0},
+    clientsSnapshot:[],
+    recommendations:[],
     alerts:0
   };
   try{
@@ -107,6 +109,7 @@ export async function runAgencySupervisor(env,{force=false}={}){
       ORDER BY COALESCE(MAX(cc.updated_at),'1970-01-01T00:00:00.000Z') ASC
       LIMIT 100`);
     const seven=Date.now()-7*86400000;
+    summary.clientsSnapshot=summarizeRows(clientRows.results||[]);
     for(const c of (clientRows.results||[])){
       const last=c.last_content_at?new Date(c.last_content_at).getTime():0;
       if(!last||last<seven){
@@ -170,6 +173,12 @@ export async function runAgencySupervisor(env,{force=false}={}){
       await openAlert(env,{signature:sig,severity:'info',title:'Müşteri onayı bekleyen içerikler var',detail:summary.content.pendingApproval+' içerik henüz müşteri/ekip onayından geçmedi.'});
     }
 
+    if(summary.clients.withoutRecentContent) summary.recommendations.push('İçerik ritmi zayıf müşteriler için haftalık içerik planı üret.');
+    if(summary.content.pendingApproval) summary.recommendations.push('Bekleyen müşteri onaylarını tek tek tamamla; onaylanan işleri yayın kuyruğuna aktar.');
+    if(summary.social.overdue || summary.social.failed) summary.recommendations.push('Sosyal yayın kuyruğundaki geciken/hatalı kayıtları kontrol et.');
+    if(summary.sales.due) summary.recommendations.push('Takip zamanı gelen satış taleplerini bugün kapat.');
+    if(!summary.ownedNews.published7d) summary.recommendations.push('BTMEDYA kendi yayın akışını yeniden besle: Haber Merkezi + Sabah Masası.');
+    if(!summary.references.public) summary.recommendations.push('İzin verilen müşteri işlerini referans/vaka çalışmasına dönüştür.');
     await closeUnseenAlerts(env,seen);
     const count=await q(env,'SELECT COUNT(*) open FROM agency_alerts WHERE status=\'open\'');
     summary.alerts=n(count?.open);
