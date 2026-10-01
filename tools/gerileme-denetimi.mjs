@@ -239,6 +239,21 @@ tara('public'); tara('src');
   }
 }
 
+/* 8c) Sosyal admin operasyonu: teslimat retry'i status=planlandi hilesine
+       donmemeli; hata kaydi temizlenmeli ve yeniden kuyruga girmelidir.
+       Ayrica admin, platform bazli secenekleri kullanmali. */
+{
+  const worker = existsSync('src/worker.js') ? readFileSync('src/worker.js','utf8') : '';
+  const admin = existsSync('public/admin/index.html') ? readFileSync('public/admin/index.html','utf8') : '';
+  if (!worker.includes("endsWith('/retry')") || !worker.includes("DELETE FROM metricool_gonderim WHERE post_id=?")) {
+    bulgular.push('src/worker.js sosyal retry akisi metricool hata kaydini temizleyip yeniden kuyruga almiyor.');
+  }
+  if (!admin.includes('data-social-retry') || !admin.includes("'/retry'") ||
+      !admin.includes('name="sPlatform"')) {
+    bulgular.push('public/admin/index.html sosyal retry veya platform bazli secim arayuzunu icermiyor.');
+  }
+}
+
 /* 8b) Giris filmi rozeti betiklerde elle "gercek" yazilmamali.
        29 Eylul 2026: public/mobile-motion.js mobilde sahneleri kendi
        dizisiyle kurdu; once dort AI sahnesine sabit "GERCEK CEKIM" (3567196),
