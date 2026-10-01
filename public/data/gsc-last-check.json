@@ -49,5 +49,9 @@
     "healthScore": 22,
     "lastCheckAt": "2026-10-01T13:09:42.171+00:00",
     "note": "GSC Wizard tracker Google URL Inspection sonuçlarını izliyor. Alt sayfalar henüz Google tarafından bilinmiyor; bu teknik erişim veya kalite hatası olduğu anlamına tek başına gelmez."
+  },
+  "bing": {
+    "configured": false,
+    "note": "GSC Wizard has no Bing Webmaster API key for this property yet."
   }
 }
