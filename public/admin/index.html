@@ -124,6 +124,27 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   .wrap{padding:12px}
   h1{font-size:clamp(32px,11vw,52px)}
 }
+.ops-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+.ops-preview{border:1px solid #222;border-radius:14px;background:#050505;overflow:hidden}
+.ops-preview-head{display:flex;gap:8px;align-items:center;padding:10px;border-bottom:1px solid #222;flex-wrap:wrap}
+.ops-preview-stage{min-height:420px;display:flex;align-items:flex-start;justify-content:center;background:#070707}
+.ops-preview-frame{border:0;width:100%;height:640px;background:#fff;transition:width .2s ease}
+.ops-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.ops-kpi{padding:12px;border:1px solid #222;border-radius:10px;background:#111}
+.ops-kpi b{display:block;font-size:20px;margin-bottom:4px}
+.ops-kpi span{color:#777;font-size:11px}
+.ops-list{display:flex;flex-direction:column;gap:7px}
+.ops-item{padding:10px;border:1px solid #222;border-radius:10px;background:#101010}
+.ops-item-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.ops-item small{color:#777}
+.ops-ok{color:#6c6}.ops-warn{color:#e8c06a}.ops-err{color:#f77}
+.ops-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.ops-tool{padding:12px;border:1px solid #222;border-radius:10px;background:#111}
+.ops-tool b{display:block}.ops-tool small{display:block;margin-top:5px;color:#777;line-height:1.45}
+.ops-tool .btn{margin-top:9px}
+.ops-audit{max-height:420px;overflow:auto}
+@media(max-width:900px){.ops-grid{grid-template-columns:1fr}.ops-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ops-tools{grid-template-columns:repeat(2,minmax(0,1fr))}.ops-preview-frame{height:560px}}
+@media(max-width:520px){.ops-kpi-grid{grid-template-columns:1fr 1fr}.ops-tools{grid-template-columns:1fr}.ops-preview-frame{height:520px}}
 </style><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"BTMedya Admin — İçerik Yönetimi","description":"BTMEDYA haber, medya ve prodüksiyon içerikleri.","url":"https://btmedya.com.tr/admin/","inLanguage":"tr-TR","isPartOf":{"@type":"WebSite","name":"BTMEDYA","url":"https://btmedya.com.tr/"}}</script>
 </head>
 <body>
@@ -136,7 +157,7 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <button class="tab" data-tab="social">Sosyal İçerik</button>
     <button class="tab" data-tab="automation">Otomasyon</button><button class="tab" data-tab="intel">Haber İstihbaratı</button>
     <button class="tab" data-tab="videos">Videolar</button>
-    <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button><button class="tab" data-tab="control">Control Center</button>
+    <button class="tab" data-tab="messages">Gelen Mesajlar <span class="badge hidden" id="unreadBadge">0</span></button><button class="tab" data-tab="control">Control Center</button><button class="tab" data-tab="ops">Önizleme · SEO · Araçlar</button>
   </div>
   <button class="btn" id="logoutBtn" style="display:none">Çıkış</button>
 </header>
@@ -507,6 +528,65 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   <div class="panel">
     <h2>Bekleyen kurulumlar</h2>
     <div id="controlNext"></div>
+  </div>
+</div>
+
+<div class="tab-content" id="tab-ops">
+  <div class="panel">
+    <div class="row" style="align-items:end;gap:10px">
+      <div style="flex:1;min-width:240px">
+        <h2 style="margin-bottom:4px">BTMEDYA Operasyon Merkezi</h2>
+        <p class="muted" style="margin:0">İçeriğin canlıda nereye gittiğini gör, bağlantıyı aç, cihaz bazlı önizle ve yayın öncesi SEO/entegrasyon durumunu tek ekranda kontrol et.</p>
+      </div>
+      <button class="btn primary" id="opsRefresh">Tüm denetimleri yenile</button>
+    </div>
+    <div id="opsSummary" style="margin-top:12px"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Canlı önizleme ve bağlantı</h2>
+    <div class="ops-preview">
+      <div class="ops-preview-head">
+        <input id="opsUrl" value="/" placeholder="/haberler/... veya https://btmedya.com.tr/..." style="flex:1;min-width:220px">
+        <select id="opsDevice" style="width:auto">
+          <option value="100%">Masaüstü</option>
+          <option value="412px">412 px</option>
+          <option value="390px">390 px</option>
+          <option value="360px">360 px</option>
+        </select>
+        <button class="btn primary" id="opsPreviewBtn">Önizle</button>
+        <button class="btn" id="opsOpenBtn">Yeni sekmede aç ↗</button>
+      </div>
+      <div class="ops-preview-stage"><iframe id="opsPreviewFrame" class="ops-preview-frame" title="BTMEDYA canlı içerik önizlemesi"></iframe></div>
+      <div class="muted" id="opsPreviewMeta" style="padding:10px">Yalnızca btmedya.com.tr üzerindeki sayfalar önizlenir. Dış kaynaklar yeni sekmede açılır.</div>
+    </div>
+  </div>
+
+  <div class="ops-grid">
+    <div class="panel">
+      <h2>SEO / AEO yayın kapısı</h2>
+      <div id="opsSeoChecks" class="ops-list"><div class="muted">Kontrol ediliyor…</div></div>
+    </div>
+    <div class="panel">
+      <h2>Trend masası</h2>
+      <div id="opsTrends" class="ops-list"><div class="muted">Trend verisi okunuyor…</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Yayın haritası · “Nereye gidiyor?”</h2>
+    <div id="opsRouting" class="ops-list"><div class="muted">Yükleniyor…</div></div>
+  </div>
+
+  <div class="panel">
+    <h2>Bağlantı ve araç matrisi</h2>
+    <div id="opsTools" class="ops-tools"></div>
+  </div>
+
+  <div class="panel">
+    <h2>İşlem günlüğü</h2>
+    <p class="muted">Admin tarafından yapılan değişikliklerin hedefi ve sonucu burada görünür. Secret, şifre veya token kaydedilmez.</p>
+    <div id="opsAudit" class="ops-audit ops-list"><div class="muted">Yükleniyor…</div></div>
   </div>
 </div>
 
