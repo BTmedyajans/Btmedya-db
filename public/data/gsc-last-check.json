@@ -1,6 +1,7 @@
 {
-  "checkedAt": "2026-10-01T12:51:00Z",
+  "checkedAt": "2026-10-01T12:52:10Z",
   "property": "https://btmedya.com.tr/",
+  "settledThrough": "2026-09-28",
   "clicks": 3,
   "impressions": 8,
   "ctr": 37.5,
@@ -9,19 +10,30 @@
   "homeVerdict": "PASS",
   "homeCoverage": "Submitted and indexed",
   "inspectedUrls": 10,
-  "notes": "GSC verisi son 28 yerleşmiş gün içindir. 2026-09-28'e kadar olan veri kullanılmıştır. Haberler ve kurumsal alt sayfaların bir kısmı URL Inspection'da henüz Google'a bilinmiyor görünmüştür.",
+  "knownToGoogle": {
+    "home": "PASS",
+    "otherInspectedUrls": "NEUTRAL / URL is unknown to Google"
+  },
   "sitemaps": {
     "sitemap": {
       "submitted": 125,
       "indexed": 0,
       "warnings": 0,
-      "errors": 0
+      "errors": 0,
+      "status": "pending after resubmission"
     },
     "newsSitemap": {
       "submitted": 12,
       "indexed": 0,
       "warnings": 0,
-      "errors": 0
+      "errors": 0,
+      "status": "pending after resubmission"
     }
-  }
+  },
+  "indexNow": {
+    "configured": false,
+    "submissionCount": 0,
+    "note": "IndexNow key is not configured for this site."
+  },
+  "notes": "GSC Search Analytics is delayed; settled data ends 2026-09-28. Sitemap submission queues crawling and does not itself index URLs."
 }
