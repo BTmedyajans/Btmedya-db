@@ -1582,13 +1582,13 @@ function cspKur(pathname, nonce) {
   const panel = pathname.startsWith('/admin');
   return [
     "default-src 'self'",
-    `script-src 'self' 'unsafe-inline' ${CF_ANALYTICS_BETIK}`,
+    `script-src 'self' 'unsafe-inline' ${CF_ANALYTICS_BETIK} https://tracker.metricool.com`,
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
     "img-src 'self' data: blob: https://i.ytimg.com",
     "media-src 'self' blob:",
     "frame-src https://www.youtube-nocookie.com",
-    `connect-src 'self' ${CF_ANALYTICS_UC}`,
+    `connect-src 'self' ${CF_ANALYTICS_UC} https://tracker.metricool.com`,
     "form-action 'self'",
     "frame-ancestors 'self'",
     "base-uri 'self'",
