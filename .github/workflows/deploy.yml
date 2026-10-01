@@ -56,7 +56,7 @@ jobs:
           blocks=re.findall(r"<script([^>]*)>(.*?)</script>", html, flags=re.I|re.S)
           checked=0
           for attrs,src in blocks:
-              if not src.strip() or re.search(r"application/ld\\+json", attrs, flags=re.I):
+              if not src.strip() or re.search(r"application/ld\+json", attrs, flags=re.I):
                   continue
               with tempfile.NamedTemporaryFile("w",suffix=".js",delete=False,encoding="utf-8") as f:
                   f.write(src); path=f.name
