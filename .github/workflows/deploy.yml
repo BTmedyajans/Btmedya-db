@@ -103,16 +103,20 @@ jobs:
           resolve_ip() {
             local host="$1"
             local ip=""
-            for attempt in 1 2 3; do
-              ip="$(dig +short A "$host" @1.1.1.1 | head -n1 || true)"
-              [ -n "$ip" ] && break
-              sleep 5
+            local resolver=""
+            for resolver in 1.1.1.1 8.8.8.8 9.9.9.9; do
+              for attempt in 1 2 3; do
+                ip="$(dig +short A "$host" @"$resolver" | head -n1 || true)"
+                if [ -n "$ip" ]; then
+                  echo "DNS_RESOLVED $host via $resolver -> $ip" >&2
+                  printf '%s' "$ip"
+                  return 0
+                fi
+                sleep 3
+              done
             done
-            if [ -z "$ip" ]; then
-              echo "DNS_RESOLVE_FAILED $host" >&2
-              return 1
-            fi
-            echo "$ip"
+            echo "DNS_RESOLVE_FAILED $host (resolvers: 1.1.1.1, 8.8.8.8, 9.9.9.9)" >&2
+            return 1
           }
 
           # Cloudflare Workers Builds deploys the same main push asynchronously.\n          # Wait before the first live probe so the verification job does not race the production build.\n          sleep 90\n\n          HOME_IP="$(resolve_ip btmedya.com.tr)"
