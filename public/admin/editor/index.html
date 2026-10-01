@@ -16,7 +16,7 @@
   <div class="kicker">CONTENT OS · EDITORIAL COPILOT</div>
   <h1>Fikirden yayına. Önizleme açıkken.</h1>
   <p>Kaynakları tara, editoryal taslak üret, SEO ve trend sinyallerini kontrol et, canlı sayfayı gör ve tek akışta yayınla. AI yalnızca yardımcıdır; kaynak ve insan kontrolü korunur.</p>
-  <div class="toolbar"><button class="btn primary" id="scan">Kaynakları tara</button><button class="btn blue" id="draft">AI taslak üret</button><button class="btn" id="save">Taslak kaydet</button><button class="btn primary" id="publish">Yayınla</button></div>
+  <div class="toolbar"><button class="btn primary" id="scan">Kaynakları tara</button><button class="btn blue" id="draft">AI taslak üret</button><button class="btn" id="save">Taslak kaydet</button><button class="btn primary" id="publish">Yayınla</button><a class="btn warn" href="/admin/autopilot/">◎ Otonom Yayın Merkezi</a></div>
   <div id="status" class="status">Oturum açıldıysa gerçek admin API'leri kullanılacaktır.</div>
 </section>
 <div class="grid" style="margin-top:14px">
@@ -28,7 +28,7 @@
       <div><label class="label">YAYIN DURUMU</label><select id="state" class="field"><option value="draft">Taslak</option><option value="published">Yayınla</option></select></div>
     </div>
     <label class="label">BAŞLIK</label><input id="title" class="field" placeholder="Haber başlığı">
-    <label class="label">KAYNAK URL</label><input id="source" class="field" placeholder="https://..."><
+    <label class="label">KAYNAK URL</label><input id="source" class="field" placeholder="https://...">
     <label class="label">KAYNAK / NOTLAR</label><textarea id="sourceText" class="field" rows="6" placeholder="Kaynağın metni, saha notu veya doğrulanmış maddeler..."></textarea>
     <label class="label">ÖZET</label><textarea id="excerpt" class="field" rows="3" placeholder="Arama ve haber kartı özeti"></textarea>
     <label class="label">HABER METNİ</label><textarea id="body" class="field" rows="12" placeholder="Haber gövdesi"></textarea>
@@ -55,6 +55,12 @@
     <p class="muted" style="margin:10px 0">Yayınlanan haberden platforma uygun metin üretilebilir. Video gerekiyorsa BTMEDYA gerçek arşivinden seçilir. AI içerikleri AI LAB etiketi taşır.</p>
     <button class="btn blue" id="social">Sosyal taslak oluştur</button>
   </div>
+  <div class="panel" style="margin-top:14px">
+    <h2>05 · AI Otonom Yönetici</h2>
+    <p class="muted">Canlı gündem, Google Trends, rakip başlıkları ve BTMEDYA arşivini kurallara göre birleştirir. Hassas içerikler otomatik yayına çıkmaz.</p>
+    <div class="toolbar"><button class="btn warn" id="autopilotRun">Şimdi otonom çalıştır</button><a class="btn" href="/admin/autopilot/">Kuralları ve bağlantıları yönet</a></div>
+    <div id="autoStatus" class="status">Otonom merkez hazır.</div>
+  </div>
 </section>
 <section class="preview">
   <div class="panel">
@@ -62,8 +68,8 @@
     <div class="frame-wrap"><iframe id="frame" class="frame" title="BTMEDYA canlı haber önizleme"></iframe></div>
     <div class="mini" style="margin-top:10px"><div><b>Mobil</b><span>540px / gerçek sayfa</span></div><div><b>SEO</b><span id="miniSeo">Bekliyor</span></div><div><b>Durum</b><span id="miniLive">Hazır</span></div></div>
   </div>
-  <div class="panel" style="margin-top:14px"><h2>05 · Sistem bağlantısı</h2><div id="system" class="list"><div class="item"><strong>Kontrol ediliyor...</strong></div></div></div>
-  <div class="panel" style="margin-top:14px"><h2>06 · Son kaynaklar</h2><div id="sources" class="list"><div class="source-card">Bu editör yalnızca doğrulanabilir kaynakları ve mevcut BTMEDYA arşivini kullanmak üzere tasarlanmıştır.</div></div></div>
+  <div class="panel" style="margin-top:14px"><h2>06 · Sistem bağlantısı</h2><div id="system" class="list"><div class="item"><strong>Kontrol ediliyor...</strong></div></div></div>
+  <div class="panel" style="margin-top:14px"><h2>07 · Son kaynaklar</h2><div id="sources" class="list"><div class="source-card">Bu editör yalnızca doğrulanabilir kaynakları ve mevcut BTMEDYA arşivini kullanmak üzere tasarlanmıştır.</div></div></div>
 </section>
 </div>
 <div class="footer">BTMEDYA AI Editör Masası · Kaynak + editör + önizleme + yayın zinciri</div>
@@ -82,7 +88,9 @@ async function scan(){setStatus('Kaynak masası taranıyor...');try{const d=awai
 async function trends(){try{const d=await req('/api/admin/news-intelligence');const items=d.items||d.queue||[];$('#trendList').innerHTML=items.slice(0,10).map(x=>`<div class="item"><strong>${esc(x.title||x.sorgu||x.topic||'Trend')}</strong><small>${esc(x.category||x.source||x.publisher||'')}</small></div>`).join('')||'<div class="item"><strong>Aktif trend kuyruğu boş.</strong><small>Haber adaylarını bul ile yeni kaynak taraması çalıştırılabilir.</small></div>'}catch(e){$('#trendList').innerHTML='<div class="item"><strong>Trend verisi oturum gerektiriyor.</strong><small>'+esc(e.message)+'</small></div>'}}
 async function system(){try{const d=await req('/api/admin/control-center');$('#system').innerHTML=`<div class="item"><strong>Site</strong><small>${esc(d.site?.url||'BTMEDYA')} · Worker ${esc(d.site?.worker||'-')}</small></div><div class="item"><strong>Depolama</strong><small>D1 ${d.storage?.d1?'✓':'✗'} · R2 ${d.storage?.r2?'✓':'✗'}</small></div><div class="item"><strong>Metricool</strong><small>${d.metricool?.yapilandirildi?'Bağlı':'Kurulum/doğrulama bekliyor'}</small></div><div class="item"><strong>Otomasyon</strong><small>${esc(d.automation?.cron||'-')} · ${esc(d.automation?.heartbeatAt||'heartbeat bekleniyor')}</small></div>`}catch(e){$('#system').innerHTML='<div class="item"><strong>Admin oturumu gerekli</strong><small>'+esc(e.message)+'</small></div>'}}
 async function social(){const title=val('#title')||'BTMEDYA güncel';const text=(val('#excerpt')||val('#body').slice(0,400))+'\n\nDetay: https://btmedya.com.tr/haberler/'+(val('#slug')||slugify(title));try{const d=await req('/api/admin/social',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({title,body:text,platforms:['tiktok','youtube-short'],format:'9:16',status:'onayda',source_slug:val('#slug'),media_key:'media/web/hero-story.mp4'})});setStatus('Sosyal taslak oluşturuldu: '+d.id,'ok')}catch(e){setStatus('Sosyal taslak oluşturulamadı: '+e.message,'err')}}
-$('#scan').onclick=scan;$('#draft').onclick=aiDraft;$('#save').onclick=()=>save(false);$('#publish').onclick=()=>save(true);$('#trend').onclick=trends;$('#finder').onclick=scan;$('#social').onclick=social;$('#refreshPreview').onclick=refreshPreview;['#title','#excerpt','#slug','#body','#cover'].forEach(id=>$(id).addEventListener('input',seo));system();trends();seo();
+$('#scan').onclick=scan;$('#draft').onclick=aiDraft;$('#save').onclick=()=>save(false);$('#publish').onclick=()=>save(true);$('#trend').onclick=trends;$('#finder').onclick=scan;$('#social').onclick=social;$('#refreshPreview').onclick=refreshPreview;
+$('#autopilotRun').onclick=async()=>{const b=$('#autoStatus');b.textContent='Otonom yayın merkezi çalışıyor…';b.className='status warn';try{const d=await req('/api/admin/autopilot/run',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({force:true,limit:3})});b.textContent='Tamamlandı · '+Number(d.created_news||0)+' haber · '+Number(d.published_news||0)+' otomatik yayın · '+Number(d.social_created||0)+' sosyal işlem.';b.className='status ok';}catch(e){b.textContent='Otonom çalışma başarısız: '+e.message;b.className='status err';}};
+['#title','#excerpt','#slug','#body','#cover'].forEach(id=>$(id).addEventListener('input',seo));system();trends();seo();
 </script>
 </body>
 </html>
