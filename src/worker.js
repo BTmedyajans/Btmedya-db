@@ -532,6 +532,91 @@ async function mediaSyncApi(request, env, url){
   }
   return json({ok:true,already:false,path:raw,source:'r2',mime,size,message:'Statik medya R2 ve D1 medya kasasına aktarıldı'});
 }
+/* ---------- Admin page inspector + safe command bridge ---------- */
+const SAFE_ADMIN_COMMANDS = new Set([
+  'news-intelligence',
+  'sabah-preview',
+  'social-drafts',
+  'automation-heartbeat'
+]);
+
+function publicPathFromInput(value){
+  try{
+    const raw=String(value||'/').trim();
+    const u=new URL(raw,'https://btmedya.com.tr');
+    if(u.hostname!=='btmedya.com.tr' || u.protocol!=='https:') return null;
+    if(/^\/(?:admin|api)(?:\/|$)/.test(u.pathname)) return null;
+    return u.pathname+u.search;
+  }catch(e){ return null; }
+}
+
+async function adminPageInspectApi(request, env, url){
+  if(url.pathname!=='/api/admin/inspect' || request.method!=='GET') return null;
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  const path=publicPathFromInput(url.searchParams.get('path')||'/');
+  if(!path) return json({ok:false,error:'Yalnızca btmedya.com.tr üzerindeki public yollar denetlenebilir.'},400);
+  const target=new URL(path,'https://btmedya.com.tr');
+  let response;
+  try{
+    response=await env.ASSETS.fetch(new Request(target.toString(),{method:'GET',headers:{accept:'text/html'}}));
+  }catch(e){
+    return json({ok:false,error:'Sayfa alınamadı: '+String(e?.message||e)},502);
+  }
+  const contentType=response.headers.get('content-type')||'';
+  const status=response.status;
+  if(!contentType.includes('text/html')){
+    return json({ok:true,path,status,contentType,html:false});
+  }
+  const html=await response.text();
+  const pick=(re)=>{const m=html.match(re);return m?String(m[1]||'').trim():''};
+  const title=pick(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  const description=pick(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i);
+  const canonical=pick(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']*)["']/i);
+  const ogImage=pick(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']*)["']/i);
+  const h1=pick(/<h1[^>]*>([\s\S]*?)<\/h1>/i).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+  const robots=pick(/<meta[^>]+name=["']robots["'][^>]+content=["']([^"']*)["']/i);
+  const jsonLd=(html.match(/application\/ld\+json/gi)||[]).length;
+  const links=(html.match(/<a\b/gi)||[]).length;
+  const scripts=(html.match(/<script\b/gi)||[]).length;
+  const images=(html.match(/<img\b/gi)||[]).length;
+  const videos=(html.match(/<video\b/gi)||[]).length;
+  const localLinks=(html.match(/href=["']\/[^"']+/gi)||[]).length;
+  return json({
+    ok:true,path,status,contentType,html:true,
+    seo:{
+      title,description,canonical,ogImage,robots,h1,
+      jsonLd,links,scripts,images,videos,localLinks,
+      titleOk:title.length>=10 && title.length<=65,
+      descriptionOk:description.length>=50 && description.length<=170,
+      canonicalOk:canonical.startsWith('https://btmedya.com.tr/'),
+      h1Ok:h1.length>0,
+      structuredDataOk:jsonLd>0
+    }
+  });
+}
+
+async function adminCommandApi(request, env, url){
+  if(url.pathname!=='/api/admin/command' || request.method!=='POST') return null;
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  const body=await request.json().catch(()=>null);
+  const command=String(body?.command||'').trim();
+  if(!SAFE_ADMIN_COMMANDS.has(command)) return json({ok:false,error:'İzin verilmeyen komut'},400);
+  if(command==='news-intelligence'){
+    const result=await runNewsIntelligence(env,{limit:12});
+    return json({ok:true,command,result});
+  }
+  if(command==='sabah-preview'){
+    const result=await sabahMasasi(env,{kuru:true,deneme:false,zorla:true});
+    return json({ok:true,command,result});
+  }
+  if(command==='social-drafts'){
+    const result=await autoPrepareSocialDrafts(env,3);
+    return json({ok:true,command,result});
+  }
+  const result=await recordAutomationHeartbeat(env);
+  return json({ok:true,command,result});
+}
+
 /* ---------- Admin operation audit ---------- */
 async function ensureAdminAuditTable(env){
   if(!env.DB) return;
@@ -1479,6 +1564,10 @@ export default { async scheduled(controller, env, ctx){
   }
 
   if(url.pathname.startsWith('/api/')){
+    const inspect = await adminPageInspectApi(request, env, url);
+    if(inspect) return inspect;
+    const command = await adminCommandApi(request, env, url);
+    if(command) return audit(command);
     const auditGet = await adminAuditApi(request, env, url);
     if(auditGet) return auditGet;
     const audit = (response) => {
