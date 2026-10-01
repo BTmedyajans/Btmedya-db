@@ -1526,6 +1526,9 @@ $('#socialSummaryRefresh').onclick=()=>{loadSocialSummary();loadSocial();};
   });
   const oldShow=window.showTab;
   if(typeof oldShow==='function') window.showTab=function(name){oldShow(name);if(name==='intel')intel(false)};
+  let intelTimer=null;
+  const startIntelPulse=()=>{if(intelTimer)return;intelTimer=setInterval(()=>{const tab=document.getElementById('tab-intel');if(tab?.classList.contains('active'))intel(false)},60000)};
+  startIntelPulse();
 })();
 </script>
 <script src="/admin/ops.js" defer></script></body>
