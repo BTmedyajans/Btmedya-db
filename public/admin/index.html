@@ -543,6 +543,27 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
     <div id="opsSummary" style="margin-top:12px"></div>
   </div>
 
+  <div class="panel" id="opsInspector">
+    <h2>Sayfa Müfettişi · SEO + kaynak + yönlendirme</h2>
+    <div class="row" style="align-items:end">
+      <div style="flex:1;min-width:230px"><label>PUBLIC URL / PATH</label><input id="opsInspectPath" value="/" placeholder="/haberler/..."></div>
+      <button class="btn primary" id="opsInspectBtn">Denetle</button>
+    </div>
+    <div id="opsInspectResult" class="ops-list" style="margin-top:12px"><div class="muted">Bir public adres girip Denetle'ye basın.</div></div>
+  </div>
+
+  <div class="panel">
+    <h2>Güvenli AI / otomasyon komutları</h2>
+    <p class="muted">Buradaki komutlar yalnızca izinli operasyonları çalıştırır. Serbest kabuk/SQL çalıştırılmaz. Sonuçlar audit günlüğüne yazılır.</p>
+    <div class="row">
+      <button class="btn" data-opcmd="news-intelligence">Haber istihbaratını tara</button>
+      <button class="btn" data-opcmd="sabah-preview">Sabah Masası önizleme</button>
+      <button class="btn" data-opcmd="social-drafts">Sosyal taslak kuyruğunu hazırla</button>
+      <button class="btn" data-opcmd="automation-heartbeat">Otomasyon sağlığını yenile</button>
+    </div>
+    <p id="opsCommandStatus" class="status"></p>
+  </div>
+
   <div class="panel">
     <h2>Canlı önizleme ve bağlantı</h2>
     <div class="ops-preview">
