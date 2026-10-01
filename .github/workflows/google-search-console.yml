@@ -23,6 +23,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate live indexing endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          for url in \
+            https://btmedya.com.tr/robots.txt \
+            https://btmedya.com.tr/sitemap.xml \
+            https://btmedya.com.tr/news-sitemap.xml; do
+            code="$(curl -LfsS -o /dev/null -w '%{http_code}' "$url")"
+            test "$code" = "200"
+            echo "OK $code $url"
+          done
+          echo "## Live indexing endpoints" >> "$GITHUB_STEP_SUMMARY"
+          echo "- robots.txt: 200" >> "$GITHUB_STEP_SUMMARY"
+          echo "- sitemap.xml: 200" >> "$GITHUB_STEP_SUMMARY"
+          echo "- news-sitemap.xml: 200" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Check Google credentials
         id: auth
         shell: bash
@@ -34,7 +51,7 @@ jobs:
             echo "Google Search Console automation credentials are configured."
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "Google Search Console automation is prepared but waiting for one-time Search Console owner authorization and GitHub secret."
+            echo "::warning::Google Search Console API çalıştırılmadı: GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON secret'ı eksik."
           fi
 
       - name: Setup Python
@@ -61,8 +78,8 @@ jobs:
           {
             echo "## Google Search Console"
             echo ""
-            echo "⚠️ Automation is ready but waiting for one-time Google owner authorization."
+            echo "⚠️ Live robots ve sitemap uçları doğrulandı; Google API otomasyonu henüz yetkilendirilmedi."
             echo ""
-            echo "Required once: verify btmedya.com.tr in Search Console, add the automation service account as a verified owner, then store its JSON credential in the GitHub Actions secret GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON."
+            echo "Required: verify btmedya.com.tr in Search Console, add the automation service account as a permitted user/owner, then store its JSON credential in the GitHub Actions secret GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON."
             echo "After that, this workflow submits both sitemaps and runs URL Inspection automatically."
           } >> "$GITHUB_STEP_SUMMARY"

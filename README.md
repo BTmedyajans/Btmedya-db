@@ -75,7 +75,7 @@ seviyesinde bir **Redirect Rule** tanımlanabilir.
 ## Yayına almadan önce
 
 `/admin/` panelinin ve imzalı medya bağlantılarının çalışması için üç secret
-tanımlanmalı (Cloudflare paneli > Worker > Settings > Variables and Secrets,
+tanımlanmalı (Cloudflare paneli > Worker > Variables and Secrets,
 ya da `wrangler secret put`):
 
 - `ADMIN_PASSWORD_SECRET` — panel giriş şifresi
@@ -83,6 +83,9 @@ ya da `wrangler secret put`):
 - `MEDIA_SIGNING_SECRET` — medya bağlantısı imzalama anahtarı (rastgele uzun dizi)
 
 Detaylı adımlar: `docs/CANLIYA-ALMA.md`
+
+Search Console indeksleme otomasyonu ve sosyal hesap yetkilendirme adımları:
+`docs/GOOGLE-SEARCH-CONSOLE-SETUP.md`
 
 ## Tek elden yönetim
 
