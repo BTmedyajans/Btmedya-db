@@ -38,6 +38,7 @@ jobs:
       - name: Validate source and assets
         run: |
           set -euo pipefail
+          trap 'rc=$?; echo "VALIDATE_FAILURE line=${BASH_LINENO[0]} command=${BASH_COMMAND} rc=${rc}"; exit $rc' ERR
           test -s src/worker.js
           test -s wrangler.toml
           test -s public/index.html
