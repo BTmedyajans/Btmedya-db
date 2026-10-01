@@ -1,7 +1,7 @@
 import { BtmedyaWorkflow } from "./btmedya-workflow.js";
 import { WorkflowStatusDO } from "./workflow-status-do.js";
 import { renderNewsPage } from "./news-page.js";
-import { socialProviderStatus } from "./social-platforms.js";
+import { socialProviderStatus, metricoolConnectedNetworks } from "./social-platforms.js";
 import { runNewsIntelligence, newsIntelligenceStatus } from "./news-intelligence.js";
 import { recoveryPasswordValid } from "./auth-recovery.js";
 import { salesApi } from "./sales-router.js";
@@ -841,6 +841,22 @@ async function contactApi(request, env, url, ctx){
 /* ---------- Sosyal İçerik Akışı API ---------- */
 const SOCIAL_STATUS = new Set(['fikir','hazirlaniyor','onayda','planlandi','yayinlandi']);
 const SOCIAL_FORMAT = new Set(['9:16','4:5','1:1','16:9']);
+const SOCIAL_PLATFORM_NETWORK = Object.freeze({
+  instagram:'instagram','instagram-post':'instagram','instagram-reel':'instagram','instagram-story':'instagram',
+  facebook:'facebook','facebook-post':'facebook','facebook-reel':'facebook','facebook-story':'facebook',
+  tiktok:'tiktok',
+  youtube:'youtube','youtube-short':'youtube'
+});
+function normalizeSocialPlatforms(input){
+  const raw=Array.isArray(input) ? input : typeof input==='string' ? input.split(',') : [];
+  return [...new Set(raw.map(x=>String(x||'').trim().toLowerCase()).filter(Boolean))].slice(0,20);
+}
+function socialPlatformCheck(env,platforms){
+  const connected=metricoolConnectedNetworks(env);
+  const unknown=platforms.filter(p=>!SOCIAL_PLATFORM_NETWORK[p]);
+  const disconnected=platforms.map(p=>SOCIAL_PLATFORM_NETWORK[p]).filter(Boolean).filter((n,i,a)=>a.indexOf(n)===i&&!connected.has(n));
+  return {ok:!unknown.length&&!disconnected.length,unknown,disconnected,connected};
+}
 
 async function socialApi(request, env, url, ctx){
   if(!url.pathname.startsWith('/api/admin/social')) return null;
@@ -849,6 +865,43 @@ async function socialApi(request, env, url, ctx){
 
   if(url.pathname==='/api/admin/social/providers' && request.method==='GET'){
     return json({ok:true,providers:socialProviderStatus(env)});
+  }
+
+  if(url.pathname==='/api/admin/social/queue-summary' && request.method==='GET'){
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS metricool_gonderim (
+      post_id TEXT PRIMARY KEY,
+      metricool_id TEXT NOT NULL DEFAULT '',
+      durum TEXT NOT NULL DEFAULT '',
+      hata TEXT NOT NULL DEFAULT '',
+      updated_at TEXT NOT NULL,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      retryable INTEGER NOT NULL DEFAULT 1
+    )`).run().catch(()=>{});
+    const now=new Date().toISOString();
+    const counts=await env.DB.prepare(`SELECT
+      SUM(CASE WHEN status='fikir' THEN 1 ELSE 0 END) AS fikir,
+      SUM(CASE WHEN status='hazirlaniyor' THEN 1 ELSE 0 END) AS hazirlaniyor,
+      SUM(CASE WHEN status='onayda' THEN 1 ELSE 0 END) AS onayda,
+      SUM(CASE WHEN status='planlandi' THEN 1 ELSE 0 END) AS planlandi,
+      SUM(CASE WHEN status='yayinlandi' THEN 1 ELSE 0 END) AS yayinlandi,
+      SUM(CASE WHEN status='planlandi' AND (scheduled_at IS NULL OR scheduled_at<=?) THEN 1 ELSE 0 END) AS geciken
+      FROM social_posts`).bind(now).first().catch(()=>({}));
+    const teslim=await teslimDurumlari(env);
+    const teslimValues=Object.values(teslim||{});
+    const failures=teslimValues.filter(x=>x.durum==='hata').sort((a,b)=>String(b.updated_at).localeCompare(String(a.updated_at)));
+    const upcoming=(await env.DB.prepare(`SELECT id,title,status,platforms,format,media_key,scheduled_at
+      FROM social_posts WHERE status='planlandi' AND scheduled_at>? ORDER BY scheduled_at ASC LIMIT 8`).bind(now).all().catch(()=>({results:[]}))).results||[];
+    const parsedUpcoming=upcoming.map(x=>({...x,platforms:JSON.parse(x.platforms||'[]'),teslim:teslim[x.id]||null}));
+    return json({
+      ok:true,generated_at:now,counts:{
+        fikir:Number(counts?.fikir||0),hazirlaniyor:Number(counts?.hazirlaniyor||0),onayda:Number(counts?.onayda||0),
+        planlandi:Number(counts?.planlandi||0),yayinlandi:Number(counts?.yayinlandi||0),geciken:Number(counts?.geciken||0)
+      },
+      delivery:{failed:failures.length,lastFailure:failures[0]||null},
+      upcoming:parsedUpcoming,
+      providers:socialProviderStatus(env),
+      settings:await ayarlariOku(env)
+    });
   }
 
   if(url.pathname==='/api/admin/social/settings'){
@@ -888,12 +941,12 @@ async function socialApi(request, env, url, ctx){
     let scheduledAt=b.scheduled_at ? String(b.scheduled_at).slice(0,64) : null;
     // "Planlandı" saat girilmeden secilirse bir sonraki bos yuvaya yerlesir.
     if(status==='planlandi' && !scheduledAt) scheduledAt=await sonrakiYuva(env,await ayarlariOku(env));
-    let platforms=b.platforms;
-    if(typeof platforms==='string') {
-      try { platforms=JSON.parse(platforms); } catch { platforms=platforms.split(',').map(x=>x.trim()).filter(Boolean); }
-    }
-    if(!Array.isArray(platforms)) platforms=[];
-    platforms=platforms.map(x=>String(x).trim()).filter(Boolean).slice(0,20);
+    const platforms=normalizeSocialPlatforms(b.platforms);
+    const platformCheck=socialPlatformCheck(env,platforms);
+    if(platformCheck.unknown.length) return json({ok:false,error:'Desteklenmeyen sosyal platformu',platforms:platformCheck.unknown},400);
+    if(status==='planlandi' && platformCheck.disconnected.length) return json({ok:false,error:'Metricool bağlantısı doğrulanmamış ağ: '+platformCheck.disconnected.join(', '),disconnected:platformCheck.disconnected},409);
+    if(status==='planlandi' && !platforms.length) return json({ok:false,error:'Planlanan gönderi için en az bir sosyal platform seçilmelidir'},400);
+
     const now=new Date().toISOString();
     const id=String(b.id||'').trim() || crypto.randomUUID();
     const exists=b.id ? await env.DB.prepare('SELECT id FROM social_posts WHERE id=?').bind(id).first() : null;
@@ -923,6 +976,12 @@ async function socialApi(request, env, url, ctx){
     const b=await request.json().catch(()=>({}));
     const status=String(b.status||'');
     if(!SOCIAL_STATUS.has(status)) return json({ok:false,error:'Geçersiz durum'},400);
+    const hedef=await env.DB.prepare('SELECT platforms,media_key FROM social_posts WHERE id=?').bind(decodeURIComponent(byId[1])).first().catch(()=>null);
+    if(!hedef) return json({ok:false,error:'Bulunamadı'},404);
+    const hedefPlatformlari=normalizeSocialPlatforms(hedef.platforms?JSON.parse(hedef.platforms||'[]'):[]);
+    const platformCheck=socialPlatformCheck(env,hedefPlatformlari);
+    if(status==='planlandi' && platformCheck.disconnected.length) return json({ok:false,error:'Metricool bağlantısı doğrulanmamış ağ: '+platformCheck.disconnected.join(', '),disconnected:platformCheck.disconnected},409);
+    if(status==='planlandi' && !hedefPlatformlari.length) return json({ok:false,error:'Planlanan gönderi için en az bir sosyal platform seçilmelidir'},400);
     const now=new Date().toISOString();
     let r;
     const mevcut=status==='planlandi' ? await env.DB.prepare('SELECT scheduled_at FROM social_posts WHERE id=?').bind(id).first() : null;
