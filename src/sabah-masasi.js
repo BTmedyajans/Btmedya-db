@@ -37,16 +37,16 @@ const VARSAYILAN = Object.freeze({
 /* Sitenin 8 kategorisi (public/home.js BTMEDYA_RELEVANCE ile aynı sıra).
    "kategori" haberin D1'deki category alanına yazılan değerdir. */
 export const KATEGORILER = [
-  { anahtar: 'balikesir', kategori: 'Yerel', kaynaklar: ['balikesir-bel', 'cumha-balikesir'] },
-  { anahtar: 'gundem', kategori: 'Gündem', kaynaklar: ['trt-gundem', 'trt-turkiye'] },
-  { anahtar: 'ekonomi', kategori: 'Ekonomi', kaynaklar: ['trt-ekonomi'] },
-  // TRT kültür-sanat akışı günde bir-iki haber veriyor; AA ve Sabah yedek.
-  { anahtar: 'kultur', kategori: 'Kültür', kaynaklar: ['trt-kultur', 'aa-kultur', 'sabah-kultur'] },
-  { anahtar: 'egitim', kategori: 'Eğitim', kaynaklar: ['trt-egitim', 'hurriyet-egitim'] },
-  { anahtar: 'saglik', kategori: 'Sağlık', kaynaklar: ['trt-saglik', 'sabah-saglik'] },
+  { anahtar: 'balikesir', kategori: 'Yerel', kaynaklar: ['balikesir-bel', 'balikesir-valilik', 'cumha-balikesir'] },
+  { anahtar: 'gundem', kategori: 'Gündem', kaynaklar: ['trt-gundem', 'trt-turkiye', 'balikesir-valilik'] },
+  { anahtar: 'ekonomi', kategori: 'Ekonomi', kaynaklar: ['trt-ekonomi', 'balikesir-bel'] },
+  // TRT kültür-sanat akışı günde bir-iki haber veriyor; AA, Sabah ve belediye yedek.
+  { anahtar: 'kultur', kategori: 'Kültür', kaynaklar: ['trt-kultur', 'aa-kultur', 'sabah-kultur', 'balikesir-bel'] },
+  { anahtar: 'egitim', kategori: 'Eğitim', kaynaklar: ['trt-egitim', 'hurriyet-egitim', 'baun'] },
+  { anahtar: 'saglik', kategori: 'Sağlık', kaynaklar: ['trt-saglik', 'sabah-saglik', 'balikesir-valilik', 'baun'] },
   // TRT spor akışı günlerce güncellenmeyebiliyor; Hürriyet ve Sabah yedek.
-  { anahtar: 'spor', kategori: 'Spor', kaynaklar: ['trt-spor', 'hurriyet-spor', 'sabah-spor'] },
-  { anahtar: 'teknoloji', kategori: 'Yapay Zekâ', kaynaklar: ['trt-teknoloji', 'hurriyet-teknoloji', 'aa-teknoloji'] }
+  { anahtar: 'spor', kategori: 'Spor', kaynaklar: ['trt-spor', 'hurriyet-spor', 'sabah-spor', 'baun'] },
+  { anahtar: 'teknoloji', kategori: 'Yapay Zekâ', kaynaklar: ['trt-teknoloji', 'hurriyet-teknoloji', 'aa-teknoloji', 'baun'] }
 ];
 
 const KAYNAK = {
@@ -67,7 +67,10 @@ const KAYNAK = {
   'aa-kultur': { ad: 'Anadolu Ajansı', tur: 'rss', url: 'https://www.aa.com.tr/tr/rss/default?cat=kultur' },
   'aa-teknoloji': { ad: 'Anadolu Ajansı', tur: 'rss', url: 'https://www.aa.com.tr/tr/rss/default?cat=bilim-teknoloji' },
   'sabah-kultur': { ad: 'Sabah', tur: 'rss', url: 'https://www.sabah.com.tr/rss/kultur-sanat.xml' },
-  'sabah-saglik': { ad: 'Sabah', tur: 'rss', url: 'https://www.sabah.com.tr/rss/saglik.xml' }
+  'sabah-saglik': { ad: 'Sabah', tur: 'rss', url: 'https://www.sabah.com.tr/rss/saglik.xml' },
+  // Balıkesir yerel radar: kurumların resmi haber/duyuru sayfaları.
+  'balikesir-valilik': { ad: 'Balıkesir Valiliği', tur: 'html', url: 'https://www.balikesir.gov.tr/haberler', base: 'https://www.balikesir.gov.tr' },
+  'baun': { ad: 'Balıkesir Üniversitesi', tur: 'html', url: 'https://balikesir.edu.tr/', base: 'https://balikesir.edu.tr' }
 };
 
 const UA = { 'user-agent': 'Mozilla/5.0 (compatible; BTMEDYA-SabahMasasi/1.0; +https://btmedya.com.tr)' };
@@ -172,10 +175,36 @@ function belediyeOgeleri(t) {
   return out.slice(0, 12);
 }
 
+/* Kurumların RSS vermediği yerel kaynaklar için güvenli HTML listeleyici.
+   Yalnız başlık + kurum içi bağlantı toplar; ayrıntılar metinCek'te kaynaktan
+   tekrar okunur. Dış bağlantılar ve menü linkleri alınmaz. */
+function htmlListeOgeleri(t, base, prefixes) {
+  const gorulen = new Set(), out = [];
+  const hrefRe = /href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  for (const m of t.matchAll(hrefRe)) {
+    const raw = String(m[1] || '').trim();
+    const text = etiketsiz(m[2] || '');
+    if (!text || text.length < 12 || text.length > 220) continue;
+    let u;
+    try { u = new URL(raw, base); } catch { continue; }
+    if (u.origin !== new URL(base).origin) continue;
+    if (!prefixes.some(p => u.pathname.startsWith(p))) continue;
+    if (gorulen.has(u.href)) continue;
+    if (/^(duyurular|haberler|anasayfa|iletisim|ara|detay|devamını oku|tümü)$/i.test(text)) continue;
+    gorulen.add(u.href);
+    out.push({ baslik: text, link: u.href, ozet: '', tarih: '' });
+  }
+  return out.slice(0, 20);
+}
+
 async function kaynakOku(id) {
   const k = KAYNAK[id];
   const t = await getir(k.url);
-  const ogeler = k.tur === 'bel' ? belediyeOgeleri(t) : rssOgeleri(t);
+  const ogeler = k.tur === 'bel'
+    ? belediyeOgeleri(t)
+    : k.tur === 'html'
+      ? htmlListeOgeleri(t, k.base || k.url, k.base?.includes('balikesir.edu.tr') ? ['/haberler/', '/duyurular/'] : ['/haberler/'])
+      : rssOgeleri(t);
   return ogeler.slice(0, 25).map(o => ({ ...o, kaynakId: id, kaynakAd: k.ad }));
 }
 
