@@ -118,6 +118,43 @@
       box.innerHTML='<div class="ops-kpi-grid"><div class="ops-kpi"><b>'+esc(d.clicks)+'</b><span>GSC tıklama</span></div><div class="ops-kpi"><b>'+esc(d.impressions)+'</b><span>GSC gösterim</span></div><div class="ops-kpi"><b>'+esc(d.ctr+'%')+'</b><span>GSC CTR</span></div><div class="ops-kpi"><b>'+esc(d.indexedHome?'✓':'—')+'</b><span>Ana sayfa indeks</span></div></div><small class="muted" style="display:block;margin-top:8px">Son doğrulama: '+esc(trDate(d.checkedAt))+' · kaynak: ChatGPT / GSC Wizard.</small>';
     }catch(e){}
   }
+
+  async function inspectPage(){
+    const field=$('#opsInspectPath'),box=$('#opsInspectResult'),value=field&&field.value||'/';
+    if(!box)return;
+    box.innerHTML='<div class="muted">Sayfa denetleniyor…</div>';
+    try{
+      const d=await json('/api/admin/inspect?path='+encodeURIComponent(value));
+      if(!d.html){box.innerHTML='<div class="ops-item"><b>HTTP '+esc(d.status)+'</b><small>'+esc(d.contentType||'')+'</small></div>';return}
+      const s=d.seo||{};
+      const checks=[
+        ['HTTP',d.status===200,'HTTP '+d.status],
+        ['Title',!!s.titleOk,s.title||'eksik'],
+        ['Description',!!s.descriptionOk,(s.description||'eksik').slice(0,180)],
+        ['Canonical',!!s.canonicalOk,s.canonical||'eksik'],
+        ['H1',!!s.h1Ok,s.h1||'eksik'],
+        ['JSON-LD',!!s.structuredDataOk,String(s.jsonLd||0)+' blok'],
+        ['OG image',!!s.ogImage,s.ogImage||'eksik'],
+        ['Robots',!!s.robots,s.robots||'meta robots yok']
+      ];
+      box.innerHTML='<div class="ops-item"><div class="ops-item-top"><b>'+esc(d.path)+'</b><a href="'+esc(location.origin+d.path)+'" target="_blank" rel="noopener">canlıyı aç ↗</a></div><small>Linkler: '+esc(s.links||0)+' · Görseller: '+esc(s.images||0)+' · Videolar: '+esc(s.videos||0)+' · Yerel linkler: '+esc(s.localLinks||0)+'</small></div>'+
+      checks.map(function(x){return '<div class="ops-item"><div class="ops-item-top"><b>'+esc(x[0])+'</b><span class="'+(x[1]?'ops-ok':'ops-warn')+'">'+(x[1]?'✓':'⚠')+'</span></div><small>'+esc(x[2])+'</small></div>'}).join('');
+    }catch(e){box.innerHTML='<div class="ops-item ops-err">'+esc(e.message)+'</div>'}
+  }
+  async function runCommand(name){
+    const out=$('#opsCommandStatus'),buttons=document.querySelectorAll('[data-opcmd]');
+    if(out)out.textContent='Komut çalışıyor: '+name+'…';
+    buttons.forEach(function(b){b.disabled=true});
+    try{
+      const d=await json('/api/admin/command',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({command:name})});
+      if(out)out.textContent='Tamamlandı ✓ '+name;
+      await Promise.all([loadAudit(),loadRouting(),loadTrends()]);
+      if(name==='news-intelligence')$('#opsInspectResult')&&(await inspectPage().catch(function(){}));
+      if(d.result && console&&console.info)console.info('[BTMEDYA ops]',name,d.result);
+    }catch(e){if(out)out.textContent='Hata: '+e.message}
+    finally{buttons.forEach(function(b){b.disabled=false})}
+  }
+
   async function refreshAll(){
     const btn=$('#opsRefresh');if(btn)btn.disabled=true;
     try{await Promise.all([liveSeoChecks(),loadRouting(),loadAudit(),loadTrends(),loadSummary()]);loadTools()}finally{if(btn)btn.disabled=false}
@@ -135,5 +172,7 @@
     $('#opsRefresh')&&$('#opsRefresh').addEventListener('click',refreshAll);
     $('#opsPreviewBtn')&&$('#opsPreviewBtn').addEventListener('click',function(){preview($('#opsUrl').value||'/')});
     $('#opsOpenBtn')&&$('#opsOpenBtn').addEventListener('click',openEntered);
+    $('#opsInspectBtn')&&$('#opsInspectBtn').addEventListener('click',inspectPage);
+    document.querySelectorAll('[data-opcmd]').forEach(function(b){b.addEventListener('click',function(){runCommand(b.dataset.opcmd)})});
   });
 })();
