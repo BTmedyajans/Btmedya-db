@@ -499,13 +499,20 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
         }).slice(0,8);
       if(!ogeler.length){grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv kaydı henüz yayın akışına düşmedi.</div>';return;}
       grid.innerHTML=ogeler.map(arsivKarti).join('');
+      document.querySelector('[data-fallback="media"]')?.remove();
       grid.setAttribute('aria-busy','false');
       grid.querySelectorAll('video').forEach(v=>{
         const io=new IntersectionObserver(es=>es.forEach(e=>{
           if(e.isIntersecting){if(!v.src&&v.dataset.src){v.src=v.dataset.src;v.load();}v.play().catch(()=>{});} else v.pause();
         }),{rootMargin:'120px'}); io.observe(v);
       });
-    }catch(err){grid.innerHTML='<div class="archive-live-empty">Arşiv akışı şu anda okunamadı. Haber arşivi yine açık: <a href="/haberler/">Haber arşivi ↗</a></div>';}
+    }catch(err){
+      if(!document.querySelector('[data-fallback="media"]')){
+        grid.innerHTML='<div class="archive-live-empty">Arşiv akışı şu anda okunamadı. Haber arşivi yine açık: <a href="/haberler/">Haber arşivi ↗</a></div>';
+      } else {
+        grid.setAttribute('aria-busy','false');
+      }
+    }
   };
 
   const hero = d.querySelector('.hero');
@@ -627,11 +634,13 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       const count=Array.isArray(data.items)?data.items.length:0;
       meta.textContent='Kaynak: '+String(data.source||'Metricool')+' · '+count+' doğrulanmış yayın · '+String(data.generated_at||'');
       grid.innerHTML=count?data.items.map(feedCardSocial).join(''):'<div class="social-feed-empty">Doğrulanmış yayın kaydı yok.</div>';
+      document.querySelector('[data-fallback="social"]')?.remove();
       markReady();
     }catch(err){
-      profiles.innerHTML='';
-      meta.textContent='Sosyal profil bağlantıları korunuyor; son yayın snapshotı şu anda okunamadı.';
-      grid.innerHTML='<div class="social-feed-empty">Sosyal akış geçici olarak kullanılamıyor.</div>';
+      const fallback=document.querySelector('[data-fallback="social"]');
+      profiles.innerHTML=fallback?'':'';
+      meta.textContent=fallback?'Metricool bağlantısı anlık okunamadı; son doğrulanmış snapshot aşağıda.':'Sosyal profil bağlantıları korunuyor; son yayın snapshotı şu anda okunamadı.';
+      if(!fallback) grid.innerHTML='<div class="social-feed-empty">Sosyal akış geçici olarak kullanılamıyor.</div>';
       markReady();
     }
   }
