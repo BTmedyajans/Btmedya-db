@@ -196,24 +196,39 @@ async function aiDraft(env,candidate){
 
 async function chooseMedia(env,category,policy){
   if(!env.DB) return null;
-  const want=/yapay|ai|teknoloji/i.test(String(category||"")) && policy.allowAiMedia;
+  const wantAi=/yapay|ai|teknoloji/i.test(String(category||"")) && policy.allowAiMedia;
   const rows=(await env.DB.prepare(
-    "SELECT id,key,mime,title,category,ai_generated,published,alt_text FROM media WHERE published=1 AND (mime LIKE 'image/%' OR mime LIKE 'video/%') ORDER BY CASE WHEN category=? THEN 0 ELSE 1 END, CASE WHEN ai_generated=? THEN 0 ELSE 1 END, created_at DESC LIMIT 20"
-  ).bind(category,want?1:0).all().catch(()=>({results:[]}))).results||[];
+    "SELECT id,key,mime,title,category,ai_generated,published,alt_text FROM media WHERE published=1 AND (mime LIKE 'image/%' OR mime LIKE 'video/%') ORDER BY CASE WHEN category=? THEN 0 ELSE 1 END, CASE WHEN ai_generated=? THEN 0 ELSE 1 END, created_at DESC LIMIT 40"
+  ).bind(category,wantAi?1:0).all().catch(()=>({results:[]}))).results||[];
   if(!rows.length) return null;
-  const preferred=rows.find(x=>!policy.neverAutoPublishSensitive || !SENSITIVE.test(String(x.title||"")) ) || rows[0];
-  if(!preferred) return null;
-  const ai=Boolean(preferred.ai_generated);
-  const key=String(preferred.key||"");
-  return {id:preferred.id,key,mime:preferred.mime||"",title:preferred.title||"",ai_generated:ai,alt_text:preferred.alt_text||"",public_url:"/pub/"+encodeURIComponent(key)};
+  const clean=rows.filter(x=>!SENSITIVE.test(String(x.title||"")));
+  const pool=clean.length?clean:rows;
+  const image=pool.find(x=>String(x.mime||"").startsWith("image/"))||null;
+  const video=pool.find(x=>String(x.mime||"").startsWith("video/"))||null;
+  if(!image && !video) return null;
+  const primary=image||video;
+  return {
+    id:primary.id,
+    key:primary.key,
+    mime:primary.mime||"",
+    title:primary.title||"",
+    ai_generated:Boolean(primary.ai_generated),
+    alt_text:primary.alt_text||"",
+    public_url:"/pub/"+encodeURIComponent(primary.key),
+    cover_key:image?.key||"",
+    cover_url:image?"/pub/"+encodeURIComponent(image.key):"",
+    social_key:video?.key||image?.key||"",
+    social_url:video?"/pub/"+encodeURIComponent(video.key):(image?"/pub/"+encodeURIComponent(image.key):""),
+    social_mime:video?.mime||image?.mime||""
+  };
 }
 
 async function createOrUpdateNews(env,candidate,draft,publish,media){
   if(!env.DB) return null;
   const slug=safeSlug(draft.title)+"-"+Math.abs([...String(candidate.source_url||candidate.link||"")].reduce((a,ch)=>((a*31+ch.charCodeAt(0))|0),0));
   const now=nowIso();
-  const cover=media?.public_url||"";
-  const video=media && String(media.mime||"").startsWith("video/") ? media.public_url : "";
+  const cover=media?.cover_url||"";
+  const video=media?.social_mime && String(media.social_mime).startsWith("video/") ? media.social_url : "";
   await env.DB.prepare(`INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at)
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON CONFLICT(slug) DO UPDATE SET
@@ -241,7 +256,7 @@ async function createSocialDraft(env,news,media,policy,runId){
   const scheduled=policy.autoScheduleSocial ? await sonrakiYuva(env,ayar) : null;
   if(policy.autoScheduleSocial && !scheduled) return {created:false,scheduled:false,reason:"Boş sosyal yayın yuvası bulunamadı."};
   const platformSlugs=ayar.aglar.map(n=>n==="youtube"?"youtube":n);
-  const mediaKey=String(media?.key||"");
+  const mediaKey=String(media?.social_key||media?.key||"");
   if(platformSlugs.some(x=>["youtube","tiktok"].includes(x)) && !mediaKey)
     return {created:false,scheduled:false,reason:"YouTube/TikTok için medya gerekli."};
   const postId=crypto.randomUUID();
