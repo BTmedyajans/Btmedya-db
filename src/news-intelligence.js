@@ -97,6 +97,18 @@ export async function runNewsIntelligence(env,{limit=8}={}){
     first_seen_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   )`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_intelligence_alerts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_url TEXT NOT NULL UNIQUE,
+    title TEXT NOT NULL,
+    category TEXT DEFAULT 'Gündem',
+    source_name TEXT DEFAULT '',
+    score INTEGER DEFAULT 0,
+    risk INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'new',
+    first_seen_at TEXT NOT NULL,
+    acknowledged_at TEXT DEFAULT NULL
+  )`).run();
 
   let trendXml='';
   try{trendXml=await get('https://trends.google.com/trending/rss?geo=TR');}catch(e){result.errors.push('Google Trends: '+String(e.message||e).slice(0,120));}
@@ -133,7 +145,17 @@ export async function runNewsIntelligence(env,{limit=8}={}){
           score=excluded.score,risk=excluded.risk,trend_signal=excluded.trend_signal,
           commercial_signal=excluded.commercial_signal,updated_at=excluded.updated_at`)
         .bind(c.link,safeText(c.title,240),safeText(c.description,1800),c.feed.category,c.feed.name,host(c.link),c.feed.tier,c.score,c.risk,c.trend,c.commercial,'new',now,now).run();
-      if(isHot) result.hot++;
+      if(isHot){
+        result.hot++;
+        await env.DB.prepare(`INSERT INTO news_intelligence_alerts
+          (source_url,title,category,source_name,score,risk,status,first_seen_at)
+          VALUES(?,?,?,?,?,?,?,?)
+          ON CONFLICT(source_url) DO UPDATE SET
+            title=excluded.title,category=excluded.category,source_name=excluded.source_name,
+            score=excluded.score,risk=excluded.risk
+          WHERE news_intelligence_alerts.status='new'`)
+          .bind(c.link,safeText(c.title,240),c.feed.category,c.feed.name,c.score,c.risk,'new',now).run().catch(()=>{});
+      }
       if(result.items.length<limit) result.items.push({title:c.title,source:c.link,sourceName:c.feed.name,category:c.feed.category,score:c.score,risk:c.risk,competitor:c.feed.tier==='competitor',trend:c.trend,commercial:c.commercial});
       result.added++;
     }catch(e){result.errors.push('D1: '+String(e.message||e).slice(0,120));}
@@ -157,8 +179,24 @@ function scoreItem(item,feed,trendMap){ return score(item,feed,trendMap); }
 export async function newsIntelligenceStatus(env){
   if(!env.DB) return {enabled:false,items:[]};
   const last=env.KV?await env.KV.get('news-intelligence:last').catch(()=>null):null;
+  const lastObj=last?JSON.parse(last):null;
   const rows=(await env.DB.prepare(`SELECT id,title,excerpt,category,source_name,source_host,source_tier,score,risk,trend_signal,commercial_signal,status,first_seen_at,updated_at
-    FROM news_intelligence WHERE status='new' ORDER BY score DESC,updated_at DESC LIMIT 30`).all().catch(()=>({results:[]}))).results||[];
+    FROM news_intelligence WHERE status='new' ORDER BY score DESC,updated_at DESC LIMIT 50`).all().catch(()=>({results:[]}))).results||[];
+  const alerts=(await env.DB.prepare(`SELECT id,title,category,source_name,score,risk,status,first_seen_at,acknowledged_at
+    FROM news_intelligence_alerts WHERE status='new' ORDER BY score DESC,first_seen_at DESC LIMIT 24`).all().catch(()=>({results:[]}))).results||[];
+  const categoryRows=(await env.DB.prepare(`SELECT category,COUNT(*) AS total,SUM(CASE WHEN score>=65 AND risk=0 THEN 1 ELSE 0 END) AS hot,SUM(CASE WHEN risk=1 THEN 1 ELSE 0 END) AS risk
+    FROM news_intelligence WHERE updated_at >= datetime('now','-24 hours') GROUP BY category ORDER BY total DESC`).all().catch(()=>({results:[]}))).results||[];
+  const sourceRows=(await env.DB.prepare(`SELECT source_name,source_tier,COUNT(*) AS total,MAX(updated_at) AS last_seen
+    FROM news_intelligence WHERE updated_at >= datetime('now','-24 hours') GROUP BY source_name,source_tier ORDER BY last_seen DESC LIMIT 30`).all().catch(()=>({results:[]}))).results||[];
   const revenue=env.KV?await env.KV.get('news-intelligence:revenue-opportunities').catch(()=>null):null;
-  return {enabled:true,last:last?JSON.parse(last):null,items:rows,revenueOpportunities:revenue?JSON.parse(revenue):[]};
+  return {
+    enabled:true,
+    heartbeat:{alive:true,lastScan:lastObj?.at||null,nextScan:lastObj?.at?new Date(new Date(lastObj.at).getTime()+15*60000).toISOString():null},
+    last:lastObj,
+    items:rows,
+    alerts,
+    categoryMatrix:categoryRows,
+    sourceHealth:sourceRows,
+    revenueOpportunities:revenue?JSON.parse(revenue):[]
+  };
 }
