@@ -69,7 +69,7 @@ jobs:
 
       - name: Issue ac veya kapat
         if: always() && steps.bekle.outputs.durum != ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           DURUM: ${{ steps.bekle.outputs.durum }}
           SON: ${{ steps.bekle.outputs.son }}
