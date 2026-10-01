@@ -47,6 +47,13 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 .news-list{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .news-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid #222;border-radius:10px;background:#111}
 .news-row:hover{border-color:#333}
+.news-row-metrics{display:grid;grid-template-columns:repeat(4,minmax(72px,1fr));gap:6px;margin-top:8px}
+.news-metric{padding:7px 8px;border:1px solid #242424;border-radius:8px;background:#0c0c0c}
+.news-metric b{display:block;font-size:13px}.news-metric small{display:block;color:#777;font-size:9px;margin-top:2px}
+.news-metric.good{border-color:#315a35}.news-metric.warn{border-color:#5b4b22}.news-metric.bad{border-color:#633}
+.news-row-links{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.news-row-links a,.news-row-links button{font-size:10px}
+@media(max-width:760px){.news-row-metrics{grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.news-row-links{width:100%}.news-row-links .btn,.news-row-links a{flex:1;text-align:center}}
 .news-thumb{width:64px;height:40px;object-fit:cover;border-radius:6px;background:#181818;flex-shrink:0}
 .news-thumb-ph{width:64px;height:40px;border-radius:6px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:10px;color:#556;flex-shrink:0}
 .news-row-info{flex:1;min-width:0}
@@ -408,6 +415,19 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
       </div>
       <div id="newsList"><p class="muted">Yükleniyor…</p></div>
     </div>
+    <div class="panel" id="newsMetricsPanel" style="margin-top:12px">
+  <div class="row" style="align-items:center;gap:10px">
+    <div style="flex:1"><h2 style="margin:0 0 3px">SEO · Trend · Önizleme Masası</h2><p class="muted" style="margin:0">Her haber için yayın öncesi görünürlük sinyallerini ve canlı bağlantıyı burada kontrol edin. Skorlar editoryal yardımcı metriktir, arama veya sosyal platformlarda garanti değildir.</p></div>
+    <button class="btn sm" id="newsMetricsRefresh" type="button">Metrikleri yenile</button>
+  </div>
+  <div id="newsMetricsSummary" class="ops-kpi-grid" style="margin-top:12px">
+    <div class="ops-kpi"><b>—</b><span>SEO hazır</span></div>
+    <div class="ops-kpi"><b>—</b><span>Trend uyumu</span></div>
+    <div class="ops-kpi"><b>—</b><span>Önizleme bağlantısı</span></div>
+    <div class="ops-kpi"><b>—</b><span>Toplam haber</span></div>
+  </div>
+  <div id="newsMetricsNote" class="muted" style="margin-top:8px"></div>
+</div>
   </div>
 
   <!-- TAB: GELEN MESAJLAR -->
@@ -1192,24 +1212,82 @@ async function saveNews(forceStatus){
 $('#nSaveBtn').onclick=()=>saveNews('published');
 $('#nDraftBtn').onclick=()=>saveNews('draft');
 
+function newsMetricClass(score){return score>=80?'good':score>=60?'warn':'bad'}
+function newsPreviewUrl(n){return n&&n.slug?location.origin+'/haberler/'+encodeURIComponent(n.slug):''}
+function newsWords(s){return String(s||'').toLocaleLowerCase('tr-TR').replace(/[^a-z0-9çğıöşü\s-]/g,' ').split(/\s+/).filter(w=>w.length>=4)}
+function calcNewsMetrics(n,intelItems,trendData){
+  const title=String(n.title||''), excerpt=String(n.excerpt||''), body=String(n.body||'');
+  const checks=[
+    title.length>=35&&title.length<=110,
+    excerpt.length>=80&&excerpt.length<=500,
+    !!n.slug&&/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(n.slug),
+    !!n.source_url||!!n.archive_note,
+    !!n.cover_url,
+    body.length>=120
+  ];
+  const seo=Math.round(checks.filter(Boolean).length/checks.length*100);
+  const words=new Set(newsWords(title+' '+excerpt));
+  let trend=45;
+  const candidates=(intelItems||[]).filter(x=>x&&x.title);
+  if(candidates.length){
+    const scores=candidates.map(x=>{
+      const cw=new Set(newsWords(x.title+' '+(x.category||'')+' '+(x.trend_signal||'')));
+      let hit=0; words.forEach(w=>{if(cw.has(w))hit++});
+      return hit/Math.max(1,Math.min(words.size,8));
+    });
+    const best=Math.max.apply(null,scores);
+    trend=Math.min(100,Math.round(35+best*65));
+  }else{
+    const t=trendData&&trendData.platforms||[];
+    const cats=t.map(x=>String(x.name||'')).join(' ');
+    if(words.size && cats) trend=55;
+  }
+  const preview=!!newsPreviewUrl(n);
+  const completeness=Math.round((seo*0.65)+(trend*0.35));
+  return {seo,trend,preview,completeness};
+}
+async function loadNewsMetrics(items){
+  const summary=$('#newsMetricsSummary'), note=$('#newsMetricsNote');
+  if(!summary)return;
+  let intel=[],trendData=null;
+  try{const r=await req('/api/admin/news-intelligence');intel=r.items||[]}catch(e){}
+  try{trendData=await fetch('/data/editorial-trends.json',{cache:'no-store'}).then(r=>r.ok?r.json():null)}catch(e){}
+  const metrics=items.map(n=>calcNewsMetrics(n,intel,trendData));
+  const avg=k=>metrics.length?Math.round(metrics.reduce((a,m)=>a+m[k],0)/metrics.length):0;
+  const ready=metrics.filter(m=>m.seo>=80).length;
+  const links=metrics.filter(m=>m.preview).length;
+  summary.innerHTML='<div class="ops-kpi"><b>'+ready+'/'+items.length+'</b><span>SEO hazır</span></div><div class="ops-kpi"><b>'+avg('trend')+'/100</b><span>Trend uyumu</span></div><div class="ops-kpi"><b>'+links+'/'+items.length+'</b><span>Önizleme bağlantısı</span></div><div class="ops-kpi"><b>'+items.length+'</b><span>Toplam haber</span></div>';
+  note.textContent='Trend uyumu, mevcut editoryal istihbarat sinyalleriyle başlık/özet kelime yakınlığına dayalı yardımcı metriktir. Arama sıralaması veya platform dağıtımı garantisi değildir.';
+  return {intel,trendData};
+}
 async function loadNewsList(){
   const d=await req('/api/admin/news'); if($('#guideNews'))$('#guideNews').textContent=d.items?.length||0;
   const list=$('#newsList');
-  if(!d.items?.length){list.innerHTML='<p class="muted">Henüz haber yok.</p>';return}
-  list.innerHTML='<div class="news-list">'+d.items.map(n=>`
-    <div class="news-row">
-      ${n.cover_url
-        ?`<img class="news-thumb" src="${escStr(n.cover_url)}" alt="" onerror="this.style.display='none'">`
-        :`<div class="news-thumb-ph">BT</div>`}
-      <div class="news-row-info">
-        <b>${escStr(n.title)}</b>
-        <small>${escStr(n.category||'—')} · ${escStr(n.author||'—')} · <span class="pill ${n.status==='published'?'pub':''}">${n.status==='published'?'Yayında':'Taslak'}</span> · ${fmtDateShort(n.published_at)}</small>
-      </div>
-      <div class="row">
-        <button class="btn sm" onclick="loadNewsEdit(${n.id})">Düzenle</button>
-        <button class="btn sm danger" onclick="deleteNews(${n.id},'${escStr(n.title).replace(/'/g,"\\'")}')">Sil</button>
-      </div>
-    </div>`).join('')+'</div>';
+  const items=d.items||[];
+  if(!items.length){list.innerHTML='<p class="muted">Henüz haber yok.</p>';loadNewsMetrics([]);return}
+  let intel=[],trendData=null;
+  try{const r=await req('/api/admin/news-intelligence');intel=r.items||[]}catch(e){}
+  try{trendData=await fetch('/data/editorial-trends.json',{cache:'no-store'}).then(r=>r.ok?r.json():null)}catch(e){}
+  list.innerHTML='<div class="news-list">'+items.map(n=>{
+    const m=calcNewsMetrics(n,intel,trendData), preview=newsPreviewUrl(n);
+    const metric=(label,val)=>'<div class="news-metric '+newsMetricClass(val)+'"><b>'+val+(label==='Önizleme'?'':'/100')+'</b><small>'+label+'</small></div>';
+    return '<div class="news-row">'+
+      (n.cover_url?'<img class="news-thumb" src="'+escStr(n.cover_url)+'" alt="" onerror="this.style.display=none">':'<div class="news-thumb-ph">BT</div>')+
+      '<div class="news-row-info"><b>'+escStr(n.title)+'</b><small>'+escStr(n.category||'—')+' · '+escStr(n.author||'—')+' · <span class="pill '+(n.status==='published'?'pub':'')+'">'+(n.status==='published'?'Yayında':'Taslak')+'</span> · '+fmtDateShort(n.published_at)+'</small>'+
+      '<div class="news-row-metrics">'+metric('SEO',m.seo)+metric('Trend',m.trend)+metric('Editoryal',m.completeness)+metric('Önizleme',m.preview?'HAZIR':'YOK')+'</div>'+
+      '<div class="news-row-links">'+
+        (preview?'<a class="btn sm" href="'+escStr(preview)+'" target="_blank" rel="noopener">Canlı önizleme ↗</a>':'')+
+        (preview?'<button class="btn sm" type="button" data-copy-news="'+escStr(preview)+'">Linki kopyala</button>':'')+
+        '<button class="btn sm" type="button" onclick="loadNewsEdit('+n.id+')">Düzenle</button>'+
+        '<button class="btn sm danger" type="button" onclick="deleteNews('+n.id+',\''+escStr(n.title).replace(/'/g,"\\'")+'\')">Sil</button>'+
+      '</div></div></div>';
+  }).join('')+'</div>';
+  await loadNewsMetrics(items);
+  list.querySelectorAll('[data-copy-news]').forEach(b=>b.onclick=async()=>{
+    const u=b.dataset.copyNews;
+    try{await navigator.clipboard.writeText(u);b.textContent='Kopyalandı ✓'}catch(e){prompt('Önizleme bağlantısı',u)}
+    setTimeout(()=>{b.textContent='Linki kopyala'},1600);
+  });
 }
 async function loadNewsEdit(id){
   const d=await req('/api/admin/news/'+id);
@@ -1248,6 +1326,8 @@ async function deleteNews(id,title){
   else alert('Hata: '+(d.error||r.status));
 }
 $('#newsListRefresh').onclick=loadNewsList;
+document.getElementById('newsMetricsRefresh')?.addEventListener('click',loadNewsList);
+
 
 /* ---- Gelen Mesajlar ---- */
 let expandedMsgId=null;
