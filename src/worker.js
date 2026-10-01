@@ -46,16 +46,12 @@ async function signedMediaUrl(request, key, secret, ttl=86400){
   const u=new URL(request.url); const exp=Math.floor(Date.now()/1000)+ttl; const msg=`${key}:${exp}`; const sig=await hmac(secret,msg); return `${u.origin}/media/${key}?exp=${exp}&sig=${encodeURIComponent(sig)}`;
 }
 
-// Medya depolama katmanı: üretim bucket'ı birincildir, eski arşiv bucket'ı yalnızca fallback'tir.
-// Böylece yanlış R2 eşleşmesi mevcut dosyaları görünmez kılmaz ve hiçbir dosya taşınmadan/silinmeden erişilebilir kalır.
+// Medya depolama katmanı: üretimde tek kaynak btmedya-media bucket'ıdır.
+// Eski bucket silindiği için artık başarısız bir fallback veya yanlış başarı sinyali üretilmez.
 async function getMediaObject(env, key){
   if(env.MEDIA){
     const obj=await env.MEDIA.get(key).catch(()=>null);
     if(obj) return {obj,source:'r2'};
-  }
-  if(env.LEGACY_MEDIA){
-    const obj=await env.LEGACY_MEDIA.get(key).catch(()=>null);
-    if(obj) return {obj,source:'r2-legacy'};
   }
   return {obj:null,source:null};
 }
@@ -110,10 +106,6 @@ async function listR2Media(bucket, source, {q='',cat=''}={}){
   } while(cursor);
   return out;
 }
-async function listLegacyMedia(env, opts={}){
-  return listR2Media(env.LEGACY_MEDIA,'r2-legacy',opts);
-}
-
 async function validMediaSig(key, exp, sig, secret){
   if(!secret || !exp || !sig || Number(exp)<Math.floor(Date.now()/1000)) return false;
   return (await hmac(secret,`${key}:${exp}`))===sig;
@@ -286,10 +278,7 @@ async function newsApi(request, env, url, ctx){
   }
 
   if(url.pathname==='/api/health'){
-    const [r2Probe,legacyProbe]=await Promise.all([
-      env.MEDIA ? env.MEDIA.list({limit:200}).catch(()=>null) : null,
-      env.LEGACY_MEDIA ? env.LEGACY_MEDIA.list({limit:200}).catch(()=>null) : null
-    ]);
+    const r2Probe=env.MEDIA ? await env.MEDIA.list({limit:200}).catch(()=>null) : null;
     const mediaLike=/\.(?:jpe?g|png|webp|gif|mp4|webm|mov|m4v|mp3|wav|m4a)$/i;
     const mediaCount=(probe)=>Array.isArray(probe?.objects)?probe.objects.filter(o=>{
       const key=String(o.key||'');
@@ -297,9 +286,9 @@ async function newsApi(request, env, url, ctx){
       return mediaLike.test(key)||/^(image|video|audio)\//i.test(mime);
     }).length:0;
     return json({
-      ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA,
-      r2Objects:!!r2Probe?.objects?.length,legacyR2Objects:!!legacyProbe?.objects?.length,
-      r2MediaObjects:mediaCount(r2Probe),legacyR2MediaObjects:mediaCount(legacyProbe),
+      ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,
+      r2Objects:!!r2Probe?.objects?.length,
+      r2MediaObjects:mediaCount(r2Probe),
       admin:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mail:!!env.RESEND_API_KEY,
       // Dagitim bekcisi (.github/workflows/dagitim-bekcisi.yml) bu zamani
       // commit zamaniyla karsilastirir: derleme sessizce duserse canli
@@ -561,7 +550,7 @@ async function controlCenterApi(request, env, url){
        birlikte kapsar; asagidaki dogrudan API anahtarlari alternatiftir. */
     metricool,
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db',surum:surumBilgisi(env)},
-    storage:{d1:!!env.DB,r2:!!env.MEDIA,legacyR2:!!env.LEGACY_MEDIA},
+    storage:{d1:!!env.DB,r2:!!env.MEDIA},
     admin:{configured:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
     automation,
     social:socialProviderStatus(env),
@@ -837,19 +826,9 @@ async function mediaApi(request, env){
         r2Items.push(x);
       }
     }
-    // Eski R2 yalnızca ikinci salt-okur fallback'tir.
-    if(mediaSec && env.LEGACY_MEDIA){
-      const legacy=await listLegacyMedia(env,{q,cat});
-      const known=new Set(r2Items.map(x=>x.key));
-      for(const x of legacy){
-        if(known.has(x.key)) continue;
-        x.url=await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600));
-        r2Items.push(x);
-      }
-    }
     const seen=new Set(r2Items.map(x=>x.url));
     const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url))];
-    return json({brand:'BTMedya',generated_at:new Date().toISOString(),source:r2Items.length?'r2+legacy-r2+github-static':'github-static',items},200,cors);
+    return json({brand:'BTMedya',generated_at:new Date().toISOString(),source:r2Items.length?'r2+github-static':'github-static',items},200,cors);
   }
 
   const aiToken=env.AI_READ_TOKEN;
@@ -1442,7 +1421,7 @@ export default { async scheduled(controller, env, ctx){
     if(!mediaSec) return text('Medya yapılandırma hatası',503);
     const ok=await validMediaSig(key,url.searchParams.get('exp'),url.searchParams.get('sig'),mediaSec);
     if(!ok) return text('Geçersiz veya süresi dolmuş medya bağlantısı',403);
-    if(!env.MEDIA && !env.LEGACY_MEDIA) return text('Medya deposu yapılandırılmadı',503);
+    if(!env.MEDIA) return text('Medya deposu yapılandırılmadı',503);
     const found=await getMediaObject(env,key); const obj=found.obj; if(!obj)return text('Medya bulunamadı',404);
     return new Response(obj.body,{headers:{'content-type':obj.httpMetadata?.contentType||'application/octet-stream','cache-control':'public, max-age=86400'}});
   }

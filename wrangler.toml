@@ -40,11 +40,6 @@ custom_domain = true
 binding = "MEDIA"
 bucket_name = "btmedya-media"
 
-# Eski arşiv R2: silinmez; mevcut anahtarları canlı medya katmanında okuyabilmek için salt-okur fallback.
-[[r2_buckets]]
-binding = "LEGACY_MEDIA"
-bucket_name = "btmedya-r2"
-
 # Login brute-force koruması: IP başına başarısız denemeler 15 dakika tutulur.
 [[kv_namespaces]]
 binding = "KV"
