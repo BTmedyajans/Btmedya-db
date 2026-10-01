@@ -102,6 +102,11 @@ PY
             sleep 30
           done
 
+          echo "canli surum: ${son:-bilinmiyor}"
+          echo "son=${son:-bilinmiyor}" >> "$GITHUB_OUTPUT"
+          echo "durum=geride" >> "$GITHUB_OUTPUT"
+          echo "sha_eslesmesi=${canli_sha:-eslesme-yok}" >> "$GITHUB_OUTPUT"
+
       - name: Issue ac veya kapat
         if: always() && steps.bekle.outputs.durum != ''
         uses: actions/github-script@v9
