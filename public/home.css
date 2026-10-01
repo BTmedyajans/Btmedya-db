@@ -263,3 +263,22 @@ footer .footer-logo{display:block;width:auto;height:54px;max-width:100%;margin-b
   #newsFilter{gap:7px;margin-bottom:14px}
   #newsFilter .filter{min-height:44px;padding:0 13px;display:inline-flex;align-items:center;justify-content:center}
 }
+
+/* BTMEDYA content depth + crawler-visible category layer */
+.category-directory{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 28px}
+.category-directory a{display:flex;flex-direction:column;gap:6px;min-height:82px;padding:14px 15px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025);text-decoration:none;color:inherit}
+.category-directory a:hover,.category-directory a:focus-visible{border-color:var(--gold);outline:none;transform:translateY(-1px)}
+.category-directory b{font:800 10px/1 Jet,monospace;letter-spacing:.08em}
+.category-directory span{font-size:11px;line-height:1.45;color:var(--muted)}
+.city-radar-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.city-radar-card{display:flex;flex-direction:column;min-height:250px;padding:20px;border:1px solid var(--line);border-radius:18px;background:#0d141c;text-decoration:none;color:inherit}
+.city-radar-card:hover,.city-radar-card:focus-visible{border-color:var(--cyan);outline:none;transform:translateY(-2px)}
+.city-radar-card small{font:800 8px/1.3 Jet,monospace;letter-spacing:.09em;color:var(--gold)}
+.city-radar-card h3{font:700 24px/1.03 Space,sans-serif;margin:28px 0 10px;letter-spacing:-.03em}
+.city-radar-card p{color:var(--muted);font-size:12px;line-height:1.65;margin:0 0 20px}
+.city-radar-card span{margin-top:auto;font:800 9px/1 Jet,monospace;letter-spacing:.06em}
+.city-radar-note{margin:14px 0 0;color:var(--muted);font-size:10px;line-height:1.6;border-top:1px solid var(--line);padding-top:12px}
+.archive-live-card{overflow:hidden}
+.archive-live-card img{display:block;width:100%;height:180px;object-fit:cover;margin:-1px -1px 14px;width:calc(100% + 2px)}
+@media(max-width:900px){.category-directory{grid-template-columns:repeat(2,minmax(0,1fr))}.city-radar-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.category-directory{grid-template-columns:1fr 1fr;overflow:hidden}.category-directory a{min-height:76px;padding:12px}.category-directory b{font-size:9px}.category-directory span{font-size:10px}.city-radar-grid{grid-template-columns:1fr}.city-radar-card{min-height:220px}.city-radar-card h3{font-size:22px}.archive-live-card img{height:150px}}
