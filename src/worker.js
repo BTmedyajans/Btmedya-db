@@ -7,6 +7,7 @@ import { runNewsIntelligence, newsIntelligenceStatus } from "./news-intelligence
 import { recoveryPasswordValid } from "./auth-recovery.js";
 import { runAutopilot, autopilotPolicy, setAutopilotPolicy, autopilotStatus, connectionMatrix, referenceDraft, generateAutopilotImage } from "./autopilot.js";
 import { salesApi } from "./sales-router.js";
+import { agencySupervisorApi, runAgencySupervisor } from "./agency-supervisor.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
@@ -1680,6 +1681,9 @@ export default { async scheduled(controller, env, ctx){
   const autopilot=(controller && controller.cron==='*/15 * * * *')
     ? runAutopilot(env,{force:false,limit:3}).then(x=>console.log('[btmedya] autopilot',JSON.stringify({scanned:x.scanned,candidates:x.candidates,news:x.created_news,published:x.published_news,social:x.social_created,blocked:x.blocked}))).catch(e=>console.error('[btmedya] autopilot:',e?.message||e))
     : Promise.resolve(null);
+  const supervisor=(controller && controller.cron==='*/15 * * * *')
+    ? runAgencySupervisor(env,{force:false}).then(x=>console.log('[btmedya] agency supervisor',JSON.stringify({ok:x.ok,alerts:x.summary?.alerts,clients:x.summary?.clients?.active,pendingApproval:x.summary?.content?.pendingApproval}))).catch(e=>console.error('[btmedya] agency supervisor:',e?.message||e))
+    : Promise.resolve(null);
   const intelligence=Promise.resolve(null);
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
   /* Yayındaki yeni haberleri sosyal panelde onay kuyruğuna hazırlar.
@@ -1691,7 +1695,7 @@ export default { async scheduled(controller, env, ctx){
      yayınlar ve rakip görünürlük sinyalleri taranır. Bu katman yalnız keşif
      kuyruğunu günceller; otomatik yayın için Sabah Masası'nın doğrulama
      zinciri geçerlidir. */
-  const hepsi=Promise.all([task,metricool,archive,drafts,takip,intelligence,autopilot]);
+  const hepsi=Promise.all([task,metricool,archive,drafts,takip,intelligence,autopilot,supervisor]);
   if(ctx?.waitUntil) ctx.waitUntil(hepsi); else await hepsi;
 }, async fetch(request, env, ctx){
   const url = new URL(request.url);
@@ -1818,6 +1822,8 @@ export default { async scheduled(controller, env, ctx){
     if(command) return audit(command);
     const rSales = await salesApi(request, env, url);
     if(rSales) return audit(rSales);
+    const ras = await agencySupervisorApi(request, env, url);
+    if(ras) return audit(ras);
 
     const rw = await workflowApi(request, env, url);
     if(rw) return audit(rw);
