@@ -485,8 +485,8 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
           category:x.category, url:'/assets/'+String(x.path||'').replace(/^\//,''),
           poster:x.poster?'/assets/'+String(x.poster).replace(/^\//,''):null,
           ai_generated:x.gercek===true?false:!['portfoy','medya','saha','haber'].includes(String(x.category||'')),
-          sira:x.sira, mime:/\\.mp4$/i.test(String(x.path||''))?'video/mp4':'image/webp'
-        }))};
+          sira:x.sira, mime:/\.mp4$/i.test(String(x.path||''))?'video/mp4':'image/webp'
+        })):[]};
       }
       const ogeler=(Array.isArray(data.items)?data.items:[])
         .filter(x=>x && !x.ai_generated && !arsivDisi(x))
