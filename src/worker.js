@@ -590,7 +590,7 @@ async function adminPageInspectApi(request, env, url){
         const yid=vid?(vid[1]||vid[2]):'';
         if(env.DB && yid)vlib=await env.DB.prepare('SELECT * FROM video_library WHERE youtube_id=?').bind(yid).first();
         if(env.DB && !vlib)vlib=await env.DB.prepare('SELECT * FROM video_library WHERE news_slug=?').bind(slug).first();
-        html=renderNewsPage(n,target.origin,vlib);
+        const related=await ilgiliHaberler(env,n); html=renderNewsPage(n,target.origin,vlib,related);
         mode='dynamic-news';
         return json({ok:true,path,status,contentType:'text/html; charset=utf-8',html:true,mode,seo:inspectHtml(html)});
       }
@@ -603,6 +603,19 @@ async function adminPageInspectApi(request, env, url){
     return json({ok:true,path,status,contentType,html:true,mode,seo:inspectHtml(html)});
   }catch(e){
     return json({ok:false,error:'Sayfa alınamadı: '+String(e?.message||e)},502);
+  }
+}
+async function ilgiliHaberler(env,n){
+  if(!env.DB || !n?.slug) return [];
+  try{
+    const category=String(n.category||'').trim();
+    const result=await env.DB.prepare(
+      "SELECT slug,title,category FROM news WHERE status='published' AND slug<>? ORDER BY CASE WHEN category=? THEN 0 ELSE 1 END, published_at DESC LIMIT 3"
+    ).bind(n.slug,category).all();
+    return Array.isArray(result?.results)?result.results:[];
+  }catch(e){
+    console.error('[news-related] query failed:',e);
+    return [];
   }
 }
 function inspectHtml(html){
@@ -1827,7 +1840,8 @@ export default { async scheduled(controller, env, ctx){
             if(yid) vlib=await env.DB.prepare('SELECT * FROM video_library WHERE youtube_id=?').bind(yid).first();
           }
           if(!vlib) vlib=await env.DB.prepare('SELECT * FROM video_library WHERE news_slug=?').bind(slug).first();
-          return new Response(renderNewsPage(n, url.origin, vlib), {
+          const related=await ilgiliHaberler(env,n);
+          return new Response(renderNewsPage(n, url.origin, vlib, related), {
             headers:{...guvenlikBasliklari(url.pathname),
                      'content-type':'text/html; charset=utf-8',
                      'x-robots-tag':robotsBasligi(url.pathname),
