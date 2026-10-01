@@ -777,7 +777,13 @@ function autoPlatforms(){
 function autoText(n,prefix){
   const clean=String(n.excerpt||n.body||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
   const lead=clean.slice(0,500);
-  return (prefix?prefix+'\n\n':'')+n.title+'\n\n'+lead+'\n\nKaynak: https://btmedya.com.tr/haberler/'+n.slug+'.html';
+  return (prefix?prefix+'
+
+':'')+n.title+'
+
+'+lead+'
+
+Kaynak: https://btmedya.com.tr/haberler/'+n.slug+'.html';
 }
 async function createAutomationPosts(){
   const status=$('#autoStatus'), mode=$('#autoMode').value, platforms=autoPlatforms();
@@ -1043,7 +1049,8 @@ async function toggleTarget(id,slug){
   loadMedia();
 }
 async function copyPub(url){
-  try{await navigator.clipboard.writeText(url);alert('Bağlantı kopyalandı:\n'+url)}
+  try{await navigator.clipboard.writeText(url);alert('Bağlantı kopyalandı:
+'+url)}
   catch{prompt('Bağlantı:',url)}
 }
 async function togglePub(id,p){await req('/api/media/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({published:!p})});loadMedia()}
@@ -1531,5 +1538,6 @@ $('#socialSummaryRefresh')?.addEventListener('click',()=>{loadSocialSummary();lo
   startIntelPulse();
 })();
 </script>
-<script src="/admin/ops.js" defer></script><script src="/admin/next-gen.js" defer></script>\n</body>
+<script src="/admin/ops.js" defer></script><script src="/admin/next-gen.js" defer></script>
+</body>
 </html>
