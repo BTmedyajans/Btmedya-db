@@ -1223,6 +1223,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   const links=[...nav.querySelectorAll('[data-mobile-nav]')];
   const targets=[
     ['news',document.getElementById('news')],
+    ['media',document.getElementById('medya')],
     ['portfolio',document.getElementById('portfoy')],
     ['ai',document.getElementById('ai-lab')],
     ['contact',document.getElementById('iletisim')]
