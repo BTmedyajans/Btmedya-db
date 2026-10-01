@@ -1,9 +1,14 @@
 name: BTMEDYA Cloudflare Control Plane
 
 on:
-  # Cloudflare control-plane changes are deliberately manual.
-  # Production deploy/domain reconciliation is handled by Workers Builds
-  # from wrangler.toml; this workflow is reserved for explicit API audits.
+  # Reconciliation is automatic when its source/config changes, while
+  # manual audit/apply remains available for explicit operator control.
+  push:
+    branches: [main]
+    paths:
+      - "control-plane/reconcile-worker-domains.sh"
+      - "wrangler.toml"
+      - ".github/workflows/cloudflare-control-plane.yml"
   workflow_dispatch:
     inputs:
       mode:
@@ -61,6 +66,7 @@ jobs:
           echo "Account-owned token ile Page Rules erişimi denenmeyecek; bu endpoint desteklenmiyor."
 
       - name: Reconcile Worker Custom Domains
+        if: ${{ github.event_name == 'push' || inputs.mode == 'apply' }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
