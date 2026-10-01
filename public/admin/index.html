@@ -439,7 +439,19 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
       <label>METİN / SENARYO</label>
       <textarea id="sBody" style="width:100%;min-height:130px" placeholder="Sosyal medya metni veya kısa video senaryosu"></textarea>
       <div class="form-2col">
-        <div><label>PLATFORMLAR</label><input id="sPlatforms" style="width:100%" placeholder="Instagram, TikTok, YouTube"></div>
+        <div>
+          <label>PLATFORMLAR</label>
+          <div class="row" id="sPlatformChoices" style="gap:8px;flex-wrap:wrap">
+            <label class="social-network-toggle"><input type="checkbox" name="sPlatform" value="instagram-reel" data-social-network="instagram"><span>Instagram Reels</span><small data-social-network-state="instagram">doğrulama bekliyor</small></label>
+            <label class="social-network-toggle"><input type="checkbox" name="sPlatform" value="instagram-post" data-social-network="instagram"><span>Instagram Gönderi</span><small data-social-network-state="instagram">doğrulama bekliyor</small></label>
+            <label class="social-network-toggle"><input type="checkbox" name="sPlatform" value="facebook-post" data-social-network="facebook"><span>Facebook</span><small data-social-network-state="facebook">doğrulama bekliyor</small></label>
+            <label class="social-network-toggle"><input type="checkbox" name="sPlatform" value="facebook-reel" data-social-network="facebook"><span>Facebook Reel</span><small data-social-network-state="facebook">doğrulama bekliyor</small></label>
+            <label class="social-network-toggle"><input type="checkbox" name="sPlatform" value="tiktok" data-social-network="tiktok"><span>TikTok</span><small data-social-network-state="tiktok">doğrulama bekliyor</small></label>
+            <label class="social-network-toggle"><input type="checkbox" name="sPlatform" value="youtube-short" data-social-network="youtube"><span>YouTube Shorts</span><small data-social-network-state="youtube">doğrulama bekliyor</small></label>
+            <label class="social-network-toggle"><input type="checkbox" name="sPlatform" value="youtube" data-social-network="youtube"><span>YouTube Video</span><small data-social-network-state="youtube">doğrulama bekliyor</small></label>
+          </div>
+          <small class="muted">Yayınlanacak ağın doğrulanmış olması gerekir. Reels/Shorts seçiminde görsel/video medya eklemek zorunludur.</small>
+        </div>
         <div><label>DURUM</label><select id="sStatus" style="width:100%"><option value="fikir">Fikir</option><option value="hazirlaniyor">Hazırlanıyor</option><option value="onayda">Onayda</option><option value="planlandi">Planlandı</option><option value="yayinlandi">Yayınlandı</option></select></div>
       </div>
       <div class="form-2col">
@@ -1273,6 +1285,17 @@ async function loadSocialSettings(){
         label.title=st.note||'';
       }
     });
+    document.querySelectorAll('[data-social-network]').forEach(el=>{
+      const key=el.dataset.socialNetwork, st=live[key]||{};
+      el.disabled=!Boolean(st.connected);
+      const label=el.closest('.social-network-toggle');
+      if(label){
+        label.dataset.state=st.configured?'ready':st.connected?'partial':'off';
+        label.title=st.note||'';
+      }
+      const states=[...document.querySelectorAll('[data-social-network-state="'+key+'"]')];
+      states.forEach(s=>s.textContent=st.configured?'Metricool + Worker hazır':st.connected?'Metricool bağlı · Worker listeye eklenmeli':'Metricool bağlantısı doğrulanmadı');
+    });
     $('#oSaatler').value=(a.saatler||[]).join(', ');
     $('#oTazelik').value=a.tazelikSaat||72;
     $('#oOtomatik').checked=a.otomatikPlanla===true;
@@ -1390,7 +1413,7 @@ $('#sSaveBtn').onclick=async()=>{
   $('#sStatusMsg').textContent='';
   const title=$('#sTitle').value.trim();
   if(!title){$('#sStatusMsg').textContent='Başlık zorunludur.';return;}
-  const platforms=$('#sPlatforms').value.split(',').map(x=>x.trim()).filter(Boolean);
+  const platforms=[...document.querySelectorAll('input[name="sPlatform"]:checked')].map(x=>x.value);
   const scheduled=$('#sScheduled').value?new Date($('#sScheduled').value).toISOString():null;
   const r=await req('/api/admin/social',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
     title,body:$('#sBody').value,format:$('#sFormat').value,status:$('#sStatus').value,
