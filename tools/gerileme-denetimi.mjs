@@ -245,16 +245,21 @@ tara('public'); tara('src');
        sonra "GERCEK CEKIM · SAHA" / "GERCEK URETIM · STUDIO" (e7f8826), en
        son kaynak bildirmeyen "HABER · SAHA" (3a75d7e) basti. 8. kural yalniz
        home.js'e baktigi icin hicbirini yakalamadi.
-       Kural: public/ altindaki .js dosyalarinda sabit yazilan her rozet
-       (source:/kaynak: alani) "AI ÜRETİMİ" ile baslar. GERCEK CEKIM yalniz
-       veriden (panel yuvasi, gercek listesi) turer. */
+       Kural: public/ altindaki .js dosyalarinda sabit yazilan rozetler kaynak verisi
+       yokken kesinlik iddiasi tasimamali. Yuvali sahneler icin konservatif
+       fallback "KAYNAK DURUMU DOĞRULANIYOR"; acik AI sahneleri icin
+       "AI ÜRETİMİ..." kullanilabilir. GERCEK CEKIM yalniz veriden
+       (panel yuvasi, gercek listesi) turer. */
 {
   const dosyalar = readdirSync('public').filter(f => f.endsWith('.js')).map(f => 'public/' + f);
   for (const f of dosyalar) {
     const kod = readFileSync(f, 'utf8');
     for (const m of kod.matchAll(/\b(source|kaynak)\s*:\s*'([^']*)'/g)) {
-      if (!m[2].startsWith('AI ÜRETİMİ')) {
-        bulgular.push(`${f} sahne rozeti sabit "${m[2]}" yaziyor. Sabit rozet "AI ÜRETİMİ" olmali; GERÇEK ÇEKİM panel verisinden turer (AGENTS.md).`);
+      const sabitKaynak = m[2];
+      const izinliFallback = sabitKaynak === 'KAYNAK DURUMU DOĞRULANIYOR';
+      const izinliAi = sabitKaynak.startsWith('AI ÜRETİMİ');
+      if (!izinliFallback && !izinliAi) {
+        bulgular.push(`${f} sahne rozeti sabit "${sabitKaynak}" yaziyor. Sabit rozet yalnizca "KAYNAK DURUMU DOĞRULANIYOR" veya "AI ÜRETİMİ..." olabilir; GERÇEK ÇEKİM veri kaynağından türemelidir.`);
       }
     }
   }
