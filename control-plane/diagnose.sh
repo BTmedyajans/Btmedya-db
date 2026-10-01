@@ -60,8 +60,7 @@ else
   if [[ "$records_http" == "200" ]]; then
     records="$(cat /tmp/btmedya-dns-records.json)"
     jq -r '.result[] | select(
-      (.name=="'"$BASE_DOMAIN"'" and .type=="AAAA" and .content=="100::")
-      or (.name=="chatgpt.'"$BASE_DOMAIN"'" and .type=="A" and .content=="192.0.2.1")
+      (.name=="chatgpt.'"$BASE_DOMAIN"'" and .type=="A" and .content=="192.0.2.1")
       or (.name=="'"$WWW_DOMAIN"'" and .type=="CNAME" and .content=="public.r2.dev")
     ) | [.type,.name,.content] | @tsv' <<<"$records" > /tmp/btmedya-conflicts
     if [[ ! -s /tmp/btmedya-conflicts ]]; then
@@ -102,8 +101,8 @@ grep -iE '^(HTTP/|location:|server:|cf-ray:|cf-cache-status:)' "$redirect_header
 if [[ "$redirect_code" == "301" || "$redirect_code" == "308" ]]; then ok "WWW yönlendirme yanıtı mevcut"; else warn "WWW yönlendirmesi beklenen 301/308 değil"; fi
 
 section "LIVE WORKER VERSION"
-live_version="$(jq -r '.surum.id // empty' <<<"$health_body" 2>/dev/null || true)"
-live_loaded="$(jq -r '.surum.yuklendi // empty' <<<"$health_body" 2>/dev/null || true)"
+live_version="$(jq -r '.surum.id // empty' "$health_body" 2>/dev/null || true)"
+live_loaded="$(jq -r '.surum.yuklendi // empty' "$health_body" 2>/dev/null || true)"
 if [[ "$health_code" == "200" && -n "$live_version" && -n "$live_loaded" ]]; then
   ok "Canlı Worker sürümü /api/health üzerinden doğrulandı: id=$live_version yuklendi=$live_loaded"
 else
@@ -111,9 +110,9 @@ else
 fi
 
 section "R2 / D1 LIVE BINDINGS"
-r2_ok="$(jq -r '.r2 // false' <<<"$health_body" 2>/dev/null || echo false)"
-cms_ok="$(jq -r '.cms // false' <<<"$health_body" 2>/dev/null || echo false)"
-r2_objects="$(jq -r '.r2Objects // false' <<<"$health_body" 2>/dev/null || echo false)"
+r2_ok="$(jq -r '.r2 // false' "$health_body" 2>/dev/null || echo false)"
+cms_ok="$(jq -r '.cms // false' "$health_body" 2>/dev/null || echo false)"
+r2_objects="$(jq -r '.r2Objects // false' "$health_body" 2>/dev/null || echo false)"
 if [[ "$r2_ok" == "true" && "$r2_objects" == "true" ]]; then
   ok "R2 canlı Worker üzerinden doğrulandı"
 else
