@@ -663,7 +663,10 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       const count=Array.isArray(data.items)?data.items.length:0;
       meta.textContent='Kaynak: '+String(data.source||'Metricool')+' · '+count+' doğrulanmış yayın · '+String(data.generated_at||'');
       grid.innerHTML=count?data.items.map(feedCardSocial).join(''):'<div class="social-feed-empty">Doğrulanmış yayın kaydı yok.</div>';
-      document.querySelector('[data-fallback="social"]')?.remove();
+      // Snapshot yalnızca kullanılabilir sosyal veri geldiyse kaldırılır.
+      if(count || (Array.isArray(data.profiles) && data.profiles.length)){
+        document.querySelector('[data-fallback="social"]')?.remove();
+      }
       markReady();
     }catch(err){
       // preserve verified fallbacks: API okunamazsa son doğrulanmış sosyal
