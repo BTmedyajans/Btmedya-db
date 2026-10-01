@@ -36,5 +36,18 @@
     "keyFile": "/57fb863171638cffa9cdfb3913627b57.txt",
     "note": "Website Worker can notify IndexNow when published news changes. GSC Wizard's separate IndexNow submission setting is not configured."
   },
-  "notes": "GSC Search Analytics is delayed; settled data ends 2026-09-28. Sitemap submission queues crawling and does not itself index URLs."
+  "notes": "GSC Search Analytics is delayed; settled data ends 2026-09-28. Sitemap submission queues crawling and does not itself index URLs.",
+  "indexingTracker": {
+    "trackerId": "69d4f640-bf5a-4f66-abee-f610e8b6d315",
+    "active": true,
+    "total": 51,
+    "indexed": 1,
+    "notIndexed": 50,
+    "pending": 0,
+    "errors": 0,
+    "warnings": 0,
+    "healthScore": 22,
+    "lastCheckAt": "2026-10-01T13:09:42.171+00:00",
+    "note": "GSC Wizard tracker Google URL Inspection sonuçlarını izliyor. Alt sayfalar henüz Google tarafından bilinmiyor; bu teknik erişim veya kalite hatası olduğu anlamına tek başına gelmez."
+  }
 }
