@@ -239,6 +239,22 @@ tara('public'); tara('src');
   }
 }
 
+/* 8d) Haber istihbaratı: kategori alarmı ve canlı admin merkezi korunmalı. */
+{
+  const intel = existsSync('src/news-intelligence.js') ? readFileSync('src/news-intelligence.js','utf8') : '';
+  const worker = existsSync('src/worker.js') ? readFileSync('src/worker.js','utf8') : '';
+  const admin = existsSync('public/admin/index.html') ? readFileSync('public/admin/index.html','utf8') : '';
+  if (!intel.includes('news_intelligence_alerts') || !intel.includes('categoryMatrix') || !intel.includes('sourceHealth')) {
+    bulgular.push('Haber istihbaratı kategori alarmı / kaynak sağlık katmanı eksik.');
+  }
+  if (!worker.includes('/api/admin/news-intelligence/alerts/')) {
+    bulgular.push('Haber alarmı acknowledge API eksik.');
+  }
+  if (!admin.includes('intelCategoryMatrix') || !admin.includes('intelAlerts') || !admin.includes('setInterval(()=>{')) {
+    bulgular.push('Admin canlı istihbarat merkezi veya otomatik yenileme eksik.');
+  }
+}
+
 /* 8c) Sosyal admin operasyonu: teslimat retry'i status=planlandi hilesine
        donmemeli; hata kaydi temizlenmeli ve yeniden kuyruga girmelidir.
        Ayrica admin, platform bazli secenekleri kullanmali. */
