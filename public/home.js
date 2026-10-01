@@ -471,46 +471,50 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     const grid = d.getElementById('gercekArsivGrid');
     if (!grid) return;
     try {
-      const r = await fetch('/api/public/media?limit=40', {headers:{accept:'application/json'}});
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const data = await r.json();
-      const ogeler = (Array.isArray(data.items) ? data.items : [])
-        .filter(x => x && !x.ai_generated && !arsivDisi(x))
-        .filter(x => ['saha','haber','video','portfoy','hero','sosyal','arsiv','medya'].includes(String(x.category || '')))
-        .sort((a, b) => {
-          /* Once medya-ozel.json'daki acik vitrin sirasi. Alfabetik dizilis
-             ayni cekimden bes portreyi ust uste getiriyor, saha roportaji ve
-             studyo kareleri ilk sekize hic giremiyordu. */
-          const acik = x => (typeof x.sira === 'number' ? x.sira : 999);
-          if (acik(a) !== acik(b)) return acik(a) - acik(b);
-          const kat = x => ({saha:0, haber:1, video:2, portfoy:3, hero:4}[x.category] ?? 9);
-          return kat(a) - kat(b);
-        })
-        .slice(0, 8);
-      if (!ogeler.length) {
-        grid.innerHTML = '<div class="archive-live-empty">Gerçek arşiv kaydı henüz yayın akışına düşmedi.</div>';
+      let data=null;
+      try{
+        const live=await fetch('/api/public/media?limit=40',{headers:{accept:'application/json'}});
+        if(live.ok) data=await live.json();
+      }catch(e){}
+      if(!data || !Array.isArray(data.items)){
+        const r=await fetch('/data/medya-listesi.json',{headers:{accept:'application/json'}});
+        if(!r.ok) throw new Error('media snapshot '+r.status);
+        const raw=await r.json();
+        data={items:Array.isArray(raw)?raw.map((x,i)=>({
+          id:x.id||('static-'+i), key:x.path, original_name:x.path, title:x.baslik,
+          category:x.category, url:'/assets/'+String(x.path||'').replace(/^\//,''),
+          poster:x.poster?'/assets/'+String(x.poster).replace(/^\//,''):null,
+          ai_generated:x.gercek===true?false:!['portfoy','medya','saha','haber'].includes(String(x.category||'')),
+          sira:x.sira, mime:/\.mp4$/i.test(String(x.path||''))?'video/mp4':'image/webp'
+        }))};
+      }
+      const ogeler=(Array.isArray(data.items)?data.items:[])
+        .filter(x=>x && !x.ai_generated && !arsivDisi(x))
+        .filter(x=>['saha','haber','video','portfoy','hero','sosyal','arsiv','medya'].includes(String(x.category||'')))
+        .sort((a,b)=>{
+          const acik=x=>typeof x.sira==='number'?x.sira:999;
+          if(acik(a)!==acik(b)) return acik(a)-acik(b);
+          const kat=x=>({saha:0,haber:1,video:2,portfoy:3,hero:4}[x.category]??9);
+          return kat(a)-kat(b);
+        }).slice(0,8);
+      if(!ogeler.length){
+        grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv kaydı henüz yayın akışına düşmedi.</div>';
         return;
       }
-      grid.innerHTML = ogeler.map(arsivKarti).join('');
+      grid.innerHTML=ogeler.map(arsivKarti).join('');
       grid.setAttribute('aria-busy','false');
-      /* Videolar yalnızca ekrandayken oynar: mobil veri ve pil için. */
-      grid.querySelectorAll('video').forEach(v => {
-        const io = new IntersectionObserver(
-          es => es.forEach(e => {
-            if (e.isIntersecting) {
-              if (!v.src && v.dataset.src) { v.src = v.dataset.src; v.load(); }
-              v.play().catch(() => {});
-            } else v.pause();
-          }),
-          {rootMargin:'120px'}
-        );
+      grid.querySelectorAll('video').forEach(v=>{
+        const io=new IntersectionObserver(es=>es.forEach(e=>{
+          if(e.isIntersecting){if(!v.src&&v.dataset.src){v.src=v.dataset.src;v.load();}v.play().catch(()=>{});}
+          else v.pause();
+        }),{rootMargin:'120px'});
         io.observe(v);
       });
-    } catch (err) {
-      grid.innerHTML = '<div class="archive-live-empty">Arşiv akışı şu anda okunamadı. Haber arşivi yine açık: <a href="/haberler/">/haberler/</a></div>';
+    }catch(err){
+      grid.innerHTML='<div class="archive-live-empty">Arşiv akışı şu anda okunamadı. Haber arşivi yine açık: <a href="/haberler/">Haber arşivi ↗</a></div>';
     }
   };
-  loadArsiv();
+
 
   const hero = d.querySelector('.hero');
   if (hero && !reduced) {
@@ -614,24 +618,29 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     return '<article class="social-feed-card"><div class="social-feed-card-top"><span>'+platform+'</span><time datetime="'+date+'">'+date+'</time></div><h3>'+title+'</h3><p>'+escSocial(item.archive_context||'')+'</p><a href="'+escSocial(item.url)+'" target="_blank" rel="noopener">Yayını aç ↗</a></article>';
   }
   async function loadSocialFeedHome(){
-    /* Bu blok ana IIFE'nin disinda; oradaki 'const d = document' burada yok.
-       'd' ile yazildiginda sayfa ReferenceError verip sosyal akisi hic yuklemiyordu. */
-    const profiles=document.getElementById('socialProfiles'), meta=document.getElementById('socialFeedMeta'), grid=document.getElementById('socialFeedGrid');
+    const profiles=document.getElementById('socialProfiles'),meta=document.getElementById('socialFeedMeta'),grid=document.getElementById('socialFeedGrid');
     const markReady=()=>{profiles?.setAttribute('aria-busy','false');grid?.setAttribute('aria-busy','false')};
     if(!profiles||!meta||!grid)return;
     try{
-      const r=await fetch('/api/public/social-feed',{headers:{accept:'application/json'}});
-      if(!r.ok)throw new Error('HTTP '+r.status);
-      const data=await r.json();
+      let data=null;
+      try{
+        const r=await fetch('/api/public/social-feed',{headers:{accept:'application/json'}});
+        if(r.ok)data=await r.json();
+      }catch(e){}
+      if(!data||!Array.isArray(data.profiles)||!Array.isArray(data.items)){
+        const r=await fetch('/data/social-feed.json',{headers:{accept:'application/json'}});
+        if(!r.ok)throw new Error('snapshot '+r.status);
+        data=await r.json();
+      }
       profiles.innerHTML=(Array.isArray(data.profiles)?data.profiles:[]).map(profileCardSocial).join('');
       const count=Array.isArray(data.items)?data.items.length:0;
-      meta.textContent='Kaynak: '+String(data.source||'Metricool')+' · '+count+' doğrulanmış yayın snapshotı · '+String(data.generated_at||'');
-      grid.innerHTML=count ? data.items.map(feedCardSocial).join('') : '<div class="social-feed-empty">Doğrulanmış yayın kaydı yok.</div>';
+      meta.textContent='Kaynak: '+String(data.source||'Metricool')+' · '+count+' doğrulanmış yayın · '+String(data.generated_at||'');
+      grid.innerHTML=count?data.items.map(feedCardSocial).join(''):'<div class="social-feed-empty">Doğrulanmış yayın kaydı yok.</div>';
       markReady();
     }catch(err){
-      profiles.innerHTML='';
-      meta.textContent='Sosyal profil bağlantıları korunuyor; son yayın snapshotı şu anda okunamadı.';
-      grid.innerHTML='<div class="social-feed-empty">Sosyal akış geçici olarak kullanılamıyor.</div>';
+      profiles.innerHTML='<article class="social-profile-card"><div><span class="social-platform-tag">Instagram</span><small>PROFİL</small></div><div><a href="https://www.instagram.com/btmedyajans/" target="_blank" rel="noopener">Profili aç ↗</a></div></article><article class="social-profile-card"><div><span class="social-platform-tag">YouTube</span><small>PROFİL</small></div><div><a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">Kanalı aç ↗</a></div></article><article class="social-profile-card"><div><span class="social-platform-tag">TikTok</span><small>PROFİL</small></div><div><a href="https://www.tiktok.com/@btmedya1010" target="_blank" rel="noopener">Profili aç ↗</a></div></article>';
+      meta.textContent='Sosyal profil bağlantıları kullanılabilir; yayın snapshotı geçici olarak okunamadı.';
+      grid.innerHTML='<div class="social-feed-empty">Son yayın snapshotı şu anda okunamadı.</div>';
       markReady();
     }
   }
@@ -976,18 +985,23 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     requestAnimationFrame(adim);
   };
   async function doldur(){
-    const [haber,medya]=await Promise.all([
+    const [haberApi,medyaApi,haberStatik,medyaStatik]=await Promise.all([
       fetch('/api/news?limit=500',{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('/data/medya-listesi.json').then(r=>r.ok?r.json():null).catch(()=>null),
+      fetch('/data/haberler.json').then(r=>r.ok?r.json():null).catch(()=>null),
       fetch('/data/medya-listesi.json').then(r=>r.ok?r.json():null).catch(()=>null)
     ]);
-    if(haber && Array.isArray(haber.items)) yaz('haber',haber.items.filter(n=>n.status==='published').length);
-    if(Array.isArray(medya)){
+    const haberler=haberApi&&Array.isArray(haberApi.items)?haberApi.items.filter(n=>n.status==='published')
+      :(Array.isArray(haberStatik)?haberStatik.filter(n=>n.status!=='draft'):[]);
+    const medya=Array.isArray(medyaApi)?medyaApi:(Array.isArray(medyaStatik)?medyaStatik:[]);
+    if(haberler.length) yaz('haber',haberler.length);
+    if(medya.length){
       yaz('medya',medya.length);
       yaz('video',medya.filter(m=>/\.mp4$/i.test(m.path||'')).length);
     }
-    const kanallar=new Set([...document.querySelectorAll('a[href*="instagram.com/"],a[href*="youtube.com/@"],a[href*="tiktok.com/@"]')]
-      .map(a=>{ try{ const u=new URL(a.href); return u.hostname.replace(/^www\./,'')+u.pathname.split('/').slice(0,2).join('/'); }catch(e){ return ''; } })
-      .filter(Boolean));
+    const kanallar=new Set(['instagram.com/btmedyajans','youtube.com/@BTmedyaAjans','tiktok.com/@btmedya1010']);
+    document.querySelectorAll('a[href*="instagram.com/"],a[href*="youtube.com/@"],a[href*="tiktok.com/@"]')
+      .forEach(a=>{try{const u=new URL(a.href);kanallar.add(u.hostname.replace(/^www\./,'')+u.pathname.split('/').slice(0,2).join('/'));}catch(e){}});
     yaz('kanal',kanallar.size);
   }
   if('IntersectionObserver' in window){
