@@ -794,10 +794,14 @@ async function autopilotApi(request, env, url){
     const s=await autopilotStatus(env);
     const competitors=s.competitors||[];
     const queue=s.queue||[];
+    const cx=connectionMatrix(env);
+    const socialReady=cx.filter(x=>['facebook','instagram','twitter','linkedin','whatsapp'].includes(x.network) && x.connected).map(x=>x.network);
     return json({ok:true,generated_at:new Date().toISOString(),strategy:{
       editorial:'Kaynaklı ve taze başlıkları önce keşfet; hassas konuları editör onayına bırak.',
       media:'Haber özgüllüğü olmayan içeriklerde BTMEDYA gerçek arşivini tercih et; AI görsellerini AI LAB olarak ayır.',
       distribution:'Bağlı ağlarda platforma uygun kırpma/metin kullan; bağlantısı olmayan ağları yayın kuyruğuna sokma.',
+      advertising:'Reklam harcamasını otomatik artırma. Önce organik içerik performansını ve rakip görünürlüğünü ölç; reklam hesabı bağlantısı onaylandığında kampanya taslağı üret.',
+      campaignReadiness:socialReady.length?socialReady:['Meta/X/LinkedIn reklam bağlantısı gerekli'],
       competitors:competitors.map(x=>({host:x.host,latest:x.last_title,headlines:x.headlines_seen,seen:x.last_seen_at})).slice(0,10),
       queue:queue.slice(0,10)
     }});
