@@ -385,9 +385,9 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   });
   for (const f of tara('public')) {
     const html = readFileSync(f, 'utf8');
-    for (const m of html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)) {
+    for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
       const oz = m[1], govde = m[2].trim();
-      if (/\\bsrc\\s*=/.test(oz) || /type\\s*=\\s*["']application\\/(ld\\+)?json["']/.test(oz) || !govde) continue;
+      if (/\bsrc\s*=/.test(oz) || /type\s*=\s*["']application\/(ld\+)?json["']/.test(oz) || !govde) continue;
       bulgular.push(f + ' satır içi çalıştırılabilir betik içeriyor; public/ altında ayrı .js dosyasına taşınmalı.');
     }
   }
