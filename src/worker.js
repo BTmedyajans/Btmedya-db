@@ -1,3 +1,4 @@
+/* BTMEDYA live newsroom automation: category intelligence + admin alarm center enabled. */
 import { BtmedyaWorkflow } from "./btmedya-workflow.js";
 import { WorkflowStatusDO } from "./workflow-status-do.js";
 import { renderNewsPage } from "./news-page.js";
