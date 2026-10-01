@@ -101,30 +101,30 @@ printf "HTTP: %s\n" "$redirect_code"
 grep -iE '^(HTTP/|location:|server:|cf-ray:|cf-cache-status:)' "$redirect_headers" || true
 if [[ "$redirect_code" == "301" || "$redirect_code" == "308" ]]; then ok "WWW yönlendirme yanıtı mevcut"; else warn "WWW yönlendirmesi beklenen 301/308 değil"; fi
 
-section "WORKER DEPLOYMENTS"
-if npx wrangler deployments list --name btmedya-db 2>&1 | sed -n '1,80p'; then
-  ok "Worker deployment listesi okunabildi"
+section "LIVE WORKER VERSION"
+live_version="$(jq -r '.surum.id // empty' <<<"$health_body" 2>/dev/null || true)"
+live_loaded="$(jq -r '.surum.yuklendi // empty' <<<"$health_body" 2>/dev/null || true)"
+if [[ "$health_code" == "200" && -n "$live_version" && -n "$live_loaded" ]]; then
+  ok "Canlı Worker sürümü /api/health üzerinden doğrulandı: id=$live_version yuklendi=$live_loaded"
 else
-  warn "Worker deployment listesi okunamadı"
+  warn "Canlı Worker sürüm metadata'sı /api/health üzerinden doğrulanamadı"
 fi
 
-section "R2"
-if npx wrangler r2 bucket list 2>&1 | grep -F "btmedya-media" >/dev/null; then
-  ok "R2 bucket btmedya-media bulundu"
-elif [[ "$(jq -r '.r2 // false' <<<"$health_body" 2>/dev/null || echo false)" == "true" ]]; then
-  warn "R2 list endpointi bu token ile görünür değil; /api/health R2 bağlantısını doğruluyor"
+section "R2 / D1 LIVE BINDINGS"
+r2_ok="$(jq -r '.r2 // false' <<<"$health_body" 2>/dev/null || echo false)"
+cms_ok="$(jq -r '.cms // false' <<<"$health_body" 2>/dev/null || echo false)"
+r2_objects="$(jq -r '.r2Objects // false' <<<"$health_body" 2>/dev/null || echo false)"
+if [[ "$r2_ok" == "true" && "$r2_objects" == "true" ]]; then
+  ok "R2 canlı Worker üzerinden doğrulandı"
 else
-  warn "R2 bucket btmedya-media listede bulunamadı ve /api/health R2 bağlantısını doğrulamadı"
+  warn "R2 canlı Worker üzerinden doğrulanamadı"
 fi
-
-section "D1"
-if npx wrangler d1 list 2>&1 | grep -F "btmedya-media" >/dev/null; then
-  ok "D1 database btmedya-media bulundu"
-elif [[ "$(jq -r '.cms // false' <<<"$health_body" 2>/dev/null || echo false)" == "true" ]]; then
-  warn "D1 list endpointi bu token ile görünür değil; /api/health CMS/D1 bağlantısını doğruluyor"
+if [[ "$cms_ok" == "true" ]]; then
+  ok "CMS/D1 canlı Worker üzerinden doğrulandı"
 else
-  warn "D1 database btmedya-media listede bulunamadı ve /api/health CMS/D1 bağlantısını doğrulamadı"
+  warn "CMS/D1 canlı Worker üzerinden doğrulanamadı"
 fi
+echo "Not: Wrangler account-list endpointleri token kapsamına bağlıdır; canlı sağlık kontrolü başarılıysa bu listeleme endpointleri diagnostic sonucu bozmaz."
 
 section "CONFIG CONSISTENCY"
 grep -nE '^(name|main|compatibility_date)|custom_domain|bucket_name|database_name|database_id|run_worker_first' wrangler.toml || true
