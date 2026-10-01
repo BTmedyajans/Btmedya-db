@@ -716,11 +716,11 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
      Panelden bir sahneye gercek cekim atanirsa etiket asagidaki kancayla
      kendiliginden degisir; elle yazilmaz. */
   const scenes=[
-    {key:'hero',yuva:'hero-video',k:'01 / GİRİŞ',kaynak:'AI ÜRETİMİ',t:'GERÇEK<br><span>GÖRÜNTÜ.</span>',d:'Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.'},
-    {key:'haber',yuva:'kategori-haber',k:'02 / HABER · SAHA',kaynak:'AI ÜRETİMİ',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
-    {key:'medya',yuva:'kategori-medya',k:'03 / MEDYA · İÇERİK',kaynak:'AI ÜRETİMİ',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için üretim.'},
-    {key:'produksiyon',yuva:'kategori-prod',k:'04 / PRODÜKSİYON',kaynak:'AI ÜRETİMİ',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
-    {key:'ai',k:'05 / AI LAB · AÇIK ETİKET',kaynak:'AI ÜRETİMİ',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI üretimi ayrı, açık ve şeffaf bir laboratuvar olarak konumlanıyor.'}
+    {key:'hero',yuva:'hero-video',k:'01 / GİRİŞ',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'GERÇEK<br><span>GÖRÜNTÜ.</span>',d:'Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.'},
+    {key:'haber',yuva:'kategori-haber',k:'02 / HABER · SAHA',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
+    {key:'medya',yuva:'kategori-medya',k:'03 / MEDYA · İÇERİK',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için üretim.'},
+    {key:'produksiyon',yuva:'kategori-prod',k:'04 / PRODÜKSİYON',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
+    {key:'ai',k:'05 / AI LAB · AÇIK ETİKET',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI üretimi ayrı, açık ve şeffaf bir laboratuvar olarak konumlanıyor.'}
   ];
   /* Panel atamalari: sahnenin videosunu ve rozetini degistirir. Atama yoksa
      hicbir sey yapilmaz, sayfa kendi varsayilanlariyla kalir. */
@@ -840,7 +840,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       root.classList.remove('beat-haber','beat-medya','beat-produksiyon','beat-ai');
       if(scene.key!=='hero') root.classList.add('beat-'+scene.key);
       // Varsayilan AI URETIMI (AGENTS.md): kaynagi bilinmeyen kare gercek sayilmaz.
-      if(kaynakEl) kaynakEl.textContent=scene.kaynak||'AI ÜRETİMİ';
+      if(kaynakEl) kaynakEl.textContent=scene.kaynak||'KAYNAK DURUMU DOĞRULANIYOR';
       if(title){title.innerHTML=scene.t;title.animate([{opacity:.35,transform:'translateY(16px)'},{opacity:1,transform:'translateY(0)'}],{duration:420,easing:'cubic-bezier(.2,.75,.2,1)'})}
       if(kicker) kicker.textContent=scene.k;
       if(lead) lead.textContent=scene.d;
