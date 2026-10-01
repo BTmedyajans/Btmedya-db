@@ -50,6 +50,20 @@ jobs:
           node --check public/home.js
           node --check public/mobile-motion.js
           node --check public/admin/next-gen.js
+          python3 - <<'PY'
+          import re, pathlib, subprocess, tempfile
+          html=pathlib.Path("public/admin/index.html").read_text(encoding="utf-8")
+          blocks=re.findall(r"<script(?:\s+[^>]*)?>(.*?)</script>", html, flags=re.I|re.S)
+          checked=0
+          for i,src in enumerate(blocks):
+              if not src.strip() or "application/ld+json" in html[max(0, html.find(src)-120):html.find(src)]:
+                  continue
+              with tempfile.NamedTemporaryFile("w",suffix=".js",delete=False,encoding="utf-8") as f:
+                  f.write(src); path=f.name
+              subprocess.run(["node","--check",path],check=True)
+              checked+=1
+          print(f"ADMIN_INLINE_JS_CHECKED {checked}")
+          PY
           # 27 Sep 2026'da yaşanan home.js truncation regresyonunu tekrar
           # üretime taşımamak için yalnızca sözdizimini değil, runtime'ın
           # beklenen minimum bütünlüğünü de kapıdan kontrol ediyoruz.
