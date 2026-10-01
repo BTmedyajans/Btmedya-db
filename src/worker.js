@@ -1728,7 +1728,7 @@ export default { async scheduled(controller, env, ctx){
             headers:{...guvenlikBasliklari(url.pathname),
                      'content-type':'text/html; charset=utf-8',
                      'x-robots-tag':robotsBasligi(url.pathname),
-                     'cache-control':'public, max-age=300, s-maxage=600'}
+                     'cache-control':'public, max-age=60, s-maxage=60, must-revalidate','cache-tag':'btmedya-html'}
           });
         }
       }
@@ -1817,7 +1817,7 @@ function onbellek(pathname) {
     return 'public, max-age=31536000, immutable';
   if (/\.(?:css|js)$/i.test(pathname))
     return 'public, max-age=3600, must-revalidate';
-  return 'public, max-age=300, must-revalidate';
+  return 'public, max-age=60, s-maxage=60, must-revalidate';
 }
 
 /* Site haritasi, Google News haritasi ve RSS depoda elle tutulan statik
@@ -1917,7 +1917,10 @@ async function servisEt(request, env) {
   const contentType = h.get('content-type') || '';
   if (contentType.toLowerCase().startsWith('text/html')) {
     h.set('content-type', 'text/html; charset=utf-8');
-    if (res.status === 200) h.set('x-robots-tag', robotsBasligi(url.pathname));
+    if (res.status === 200) {
+      h.set('x-robots-tag', robotsBasligi(url.pathname));
+      h.set('cache-tag', 'btmedya-html');
+    }
   }
   if (!h.has('cache-control') || res.status === 404) h.set('cache-control', onbellek(url.pathname));
   else h.set('cache-control', onbellek(url.pathname));
