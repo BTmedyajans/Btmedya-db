@@ -45,6 +45,8 @@ jobs:
           test -s public/sitemap.xml
           test -s package.json
           node --check src/worker.js
+          grep -q 'related-news' src/news-page.js
+          grep -q 'ilgiliHaberler' src/worker.js
           node --check src/metricool-scheduler.js
           node --check src/news-intelligence.js
           node --check public/home.js
