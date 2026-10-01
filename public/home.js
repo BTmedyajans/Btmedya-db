@@ -302,6 +302,26 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     </article>`;
     root.innerHTML = card(main, 'story-card-main') + (side ? card(side, 'story-card-side') : '');
   };
+  const updateBreakingBand = (items) => {
+    const link = d.querySelector('.bt-breaking a');
+    if (!link) return;
+    const latest = [...(items || [])].sort((a,b) => {
+      const ad = Date.parse(a.published_at || a.original_date || '') || 0;
+      const bd = Date.parse(b.published_at || b.original_date || '') || 0;
+      return bd - ad;
+    })[0];
+    if (!latest || !latest.slug || !latest.title) {
+      link.textContent = 'Balıkesir, Türkiye ve dünya gündemini kaynak + tarih + görsel kaynağıyla takip et ↗';
+      link.href = '/haberler/';
+      return;
+    }
+    const cat = String(latest.category || 'HABER').trim();
+    const dt = dateText(latest);
+    link.textContent = [cat, latest.title, dt].filter(Boolean).join(' · ');
+    link.href = '/haberler/' + encodeURIComponent(latest.slug);
+    link.setAttribute('aria-label', 'Son haber: ' + latest.title);
+  };
+
   const render = (items) => {
     const list = items.slice(0, 9);
     newsGrid.innerHTML = list.map((n, i) => {
@@ -368,6 +388,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     }
     render(allNews);
     renderStoryLab(allNews);
+    updateBreakingBand(allNews);
   };
 
   filterBar?.addEventListener('click', e => {
