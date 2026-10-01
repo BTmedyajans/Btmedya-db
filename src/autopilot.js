@@ -196,10 +196,10 @@ async function aiDraft(env,candidate){
 
 async function chooseMedia(env,category,policy){
   if(!env.DB) return null;
-  const wantAi=/yapay|ai|teknoloji/i.test(String(category||"")) && policy.allowAiMedia;
+  const wantsAi=(policy.mediaMode==="ai-first" || /yapay|ai|teknoloji/i.test(String(category||""))) && policy.allowAiMedia;
   const rows=(await env.DB.prepare(
     "SELECT id,key,mime,title,category,ai_generated,published,alt_text FROM media WHERE published=1 AND (mime LIKE 'image/%' OR mime LIKE 'video/%') ORDER BY CASE WHEN category=? THEN 0 ELSE 1 END, CASE WHEN ai_generated=? THEN 0 ELSE 1 END, created_at DESC LIMIT 40"
-  ).bind(category,wantAi?1:0).all().catch(()=>({results:[]}))).results||[];
+  ).bind(category,wantsAi?1:0).all().catch(()=>({results:[]}))).results||[];
   if(!rows.length) return null;
   const clean=rows.filter(x=>!SENSITIVE.test(String(x.title||"")));
   const pool=clean.length?clean:rows;
