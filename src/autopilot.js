@@ -274,7 +274,7 @@ async function allowedReference(env,url){
   try{
     const u=new URL(String(url||""));
     const host=u.hostname.replace(/^www\./,"").toLowerCase();
-    const allow=new Set([...(p.competitorHosts||[]),"news.google.com","www.trthaber.com","www.aa.com.tr","cumha.com.tr","balikesir.bel.tr"]);
+    const allow=new Set([...(p.competitorHosts||[]),"news.google.com","trthaber.com","aa.com.tr","cumha.com.tr","balikesir.bel.tr"]);
     return u.protocol==="https:" && allow.has(host) ? u : null;
   }catch{return null;}
 }
