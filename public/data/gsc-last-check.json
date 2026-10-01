@@ -31,9 +31,10 @@
     }
   },
   "indexNow": {
-    "configured": false,
-    "submissionCount": 0,
-    "note": "IndexNow key is not configured for this site."
+    "websiteConfigured": true,
+    "connectorConfigured": false,
+    "keyFile": "/57fb863171638cffa9cdfb3913627b57.txt",
+    "note": "Website Worker can notify IndexNow when published news changes. GSC Wizard's separate IndexNow submission setting is not configured."
   },
   "notes": "GSC Search Analytics is delayed; settled data ends 2026-09-28. Sitemap submission queues crawling and does not itself index URLs."
 }
