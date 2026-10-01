@@ -49,6 +49,7 @@ jobs:
           node --check src/news-intelligence.js
           node --check public/home.js
           node --check public/mobile-motion.js
+          node --check public/admin/next-gen.js
           # 27 Sep 2026'da yaşanan home.js truncation regresyonunu tekrar
           # üretime taşımamak için yalnızca sözdizimini değil, runtime'ın
           # beklenen minimum bütünlüğünü de kapıdan kontrol ediyoruz.
