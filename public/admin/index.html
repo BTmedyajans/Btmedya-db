@@ -143,7 +143,18 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
 .ops-tool b{display:block}.ops-tool small{display:block;margin-top:5px;color:#777;line-height:1.45}
 .ops-tool .btn{margin-top:9px}
 .ops-audit{max-height:420px;overflow:auto}
-@media(max-width:900px){.ops-grid{grid-template-columns:1fr}.ops-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ops-tools{grid-template-columns:repeat(2,minmax(0,1fr))}.ops-preview-frame{height:560px}}
+.intel-headline{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid #252525;border-radius:12px;background:linear-gradient(90deg,#111,#0b0b0b)}
+.intel-live{display:inline-flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.intel-live i{width:8px;height:8px;border-radius:50%;background:#6c6;box-shadow:0 0 0 4px rgba(102,204,102,.08)}
+.intel-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+.intel-card{border:1px solid #242424;border-radius:10px;background:#101010;padding:11px;min-width:0}
+.intel-card b{display:block;font-size:19px}.intel-card small{display:block;color:#777;margin-top:4px}
+.intel-cats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:10px}
+.intel-cat{border:1px solid #242424;border-radius:9px;padding:9px;background:#0d0d0d}
+.intel-cat strong{display:block;font-size:12px}.intel-cat span{display:block;margin-top:5px;color:#888;font-size:10px}
+.intel-alert{border-left:3px solid #e8c06a!important}.intel-alert.risk{border-left-color:#f77!important}
+.intel-table{width:100%;border-collapse:collapse}.intel-table th,.intel-table td{padding:8px;border-bottom:1px solid #222;text-align:left;font-size:11px;vertical-align:top}.intel-table th{color:#777;font-weight:500}
+@media(max-width:900px){.intel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.intel-cats{grid-template-columns:repeat(2,minmax(0,1fr))}.ops-grid{grid-template-columns:1fr}.ops-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ops-tools{grid-template-columns:repeat(2,minmax(0,1fr))}.ops-preview-frame{height:560px}}
 @media(max-width:520px){.ops-kpi-grid{grid-template-columns:1fr 1fr}.ops-tools{grid-template-columns:1fr}.ops-preview-frame{height:520px}}
 </style><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"BTMedya Admin — İçerik Yönetimi","description":"BTMEDYA haber, medya ve prodüksiyon içerikleri.","url":"https://btmedya.com.tr/admin/","inLanguage":"tr-TR","isPartOf":{"@type":"WebSite","name":"BTMEDYA","url":"https://btmedya.com.tr/"}}</script>
 </head>
@@ -205,15 +216,41 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   <!-- TAB: HABER İSTİHBARATI -->
 <div class="tab-content" id="tab-intel">
   <div class="panel">
-    <h2>Haber İstihbaratı · canlı keşif</h2>
-    <p class="muted">15 dakikalık tarama kuyruğu: Google Trends, Balıkesir, ulusal kaynaklar ve seçili rakip görünürlük sinyalleri. Keşif katmanı tek başına yayın yapmaz; güvenli otomatik yayın mevcut Sabah Masası doğrulama zincirinden geçer.</p>
-    <div class="row" style="margin:12px 0">
-      <button class="btn primary" type="button" id="intelScanBtn">Şimdi tara</button>
-      <button class="btn" type="button" id="intelRefreshBtn">Yenile</button>
+    <div class="intel-headline">
+      <div>
+        <div class="intel-live"><i></i> Haber merkezi canlı izleme</div>
+        <h2 style="margin:7px 0 4px">Editör Masası · İstihbarat ve Alarm Merkezi</h2>
+        <p class="muted" style="margin:0">Kategori bazında kaynakları, trendleri, yeni adayları ve editör alarmını sürekli izler. Keşif otomatik; yayın kararı doğrulama zincirinden geçer.</p>
+      </div>
+      <div class="row" style="justify-content:flex-end;flex-wrap:wrap">
+        <button class="btn primary" type="button" id="intelScanBtn">Şimdi tara</button>
+        <button class="btn" type="button" id="intelRefreshBtn">Yenile</button>
+      </div>
+    </div>
+    <div class="intel-grid">
+      <div class="intel-card"><b id="intelKpiHot">—</b><small>Sıcak alarm</small></div>
+      <div class="intel-card"><b id="intelKpiCandidates">—</b><small>Yeni aday</small></div>
+      <div class="intel-card"><b id="intelKpiSources">—</b><small>Aktif kaynak</small></div>
+      <div class="intel-card"><b id="intelKpiNext">—</b><small>Sonraki tarama</small></div>
+    </div>
+    <div id="intelCategoryMatrix" class="intel-cats"></div>
+    <div class="panel" style="margin-top:10px">
+      <div class="row" style="align-items:center">
+        <div style="flex:1"><strong>Alarm kuyruğu</strong><div class="muted">Yüksek skor alan yeni konular burada görünür; hassas konular otomatik yayınlanmaz.</div></div>
+        <span class="pill" id="intelHeartbeat">NABIZ: —</span>
+      </div>
+      <div id="intelAlerts" class="ops-list" style="margin-top:10px"></div>
     </div>
     <p class="status" id="intelStatus"></p>
     <div id="intelRevenue" class="panel" style="margin-top:12px"></div>
-    <div id="intelList" class="news-list"></div>
+    <div class="panel" style="margin-top:12px">
+      <strong>Kaynak sağlık tablosu</strong>
+      <div style="overflow:auto;margin-top:8px"><table class="intel-table"><thead><tr><th>Kaynak</th><th>Tür</th><th>24s aday</th><th>Son kayıt</th></tr></thead><tbody id="intelSources"></tbody></table></div>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <div class="row" style="align-items:center"><strong style="flex:1">Son haber adayları</strong><span class="muted">Skora göre</span></div>
+      <div id="intelList" class="news-list" style="margin-top:8px"></div>
+    </div>
   </div>
 </div>
 <!-- TAB: MEDYA KASASI -->
@@ -1461,11 +1498,23 @@ $('#socialSummaryRefresh').onclick=()=>{loadSocialSummary();loadSocial();};
       const r=await fetch('/api/admin/news-intelligence',{credentials:'same-origin'});
       if(r.status===401){st.textContent='Oturum gerekli.';return}
       const j=await r.json();
-      const items=j.items||[];
-      st.textContent=(j.last?.at?('Son tarama: '+new Date(j.last.at).toLocaleString('tr-TR')):'Henüz tarama kaydı yok.')+' · '+items.length+' aday';
+      const items=j.items||[], alerts=j.alerts||[], cats=j.categoryMatrix||[], sources=j.sourceHealth||[];
+      const hot=alerts.filter(x=>Number(x.risk)===0).length;
+      document.getElementById('intelKpiHot').textContent=hot;
+      document.getElementById('intelKpiCandidates').textContent=items.length;
+      document.getElementById('intelKpiSources').textContent=sources.length;
+      const next=j.heartbeat?.nextScan;
+      document.getElementById('intelKpiNext').textContent=next?new Date(next).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):'—';
+      document.getElementById('intelHeartbeat').textContent=j.heartbeat?.alive?'NABIZ: AKTİF':'NABIZ: BEKLEMEDE';
+      document.getElementById('intelHeartbeat').className='pill '+(j.heartbeat?.alive?'pub':'');
+      document.getElementById('intelCategoryMatrix').innerHTML=cats.map(x=>'<div class="intel-cat"><strong>'+esc(x.category)+'</strong><span>'+esc(x.total)+' aday · '+esc(x.hot)+' sıcak · '+esc(x.risk)+' hassas</span></div>').join('')||'<div class="intel-cat"><strong>Henüz veri yok</strong><span>İlk tarama bekleniyor.</span></div>';
+      document.getElementById('intelAlerts').innerHTML=alerts.map(x=>'<div class="ops-item intel-alert '+(Number(x.risk)?'risk':'')+'"><div class="ops-item-top"><div><b>'+esc(x.title)+'</b><small>'+esc(x.category)+' · '+esc(x.source_name)+' · skor '+esc(x.score)+(Number(x.risk)?' · hassas konu':'')+'</small></div><button class="btn sm" data-intel-ack="'+esc(x.id)+'">İncelendi</button></div></div>').join('')||'<div class="ops-item"><span class="muted">Şu an yeni alarm yok.</span></div>';
+      document.getElementById('intelSources').innerHTML=sources.map(x=>'<tr><td>'+esc(x.source_name)+'</td><td>'+esc(x.source_tier)+'</td><td>'+esc(x.total)+'</td><td>'+esc(new Date(x.last_seen).toLocaleString('tr-TR'))+'</td></tr>').join('')||'<tr><td colspan="4">Veri yok.</td></tr>';
+      st.textContent=(j.last?.at?('Son tarama: '+new Date(j.last.at).toLocaleString('tr-TR')):'Henüz tarama kaydı yok.')+' · '+items.length+' aday · '+hot+' alarm';
       list.innerHTML=items.map(x=>'<div class="news-row"><div class="news-row-info"><b>'+esc(x.title)+'</b><small>'+esc(x.source_name)+' · '+esc(x.category)+' · skor '+esc(x.score)+' · trend '+esc(x.trend_signal)+(x.source_tier==='competitor'?' · rakip sinyali':'')+'</small></div><a class="btn sm" target="_blank" rel="noopener" href="'+esc(x.source_url)+'">Kaynağı aç</a></div>').join('')||'<p class="muted">Yeni aday bekleniyor.</p>';
       const ro=j.revenueOpportunities||[];
       rev.innerHTML='<b>Ticari trend fırsatları</b><p class="muted">'+(ro.length?ro.map(x=>esc(x.title)).join(' · '):'Henüz uygun fırsat yok.')+'</p>';
+      document.querySelectorAll('[data-intel-ack]').forEach(b=>b.onclick=async()=>{b.disabled=true;await fetch('/api/admin/news-intelligence/alerts/'+encodeURIComponent(b.dataset.intelAck),{method:'PATCH',headers:{'content-type':'application/json'},credentials:'same-origin',body:JSON.stringify({status:'acknowledged'})});intel(false)});
     }catch(e){st.textContent='İstihbarat okunamadı.'}
   }
   document.addEventListener('click',e=>{
