@@ -332,6 +332,15 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
 
   const render = (items) => {
     const list = items.slice(0, 9);
+    if (!list.length) {
+      const active = filterBar?.querySelector('.filter.active')?.dataset.cat || 'all';
+      const label = active === 'all'
+        ? 'Haber arşivi'
+        : ((window.BTMEDYA_RELEVANCE?.categories || []).find(x => x.key === active)?.label || active);
+      newsGrid.innerHTML = '<article class="news-card news-empty-category"><div class="news-body"><small>BTMEDYA / KATEGORİ</small><h3>' + esc(label) + ' akışı hazırlanıyor.</h3><p>Bu kategori editoryal yapıda açık. İlk doğrulanmış içerik geldiğinde burada otomatik görünür.</p><a class="news-open" href="/kaynak-masasi/">KAYNAK MASASI ↗</a></div></article>';
+      newsGrid.setAttribute('aria-busy','false');
+      return;
+    }
     newsGrid.innerHTML = list.map((n, i) => {
       const ref = staticReference[n.slug] || n.source_url || '';
       const cls = i === 0 ? 'news-card featured' : 'news-card';
@@ -387,8 +396,10 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
         allNews = [];
       }
     }
+    // Tum editoryal kategoriler veri yokken de navigasyonda gorunur.
+    // Boylece kategori omurgasi ilk haber gelmeden kaybolmaz.
     const categories = (window.BTMEDYA_RELEVANCE ? window.BTMEDYA_RELEVANCE.categories : [])
-      .filter(k => allNews.some(n => sinif(n) === k.key)).map(k => [k.key, k.label]);
+      .map(k => [k.key, k.label]);
     if (filterBar) {
       filterBar.innerHTML = [['all', 'TÜMÜ'], ...categories].map(([cat, label], i) =>
         '<button class="filter' + (i === 0 ? ' active' : '') + '" type="button" role="tab" aria-selected="' + (i === 0 ? 'true' : 'false') + '" data-cat="' + esc(cat) + '">' + esc(label) + '</button>'
