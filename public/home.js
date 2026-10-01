@@ -284,7 +284,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       const grafik = kapakKaynagi[n.slug] === 'grafik' ? ' news-media-grafik' : '';
       return `<div class="news-media${featured?' news-media-editorial':''}${grafik}"><img src="${esc(src)}" alt="${esc(n.title)}" loading="${featured?'eager':'lazy'}" decoding="async" data-kapak-yedegi="1"><div class="news-scrim"></div>${badge}${overlay}</div>`;
     }
-    return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GERÇEK HABER</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
+    return `<div class="news-media news-no-cover"><div class="news-archive-mark"><span>BTMEDYA / ARŞİV</span><b>GÖRSEL KAYDI BEKLENİYOR</b></div><div class="news-scrim"></div></div><span class="reference-note">KAPAK BEKLİYOR</span>`;
   };
   const storyMedia = n => {
     const yt = String(n.video_url || '').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
