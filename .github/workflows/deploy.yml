@@ -1,4 +1,5 @@
 name: BTMEDYA Production Verify
+# Canonical production gate: source validation + live smoke + Cloudflare commit verification.
 
 on:
   push:
