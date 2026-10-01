@@ -10,6 +10,7 @@ const pages = [
   {path:'/sosyal-medya/', name:'social'},
   {path:'/kaynak-masasi/', name:'sources'},
   {path:'/iletisim/', name:'contact'},
+  {path:'/en/', name:'english'},
   {path:'/admin/', name:'admin'}
 ];
 const viewports = [
@@ -63,4 +64,4 @@ for (const vp of viewports) {
 }
 await browser.close();
 if(failures.length){ console.error('RESPONSIVE_A11Y_SMOKE_FAILED'); failures.forEach(x=>console.error(x)); process.exit(1); }
-console.log('BTMEDYA responsive/a11y smoke: OK · 3 viewports · 8 routes · no horizontal overflow or unnamed controls');
+console.log('BTMEDYA responsive/a11y smoke: OK · 3 viewports · 9 routes · no horizontal overflow or unnamed controls');
