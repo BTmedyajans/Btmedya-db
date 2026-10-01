@@ -720,7 +720,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     {key:'haber',yuva:'kategori-haber',k:'02 / HABER · SAHA',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
     {key:'medya',yuva:'kategori-medya',k:'03 / MEDYA · İÇERİK',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için üretim.'},
     {key:'produksiyon',yuva:'kategori-prod',k:'04 / PRODÜKSİYON',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
-    {key:'ai',k:'05 / AI LAB · AÇIK ETİKET',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI üretimi ayrı, açık ve şeffaf bir laboratuvar olarak konumlanıyor.'}
+    {key:'ai',k:'05 / AI LAB · AÇIK ETİKET',kaynak:'AI ÜRETİMİ · AÇIKÇA ETİKETLİ',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI üretimi ayrı, açık ve şeffaf bir laboratuvar olarak konumlanıyor.'}
   ];
   /* Panel atamalari: sahnenin videosunu ve rozetini degistirir. Atama yoksa
      hicbir sey yapilmaz, sayfa kendi varsayilanlariyla kalir. */
