@@ -1566,17 +1566,18 @@ export default { async scheduled(controller, env, ctx){
   if(url.pathname.startsWith('/api/')){
     const inspect = await adminPageInspectApi(request, env, url);
     if(inspect) return inspect;
-    const command = await adminCommandApi(request, env, url);
-    if(command) return audit(command);
     const auditGet = await adminAuditApi(request, env, url);
     if(auditGet) return auditGet;
     const audit = (response) => {
+
       if(request.method!=='GET' && url.pathname.startsWith('/api/admin/')){
         if(ctx?.waitUntil) ctx.waitUntil(recordAdminAudit(env,request,response));
         else return recordAdminAudit(env,request,response);
       }
       return response;
     };
+    const command = await adminCommandApi(request, env, url);
+    if(command) return audit(command);
     const rSales = await salesApi(request, env, url);
     if(rSales) return audit(rSales);
 
