@@ -248,8 +248,20 @@ function indexNowBildir(ctx, origin, slug){
 async function newsApi(request, env, url, ctx){
   if(url.pathname==='/api/admin/news-intelligence' && (request.method==='GET'||request.method==='POST')){
     if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
-    if(request.method==='POST') return json(await runNewsIntelligence(env,{limit:12}));
+    if(request.method==='POST') return json(await runNewsIntelligence(env,{limit:16}));
     return json(await newsIntelligenceStatus(env));
+  }
+
+  const alertMatch=url.pathname.match(/^\\/api\\/admin\\/news-intelligence\\/alerts\\/(\\d+)$/);
+  if(alertMatch && request.method==='PATCH'){
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
+    const b=await request.json().catch(()=>({}));
+    const status=String(b.status||'acknowledged');
+    if(!['new','acknowledged'].includes(status)) return json({ok:false,error:'Geçersiz durum'},400);
+    const at=status==='acknowledged'?new Date().toISOString():null;
+    const r=await env.DB.prepare('UPDATE news_intelligence_alerts SET status=?,acknowledged_at=? WHERE id=?').bind(status,at,Number(alertMatch[1])).run();
+    return json({ok:true,changed:Number(r.meta?.changes||0)>0});
   }
 
   if(url.pathname==='/api/public/social-feed' && request.method==='GET'){
