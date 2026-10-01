@@ -164,6 +164,23 @@
       checks.map(function(x){return '<div class="ops-item"><div class="ops-item-top"><b>'+esc(x[0])+'</b><span class="'+(x[1]?'ops-ok':'ops-warn')+'">'+(x[1]?'✓':'⚠')+'</span></div><small>'+esc(x[2])+'</small></div>'}).join('');
     }catch(e){box.innerHTML='<div class="ops-item ops-err">'+esc(e.message)+'</div>'}
   }
+  async function planAiCommand(){
+    const input=$('#opsAiPrompt'),box=$('#opsAiPlan');
+    const prompt=(input&&input.value||'').trim();
+    if(!box)return;
+    if(!prompt){box.innerHTML='<div class="ops-item ops-warn">Önce bir komut yazın.</div>';return}
+    box.innerHTML='<div class="muted">AI planlıyor…</div>';
+    try{
+      const d=await json('/api/admin/ai-command',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt})});
+      const p=d.plan||{};
+      if(!p.command||p.command==='none'){
+        box.innerHTML='<div class="ops-item ops-warn"><b>Uygulanabilir işlem bulunamadı.</b><small>'+esc(p.reason||d.message||'Komut güvenli allowlist ile eşleşmedi.')+'</small></div>';
+        return;
+      }
+      box.innerHTML='<div class="ops-item"><div class="ops-item-top"><b>Plan: '+esc(p.command)+'</b><span class="ops-ok">'+Math.round(Number(p.confidence||0)*100)+'%</span></div><small>'+esc(p.reason||'')+'</small><button class="btn" id="opsApplyAiPlan" data-ai-command="'+esc(p.command)+'" style="margin-top:9px">Planı uygula</button></div>';
+    }catch(e){box.innerHTML='<div class="ops-item ops-err">'+esc(e.message)+'</div>'}
+  }
+
   async function runCommand(name){
     const out=$('#opsCommandStatus'),buttons=document.querySelectorAll('[data-opcmd]');
     if(out)out.textContent='Komut çalışıyor: '+name+'…';
@@ -194,6 +211,8 @@
   document.addEventListener('DOMContentLoaded',function(){
     $('#opsRefresh')&&$('#opsRefresh').addEventListener('click',refreshAll);
     $('#opsPreviewBtn')&&$('#opsPreviewBtn').addEventListener('click',function(){preview($('#opsUrl').value||'/')});
+    $('#opsAiPlanBtn')&&$('#opsAiPlanBtn').addEventListener('click',planAiCommand);
+    document.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('#opsApplyAiPlan');if(b)runCommand(b.dataset.aiCommand)});
     $('#opsOpenBtn')&&$('#opsOpenBtn').addEventListener('click',openEntered);
     $('#opsInspectBtn')&&$('#opsInspectBtn').addEventListener('click',inspectPage);
     document.querySelectorAll('[data-opcmd]').forEach(function(b){b.addEventListener('click',function(){runCommand(b.dataset.opcmd)})});
