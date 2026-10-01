@@ -322,6 +322,33 @@ export async function referenceDraft(env,{url,instructions=""}={}){
   }};
 }
 
+export async function generateAutopilotImage(env,{prompt,category="Yapay Zekâ",title="BTMEDYA AI LAB görseli"}={}){
+  if(!env.AI) return {ok:false,error:"Workers AI bağlantısı yok"};
+  const p=String(prompt||"").trim().slice(0,1800);
+  if(!p) return {ok:false,error:"Görsel promptu gerekli"};
+  const cleanTitle=String(title||"BTMEDYA AI LAB görseli").trim().slice(0,240);
+  try{
+    const out=await env.AI.run("@cf/black-forest-labs/flux-1-schnell",{prompt:p});
+    const b64=String(out?.image||"");
+    if(!b64) return {ok:false,error:"AI görseli boş döndü"};
+    if(!env.MEDIA) return {ok:false,error:"R2 medya kasası bağlı değil"};
+    const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+    const id=crypto.randomUUID();
+    const key="ai-lab/"+id+"-"+safeSlug(cleanTitle)+".jpg";
+    await env.MEDIA.put(key,bytes,{httpMetadata:{contentType:"image/jpeg"}});
+    const now=nowIso();
+    if(env.DB){
+      await env.DB.prepare(`INSERT INTO media (id,key,original_name,mime,size,category,tags,title,description,alt_text,published,slot,sort_order,created_at,updated_at,width,height,duration_s,has_audio,aspect,suggested,routed,posted,youtube_id,ai_generated)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+      .bind(id,key,key.split("/").pop(),"image/jpeg",bytes.byteLength,category,JSON.stringify(["BTMEDYA","ai-uretimi","ai-lab"]),
+        cleanTitle,"BTMEDYA AI LAB tarafından üretilen görsel",cleanTitle,1,"",0,now,now,512,512,0,0,"1:1","[\"instagram-post\",\"facebook-post\",\"site-gorsel\"]","[]","[]","",1).run();
+    }
+    return {ok:true,id,key,mime:"image/jpeg",title:cleanTitle,ai_generated:true,public_url:"/pub/"+encodeURIComponent(key),model:"@cf/black-forest-labs/flux-1-schnell"};
+  }catch(e){
+    return {ok:false,error:String(e?.message||e).slice(0,500)};
+  }
+}
+
 export async function runAutopilot(env,{force=false,limit}={}){
   await ensureTables(env);
   const policy=await autopilotPolicy(env);
