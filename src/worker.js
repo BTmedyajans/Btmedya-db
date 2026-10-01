@@ -5,6 +5,7 @@ import { renderNewsPage } from "./news-page.js";
 import { socialProviderStatus, metricoolConnectedNetworks } from "./social-platforms.js";
 import { runNewsIntelligence, newsIntelligenceStatus } from "./news-intelligence.js";
 import { recoveryPasswordValid } from "./auth-recovery.js";
+import { runAutopilot, autopilotPolicy, setAutopilotPolicy, autopilotStatus, connectionMatrix } from "./autopilot.js";
 import { salesApi } from "./sales-router.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
@@ -758,6 +759,45 @@ async function adminAuditApi(request, env, url){
   }catch(e){
     return json({ok:false,error:String(e?.message||e)},503);
   }
+}
+
+/* ---------- BTMEDYA Autopilot API ---------- */
+async function autopilotApi(request, env, url){
+  if(!url.pathname.startsWith('/api/admin/autopilot')) return null;
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+
+  if(url.pathname==='/api/admin/autopilot' && request.method==='GET'){
+    return json(await autopilotStatus(env));
+  }
+  if(url.pathname==='/api/admin/autopilot/policy' && request.method==='GET'){
+    return json({ok:true,policy:await autopilotPolicy(env),connections:connectionMatrix(env)});
+  }
+  if(url.pathname==='/api/admin/autopilot/policy' && request.method==='PUT'){
+    const b=await request.json().catch(()=>null);
+    if(!b || typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
+    try{return json({ok:true,policy:await setAutopilotPolicy(env,b)});}catch(e){return json({ok:false,error:String(e?.message||e)},503);}
+  }
+  if(url.pathname==='/api/admin/autopilot/run' && request.method==='POST'){
+    const b=await request.json().catch(()=>({}));
+    const result=await runAutopilot(env,{force:b.force===true,limit:b.limit});
+    return json(result);
+  }
+  if(url.pathname==='/api/admin/autopilot/connections' && request.method==='GET'){
+    return json({ok:true,connections:connectionMatrix(env)});
+  }
+  if(url.pathname==='/api/admin/autopilot/strategy' && request.method==='GET'){
+    const s=await autopilotStatus(env);
+    const competitors=s.competitors||[];
+    const queue=s.queue||[];
+    return json({ok:true,generated_at:new Date().toISOString(),strategy:{
+      editorial:'Kaynaklı ve taze başlıkları önce keşfet; hassas konuları editör onayına bırak.',
+      media:'Haber özgüllüğü olmayan içeriklerde BTMEDYA gerçek arşivini tercih et; AI görsellerini AI LAB olarak ayır.',
+      distribution:'Bağlı ağlarda platforma uygun kırpma/metin kullan; bağlantısı olmayan ağları yayın kuyruğuna sokma.',
+      competitors:competitors.map(x=>({host:x.host,latest:x.last_title,headlines:x.headlines_seen,seen:x.last_seen_at})).slice(0,10),
+      queue:queue.slice(0,10)
+    }});
+  }
+  return json({ok:false,error:'Autopilot endpoint bulunamadı'},404);
 }
 
 /* ---------- BTMEDYA Control Center ---------- */
@@ -1623,9 +1663,10 @@ export default { async scheduled(controller, env, ctx){
     if(ctx?.waitUntil) ctx.waitUntil(masa); else await masa;
     return;
   }
-  const intelligence=(controller && controller.cron==='*/15 * * * *')
-    ? runNewsIntelligence(env,{limit:12}).then(x=>console.log('[btmedya] news intelligence',x.scanned,'tarama',x.hot,'sıcak',x.errors.length,'hata')).catch(e=>console.error('[btmedya] news intelligence:',e?.message||e))
+  const autopilot=(controller && controller.cron==='*/15 * * * *')
+    ? runAutopilot(env,{force:false,limit:3}).then(x=>console.log('[btmedya] autopilot',JSON.stringify({scanned:x.scanned,candidates:x.candidates,news:x.created_news,published:x.published_news,social:x.social_created,blocked:x.blocked}))).catch(e=>console.error('[btmedya] autopilot:',e?.message||e))
     : Promise.resolve(null);
+  const intelligence=Promise.resolve(null);
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
   /* Yayındaki yeni haberleri sosyal panelde onay kuyruğuna hazırlar.
      Otomatik yayın yapmaz: son yayın kararı kullanıcı onayından sonra Metricool'a gider. */
@@ -1636,7 +1677,7 @@ export default { async scheduled(controller, env, ctx){
      yayınlar ve rakip görünürlük sinyalleri taranır. Bu katman yalnız keşif
      kuyruğunu günceller; otomatik yayın için Sabah Masası'nın doğrulama
      zinciri geçerlidir. */
-  const hepsi=Promise.all([task,metricool,archive,drafts,takip,intelligence]);
+  const hepsi=Promise.all([task,metricool,archive,drafts,takip,intelligence,autopilot]);
   if(ctx?.waitUntil) ctx.waitUntil(hepsi); else await hepsi;
 }, async fetch(request, env, ctx){
   const url = new URL(request.url);
@@ -1769,6 +1810,8 @@ export default { async scheduled(controller, env, ctx){
 
     const rcc = await controlCenterApi(request, env, url);
     if(rcc) return audit(rcc);
+    const rap = await autopilotApi(request, env, url);
+    if(rap) return audit(rap);
     const r1 = await newsApi(request, env, url, ctx);
     if(r1) return audit(r1);
     if(env.DB){
