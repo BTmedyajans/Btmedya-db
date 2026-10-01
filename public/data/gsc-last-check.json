@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-10-01T12:51:00Z",
+  "property": "https://btmedya.com.tr/",
+  "clicks": 3,
+  "impressions": 8,
+  "ctr": 37.5,
+  "averagePosition": 1,
+  "indexedHome": true,
+  "homeVerdict": "PASS",
+  "homeCoverage": "Submitted and indexed",
+  "inspectedUrls": 10,
+  "notes": "GSC verisi son 28 yerleşmiş gün içindir. 2026-09-28'e kadar olan veri kullanılmıştır. Haberler ve kurumsal alt sayfaların bir kısmı URL Inspection'da henüz Google'a bilinmiyor görünmüştür.",
+  "sitemaps": {
+    "sitemap": {
+      "submitted": 125,
+      "indexed": 0,
+      "warnings": 0,
+      "errors": 0
+    },
+    "newsSitemap": {
+      "submitted": 12,
+      "indexed": 0,
+      "warnings": 0,
+      "errors": 0
+    }
+  }
+}
