@@ -119,7 +119,11 @@ jobs:
             return 1
           }
 
-          # Cloudflare Workers Builds deploys the same main push asynchronously.\n          # Wait before the first live probe so the verification job does not race the production build.\n          sleep 90\n\n          HOME_IP="$(resolve_ip btmedya.com.tr)"
+          # Cloudflare Workers Builds deploys the same main push asynchronously.
+          # Wait before the first live probe so the verification job does not race the production build.
+          sleep 90
+
+          HOME_IP="$(resolve_ip btmedya.com.tr)"
           WWW_IP="$(resolve_ip www.btmedya.com.tr)"
           echo "SMOKE DNS: btmedya.com.tr -> $HOME_IP"
           echo "SMOKE DNS: www.btmedya.com.tr -> $WWW_IP"
