@@ -22,7 +22,7 @@ const browser = await chromium.launch({headless:true});
 const failures=[];
 for (const vp of viewports) {
   const page=await browser.newPage({viewport:{width:vp.width,height:vp.height},deviceScaleFactor:1});
-  page.on('pageerror', e => failures.push(vp.name+' pageerror: '+e.message));
+  page.on('pageerror', e => failures.push(vp.name+' '+(page.url()||'page')+' pageerror: '+e.message));
   for (const item of pages) {
     const url=BASE+item.path;
     const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000}).catch(e=>null);
