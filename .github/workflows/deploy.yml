@@ -108,8 +108,21 @@ jobs:
           test -s public/site.webmanifest
           test -s public/admin/manifest.webmanifest
           test -s public/admin/autopilot/index.html
+          test -s public/admin/editor/index.html
           grep -q 'Otonom Yayın Merkezi' public/admin/next-gen.js
           grep -q '/api/admin/autopilot' src/worker.js
+          python3 - <<'PY'
+          import re, pathlib, subprocess, tempfile
+          for name in ["public/admin/editor/index.html","public/admin/autopilot/index.html"]:
+              html=pathlib.Path(name).read_text(encoding="utf-8")
+              for attrs,src in re.findall(r"<script([^>]*)>(.*?)</script>", html, flags=re.I|re.S):
+                  if not src.strip() or re.search(r"application/ld\+json", attrs, flags=re.I):
+                      continue
+                  with tempfile.NamedTemporaryFile("w",suffix=".js",delete=False,encoding="utf-8") as f:
+                      f.write(src); path=f.name
+                  subprocess.run(["node","--check",path],check=True)
+          print("ADMIN_EDITOR_AUTOPILOT_JS_CHECKED")
+          PY
           test -s public/sosyal-medya-kit/index.html
           grep -q "00 / REAL PHOTO SYSTEM" public/sosyal-medya-kit/index.html
           grep -q "buse-tuncay-saha-roportaj.webp" public/sosyal-medya-kit/index.html
