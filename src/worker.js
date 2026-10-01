@@ -556,18 +556,43 @@ async function adminPageInspectApi(request, env, url){
   const path=publicPathFromInput(url.searchParams.get('path')||'/');
   if(!path) return json({ok:false,error:'Yalnızca btmedya.com.tr üzerindeki public yollar denetlenebilir.'},400);
   const target=new URL(path,'https://btmedya.com.tr');
-  let response;
+  let html='',status=200,mode='static-assets';
   try{
-    response=await env.ASSETS.fetch(new Request(target.toString(),{method:'GET',headers:{accept:'text/html'}}));
+    const newsMatch=target.pathname.match(/^\/haberler\/(.+?)(?:\.html)?\/?$/);
+    if(newsMatch && newsMatch[1]){
+      const slug=decodeURIComponent(newsMatch[1]);
+      let n=null;
+      if(env.DB) n=await env.DB.prepare("SELECT * FROM news WHERE slug=? AND status='published'").bind(slug).first();
+      if(!n && env.ASSETS){
+        const asset=await env.ASSETS.fetch(new Request(new URL('/data/haberler.json',target.origin)));
+        if(asset.ok){
+          const archive=await asset.json().catch(()=>[]);
+          const a=Array.isArray(archive)?archive.find(x=>x.slug===slug):null;
+          if(a)n={id:a.id||null,slug:a.slug,title:a.title,excerpt:a.excerpt||'',body:Array.isArray(a.body)?a.body.join('\n\n'):String(a.body||''),category:a.category||'Haber',author:a.author||'BTMEDYA',cover_url:a.cover_url||'/assets/haber-kapak/'+encodeURIComponent(a.slug)+'.webp',video_url:a.video_url||null,published_at:a.published_at||null,source_url:a.source_url||null,original_date:a.original_date||null,archive_note:a.archive_note||'',updated_at:a.updated_at||null};
+        }
+      }
+      if(n){
+        let vlib=null;
+        const vid=String(n.video_url||'').match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{11})|^([A-Za-z0-9_-]{11})$/);
+        const yid=vid?(vid[1]||vid[2]):'';
+        if(env.DB && yid)vlib=await env.DB.prepare('SELECT * FROM video_library WHERE youtube_id=?').bind(yid).first();
+        if(env.DB && !vlib)vlib=await env.DB.prepare('SELECT * FROM video_library WHERE news_slug=?').bind(slug).first();
+        html=renderNewsPage(n,target.origin,vlib);
+        mode='dynamic-news';
+        return json({ok:true,path,status,contentType:'text/html; charset=utf-8',html:true,mode,seo:inspectHtml(html)});
+      }
+    }
+    const response=await env.ASSETS.fetch(new Request(target.toString(),{method:'GET',headers:{accept:'text/html'}}));
+    status=response.status;
+    const contentType=response.headers.get('content-type')||'';
+    if(!contentType.includes('text/html')) return json({ok:true,path,status,contentType,html:false,mode});
+    html=await response.text();
+    return json({ok:true,path,status,contentType,html:true,mode,seo:inspectHtml(html)});
   }catch(e){
     return json({ok:false,error:'Sayfa alınamadı: '+String(e?.message||e)},502);
   }
-  const contentType=response.headers.get('content-type')||'';
-  const status=response.status;
-  if(!contentType.includes('text/html')){
-    return json({ok:true,path,status,contentType,html:false});
-  }
-  const html=await response.text();
+}
+function inspectHtml(html){
   const pick=(re)=>{const m=html.match(re);return m?String(m[1]||'').trim():''};
   const title=pick(/<title[^>]*>([\s\S]*?)<\/title>/i);
   const description=pick(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i);
@@ -581,18 +606,7 @@ async function adminPageInspectApi(request, env, url){
   const images=(html.match(/<img\b/gi)||[]).length;
   const videos=(html.match(/<video\b/gi)||[]).length;
   const localLinks=(html.match(/href=["']\/[^"']+/gi)||[]).length;
-  return json({
-    ok:true,path,status,contentType,html:true,
-    seo:{
-      title,description,canonical,ogImage,robots,h1,
-      jsonLd,links,scripts,images,videos,localLinks,
-      titleOk:title.length>=10 && title.length<=65,
-      descriptionOk:description.length>=50 && description.length<=170,
-      canonicalOk:canonical.startsWith('https://btmedya.com.tr/'),
-      h1Ok:h1.length>0,
-      structuredDataOk:jsonLd>0
-    }
-  });
+  return {title,description,canonical,ogImage,robots,h1,jsonLd,links,scripts,images,videos,localLinks,titleOk:title.length>=10&&title.length<=65,descriptionOk:description.length>=50&&description.length<=170,canonicalOk:canonical.startsWith('https://btmedya.com.tr/'),h1Ok:h1.length>0,structuredDataOk:jsonLd>0};
 }
 
 async function adminCommandApi(request, env, url){
