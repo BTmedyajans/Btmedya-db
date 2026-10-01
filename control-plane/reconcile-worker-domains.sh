@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# 2026-10-01 production repair trigger: reconcile missing apex/www Worker custom-domain DNS.
-# The list endpoint requires Workers Scripts Read OR Write. Some existing production
-# tokens intentionally have zone access + Workers Scripts Write but not Read, so the
-# reconciliation must not hard-fail on a read-only list probe when a safe attach can
-# still be attempted for a hostname with no public DNS answer.
+# 2026-10-01 production repair: reconcile missing apex/www Worker custom-domain DNS.
+# Read access to the Worker-domain list is preferred but not required: when the
+# public hostname has no A/AAAA/CNAME answer, a token with Workers Scripts Write
+# can safely attempt the idempotent custom-domain attach.
 API="https://api.cloudflare.com/client/v4"
 ZONE_NAME="${ZONE_NAME:-btmedya.com.tr}"
 ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:?CLOUDFLARE_ACCOUNT_ID gerekli}"
@@ -39,9 +38,6 @@ if [[ -z "$zone_id" ]]; then
   exit 1
 fi
 
-# The domain list endpoint is useful for an exact pre-check, but a token may have
-# Workers Scripts Write without Workers Scripts Read. In that case, continue safely:
-# only hostnames with no public DNS answer are eligible for an attach attempt.
 list_ok="false"
 domains="$(cf GET "/accounts/$ACCOUNT_ID/workers/domains?zone_id=$zone_id&service=$WORKER&zone_name=$ZONE_NAME")" || domains=""
 if [[ -n "$domains" && "$(jq -r '.success // false' <<<"$domains")" == "true" ]]; then
@@ -49,11 +45,9 @@ if [[ -n "$domains" && "$(jq -r '.success // false' <<<"$domains")" == "true" ]]
   echo "Worker domain listesi okundu."
   jq -r '.result[]? | "DOMAIN: \(.hostname) -> \(.service)"' <<<"$domains" || true
 else
-  echo "WARN: Worker Custom Domain listesi okunamadı. Workers Scripts Read yetkisi bu token'da yok veya endpoint erişimi engelli."
+  echo "WARN: Worker Custom Domain listesi okunamadı; read yetkisi yok olabilir."
   [[ -n "$domains" ]] && jq -c '{success,errors,messages}' <<<"$domains" || true
-  echo "SAFE MODE: Custom Domain listesi doğrulanamadığı için otomatik attach yapılmayacak. Production deploy / wrangler custom_domain tanımı ayrı akışta korunuyor."
-  echo "ACTION REQUIRED: Cloudflare API token'a Account > Workers Scripts > Read yetkisi eklenirse bu kontrol tam reconcile moduna döner."
-  exit 0
+  echo "SAFE WRITE MODE: Public DNS kaydı olmayan hostname için idempotent attach yine denenecek."
 fi
 
 attach_if_dns_missing() {
