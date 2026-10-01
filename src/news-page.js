@@ -49,6 +49,9 @@ function isoTam(iso){
 }
 /* Arama sonucu snippet'i ~160 karakterde kesilir; kesimi kelime sinirinda
    biz yapariz ki cumle ortasindan bolunmesin. Tam metin og ve JSON-LD'de kalir. */
+function temizBaslik(s){
+  return String(s||'').replace(/[<>]+$/,'').replace(/\s+/g,' ').trim();
+}
 function kisaOzet(s, sinir=158){
   const t=String(s||'').replace(/\s+/g,' ').trim();
   if(t.length<=sinir) return t;
@@ -71,6 +74,7 @@ function govde(body){
 
 export function renderNewsPage(n, origin, vlib){
   const url=`${origin}/haberler/${encodeURIComponent(n.slug)}`;
+  const baslik=temizBaslik(n.title);
   // Kutuphane kaydi varsa etkin kimlik oradan gelir: video kendi kanalimiza
   // tasindiginda haber kaydina dokunmadan yonlendirme degisir.
   const kaynakVid=youtubeId(n.video_url);
@@ -96,9 +100,9 @@ export function renderNewsPage(n, origin, vlib){
 
   const ld={
     "@context":"https://schema.org","@type":"NewsArticle",
-    headline:n.title, description:ozet, url,
+    headline:baslik, description:ozet, url,
     ...(tarihIso?{datePublished:tarihIso,dateModified:guncelIso}:{}),
-    author:(n.author&&/buse\s+tuncay/i.test(n.author))?{"@type":"Person",name:n.author,url:`${origin}/portfoy/buse-tuncay/`,sameAs:["https://tr.linkedin.com/in/buse-tuncay-6b217623","https://www.instagram.com/busetuncayy10/","https://www.youtube.com/@BTmedyaAjans"]}:{"@type":"Organization",name:n.author||'BTMEDYA',url:origin,sameAs:["https://www.instagram.com/btmedyajans/","https://www.youtube.com/@BTmedyaAjans","https://www.tiktok.com/@btmedya1010"]},
+    author:(n.author&&/buse\s+tuncay/i.test(n.author))?{"@type":"Person",name:n.author,url:`${origin}/portfoy/buse-tuncay/`,sameAs:["https://tr.linkedin.com/in/buse-tuncay-6b217623","https://www.instagram.com/busetuncayy10/","https://www.youtube.com/@BTmedyaAjans"]}:{"@type":"Organization",name:n.author||'BTMEDYA',url:origin,sameAs:["https://www.instagram.com/btmedyajans/","https://www.youtube.com/@BTmedyaAjans","https://www.tiktok.com/@btmedya1010"],logo:{"@type":"ImageObject",url:`${origin}/assets/logo/bt-amblem-256.png`}},
     publisher:{"@type":"Organization",name:"BTMEDYA",url:origin,
       sameAs:["https://www.instagram.com/btmedyajans/","https://www.youtube.com/@BTmedyaAjans","https://www.tiktok.com/@btmedya1010"],
       logo:{"@type":"ImageObject",url:`${origin}/assets/logo/bt-amblem-256.png`}},
@@ -118,7 +122,7 @@ export function renderNewsPage(n, origin, vlib){
   /* Kapak karesi YouTube'un kendi CDN'inden gelir; oynatici yuklenmez. */
   const videoBlok = vid ? `
 <div class="yt-lite" data-yt="${esc(vid)}">
-  <img src="https://i.ytimg.com/vi/${esc(vid)}/hqdefault.jpg" alt="${esc(n.title)} — video kapağı" loading="lazy" width="480" height="360">
+  <img src="https://i.ytimg.com/vi/${esc(vid)}/hqdefault.jpg" alt="${esc(baslik)} — video kapağı" loading="lazy" width="480" height="360">
   <button type="button" class="yt-play" aria-label="Videoyu oynat">▶</button>
   <noscript><a href="https://www.youtube.com/watch?v=${esc(vid)}" target="_blank" rel="noopener">Videoyu YouTube'da izleyin ↗</a></noscript>
 </div>
@@ -126,14 +130,14 @@ ${kanal?`<p class="video-credit">Video ${esc(kanal)} kanalında yayında. <a hre
 
   const kapakBlok = kapak ? `
 <figure class="article-cover-wrap">
-  <img class="article-cover" src="${esc(kapak)}" alt="${esc(n.title)}" loading="eager" decoding="async" width="1200" height="675">
+  <img class="article-cover" src="${esc(kapak)}" alt="${esc(baslik)}" loading="eager" decoding="async" width="1200" height="675">
   <figcaption>BTMEDYA · Haber: ${esc(n.author||"BTMEDYA")}</figcaption>
 </figure>` : '';
 
   // Videolu haberler icin VideoObject: Google video aramasinda gorunur olur.
   const videoLd = vid ? {
     "@context":"https://schema.org","@type":"VideoObject",
-    name:n.title, description:ozet,
+    name:baslik, description:ozet,
     thumbnailUrl:[`https://i.ytimg.com/vi/${vid}/hqdefault.jpg`],
     ...(tarihIso?{uploadDate:tarihIso}:{}),
     embedUrl:`https://www.youtube-nocookie.com/embed/${vid}`,
@@ -148,7 +152,7 @@ ${kanal?`<p class="video-credit">Video ${esc(kanal)} kanalında yayında. <a hre
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="theme-color" content="#02070d"/>
-<title>${esc(n.title)} — BTMEDYA Haber</title>
+<title>${esc(baslik.length>55?baslik:`${baslik} — BTMEDYA Haber`)}</title>
 <meta name="description" content="${esc(kisaOzet(ozet))}"/>
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"/>
 <link rel="canonical" href="${esc(url)}"/>
@@ -160,18 +164,18 @@ ${kanal?`<p class="video-credit">Video ${esc(kanal)} kanalında yayında. <a hre
 ${tarihIso?`<meta property="article:published_time" content="${esc(tarihIso)}"/>
 <meta property="article:modified_time" content="${esc(guncelIso)}"/>`:''}
 ${n.category?`<meta property="article:section" content="${esc(n.category)}"/>`:''}
-<meta property="og:title" content="${esc(n.title)}"/>
+<meta property="og:title" content="${esc(baslik)}"/>
 <meta property="og:description" content="${esc(ozet)}"/>
 <meta property="og:url" content="${esc(url)}"/>
 <meta property="og:image" content="${esc(ogImg)}"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="675"/>
-<meta property="og:image:alt" content="${esc(n.title)}"/>
+<meta property="og:image:alt" content="${esc(baslik)}"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="${esc(n.title)}"/>
+<meta name="twitter:title" content="${esc(baslik)}"/>
 <meta name="twitter:description" content="${esc(kisaOzet(ozet))}"/>
 <meta name="twitter:image" content="${esc(ogImg)}"/>
-<meta name="twitter:image:alt" content="${esc(n.title)}"/>
+<meta name="twitter:image:alt" content="${esc(baslik)}"/>
 <meta name="twitter:url" content="${esc(url)}"/>
 <link rel="preload" href="/assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -194,7 +198,7 @@ ${ldYaz(videoLd)}
 <a class="skip-link" href="#main">İçeriğe geç</a>
 <div class="noise" aria-hidden="true"></div>
 <header class="topbar">
-  <a class="brand" href="/" aria-label="BTMEDYA ana sayfa"><img class="brand-logo" src="/assets/logo/btmedya-logo-baslik.webp" alt="" width="154" height="37" decoding="async">
+  <a class="brand" href="/" aria-label="BTMEDYA ana sayfa"><img class="brand-logo" src="/assets/logo/btmedya-logo-baslik.webp" alt="BTMEDYA" width="154" height="37" decoding="async">
   </a>
   <button class="menu-toggle" type="button" aria-label="Menüyü aç" aria-expanded="false" aria-controls="anaMenu">☰</button>
   <a class="quote" href="/haberler/">HABER ARŞİVİ ↗</a>
