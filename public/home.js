@@ -537,7 +537,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       });
     }catch(err){
       if(!document.querySelector('[data-fallback="media"]')){
-        grid.innerHTML='<div class="archive-live-empty">Arşiv akışı şu anda okunamadı. Haber arşivi yine açık: <a href="/haberler/">Haber arşivi ↗</a></div>';
+        grid.innerHTML='<div class="archive-live-empty">Son doğrulanmış gerçek arşiv gösteriliyor. Daha fazlası için <a href="/portfoy/">portföy ↗</a></div>';
       } else {
         grid.setAttribute('aria-busy','false');
       }
@@ -670,7 +670,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       // snapshot silinmez; kullanıcı boş bir yayın alanıyla karşılaşmaz.
       const fallback=document.querySelector('[data-fallback="social"]');
       profiles.innerHTML=fallback?'':'';
-      meta.textContent=fallback?'Metricool bağlantısı anlık okunamadı; son doğrulanmış snapshot aşağıda.':'Sosyal profil bağlantıları korunuyor; son yayın snapshotı şu anda okunamadı.';
+      meta.textContent=fallback?'Metricool anlık akışı okunamazsa son doğrulanmış snapshot gösteriliyor.':'Son doğrulanmış sosyal snapshot gösteriliyor.';
       if(!fallback) grid.innerHTML='<div class="social-feed-empty">Sosyal akış geçici olarak kullanılamıyor.</div>';
       markReady();
     }
