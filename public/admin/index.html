@@ -1063,8 +1063,7 @@ async function toggleTarget(id,slug){
   loadMedia();
 }
 async function copyPub(url){
-  try{await navigator.clipboard.writeText(url);alert('Bağlantı kopyalandı:
-'+url)}
+  try{await navigator.clipboard.writeText(url);alert('Bağlantı kopyalandı:\n'+url)}
   catch{prompt('Bağlantı:',url)}
 }
 async function togglePub(id,p){await req('/api/media/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({published:!p})});loadMedia()}
