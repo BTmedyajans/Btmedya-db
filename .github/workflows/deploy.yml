@@ -53,6 +53,8 @@ jobs:
           node --check public/home.js
           node --check public/mobile-motion.js
           node --check public/admin/next-gen.js
+          node --check public/client/review/review.js
+          node --check public/referanslar/referanslar.js
           python3 - <<'PY'
           import re, pathlib, subprocess, tempfile
           html=pathlib.Path("public/admin/index.html").read_text(encoding="utf-8")
@@ -112,9 +114,13 @@ jobs:
           test -s public/admin/client-hub/index.html
           test -s public/admin/musteri-merkezi/index.html
           test -s public/client/review/index.html
+          test -s public/client/review/review.js
+          test -s public/referanslar/referanslar.js
           test -s migrations/0013_client_review.sql
           grep -q 'reviewAdmin' src/sales-router.js
           grep -q 'Müşteriye önizleme linki' public/admin/client-hub/index.html
+          ! grep -q '<script>const' public/client/review/index.html
+          ! grep -q '<script>const' public/referanslar/index.html
           grep -q 'Otonom Yayın Merkezi' public/admin/next-gen.js
           grep -q '/api/admin/autopilot' src/worker.js
           python3 - <<'PY'
