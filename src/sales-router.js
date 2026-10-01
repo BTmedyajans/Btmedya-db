@@ -85,6 +85,49 @@ async function clientHubApi(request,env,url){
   if(wc){const clientId=wc[1];if(request.method==='GET'){const q=await env.DB.prepare('SELECT * FROM client_content WHERE client_id=? ORDER BY updated_at DESC LIMIT 200').bind(clientId).all();return j({ok:true,items:q.results||[]});}
     if(request.method==='POST'){const b=await request.json().catch(()=>({}));const id=crypto.randomUUID(),now=new Date().toISOString();await env.DB.prepare('INSERT INTO client_content(id,client_id,title,content_type,engine,brief,body,media_key,preview_json,status,client_approved,published_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,clientId,clean(b.title,240),clean(b.content_type||'social',40),clean(b.engine||'btmedya',40),clean(b.brief,3000),clean(b.body,20000),clean(b.media_key,500),JSON.stringify(b.preview||{}),'draft',0,null,now,now).run();return j({ok:true,id},201);}
   }
+  const reviewAdmin=url.pathname.match(/^\/api\/client-hub\/content\/([^/]+)\/review-link$/);
+  if(reviewAdmin && request.method==='POST'){
+    const contentId=reviewAdmin[1];
+    const item=await env.DB.prepare(`SELECT cc.id,cc.client_id,c.name client_name FROM client_content cc JOIN client_workspaces c ON c.id=cc.client_id WHERE cc.id=?`).bind(contentId).first();
+    if(!item)return j({ok:false,error:'İçerik bulunamadı'},404);
+    const token=randomToken(),hash=await sha256Hex(token),now=new Date(),expires=new Date(now.getTime()+7*86400000).toISOString();
+    await env.DB.prepare('INSERT INTO client_review_tokens(id,content_id,token_hash,expires_at,used_at,created_at) VALUES(?,?,?,?,?,?)')
+      .bind(crypto.randomUUID(),contentId,hash,expires,null,now.toISOString()).run();
+    return j({ok:true,content_id:contentId,client_name:item.client_name,expires_at:expires,url:'/client/review/?token='+encodeURIComponent(token)});
+  }
+
+  const reviewPublic=url.pathname.match(/^\/api\/client-hub\/review\/([^/]+)$/);
+  if(reviewPublic && (request.method==='GET'||request.method==='POST')){
+    const token=decodeURIComponent(reviewPublic[1]);
+    if(!token || token.length<40)return j({ok:false,error:'Geçersiz önizleme bağlantısı'},400);
+    const hash=await sha256Hex(token);
+    const row=await env.DB.prepare(`SELECT t.id token_id,t.expires_at,t.used_at,cc.id,cc.title,cc.content_type,cc.engine,cc.brief,cc.body,cc.media_key,cc.preview_json,cc.status,cc.client_approved,c.name client_name,c.slug client_slug,c.sector,c.logo_url,c.website_url
+      FROM client_review_tokens t JOIN client_content cc ON cc.id=t.content_id JOIN client_workspaces c ON c.id=cc.client_id
+      WHERE t.token_hash=?`).bind(hash).first();
+    if(!row)return j({ok:false,error:'Önizleme bağlantısı bulunamadı'},404);
+    if(row.used_at)return j({ok:false,error:'Bu önizleme bağlantısı daha önce kullanılmış'},410);
+    if(new Date(row.expires_at).getTime()<Date.now())return j({ok:false,error:'Önizleme bağlantısının süresi dolmuş'},410);
+    if(request.method==='GET'){
+      let preview={};
+      try{preview=JSON.parse(String(row.preview_json||'{}'))||{}}catch{}
+      return j({ok:true,review:{
+        token_id:row.token_id,expires_at:row.expires_at,
+        client:{name:row.client_name,slug:row.client_slug,sector:row.sector,logo_url:row.logo_url,website_url:row.website_url},
+        content:{id:row.id,title:row.title,content_type:row.content_type,engine:row.engine,brief:row.brief,body:row.body,media_key:row.media_key,preview,status:row.status,client_approved:row.client_approved}
+      }});
+    }
+    const b=await request.json().catch(()=>({}));
+    const decision=String(b.decision||'').toLowerCase();
+    if(!['approved','revision','rejected'].includes(decision))return j({ok:false,error:'Geçersiz karar'},400);
+    const comment=clean(b.comment,2000);
+    const status=decision==='approved'?'approved':decision==='revision'?'revision_requested':'rejected';
+    const approved=decision==='approved'?1:0,now=new Date().toISOString();
+    await env.DB.prepare('UPDATE client_content SET status=?,client_approved=?,updated_at=? WHERE id=?').bind(status,approved,now,row.id).run();
+    await env.DB.prepare('UPDATE client_review_tokens SET used_at=? WHERE id=?').bind(now,row.token_id).run();
+    await env.DB.prepare('INSERT INTO client_review_events(id,content_id,decision,comment,created_at) VALUES(?,?,?,?,?)').bind(crypto.randomUUID(),row.id,decision,comment,now).run();
+    return j({ok:true,decision,status,message:decision==='approved'?'İçerik müşteri tarafından onaylandı.':decision==='revision'?'Revizyon talebi kaydedildi.':'İçerik reddedildi.'});
+  }
+
   const cm=url.pathname.match(/^\/api\/client-hub\/content\/([^/]+)$/);
   if(cm&&request.method==='PATCH'){const id=cm[1],b=await request.json().catch(()=>({}));const fields=[],vals=[];for(const k of ['title','content_type','engine','brief','body','media_key','status'])if(k in b){fields.push(k+'=?');vals.push(clean(b[k],k==='body'?20000:k==='brief'?3000:500));}if('preview' in b){fields.push('preview_json=?');vals.push(JSON.stringify(b.preview||{}));}if('client_approved' in b){fields.push('client_approved=?');vals.push(b.client_approved?1:0);}if('published_at' in b){fields.push('published_at=?');vals.push(b.published_at||null);}if(!fields.length)return j({ok:false,error:'Değişiklik yok'},400);fields.push('updated_at=?');vals.push(new Date().toISOString(),id);await env.DB.prepare('UPDATE client_content SET '+fields.join(',')+' WHERE id=?').bind(...vals).run();return j({ok:true,id});}
   const cr=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/reference$/);
