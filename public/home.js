@@ -421,6 +421,24 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     });
     render(allNews.filter(n => catMatch(n, btn.dataset.cat)));
   });
+
+  // Mobil kategori rayi, ana haber filtreleriyle ayni veri setini kullanir.
+  document.querySelector('.mobile-category-rail')?.addEventListener('click', e => {
+    const a = e.target.closest('[data-mobile-category]');
+    if (!a) return;
+    e.preventDefault();
+    const wanted = a.dataset.mobileCategory || 'all';
+    const btn = [...(filterBar?.querySelectorAll('.filter') || [])].find(
+      x => x.dataset.cat === wanted
+    );
+    if (btn) btn.click();
+    document.querySelectorAll('.mobile-category-rail [data-mobile-category]').forEach(x => {
+      const active = x === a;
+      x.classList.toggle('is-active', active);
+      if (active) x.setAttribute('aria-current', 'page');
+      else x.removeAttribute('aria-current');
+    });
+  });
   loadNews();
 
   const revealTargets = () => [...d.querySelectorAll('.section-head,.media-card,.ai-rail article,.digital-wrap,.contact-card')];
