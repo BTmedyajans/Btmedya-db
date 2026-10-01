@@ -49,8 +49,11 @@ if [[ -n "$domains" && "$(jq -r '.success // false' <<<"$domains")" == "true" ]]
   echo "Worker domain listesi okundu."
   jq -r '.result[]? | "DOMAIN: \(.hostname) -> \(.service)"' <<<"$domains" || true
 else
-  echo "WARN: Worker Custom Domain listesi okunamadı. Workers Scripts Read yetkisi yoksa güvenli attach denemesi devam edecek."
+  echo "WARN: Worker Custom Domain listesi okunamadı. Workers Scripts Read yetkisi bu token'da yok veya endpoint erişimi engelli."
   [[ -n "$domains" ]] && jq -c '{success,errors,messages}' <<<"$domains" || true
+  echo "SAFE MODE: Custom Domain listesi doğrulanamadığı için otomatik attach yapılmayacak. Production deploy / wrangler custom_domain tanımı ayrı akışta korunuyor."
+  echo "ACTION REQUIRED: Cloudflare API token'a Account > Workers Scripts > Read yetkisi eklenirse bu kontrol tam reconcile moduna döner."
+  exit 0
 fi
 
 attach_if_dns_missing() {
