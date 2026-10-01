@@ -4,6 +4,7 @@
   const esc=s=>String(s??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
   const tabs=[['durum','⌂','Genel Bakış'],['media','▣','Medya'],['news','✎','Haberler'],['social','◉','Sosyal'],['automation','⚙','Otomasyon'],['intel','◈','İstihbarat'],['videos','▶','Videolar'],['messages','✉','Mesajlar'],['control','◆','Kontrol'],['ops','⌁','Araçlar']];
   function go(name){ if(typeof window.showTab==='function') window.showTab(name); else { const b=$('.tab[data-tab="'+name+'"]'); if(b)b.click(); } closePalette(); }
+  function openEditor(){ window.location.href='/admin/editor/'; }
   function ensure(){
     if($('#ngPalette'))return;
     const wrap=document.createElement('div');
@@ -15,8 +16,8 @@
     const dock=$('#ngMobileDock'); dock.innerHTML=tabs.slice(0,5).map(x=>'<button type="button" data-ng-go="'+x[0]+'"><b>'+x[1]+'</b><span>'+x[2]+'</span></button>').join('');
     $('#ngQuick').addEventListener('click',openPalette);
     $('#ngSearch').addEventListener('input',renderResults);
-    $('#ngSearch').addEventListener('keydown',e=>{if(e.key==='Escape')closePalette();if(e.key==='Enter'){const b=$('.ng-result.active')||$('.ng-result');if(b){go(b.dataset.go);}}});
-    document.addEventListener('click',e=>{const b=e.target.closest('[data-ng-go]');if(b)go(b.dataset.ngGo);});
+    $('#ngSearch').addEventListener('keydown',e=>{if(e.key==='Escape')closePalette();if(e.key==='Enter'){const b=$('.ng-result.active')||$('.ng-result');if(b){if(b.dataset.go==='editor')openEditor();else go(b.dataset.go);}}});
+    document.addEventListener('click',e=>{const b=e.target.closest('[data-ng-go]');if(b)go(b.dataset.ngGo);const ed=e.target.closest('[data-ng-editor]');if(ed)openEditor();});
     document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openPalette();}if(e.key==='Escape')closePalette();});
     setTimeout(checkHealth,300);
   }
@@ -25,9 +26,9 @@
   function renderResults(){
     const q=($('#ngSearch')?.value||'').trim().toLowerCase();
     const items=tabs.map(x=>({go:x[0],icon:x[1],label:x[2],hint:'Bölümü aç'})).filter(x=>!q||x.label.toLowerCase().includes(q));
-    const actions=[['news','Yeni haber oluştur','Haber yaz'],['media','Medya yükle','Medya kasasına git'],['durum','Site durumunu kontrol et','Eksikleri gör'],['ops','SEO ve canlı önizleme','Araçları aç'],['control','Entegrasyonları kontrol et','Control Center']].filter(x=>!q||x[1].toLowerCase().includes(q));
+    const actions=[['editor','✦','AI Editör Masası','Fikir → kaynak → AI taslak → SEO → canlı önizleme → yayın'],['news','+','Yeni haber oluştur','Haber yaz'],['media','+','Medya yükle','Medya kasasına git'],['durum','✓','Site durumunu kontrol et','Eksikleri gör'],['ops','⌁','SEO ve canlı önizleme','Araçları aç'],['control','◆','Entegrasyonları kontrol et','Control Center']].filter(x=>!q||x[2].toLowerCase().includes(q)||x[3].toLowerCase().includes(q));
     const box=$('#ngResults');if(!box)return;
-    box.innerHTML=items.map(x=>'<button class="ng-result" type="button" data-go="'+x.go+'"><b>'+x.icon+'</b><span><strong>'+esc(x.label)+'</strong><small>'+esc(x.hint)+'</small></span><kbd>Enter</kbd></button>').concat(actions.map(x=>'<button class="ng-result" type="button" data-go="'+x[0]+'"><b>+</b><span><strong>'+esc(x[1])+'</strong><small>'+esc(x[2])+'</small></span></button>')).join('')||'<div class="ng-empty">Sonuç bulunamadı.</div>';
+    box.innerHTML=items.map(x=>'<button class="ng-result" type="button" data-go="'+x.go+'"><b>'+x.icon+'</b><span><strong>'+esc(x.label)+'</strong><small>'+esc(x.hint)+'</small></span><kbd>Enter</kbd></button>').concat(actions.map(x=>x[0]==='editor'?'<button class="ng-result" type="button" data-ng-editor="1"><b>'+x[1]+'</b><span><strong>'+esc(x[2])+'</strong><small>'+esc(x[3])+'</small></span><kbd>↗</kbd></button>':'<button class="ng-result" type="button" data-go="'+x[0]+'"><b>'+x[1]+'</b><span><strong>'+esc(x[2])+'</strong><small>'+esc(x[3])+'</small></span></button>')).join('')||'<div class="ng-empty">Sonuç bulunamadı.</div>';
     $('.ng-result',box)?.classList.add('active');
   }
   async function checkHealth(){
