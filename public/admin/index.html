@@ -797,13 +797,7 @@ function autoPlatforms(){
 function autoText(n,prefix){
   const clean=String(n.excerpt||n.body||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
   const lead=clean.slice(0,500);
-  return (prefix?prefix+'
-
-':'')+n.title+'
-
-'+lead+'
-
-Kaynak: https://btmedya.com.tr/haberler/'+n.slug+'.html';
+  return (prefix?prefix+'\\n\\n':'')+n.title+'\\n\\n'+lead+'\\n\\nKaynak: https://btmedya.com.tr/haberler/'+n.slug+'.html';
 }
 async function createAutomationPosts(){
   const status=$('#autoStatus'), mode=$('#autoMode').value, platforms=autoPlatforms();
