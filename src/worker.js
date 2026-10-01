@@ -532,6 +532,58 @@ async function mediaSyncApi(request, env, url){
   }
   return json({ok:true,already:false,path:raw,source:'r2',mime,size,message:'Statik medya R2 ve D1 medya kasasına aktarıldı'});
 }
+/* ---------- Admin operation audit ---------- */
+async function ensureAdminAuditTable(env){
+  if(!env.DB) return;
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS admin_audit_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    action TEXT NOT NULL,
+    target TEXT NOT NULL DEFAULT '',
+    detail TEXT NOT NULL DEFAULT '{}',
+    outcome TEXT NOT NULL DEFAULT 'ok',
+    created_at TEXT NOT NULL
+  )`).run().catch(()=>{});
+}
+async function recordAdminAudit(env, request, response){
+  if(!env.DB || request.method==='GET') return response;
+  const url=new URL(request.url);
+  if(!url.pathname.startsWith('/api/admin/')) return response;
+  try{
+    await ensureAdminAuditTable(env);
+    const action=request.method+' '+url.pathname;
+    const detail=JSON.stringify({
+      method:request.method,
+      path:url.pathname,
+      query:url.search ? url.search.slice(0,300) : '',
+      status:response?.status||0,
+      referrer:request.headers.get('referer')||'',
+      userAgent:(request.headers.get('user-agent')||'').slice(0,180)
+    });
+    await env.DB.prepare(
+      'INSERT INTO admin_audit_log(action,target,detail,outcome,created_at) VALUES(?,?,?,?,?)'
+    ).bind(action,url.pathname,detail,(response?.status||500)<400?'ok':'error',new Date().toISOString()).run();
+  }catch(e){}
+  return response;
+}
+async function adminAuditApi(request, env, url){
+  if(url.pathname!=='/api/admin/audit' || request.method!=='GET') return null;
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!env.DB) return json({ok:true,items:[]});
+  try{
+    await ensureAdminAuditTable(env);
+    const rows=await env.DB.prepare(
+      'SELECT id,action,target,detail,outcome,created_at FROM admin_audit_log ORDER BY id DESC LIMIT 150'
+    ).all();
+    const items=(rows.results||[]).map(x=>{
+      let detail={}; try{detail=JSON.parse(x.detail||'{}')}catch{}
+      return {...x,detail};
+    });
+    return json({ok:true,items});
+  }catch(e){
+    return json({ok:false,error:String(e?.message||e)},503);
+  }
+}
+
 /* ---------- BTMEDYA Control Center ---------- */
 async function controlCenterApi(request, env, url){
   if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
@@ -1427,27 +1479,36 @@ export default { async scheduled(controller, env, ctx){
   }
 
   if(url.pathname.startsWith('/api/')){
+    const auditGet = await adminAuditApi(request, env, url);
+    if(auditGet) return auditGet;
+    const audit = (response) => {
+      if(request.method!=='GET' && url.pathname.startsWith('/api/admin/')){
+        if(ctx?.waitUntil) ctx.waitUntil(recordAdminAudit(env,request,response));
+        else return recordAdminAudit(env,request,response);
+      }
+      return response;
+    };
     const rSales = await salesApi(request, env, url);
-    if(rSales) return rSales;
+    if(rSales) return audit(rSales);
 
     const rw = await workflowApi(request, env, url);
-    if(rw) return rw;
+    if(rw) return audit(rw);
 
     const rcc = await controlCenterApi(request, env, url);
-    if(rcc) return rcc;
+    if(rcc) return audit(rcc);
     const r1 = await newsApi(request, env, url, ctx);
-    if(r1) return r1;
+    if(r1) return audit(r1);
     if(env.DB){
       const rc = await contactApi(request, env, url, ctx);
-      if(rc) return rc;
-    const rs = await socialApi(request, env, url, ctx);
-    if(rs) return rs;
+      if(rc) return audit(rc);
+      const rs = await socialApi(request, env, url, ctx);
+      if(rs) return audit(rs);
     }
     if(env.DB && env.MEDIA){
       const r2 = await mediaApi(request, env);
-      if(r2) return r2;
+      if(r2) return audit(r2);
     }
-    return json({ok:false,error:'Not found'},404);
+    return audit(json({ok:false,error:'Not found'},404));
   }
 
   /* AI görünürlüğü: llms.txt, index.json, JSON-LD ve haber başına Markdown
