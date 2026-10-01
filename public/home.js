@@ -666,6 +666,8 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       document.querySelector('[data-fallback="social"]')?.remove();
       markReady();
     }catch(err){
+      // preserve verified fallbacks: API okunamazsa son doğrulanmış sosyal
+      // snapshot silinmez; kullanıcı boş bir yayın alanıyla karşılaşmaz.
       const fallback=document.querySelector('[data-fallback="social"]');
       profiles.innerHTML=fallback?'':'';
       meta.textContent=fallback?'Metricool bağlantısı anlık okunamadı; son doğrulanmış snapshot aşağıda.':'Sosyal profil bağlantıları korunuyor; son yayın snapshotı şu anda okunamadı.';
