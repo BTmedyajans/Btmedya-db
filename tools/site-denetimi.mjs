@@ -183,6 +183,29 @@ async function seoMetaDenetimi(adresler) {
   notlar.push(`SEO: ${sonuc.length} sayfa temel meta + paylaşım etiketi açısından denetlendi`);
 }
 
+/* ---------- 2c. Kritik ticari/icerik rotalari: sitemap disi yol regressions ---------- */
+async function kritikRotaDenetimi() {
+  const yollar = [
+    '/en/',
+    '/hizmetler/',
+    '/sosyal-medya/',
+    '/video-produksiyon/',
+    '/whatsapp-katalog/',
+    '/vaka-calismalari/',
+    '/reklam-ve-sponsorluk/',
+    '/sosyal-medya-kit/',
+    '/arsiv/',
+  ];
+  const sonuc = await sinirli(yollar.map((yol) => async () => ({
+    yol,
+    status: (await getir(yol)).status,
+  })));
+  for (const x of sonuc) {
+    if (x.status !== 200) hatalar.push(`kritik rota ${x.status} donuyor: ${x.yol}`);
+  }
+  notlar.push(`kritik rotalar: ${sonuc.filter((x) => x.status === 200).length}/${sonuc.length} canli 200`);
+}
+
 /* ---------- 3. Haber kapaklari: her haberin kapagi depoda ve canlida olmali ---------- */
 async function kapakDenetimi() {
   const haberler = JSON.parse(readFileSync('public/data/haberler.json', 'utf8'));
@@ -303,6 +326,7 @@ console.log(`BTMEDYA canli site denetimi — ${SITE}\n`);
 const adresler = await sitemapDenetimi();
 await paylasimDenetimi(adresler);
 await seoMetaDenetimi(adresler);
+await kritikRotaDenetimi();
 await kapakDenetimi();
 await dagitimDenetimi();
 await altyapiDenetimi();

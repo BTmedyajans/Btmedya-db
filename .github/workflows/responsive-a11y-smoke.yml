@@ -3,6 +3,14 @@ name: BTMEDYA Responsive A11y Smoke
 on:
   push:
     branches: [main]
+    paths:
+      - "public/**/*.html"
+      - "public/**/*.css"
+      - "public/**/*.js"
+      - "src/**"
+      - "wrangler.toml"
+      - "tools/responsive-a11y-smoke.mjs"
+      - ".github/workflows/responsive-a11y-smoke.yml"
   workflow_dispatch:
   schedule:
     - cron: "20 4 * * *"
