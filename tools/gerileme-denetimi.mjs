@@ -261,7 +261,7 @@ tara('public'); tara('src');
 {
   const worker = existsSync('src/worker.js') ? readFileSync('src/worker.js','utf8') : '';
   const admin = existsSync('public/admin/index.html') ? readFileSync('public/admin/index.html','utf8') : '';
-  if (!worker.includes("endsWith('/retry')") || !worker.includes("DELETE FROM metricool_gonderim WHERE post_id=?")) {
+  if (!worker.includes("retryMatch=url.pathname.match") || !worker.includes("DELETE FROM metricool_gonderim WHERE post_id=?")) {
     bulgular.push('src/worker.js sosyal retry akisi metricool hata kaydini temizleyip yeniden kuyruga almiyor.');
   }
   if (!admin.includes('data-social-retry') || !admin.includes("'/retry'") ||
