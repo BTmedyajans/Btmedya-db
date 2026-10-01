@@ -1,16 +1,4 @@
-name: BTMEDYA dagitim bekcisi
-
-# NEDEN
-# Production'a yalniz Cloudflare Workers Builds dagitir. Derleme duserse
-# (28 Eylul: src/worker.js'te kirik regex, 5 saat) eski surum calismaya
-# devam eder, site 200 doner ve hicbir smoke test kirmiziya donmez.
-# Bu is akisi main'e her push'tan sonra canli Worker'in yuklenme
-# zamanini (/api/health -> surum.yuklendi) commit zamaniyla karsilastirir.
-# Sure dolunca canli surum hala eskiyse bir issue acar; GitHub, depo
-# sahibine e-posta ve mobil bildirim gonderir. Sonraki basarili dagitim
-# acik issue'yu kendisi kapatir.
-#
-# Cloudflare token'i gerektirmez: yalniz herkese acik /api/health okunur.
+name: BTMEDYA deployment gate
 
 on:
   push:
@@ -22,125 +10,110 @@ on:
       - "migrations/**"
       - "package.json"
       - "package-lock.json"
+      - ".github/workflows/**"
   workflow_dispatch:
 
 permissions:
   contents: read
   issues: write
 
-# Eszamanlilik grubu yok: 29 Eylul'de 115a50e'den sonra derleme 1,5 saat
-# kirik kaldi, ama her yeni push bekleyen bekciyi iptal ettigi icin hicbiri
-# sureyi doldurup uyari veremedi. Her calisma yalniz kendi commit'inin
-# zamanina bakar; paralel calismalar birbirini bozmaz.
-
 jobs:
-  bekci:
+  production-gate:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Canli surum commit'e yetisti mi
-        id: bekle
-        shell: bash
+      - name: Verify production deployment
+        id: gate
         env:
-          COMMIT_ZAMANI: ${{ github.event.head_commit.timestamp }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          GH_TOKEN: \${{ github.token }}
+          COMMIT_TIME: \${{ github.event.head_commit.timestamp }}
+          CLOUDFLARE_API_TOKEN: \${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: \${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
         run: |
           set -uo pipefail
-          # Elle calistirmada head_commit yok; o zaman simdiki zamandan
-          # 20 dk oncesi esas alinir (son dagitim en az o kadar yeni olmali).
-          if [ -z "${COMMIT_ZAMANI:-}" ]; then COMMIT_ZAMANI="$(date -u -d '-20 min' +%FT%TZ)"; fi
-          hedef=$(date -u -d "$COMMIT_ZAMANI" +%s)
-          echo "commit zamani: $COMMIT_ZAMANI"
-          son=""
-          canli_sha=""
-          cf_build_kontrol="yok"
-          # Workers Builds API mevcutsa, zaman tahmini yerine dogrudan
-          # Cloudflare'in kaydettigi Git commit SHA'sini kontrol ediyoruz.
-          # Token yoksa geriye donuk uyumluluk icin timestamp bekcisi calisir.
-          if [ -n "${CLOUDFLARE_API_TOKEN:-}" ] && [ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
-            cf_build_kontrol="aktif"
+
+          if [ -z "\${COMMIT_TIME:-}" ]; then
+            COMMIT_TIME="\$(date -u -d '-20 minutes' +%FT%TZ)"
           fi
-          for i in $(seq 1 30); do
-            if [ "$cf_build_kontrol" = "aktif" ]; then
-              cf_json="$(curl -fsS --max-time 20 \
-                -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+
+          target="\$(date -u -d "\$COMMIT_TIME" +%s)"
+          exact_sha=""
+          live_time=""
+
+          for attempt in \$(seq 1 20); do
+            if [ -n "\${CLOUDFLARE_API_TOKEN:-}" ] && [ -n "\${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+              builds="\$(curl -fsS --max-time 20 \
+                -H "Authorization: Bearer \$CLOUDFLARE_API_TOKEN" \
                 -H 'Content-Type: application/json' \
-                "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/builds/builds/latest" 2>/dev/null || true)"
-              canli_sha="$(python3 - "$cf_json" <<'PY'
-import json,sys
+                "https://api.cloudflare.com/client/v4/accounts/\$CLOUDFLARE_ACCOUNT_ID/builds/builds/latest" 2>/dev/null || true)"
+
+              exact_sha="\$(python3 - "\$builds" "\${GITHUB_REPOSITORY}" "\${GITHUB_REF_NAME}" <<'PY'
+import json, sys
 try:
     data=json.loads(sys.argv[1])
-    builds=data.get("result",{}).get("builds",{})
-    if isinstance(builds,dict):
-        for item in builds.values():
-            if not isinstance(item,dict): continue
-            meta=item.get("build_trigger_metadata") or {}
-            if meta.get("repo_name")=="BTmedyajans/Btmedya-db" and meta.get("branch")=="main" and item.get("build_outcome")=="success":
-                print(meta.get("commit_hash") or "")
-                break
+    repo=sys.argv[2]
+    branch=sys.argv[3]
+    for item in (data.get("result",{}).get("builds",{}) or {}).values():
+        if not isinstance(item,dict) or item.get("build_outcome")!="success":
+            continue
+        meta=item.get("build_trigger_metadata") or {}
+        if meta.get("repo_name")==repo and meta.get("branch")==branch:
+            print(meta.get("commit_hash") or "")
+            break
 except Exception:
     pass
 PY
               )"
-              if [ "$canli_sha" = "$GITHUB_SHA" ]; then
-                echo "Cloudflare Workers Builds exact SHA match: $canli_sha"
-                echo "durum=tamam" >> "$GITHUB_OUTPUT"
-                echo "sha_eslesmesi=exact" >> "$GITHUB_OUTPUT"
+
+              if [ "\$exact_sha" = "\$GITHUB_SHA" ]; then
+                echo "PASS: Cloudflare Workers Builds commit SHA = \$GITHUB_SHA"
                 exit 0
               fi
             fi
-            son=$(curl -fsS --max-time 20 -H 'Cache-Control: no-cache' \
-              "https://btmedya.com.tr/api/health?bekci=$GITHUB_RUN_ID-$i" \
-              | python3 -c 'import json,sys; print((json.load(sys.stdin).get("surum") or {}).get("yuklendi") or "")' 2>/dev/null || true)
-            if [ "$cf_build_kontrol" = "yok" ] && [ -n "$son" ] && [ "$(date -u -d "$son" +%s)" -ge "$hedef" ]; then
-              echo "canli surum yuklendi: $son (timestamp fallback)"
-              echo "durum=tamam" >> "$GITHUB_OUTPUT"
-              echo "sha_eslesmesi=timestamp-fallback" >> "$GITHUB_OUTPUT"
-              exit 0
+
+            health="\$(curl -fsS --max-time 20 -H 'Cache-Control: no-cache' \
+              "https://btmedya.com.tr/api/health?deployment_gate=\$GITHUB_RUN_ID-\$attempt" 2>/dev/null || true)"
+
+            live_time="\$(python3 - "\$health" <<'PY'
+import json,sys
+try:
+    print((json.loads(sys.argv[1]).get("surum") or {}).get("yuklendi") or "")
+except Exception:
+    pass
+PY
+            )"
+
+            if [ -n "\$live_time" ]; then
+              live_epoch="\$(date -u -d "\$live_time" +%s 2>/dev/null || echo 0)"
+              if [ "\$live_epoch" -ge "\$target" ]; then
+                echo "PASS: production version timestamp = \$live_time"
+                exit 0
+              fi
             fi
+
+            echo "Waiting for production deployment: attempt \$attempt/20"
             sleep 30
           done
 
-          echo "canli surum: ${son:-bilinmiyor}"
-          echo "son=${son:-bilinmiyor}" >> "$GITHUB_OUTPUT"
-          echo "durum=geride" >> "$GITHUB_OUTPUT"
-          echo "sha_eslesmesi=${canli_sha:-eslesme-yok}" >> "$GITHUB_OUTPUT"
+          echo "FAIL: production deployment did not reach commit \${GITHUB_SHA} within 10 minutes."
+          echo "Live timestamp: \${live_time:-unknown}"
+          echo "Cloudflare SHA: \${exact_sha:-unknown}"
+          exit 1
 
-      - name: Issue ac veya kapat
-        if: always() && steps.bekle.outputs.durum != ''
-        uses: actions/github-script@v9
+      - name: Open or update deployment issue
+        if: failure()
         env:
-          DURUM: ${{ steps.bekle.outputs.durum }}
-          SON: ${{ steps.bekle.outputs.son }}
-        with:
-          script: |
-            const baslik = 'Canlı dağıtım main’in gerisinde';
-            const { owner, repo } = context.repo;
-            const acik = (await github.rest.issues.listForRepo({ owner, repo, state: 'open', per_page: 100 }))
-              .data.filter(i => !i.pull_request && i.title === baslik);
-            const sha = context.sha.slice(0, 7);
-            if (process.env.DURUM === 'tamam') {
-              for (const i of acik) {
-                await github.rest.issues.createComment({ owner, repo, issue_number: i.number,
-                  body: `${sha} canlıya indi; dağıtım yeniden güncel. Kapatılıyor.` });
-                await github.rest.issues.update({ owner, repo, issue_number: i.number, state: 'closed', state_reason: 'completed' });
-              }
-              return;
-            }
-            const govde = [
-              `\`${sha}\` main'e girdi ama 15 dakika sonra canlı Worker hâlâ eski sürümde (son yükleme: ${process.env.SON}).`,
-              '',
-              'Büyük olasılıkla Cloudflare Workers Builds derlemesi başarısız oldu. Site eski sürümle çalışmaya devam ediyor; yeni kod, kapak ve panel değişiklikleri yayında değil.',
-              '',
-              'Bakılacak yer: Cloudflare > Workers & Pages > btmedya-db > Builds > son derlemenin günlüğü.',
-              'Yerelde aynı hatayı görmek için pr-validation.yml içindeki kuru derleme komutunu çalıştırın (`node --check` her hatayı yakalamıyor).',
-              '',
-              `Çalışma: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
-            ].join('\n');
-            if (acik.length) {
-              await github.rest.issues.createComment({ owner, repo, issue_number: acik[0].number, body: govde });
-            } else {
-              await github.rest.issues.create({ owner, repo, title: baslik, body: govde });
-            }
-            core.setFailed('Canlı dağıtım main’in gerisinde.');
+          GH_TOKEN: \${{ github.token }}
+        shell: bash
+        run: |
+          title="Canlı dağıtım main'in gerisinde"
+          body="Commit \`\${GITHUB_SHA}\` için production gate başarısız oldu. Cloudflare Workers Builds veya canlı Worker sürümünü kontrol edin. Run: https://github.com/\${GITHUB_REPOSITORY}/actions/runs/\${GITHUB_RUN_ID}"
+
+          number="\$(gh issue list --repo "\$GITHUB_REPOSITORY" --state open --search "\"\$title\"" --json number,title --jq '.[] | select(.title=="'\$title'") | .number' | head -n1 || true)"
+
+          if [ -n "\$number" ]; then
+            gh issue comment "\$number" --repo "\$GITHUB_REPOSITORY" --body "\$body"
+          else
+            gh issue create --repo "\$GITHUB_REPOSITORY" --title "\$title" --body "\$body"
+          fi
