@@ -187,7 +187,7 @@ jobs:
             'https://www.instagram.com/btmedyajans/'
             'meta name="color-scheme" content="dark"'
             'meta name="referrer" content="strict-origin-when-cross-origin"'
-            'preconnect href="https://tracker.metricool.com"
+            'preconnect href="https://tracker.metricool.com"'
           )
 
           live_ok=0
