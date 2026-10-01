@@ -87,6 +87,8 @@ jobs:
           grep -q 'mobile-motion.js' public/index.html
           test -s public/mobile-motion.css
           test -s public/mobile-motion.js
+          grep -q 'mobile-quick-nav' public/index.html
+          test "$(grep -o 'data-mobile-nav=' public/index.html | wc -l)" -ge 5
           grep -q 'prefers-reduced-motion' public/mobile-fixes.css
           grep -q 'Control Center' public/admin/index.html
           grep -q '/api/admin/control-center' public/admin/index.html
