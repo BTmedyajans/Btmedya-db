@@ -198,6 +198,13 @@ function htmlListeOgeleri(t, base, prefixes) {
   return out.slice(0, 20);
 }
 
+function kaynakGuveni(id) {
+  if (['balikesir-bel', 'balikesir-valilik', 'btt', 'baun'].includes(id)) return 4;
+  if (id.startsWith('trt-') || id.startsWith('aa-')) return 3;
+  if (id.startsWith('hurriyet-') || id.startsWith('sabah-')) return 2;
+  return 1;
+}
+
 async function kaynakOku(id) {
   const k = KAYNAK[id];
   const t = await getir(k.url);
@@ -206,7 +213,12 @@ async function kaynakOku(id) {
     : k.tur === 'html'
       ? htmlListeOgeleri(t, k.base || k.url, k.base?.includes('balikesir.edu.tr') ? ['/haberler/', '/duyurular/'] : ['/haberler/'])
       : rssOgeleri(t);
-  return ogeler.slice(0, 25).map(o => ({ ...o, kaynakId: id, kaynakAd: k.ad }));
+  return ogeler.slice(0, 25).map(o => ({
+    ...o,
+    kaynakId: id,
+    kaynakAd: k.ad,
+    kaynakGuven: kaynakGuveni(id)
+  }));
 }
 
 /* Haber sayfasından başlık, tarih ve paragraflar. Genel ayrıştırıcı:
@@ -623,7 +635,8 @@ export async function sabahMasasi(env, secenek = {}) {
       .filter(o => !/\b(izle|canli yayin|video)\b/.test(duz(o.baslik)))
       .filter(o => !o.baslik || (!tekrarMi(o.baslik) && !hassasMi(o.baslik)))
       .map(o => ({ ...o, ...puanla(o, agirlik) }))
-      .sort((a, b) => b.puan - a.puan);
+      // Eşit trend puanında doğrulanabilirliği yüksek kurumsal kaynak öne alınır.
+      .sort((a, b) => b.puan - a.puan || (b.kaynakGuven || 0) - (a.kaynakGuven || 0));
     const adaylar = [];
     for (const o of sirali) {
       if (adaylar.length >= KATEGORI_BASINA_ADAY) break;
@@ -703,7 +716,16 @@ export async function kategoriIsle(env, { kat, adaylar = [], ayar, kuru = false,
     break;
   }
   if (!secildi) { sonuc.secilen.push({ kategori: kat.kategori, anahtar: kat.anahtar, durum: 'uygun-kaynak-yok' }); return sonuc; }
-  const kayit = { kategori: kat.kategori, anahtar: kat.anahtar, kaynakBaslik: secildi.kaynak.baslik || secildi.o.baslik, kaynak: secildi.o.link, puan: secildi.o.puan, trend: secildi.o.eslesen };
+  const kayit = {
+    kategori: kat.kategori,
+    anahtar: kat.anahtar,
+    kaynakBaslik: secildi.kaynak.baslik || secildi.o.baslik,
+    kaynak: secildi.o.link,
+    kaynakId: secildi.o.kaynakId,
+    kaynakGuven: secildi.o.kaynakGuven || 0,
+    puan: secildi.o.puan,
+    trend: secildi.o.eslesen
+  };
   sonuc.secilen.push(kayit);
   if (kuru) { kayit.durum = 'kuru-calisma'; return sonuc; }
   await kategoriYaz(env, ayar, { kat, o: secildi.o, kaynak: secildi.kaynak, kayit, son }, deneme, sonuc);
