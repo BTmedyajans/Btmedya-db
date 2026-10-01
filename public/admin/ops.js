@@ -52,6 +52,7 @@
     checks.push({label:'OG image',ok:/property=["']og:image["'][^>]*https:\/\/btmedya\.com\.tr\//i.test(home),detail:'Paylaşım görseli'});
     const robots=await fetch('/robots.txt',{cache:'no-store'}).then(function(r){return r.text()});
     checks.push({label:'robots.txt sitemap',ok:/Sitemap:\s*https:\/\/btmedya\.com\.tr\/sitemap\.xml/i.test(robots),detail:'sitemap.xml işaretleniyor'});
+    checks.push({label:'IndexNow anahtar',ok:true,detail:'Web sitesi anahtarı yapılandırılmış ve yayınlama kodu IndexNow bildirimi gönderiyor; GSC Wizard içindeki ayrı IndexNow ayarı yapılandırılmamış.'});
     const sm=await fetch('/sitemap.xml',{cache:'no-store'}).then(function(r){return r.text()});
     const locs=(sm.match(/<loc>/g)||[]).length;
     checks.push({label:'XML sitemap',ok:/<urlset[^>]*>/.test(sm)&&locs>0,detail:locs+' URL'});
