@@ -789,7 +789,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   const KARE_SAYISI=93;
   // Dizi bu cekimden uretildi; panel bu dosyalardan birini secmisse dizi
   // ayni icerigi gosterir ve devrede kalir.
-  const KARE_KAYNAKLARI=['/assets/hero-scrub.mp4','/assets/hero-scrub.webm','/assets/hero-mobil.mp4'];
+  const KARE_KAYNAKLARI=['/assets/media/web/hero-story.mp4','/assets/media/web/hero-story-mobile.mp4'];
   const kareYolu=i=>'/assets/hero-kare/'+String(i+1).padStart(3,'0')+'.webp';
   let kareAktif=false, tuval=null, cizer=null, kareler=[], sonKare=-1;
   function tuvalBoyut(){
@@ -864,7 +864,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     if(!el || el.dataset.loaded) return;
     let src=mobile() && el.dataset.mobile ? el.dataset.mobile : el.dataset.src;
     // hero-scrub 1280x720 ve 8,7 MB; ayni cekimin dikey kesimi 0,9 MB.
-    if(mobile() && /\/hero-scrub\.(?:mp4|webm)$/.test(src||'')) src='/assets/hero-mobil.mp4';
+    if(mobile() && /\/hero-story\.mp4$/.test(src||'')) src='/assets/media/web/hero-story-mobile.mp4';
     if(!src) return;
     el.dataset.loaded='1'; el.src=src; el.load();
   }
