@@ -259,7 +259,7 @@ footer .footer-logo{display:block;width:auto;height:54px;max-width:100%;margin-b
   .mobile-category-rail{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;margin:-4px 0 12px;padding:4px 0 8px}
   .mobile-category-rail::-webkit-scrollbar{display:none}
   .mobile-category-rail a{flex:0 0 auto;min-height:44px;display:inline-flex;align-items:center;justify-content:center;scroll-snap-align:start;padding:0 13px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.035);color:var(--muted);font:800 9px/1 Jet,monospace;letter-spacing:.07em;text-decoration:none;white-space:nowrap}
-  .mobile-category-rail a:active,.mobile-category-rail a:focus-visible{color:#081019;background:var(--gold);border-color:var(--gold);outline:none}
+  .mobile-category-rail a.is-active,.mobile-category-rail a:active,.mobile-category-rail a:focus-visible{color:#081019;background:var(--gold);border-color:var(--gold);outline:none}
   #newsFilter{gap:7px;margin-bottom:14px}
   #newsFilter .filter{min-height:44px;padding:0 13px;display:inline-flex;align-items:center;justify-content:center}
 }
