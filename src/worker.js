@@ -10,7 +10,7 @@ import { salesApi } from "./sales-router.js";
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
 import { WorkerEntrypoint } from "cloudflare:workers";
 import { aiGorunurluk, ICERIK_SINYALI } from "./ai-gorunurluk.js";
-import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu, KATEGORILER, kategoriIsle } from "./sabah-masasi.js";
+import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu, KATEGORILER, kategoriIsle, yanitMetni, jsonAyikla } from "./sabah-masasi.js";
 import { ayarlariOku, ayarlariYaz, platformSluglari, sonrakiYuva, altyazi, varlikVar, kapakKunyesi, yayinlananlariIsaretle, gecikenleriKaydir } from "./sosyal-otomasyon.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
@@ -607,6 +607,57 @@ function inspectHtml(html){
   const videos=(html.match(/<video\b/gi)||[]).length;
   const localLinks=(html.match(/href=["']\/[^"']+/gi)||[]).length;
   return {title,description,canonical,ogImage,robots,h1,jsonLd,links,scripts,images,videos,localLinks,titleOk:title.length>=10&&title.length<=65,descriptionOk:description.length>=50&&description.length<=170,canonicalOk:canonical.startsWith('https://btmedya.com.tr/'),h1Ok:h1.length>0,structuredDataOk:jsonLd>0};
+}
+
+async function adminAiCommandApi(request, env, url){
+  if(url.pathname!=='/api/admin/ai-command' || request.method!=='POST') return null;
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  const body=await request.json().catch(()=>null);
+  const prompt=String(body?.prompt||'').trim().slice(0,800);
+  if(!prompt) return json({ok:false,error:'Komut boş olamaz'},400);
+
+  const allowed=[
+    {command:'news-intelligence',hints:'haber istihbaratı, haber bul, kaynakları tara, trend haberleri tara'},
+    {command:'sabah-preview',hints:'sabah masası, günlük haber özeti, sabah önizleme'},
+    {command:'social-drafts',hints:'sosyal taslak, sosyal medya taslakları, paylaşım kuyruğu'},
+    {command:'automation-heartbeat',hints:'otomasyon sağlığı, sistem sağlığı, kalp atışı'}
+  ];
+
+  let plan=null;
+  if(env.AI){
+    const system=[
+      'BTMEDYA admin komut planlayıcısısın.',
+      'Yalnız şu komutlardan birini seç: '+allowed.map(x=>x.command).join(', ')+'.',
+      'Serbest kod, SQL, shell, deploy, DNS, secret, parola veya silme komutu üretme.',
+      'Bir komutla eşleşmiyorsa command alanına "none" yaz.',
+      'Yalnız JSON döndür: {"command":"...","confidence":0,"reason":"..."}'
+    ].join('\\n');
+    try{
+      const r=await env.AI.run('@cf/openai/gpt-oss-120b',{messages:[
+        {role:'system',content:system},
+        {role:'user',content:prompt}
+      ],max_tokens:250,temperature:0});
+      const j=jsonAyikla(yanitMetni(r));
+      if(j && typeof j==='object') plan={
+        command:String(j.command||'none'),
+        confidence:Math.max(0,Math.min(1,Number(j.confidence||0))),
+        reason:String(j.reason||'').slice(0,400)
+      };
+    }catch(e){}
+  }
+  if(!plan){
+    const p=prompt.toLocaleLowerCase('tr-TR');
+    const hit=
+      /(haber|istihbarat|kaynak|trend)/.test(p)?'news-intelligence':
+      /(sabah|günlük özet|gunluk ozet)/.test(p)?'sabah-preview':
+      /(sosyal|reels|tiktok|instagram|youtube)/.test(p)?'social-drafts':
+      /(otomasyon|sistem sağlığı|sistem sagligi|heartbeat)/.test(p)?'automation-heartbeat':'none';
+    plan={command:hit,confidence:hit==='none'?0:.62,reason:hit==='none'?'Güvenli komut listesinde eşleşme bulunamadı.':'Anahtar kelime fallback planı.'};
+  }
+  if(!SAFE_ADMIN_COMMANDS.has(plan.command)){
+    return json({ok:true,plan:{...plan,command:'none'},applied:false,requiresReview:true,message:'Komut güvenli allowlist ile eşleşmedi.'});
+  }
+  return json({ok:true,plan,applied:false,requiresReview:false,message:'Plan hazır. Admin arayüzündeki Uygula düğmesiyle allowlist komutu çalıştırılabilir.'});
 }
 
 async function adminCommandApi(request, env, url){
@@ -1590,6 +1641,8 @@ export default { async scheduled(controller, env, ctx){
       }
       return response;
     };
+    const aiCommand = await adminAiCommandApi(request, env, url);
+    if(aiCommand) return audit(aiCommand);
     const command = await adminCommandApi(request, env, url);
     if(command) return audit(command);
     const rSales = await salesApi(request, env, url);
