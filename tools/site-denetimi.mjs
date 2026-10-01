@@ -260,6 +260,20 @@ async function altyapiDenetimi() {
   }
 }
 
+/* ---------- 5b. Canonical alan adi: www ayni icerigi ikinci kez sunmamali ---------- */
+async function canonicalAlanAdiDenetimi() {
+  const r = await getir('https://www.btmedya.com.tr/', { redirect: 'manual' });
+  const location = r.headers.get('location') || '';
+  let hedef;
+  try { hedef = new URL(location); } catch { hedef = null; }
+  const canonical = hedef && hedef.protocol === 'https:' && hedef.hostname === 'btmedya.com.tr' && hedef.pathname === '/';
+  if (![301, 308].includes(r.status) || !canonical) {
+    hatalar.push(`www canonical yonlendirmesi bozuk (${r.status} -> ${location || 'Location yok'})`);
+  } else {
+    notlar.push('canonical alan adi: www -> https://btmedya.com.tr/ kalici yonlendirme');
+  }
+}
+
 /* ---------- 6. Vitrin alanlari: depodaki veri API yanitina ulasiyor mu ---------- */
 async function vitrinDenetimi() {
   const liste = JSON.parse(readFileSync('public/data/medya-listesi.json', 'utf8'));
@@ -292,6 +306,7 @@ await seoMetaDenetimi(adresler);
 await kapakDenetimi();
 await dagitimDenetimi();
 await altyapiDenetimi();
+await canonicalAlanAdiDenetimi();
 await vitrinDenetimi();
 const sure = ((Date.now() - baslangic) / 1000).toFixed(1);
 

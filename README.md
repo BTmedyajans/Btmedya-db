@@ -26,6 +26,8 @@ public/              Yayınlanan her şey (assets binding bu klasörü servis ed
 docs/                Yayına alma, Media Vault ve kaynak/provenance kılavuzları
 ```
 
+Finder'da bu yapıyı aynı klasör mantığıyla kullanmak için [Finder dosya düzeni kaydına](docs/FINDER-DOSYA-DUZENI.md) bakın. Bu kayıt, `public/` yayın dosyalarını, `src/` Worker kodunu, `docs/` karar/kanıt belgelerini ve `tools/` denetim araçlarını birbirinden ayırır.
+
 Backend dosyaları `public/` dışında tutulur; bu yüzden `wrangler.toml`, `src/` ve
 `migrations/` hiçbir koşulda herkese açık servis edilmez.
 
