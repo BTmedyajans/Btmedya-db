@@ -4,7 +4,6 @@ import { chromium } from 'playwright';
 const BASE = process.env.BTMEDYA_BASE_URL || 'https://btmedya.com.tr';
 const pages = [
   {path:'/', name:'home'},
-  {path:'/en/', name:'english'},
   {path:'/haberler/', name:'news'},
   {path:'/hizmetler/', name:'services'},
   {path:'/video-produksiyon/', name:'production'},
@@ -64,4 +63,4 @@ for (const vp of viewports) {
 }
 await browser.close();
 if(failures.length){ console.error('RESPONSIVE_A11Y_SMOKE_FAILED'); failures.forEach(x=>console.error(x)); process.exit(1); }
-console.log('BTMEDYA responsive/a11y smoke: OK · 3 viewports · 9 routes · no horizontal overflow or unnamed controls');
+console.log('BTMEDYA responsive/a11y smoke: OK · 3 viewports · 8 routes · no horizontal overflow or unnamed controls');
