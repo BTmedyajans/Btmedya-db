@@ -375,6 +375,24 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   }
 }
 
+/* 12) Kamuya açık HTML'de çalıştırılabilir satır içi betik bulunmamalı.
+   JSON-LD veri blokları serbesttir; admin/studio kapsam dışıdır. */
+{
+  const tara = (dizin) => readdirSync(dizin, {withFileTypes:true}).flatMap(g => {
+    const yol = join(dizin, g.name);
+    if (g.isDirectory()) return /^(admin|social-studio|assets|gorsel|data)$/.test(g.name) ? [] : tara(yol);
+    return g.name.endsWith('.html') ? [yol] : [];
+  });
+  for (const f of tara('public')) {
+    const html = readFileSync(f, 'utf8');
+    for (const m of html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)) {
+      const oz = m[1], govde = m[2].trim();
+      if (/\\bsrc\\s*=/.test(oz) || /type\\s*=\\s*["']application\\/(ld\\+)?json["']/.test(oz) || !govde) continue;
+      bulgular.push(f + ' satır içi çalıştırılabilir betik içeriyor; public/ altında ayrı .js dosyasına taşınmalı.');
+    }
+  }
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
