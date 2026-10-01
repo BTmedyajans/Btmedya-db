@@ -62,20 +62,40 @@
     if(box)box.innerHTML=checks.map(function(x){return '<div class="ops-item"><div class="ops-item-top"><b>'+esc(x.label)+'</b><span class="'+(x.ok?'ops-ok':'ops-warn')+'">'+(x.ok?'✓ OK':'⚠')+'</span></div><small>'+esc(x.detail)+'</small></div>'}).join('');
     return checks;
   }
-  function loadTools(){
+  async function loadTools(){
     const box=$('#opsTools');if(!box)return;
+    let cc=null;
+    try{cc=await json('/api/admin/control-center')}catch(e){}
+    const social=(cc&&cc.social)||{};
+    const status=function(name){
+      const s=social[name]||{};
+      if(s.configured)return {txt:'● bağlı + Worker hazır',cls:'ops-ok'};
+      if(s.connected)return {txt:'● hesap bağlı · Worker bekliyor',cls:'ops-warn'};
+      return {txt:'○ bağlantı doğrulanmadı',cls:'ops-warn'};
+    };
+    const metricool=cc&&cc.metricool&&cc.metricool.yapilandirildi
+      ?{txt:'● Worker token hazır',cls:'ops-ok'}
+      :{txt:'○ Worker secret bekliyor',cls:'ops-warn'};
     const items=[
       ['GitHub','Production repo + Actions','● bağlı','connected','https://github.com/BTmedyajans/Btmedya-db'],
-      ['Cloudflare','Worker / D1 / R2 production','● production','connected','https://dash.cloudflare.com/'],
-      ['Metricool','Sosyal yayın ve analitik','● bağlı','connected','https://app.metricool.com/'],
-      ['Google Search Console','Arama görünürlüğü / indexing','● ChatGPT üzerinden bağlı','connected','https://search.google.com/search-console'],
-      ['Linear','İş planı / teslim takibi','● ChatGPT connector bağlı','connected','https://linear.app/busetuncaybt/issue/BUS-23/btmedya-control-center-preview-seo-integrations'],
-      ['Google Drive','Master arşiv','○ ChatGPT connector kapalı','warning','https://drive.google.com/'],
-      ['Gmail','İletişim / bildirim','○ ChatGPT connector kapalı','warning','https://mail.google.com/'],
-      ['Manus / B12 / Cloud Code','Üretim / prototip referansı','○ production connector yok','warning','']
+      ['Cloudflare','Worker / D1 / R2 production',cc&&cc.storage&&cc.storage.d1&&cc.storage.r2?'● D1 + R2 hazır':'⚠ altyapı kontrolü gerekli','connected','https://dash.cloudflare.com/'],
+      ['Metricool','Sosyal yayın + analitik',metricool.txt,metricool.cls,'https://app.metricool.com/'],
+      ['TikTok','@btmedya1010',status('tiktok').txt,status('tiktok').cls,'https://www.tiktok.com/@btmedya1010'],
+      ['YouTube','@BTmedyaAjans',status('youtube').txt,status('youtube').cls,'https://www.youtube.com/@BTmedyaAjans'],
+      ['Instagram','@btmedyajans',status('instagram').txt,status('instagram').cls,'https://www.instagram.com/btmedyajans/'],
+      ['Facebook','BTMEDYA Page',status('facebook').txt,status('facebook').cls,''],
+      ['Google Search Console','Arama görünürlüğü / indexing','● ChatGPT GSC bağlı','connected','https://search.google.com/search-console'],
+      ['Linear','İş planı / teslim takibi','● connector bağlı','connected','https://linear.app/busetuncaybt/issue/BUS-23/btmedya-control-center-preview-seo-integrations'],
+      ['Google Drive','Master arşiv','○ connector yönetici tarafından kapalı','warning','https://drive.google.com/'],
+      ['Gmail','İletişim / bildirim','○ connector yönetici tarafından kapalı','warning','https://mail.google.com/'],
+      ['ChatGPT / OpenAI','AI orkestrasyon katmanı','● site Worker AI hazır; dış API secret ayrı','connected','https://chatgpt.com/'],
+      ['Manus / B12 / Cloud Code','Üretim/prototip referansı','○ production runtime değil','warning','']
     ];
-    box.innerHTML=items.map(function(x){return '<div class="ops-tool"><b>'+esc(x[0])+'</b><small>'+esc(x[1])+'</small><small class="'+(x[3]==='connected'?'ops-ok':'ops-warn')+'">'+esc(x[2])+'</small>'+(x[4]?'<a class="btn sm" href="'+esc(x[4])+'" target="_blank" rel="noopener">Aç ↗</a>':'')+'</div>'}).join('');
+    box.innerHTML=items.map(function(x){
+      return '<div class="ops-tool"><b>'+esc(x[0])+'</b><small>'+esc(x[1])+'</small><small class="'+esc(x[3])+'">'+esc(x[2])+'</small>'+(x[4]?'<a class="btn sm" href="'+esc(x[4])+'" target="_blank" rel="noopener">Aç ↗</a>':'')+'</div>';
+    }).join('');
   }
+
   async function loadRouting(){
     const box=$('#opsRouting');if(!box)return;
     const results=await Promise.all([
