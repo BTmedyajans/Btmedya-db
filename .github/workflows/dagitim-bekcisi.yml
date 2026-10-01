@@ -15,6 +15,13 @@ name: BTMEDYA dagitim bekcisi
 on:
   push:
     branches: [main]
+    paths:
+      - "wrangler.toml"
+      - "src/**"
+      - "public/**"
+      - "migrations/**"
+      - "package.json"
+      - "package-lock.json"
   workflow_dispatch:
 
 permissions:
