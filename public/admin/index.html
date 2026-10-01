@@ -376,6 +376,24 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
   <!-- TAB: GELEN MESAJLAR -->
   <div class="tab-content" id="tab-social">
     <div class="panel">
+      <div class="row" style="align-items:flex-end;gap:10px">
+        <div style="flex:1;min-width:240px">
+          <h2 style="margin-bottom:4px">Sosyal Operasyon Merkezi</h2>
+          <p class="muted" style="margin:0">Taslak → onay → plan → Metricool teslim zincirini tek ekranda izleyin. Doğrulanmamış ağlara planlama sunucuda da engellenir.</p>
+        </div>
+        <button class="btn" type="button" id="socialSummaryRefresh">Durumu yenile</button>
+      </div>
+      <div id="socialKpiGrid" class="ops-kpi-grid" style="margin-top:12px">
+        <div class="ops-kpi"><b id="socialKpiDraft">—</b><span>Fikir</span></div>
+        <div class="ops-kpi"><b id="socialKpiReady">—</b><span>Hazırlanıyor / Onayda</span></div>
+        <div class="ops-kpi"><b id="socialKpiPlanned">—</b><span>Planlandı</span></div>
+        <div class="ops-kpi"><b id="socialKpiFailed">—</b><span>Metricool teslim hatası</span></div>
+      </div>
+      <div id="socialProviderStrip" class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap"></div>
+      <div id="socialNextQueue" class="ops-list" style="margin-top:12px"></div>
+      <p id="socialSummaryMsg" class="status"></p>
+    </div>
+    <div class="panel">
       <h2>Sabah Masası · her gün 08:00</h2>
       <p class="muted" style="margin-top:0">Google Trends TR ve kategori kaynaklarından günün öne çıkan haberlerini seçer, yapay zekâ ile özgün metin yazar, rakam ve özel ad denetiminden geçenleri yayınlar, lisanslı temsili görsel ekler ve sosyal kuyruğa verir. Siyaset, soruşturma ve suç haberleri otomatik akışa alınmaz.</p>
       <div class="row" style="gap:16px;flex-wrap:wrap;margin:6px 0 12px">
@@ -434,6 +452,26 @@ label{display:block;margin:10px 0 4px;color:#888;font-size:12px;font-weight:600;
         <button class="btn" id="sRefreshBtn">Yenile</button>
       </div>
       <p id="sStatusMsg" class="status"></p>
+    </div>
+    <div class="panel">
+      <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="socialSearch" placeholder="Başlık, kaynak veya platform ara…" style="flex:1;min-width:220px">
+        <select id="socialStatusFilter" style="min-width:140px">
+          <option value="">Tüm durumlar</option>
+          <option value="fikir">Fikir</option>
+          <option value="hazirlaniyor">Hazırlanıyor</option>
+          <option value="onayda">Onayda</option>
+          <option value="planlandi">Planlandı</option>
+          <option value="yayinlandi">Yayınlandı</option>
+        </select>
+        <select id="socialPlatformFilter" style="min-width:150px">
+          <option value="">Tüm platformlar</option>
+          <option value="instagram">Instagram</option>
+          <option value="tiktok">TikTok</option>
+          <option value="youtube">YouTube</option>
+          <option value="facebook">Facebook</option>
+        </select>
+      </div>
     </div>
     <div class="panel">
       <div id="socialList"><p class="muted">Yükleniyor…</p></div>
@@ -1289,20 +1327,48 @@ async function masaCalistir(kuru,deneme){
 $('#mKuru').onclick=()=>masaCalistir(true);
 $('#mDeneme').onclick=()=>masaCalistir(false,true);
 $('#mCalistir').onclick=()=>{ if(confirm('Sabah Masası şimdi çalışsın mı? Denetimi geçen haberler ayarlara göre yayınlanır.')) masaCalistir(false); };
+let socialCache=[];
+function sosyalKpi(n){return Number(n||0).toLocaleString('tr-TR');}
+async function loadSocialSummary(){
+  const msg=$('#socialSummaryMsg');
+  try{
+    const r=await req('/api/admin/social/queue-summary');
+    if(!r.ok) throw new Error(r.error||'Durum alınamadı');
+    const c=r.counts||{}, d=r.delivery||{};
+    $('#socialKpiDraft').textContent=sosyalKpi(c.fikir);
+    $('#socialKpiReady').textContent=sosyalKpi((c.hazirlaniyor||0)+(c.onayda||0));
+    $('#socialKpiPlanned').textContent=sosyalKpi(c.planlandi);
+    $('#socialKpiFailed').textContent=sosyalKpi(d.failed);
+    const strip=$('#socialProviderStrip');
+    strip.innerHTML=Object.values(r.providers||{}).map(p=>{
+      const ok=p.configured, connected=p.connected;
+      return '<span class="pill" style="padding:5px 9px;'+(ok?'background:#152215;color:#6c6':connected?'background:#272116;color:#e8c06a':'background:#211414;color:#f77')+'">'+
+        escStr(p.label)+' · '+escStr(ok?'READY':connected?'BAĞLI / SECRET BEKLENİYOR':'BAĞLANTI YOK')+'</span>';
+    }).join('');
+    const q=r.upcoming||[];
+    $('#socialNextQueue').innerHTML=q.length
+      ? '<div class="ops-item"><div class="ops-item-top"><b>Yaklaşan yayınlar</b><small>'+sosyalKpi(q.length)+' kayıt</small></div>'+q.slice(0,6).map(x=>'<div style="padding:7px 0;border-top:1px solid #1d1d1d"><b>'+escStr(x.title)+'</b><small style="display:block;color:#777">'+escStr((x.platforms||[]).join(' · '))+' · '+escStr(tarihTr(x.scheduled_at))+(x.teslim&&x.teslim.durum==='hata'?' · teslim hatası':'')+'</small></div>').join('')+'</div>'
+      : '<div class="ops-item"><span class="muted">Yaklaşan planlı gönderi yok.</span></div>';
+    msg.textContent='Son güncelleme: '+new Date(r.generated_at).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){msg.textContent='Sosyal özet alınamadı: '+e.message;}
+}
 async function loadSocial(){
   loadSocialSettings();
   loadMasa();
+  loadSocialSummary();
   const box=$('#socialList');
   try{
     const r=await req('/api/admin/social');
-    const items=r.items||[];
+    socialCache=r.items||[];
+    const items=socialCache;
     if(!items.length){box.innerHTML='<p class="muted">Henüz sosyal içerik yok.</p>';return;}
     box.innerHTML='<div class="news-list">'+items.map(x=>{
       const plats=(x.platforms||[]).join(' · ');
       const onizleme=String(x.media_key||'').startsWith('static/')?'<img src="/assets/'+escStr(x.media_key.slice(7))+'" alt="" loading="lazy" style="width:56px;height:70px;object-fit:cover;border-radius:4px;flex:none">':'';
       const onayBtn=x.status==='onayda'?'<button class="btn sm primary" data-social-onay="'+escStr(x.id)+'">Onayla ve planla</button>':'';
       return '<div class="news-row" style="margin-bottom:6px;gap:12px">'+onizleme+'<div class="news-row-info"><b>'+escStr(x.title)+'</b><small>'+escStr(x.status)+' · '+escStr(x.format)+' · '+escStr(plats||'platform seçilmedi')+(x.scheduled_at?' · '+escStr(tarihTr(x.scheduled_at)):'')+'</small>'+teslimSatiri(x,r.metricool)+'</div><div class="row">'+onayBtn+'<select data-social-status="'+escStr(x.id)+'" class="btn sm"><option value="fikir" '+(x.status==='fikir'?'selected':'')+'>Fikir</option><option value="hazirlaniyor" '+(x.status==='hazirlaniyor'?'selected':'')+'>Hazırlanıyor</option><option value="onayda" '+(x.status==='onayda'?'selected':'')+'>Onayda</option><option value="planlandi" '+(x.status==='planlandi'?'selected':'')+'>Planlandı</option><option value="yayinlandi" '+(x.status==='yayinlandi'?'selected':'')+'>Yayınlandı</option></select><button class="btn sm danger" data-social-delete="'+escStr(x.id)+'">Sil</button></div></div>';
-    }).join('')+'</div>';
+    }).join('');
+    renderSocialFiltered();
     box.querySelectorAll('[data-social-status]').forEach(el=>el.onchange=async()=>{
       const id=el.dataset.socialStatus;
       await req('/api/admin/social/'+encodeURIComponent(id),{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({status:el.value})});
@@ -1334,6 +1400,31 @@ $('#sSaveBtn').onclick=async()=>{
   if(r.ok){$('#sTitle').value='';$('#sBody').value='';loadSocial();}
 };
 $('#sRefreshBtn').onclick=loadSocial;
+function renderSocialFiltered(){
+  const q=String($('#socialSearch').value||'').trim().toLocaleLowerCase('tr-TR');
+  const st=$('#socialStatusFilter').value;
+  const pl=$('#socialPlatformFilter').value;
+  const box=$('#socialList');
+  const items=socialCache.filter(x=>{
+    const text=[x.title,x.body,x.source_slug,(x.platforms||[]).join(' ')].join(' ').toLocaleLowerCase('tr-TR');
+    return (!q||text.includes(q))&&(!st||x.status===st)&&(!pl||(x.platforms||[]).some(p=>String(p).toLowerCase().includes(pl)));
+  });
+  if(!items.length){box.innerHTML='<p class="muted">Filtreye uyan sosyal içerik yok.</p>';return;}
+  box.innerHTML='<div class="news-list">'+items.map(x=>{
+    const plats=(x.platforms||[]).join(' · ');
+    const onizleme=String(x.media_key||'').startsWith('static/')?'<img src="/assets/'+escStr(x.media_key.slice(7))+'" alt="" loading="lazy" style="width:56px;height:70px;object-fit:cover;border-radius:4px;flex:none">':'';
+    const onayBtn=x.status==='onayda'?'<button class="btn sm primary" data-social-onay="'+escStr(x.id)+'">Onayla ve planla</button>':'';
+    const retryBtn=x.teslim&&x.teslim.durum==='hata'?'<button class="btn sm" data-social-retry="'+escStr(x.id)+'">Teslimatı yeniden dene</button>':'';
+    return '<div class="news-row" style="margin-bottom:6px;gap:12px">'+onizleme+'<div class="news-row-info"><b>'+escStr(x.title)+'</b><small>'+escStr(x.status)+' · '+escStr(x.format)+' · '+escStr(plats||'platform seçilmedi')+(x.scheduled_at?' · '+escStr(tarihTr(x.scheduled_at)):'')+'</small>'+teslimSatiri(x,r.metricool)+'</div><div class="row">'+onayBtn+retryBtn+'<select data-social-status="'+escStr(x.id)+'" class="btn sm"><option value="fikir" '+(x.status==='fikir'?'selected':'')+'>Fikir</option><option value="hazirlaniyor" '+(x.status==='hazirlaniyor'?'selected':'')+'>Hazırlanıyor</option><option value="onayda" '+(x.status==='onayda'?'selected':'')+'>Onayda</option><option value="planlandi" '+(x.status==='planlandi'?'selected':'')+'>Planlandı</option><option value="yayinlandi" '+(x.status==='yayinlandi'?'selected':'')+'>Yayınlandı</option></select><button class="btn sm danger" data-social-delete="'+escStr(x.id)+'">Sil</button></div></div>';
+  }).join('')+'</div>';
+  box.querySelectorAll('[data-social-status]').forEach(el=>el.onchange=async()=>{await req('/api/admin/social/'+encodeURIComponent(el.dataset.socialStatus),{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({status:el.value})});loadSocial();loadSocialSummary();});
+  box.querySelectorAll('[data-social-onay]').forEach(el=>el.onclick=async()=>{el.disabled=true;const r=await req('/api/admin/social/'+encodeURIComponent(el.dataset.socialOnay),{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({status:'planlandi'})});if(!r.ok) alert(r.error||'Planlama başarısız');loadSocial();loadSocialSummary();});
+  box.querySelectorAll('[data-social-retry]').forEach(el=>el.onclick=async()=>{el.disabled=true;const r=await req('/api/admin/social/'+encodeURIComponent(el.dataset.socialRetry),{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({status:'planlandi'})});if(!r.ok) alert(r.error||'Teslimat yeniden planlanamadı');loadSocial();loadSocialSummary();});
+  box.querySelectorAll('[data-social-delete]').forEach(el=>el.onclick=async()=>{if(!confirm('Bu sosyal içeriği silmek istiyor musunuz?'))return;await req('/api/admin/social/'+encodeURIComponent(el.dataset.socialDelete),{method:'DELETE'});loadSocial();loadSocialSummary();});
+}
+['socialSearch','socialStatusFilter','socialPlatformFilter'].forEach(id=>$(id).oninput=renderSocialFiltered);
+$('#socialSummaryRefresh').onclick=()=>{loadSocialSummary();loadSocial();};
+
 
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/admin/sw.js",{scope:"/admin/"}).catch(()=>{});}</script><script>
