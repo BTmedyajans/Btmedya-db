@@ -252,7 +252,7 @@ async function newsApi(request, env, url, ctx){
     return json(await newsIntelligenceStatus(env));
   }
 
-  const alertMatch=url.pathname.match(/^\\/api\\/admin\\/news-intelligence\\/alerts\\/(\\d+)$/);
+  const alertMatch=url.pathname.match(/^\/api\/admin\/news-intelligence\/alerts\/(\d+)$/);
   if(alertMatch && request.method==='PATCH'){
     if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
