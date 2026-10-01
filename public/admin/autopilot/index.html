@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BTMEDYA Autopilot • AI Yayın Yönetimi</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{color-scheme:dark;--bg:#060707;--p:#101212;--p2:#151818;--line:#282c2c;--txt:#f3f5f4;--mut:#8c9691;--lime:#d7ff4f;--blue:#76d7ff;--ok:#6fe49a;--warn:#f2c76b;--bad:#ff756d}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0,#152019 0,#060707 42%);color:var(--txt);font:14px/1.5 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--blue)}button,input,select,textarea{font:inherit}button{cursor:pointer}
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:11px 15px;background:rgba(6,7,7,.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+.brand{font-weight:900;letter-spacing:.07em}.brand b{color:var(--lime)}.live{margin-left:auto;font-size:11px;color:var(--ok);display:flex;align-items:center;gap:6px}.dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.shell{max-width:1400px;margin:auto;padding:15px}.hero,.panel{background:linear-gradient(180deg,#111414,#0c0e0e);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 12px 40px #0007}.hero{margin-bottom:14px}.kicker{color:var(--lime);font-size:10px;letter-spacing:.15em;font-weight:900;text-transform:uppercase}.hero h1{font-size:clamp(28px,4vw,52px);line-height:1.02;margin:8px 0}.muted{color:var(--mut)}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid #373d3b;background:#171a19;color:#eef1ef;border-radius:10px;padding:9px 12px}.btn.primary{background:var(--lime);border-color:var(--lime);color:#111;font-weight:800}.btn.blue{border-color:#2c6074;color:var(--blue)}.btn.warn{border-color:#665326;color:var(--warn)}.field{width:100%;background:#0b0e0d;border:1px solid #303735;color:#eef2f0;border-radius:10px;padding:10px;outline:none}.label{display:block;color:#737d79;font-size:10px;letter-spacing:.09em;font-weight:800;margin:10px 0 5px}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.card{border:1px solid #252a28;border-radius:12px;background:#0d100f;padding:11px}.card strong{display:block}.card small{display:block;color:#77807c;margin-top:3px}.list{display:grid;gap:8px}.matrix{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.network{border:1px solid #252a28;border-radius:12px;background:#0d100f;padding:11px}.network .state{font-size:11px;margin-top:6px}.state.ok{color:var(--ok)}.state.wait{color:var(--warn)}.state.bad{color:var(--bad)}.pill{display:inline-flex;border:1px solid #323737;border-radius:999px;padding:4px 8px;font-size:10px}.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.kpi{border:1px solid #252a28;border-radius:10px;background:#0d100f;padding:10px}.kpi b{display:block;font-size:22px}.kpi span{color:#737d79;font-size:10px}.status{min-height:20px;margin-top:8px;color:#88938e}.status.ok{color:var(--ok)}.status.err{color:var(--bad)}.status.warn{color:var(--warn)}.row{display:flex;justify-content:space-between;gap:9px;align-items:flex-start}.log{max-height:320px;overflow:auto}.candidate{display:grid;grid-template-columns:1fr auto;gap:10px}.candidate b{display:block}.candidate .score{font-weight:900;color:var(--lime)}.switch{display:flex;align-items:center;gap:9px;border:1px solid #252a28;border-radius:10px;padding:10px;background:#0d100f}.switch input{width:18px;height:18px}.foot{padding:22px 0 50px;color:#68706d;font-size:11px;text-align:center}
+@media(max-width:980px){.grid{grid-template-columns:1fr}.matrix{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:repeat(3,1fr)}}@media(max-width:620px){.shell{padding:10px}.two,.three{grid-template-columns:1fr}.matrix{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.btn{flex:1;min-width:130px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">BT<b>MEDYA</b> / AUTOPILOT</div><div class="live"><i class="dot"></i> canlı</div><a class="btn" href="/admin/editor/">AI Editör</a><a class="btn" href="/admin/">Admin</a></header>
+<main class="shell">
+<section class="hero">
+ <div class="kicker">AUTONOMOUS NEWSROOM · POLICY CONTROL</div>
+ <h1>Gündem taranır. İçerik hazırlanır. Kural ne diyorsa o olur.</h1>
+ <p class="muted">Bu merkez, BTMEDYA için canlı kaynak keşfi, Google Trends sinyali, rakip görünürlüğü, AI taslak, medya seçimi, onay/otomatik yayın ve sosyal dağıtım zincirini tek politikadan yönetir. Hassas içerik otomatik yayına kapalı tutulur.</p>
+ <div class="toolbar"><button class="btn primary" id="run">Şimdi çalıştır</button><button class="btn blue" id="save">Politikayı kaydet</button><button class="btn" id="refresh">Yenile</button><a class="btn" href="/kaynak-masasi/">Kaynak Masası</a></div>
+ <div id="status" class="status">Kontrol ediliyor…</div>
+</section>
+<div class="grid">
+<section>
+ <div class="panel">
+  <div class="row"><div><h2>01 · Otonom yayın politikası</h2><div class="muted">Kod değiştirmeden kurallar buradan uygulanır.</div></div><span class="pill">KV + D1</span></div>
+  <label class="label">SİSTEM</label><label class="switch"><input id="enabled" type="checkbox"><span>Autopilot aktif</span></label>
+  <div class="two">
+   <div><label class="label">ADAY ALT SINIRI</label><input id="minScore" class="field" type="number" min="0" max="100"></div>
+   <div><label class="label">OTOMATİK YAYIN ALT SINIRI</label><input id="autoScore" class="field" type="number" min="0" max="100"></div>
+  </div>
+  <label class="label">AĞLAR</label><div id="nets" class="three"></div>
+  <div class="two">
+   <div><label class="label">İÇERİK</label><select id="mediaMode" class="field"><option value="archive-first">Gerçek arşiv önce</option><option value="ai-first">AI medya önce</option></select></div>
+   <div><label class="label">AI MEDYA</label><label class="switch"><input id="allowAiMedia" type="checkbox"><span>AI LAB varlıklarına izin</span></label></div>
+  </div>
+  <label class="label">ONAY GEREKTİREN KATEGORİLER</label><textarea id="approvalCats" class="field" rows="2" placeholder="Virgülle ayırın"></textarea>
+  <label class="label">OTOMATİK YAYIN KATEGORİLERİ</label><textarea id="autoCats" class="field" rows="2" placeholder="Virgülle ayırın"></textarea>
+  <label class="label">RAKİP ALAN ADLARI</label><textarea id="competitors" class="field" rows="2" placeholder="gazetemerhaba.com, balikesirim.net"></textarea>
+ </div>
+ <div class="panel" style="margin-top:14px">
+  <div class="row"><div><h2>02 · Sosyal bağlantı matrisi</h2><div class="muted">Bağlantı yoksa sistem yayın göndermiyor, bağlantı kurulumunu gösteriyor.</div></div></div>
+  <div id="matrix" class="matrix" style="margin-top:10px"></div>
+ </div>
+ <div class="panel" style="margin-top:14px">
+  <div class="row"><div><h2>03 · Rakip ve trend radar</h2><div class="muted">Kamuya açık başlık akışları ve Google sinyalleri kaynak keşfine yardımcı olur.</div></div><span class="pill">salt okur</span></div>
+  <div id="competitorList" class="list" style="margin-top:10px"></div>
+ </div>
+</section>
+<section>
+ <div class="panel">
+  <div class="row"><div><h2>04 · Son çalıştırmalar</h2><div class="muted">Her işlem audit günlüğüne bırakılır.</div></div></div>
+  <div id="kpis" class="kpis" style="margin-top:10px"></div>
+  <div id="runs" class="list log" style="margin-top:10px"></div>
+ </div>
+ <div class="panel" style="margin-top:14px">
+  <div class="row"><div><h2>05 · Sosyal dağıtım kuyruğu</h2><div class="muted">Otomatik yayın için yalnız doğrulanmış ağlar kullanılır.</div></div></div>
+  <div id="queue" class="list" style="margin-top:10px"></div>
+ </div>
+ <div class="panel" style="margin-top:14px">
+  <div class="row"><div><h2>06 · Strateji direktörü</h2><div class="muted">Rakip, trend, içerik ve dağıtım sinyallerini operasyon notuna çevirir.</div></div><button class="btn blue" id="strategy">Analiz et</button></div>
+  <div id="strategyBox" class="list" style="margin-top:10px"></div>
+ </div>
+</section>
+</div>
+<div class="foot">BTMEDYA Autopilot · editoryal kararlar izlenebilir · hassas konular otomatik yayının dışında</div>
+</main>
+<script>
+const $=s=>document.querySelector(s);const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const split=s=>String(s||'').split(',').map(x=>x.trim()).filter(Boolean);
+async function req(url,opt={}){const r=await fetch(url,{credentials:'same-origin',...opt});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j}
+function setStatus(t,c=''){const e=$('#status');e.textContent=t;e.className='status '+c}
+function renderPolicy(p){$('#enabled').checked=!!p.enabled;$('#minScore').value=p.minScore;$('#autoScore').value=p.autoPublishMinScore;$('#mediaMode').value=p.mediaMode||'archive-first';$('#allowAiMedia').checked=!!p.allowAiMedia;$('#approvalCats').value=(p.approvalRequiredCategories||[]).join(', ');$('#autoCats').value=(p.autoPublishCategories||[]).join(', ');$('#competitors').value=(p.competitorHosts||[]).join(', ');$('#nets').innerHTML=['tiktok','youtube','instagram','facebook','twitter','linkedin','whatsapp'].map(n=>'<label class="switch"><input class="net" type="checkbox" value="'+n+'" '+(p.allowedNetworks||[]).includes(n)?'checked':''+'><span>'+n+'</span></label>').join('')}
+function renderConnections(list){$('#matrix').innerHTML=(list||[]).map(x=>'<div class="network"><strong>'+esc(x.label)+'</strong><div class="state '+(x.connected?'ok':'wait')+'">'+(x.connected?'✓ bağlı':'○ bağlantı gerekli')+'</div><small>'+esc(x.via)+' · '+esc((x.capabilities||[]).join(', '))+'</small></div>').join('')}
+function renderRuns(runs){const last=runs?.[0];$('#kpis').innerHTML=['scanned','candidates','created_news','published_news','social_scheduled','blocked'].map(k=>'<div class="kpi"><b>'+Number(last?.[k]||0)+'</b><span>'+k.replace(/_/g,' ')+'</span></div>').join('');$('#runs').innerHTML=(runs||[]).map(x=>'<div class="card"><div class="row"><div><strong>Çalışma #'+x.id+'</strong><small>'+esc(x.started_at)+' → '+esc(x.finished_at||'çalışıyor')+'</small></div><span class="score">'+Number(x.published_news||0)+' yayın</span></div><small>Tarama '+Number(x.scanned||0)+' · aday '+Number(x.candidates||0)+' · sosyal '+Number(x.social_created||0)+' · engel '+Number(x.blocked||0)</small></div>').join('')||'<div class="card">Henüz çalışma yok.</div>'}
+function renderCompetitors(list){$('#competitorList').innerHTML=(list||[]).map(x=>'<div class="candidate card"><div><b>'+esc(x.host)+'</b><small>'+Number(x.headlines_seen||0)+' başlık görüldü · '+esc(x.last_seen_at||'')+'</small><small>'+esc(x.last_title||'')}</small></div><a class="btn sm" href="'+(x.last_url?esc(x.last_url):'#')+'" target="_blank" rel="noopener">Kaynağı aç</a></div>').join('')||'<div class="card">Rakip sinyali henüz yok.</div>'}
+function renderQueue(list){$('#queue').innerHTML=(list||[]).map(x=>'<div class="card"><div class="row"><div><strong>'+esc(x.title||'İçerik')+'</strong><small>'+esc(x.status)+' · '+esc(x.scheduled_at||'')+'</small></div><span class="pill">'+esc(JSON.stringify(JSON.parse(x.platforms||'[]')))}</span></div></div>').join('')||'<div class="card">Kuyruk boş.</div>'}
+async function load(){setStatus('Autopilot durumu okunuyor…');try{const d=await req('/api/admin/autopilot');renderPolicy(d.policy);renderConnections((await req('/api/admin/autopilot/connections')).connections);renderRuns(d.runs);renderCompetitors(d.competitors);renderQueue(d.queue);setStatus('Autopilot hazır · son kontrol '+new Date().toLocaleTimeString('tr-TR'),'ok')}catch(e){setStatus('Admin oturumu gerekli veya kontrol alınamadı: '+e.message,'err')}}
+$('#save').onclick=async()=>{try{const policy={enabled:$('#enabled').checked,minScore:Number($('#minScore').value),autoPublishMinScore:Number($('#autoScore').value),mediaMode:$('#mediaMode').value,allowAiMedia:$('#allowAiMedia').checked,approvalRequiredCategories:split($('#approvalCats').value),autoPublishCategories:split($('#autoCats').value),competitorHosts:split($('#competitors').value),allowedNetworks:[...document.querySelectorAll('.net:checked')].map(x=>x.value)};const d=await req('/api/admin/autopilot/policy',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(policy)});renderPolicy(d.policy);setStatus('Politika kaydedildi.','ok')}catch(e){setStatus('Kayıt başarısız: '+e.message,'err')}}
+$('#run').onclick=async()=>{setStatus('Otonom yayın zinciri çalışıyor…');try{const d=await req('/api/admin/autopilot/run',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({force:true,limit:3})});setStatus('Çalışma tamamlandı · '+Number(d.created_news||0)+' haber · '+Number(d.published_news||0)+' otomatik yayın · '+Number(d.social_created||0)+' sosyal kayıt','ok');load()}catch(e){setStatus('Çalıştırma başarısız: '+e.message,'err')}}
+$('#refresh').onclick=load;
+$('#strategy').onclick=async()=>{const b=$('#strategyBox');b.innerHTML='<div class="card">Analiz hazırlanıyor…</div>';try{const d=await req('/api/admin/autopilot/strategy');b.innerHTML='<div class="card"><strong>Editoryal</strong><small>'+esc(d.strategy?.editorial||'')+'</small></div><div class="card"><strong>Medya</strong><small>'+esc(d.strategy?.media||'')+'</small></div><div class="card"><strong>Dağıtım</strong><small>'+esc(d.strategy?.distribution||'')+'</small></div>'+(d.strategy?.competitors||[]).map(x=>'<div class="card"><strong>'+esc(x.host)+'</strong><small>'+esc(x.latest||'')+' · '+Number(x.headlines||0)+' başlık</small></div>').join('')}catch(e){b.innerHTML='<div class="card">'+esc(e.message)+'</div>'}}
+load();
+</script>
+</body></html>
