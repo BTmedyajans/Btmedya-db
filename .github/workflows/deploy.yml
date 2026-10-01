@@ -109,6 +109,12 @@ jobs:
           test -s public/admin/manifest.webmanifest
           test -s public/admin/autopilot/index.html
           test -s public/admin/editor/index.html
+          test -s public/admin/client-hub/index.html
+          test -s public/admin/musteri-merkezi/index.html
+          test -s public/client/review/index.html
+          test -s migrations/0013_client_review.sql
+          grep -q 'reviewAdmin' src/sales-router.js
+          grep -q 'Müşteriye önizleme linki' public/admin/client-hub/index.html
           grep -q 'Otonom Yayın Merkezi' public/admin/next-gen.js
           grep -q '/api/admin/autopilot' src/worker.js
           python3 - <<'PY'
@@ -194,6 +200,9 @@ jobs:
           # çalıştığını doğrular.
           check_http "hakkimizda" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/hakkimizda/" "200"
           check_http "iletisim" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/iletisim/" "200"
+          check_http "client-hub" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/client-hub/" "200"
+          check_http "legacy-client-hub" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/musteri-merkezi/" "200"
+          check_http "client-review" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/client/review/" "200"
           check_http "haberler" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/haberler/" "200"
           check_http "kaynak-masasi" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/kaynak-masasi/" "200"
           check_http "robots" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/robots.txt" "200"
