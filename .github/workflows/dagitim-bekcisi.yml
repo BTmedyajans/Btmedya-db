@@ -58,7 +58,7 @@ jobs:
           # Workers Builds API mevcutsa, zaman tahmini yerine dogrudan
           # Cloudflare'in kaydettigi Git commit SHA'sini kontrol ediyoruz.
           # Token yoksa geriye donuk uyumluluk icin timestamp bekcisi calisir.
-          if [ -n "\${CLOUDFLARE_API_TOKEN:-}" ] && [ -n "\${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+          if [ -n "${CLOUDFLARE_API_TOKEN:-}" ] && [ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
             cf_build_kontrol="aktif"
           fi
           for i in $(seq 1 30); do
