@@ -254,6 +254,59 @@ async function createSocialDraft(env,news,media,policy,runId){
   return {created:true,scheduled:Boolean(scheduled),postId,scheduled_at:scheduled};
 }
 
+async function allowedReference(env,url){
+  const p=await autopilotPolicy(env);
+  try{
+    const u=new URL(String(url||""));
+    const host=u.hostname.replace(/^www\./,"").toLowerCase();
+    const allow=new Set([...(p.competitorHosts||[]),"news.google.com","www.trthaber.com","www.aa.com.tr","cumha.com.tr","balikesir.bel.tr"]);
+    return u.protocol==="https:" && allow.has(host) ? u : null;
+  }catch{return null;}
+}
+
+export async function referenceDraft(env,{url,instructions=""}={}){
+  const target=await allowedReference(env,url);
+  if(!target) return {ok:false,error:"Referans adresi yalnızca izinli kamuya açık kaynaklardan biri olmalı."};
+  const r=await fetch(target.toString(),{headers:{accept:"text/html,application/xhtml+xml","user-agent":"BTMEDYA-ReferenceLab/1.0"},redirect:"follow"});
+  if(!r.ok) return {ok:false,error:"Referans okunamadı: HTTP "+r.status};
+  const html=await r.text();
+  const plain=html.replace(/<script[\s\S]*?<\/script>/gi," ").replace(/<style[\s\S]*?<\/style>/gi," ").replace(/<[^>]+>/g," ").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/\s+/g," ").trim().slice(0,14000);
+  if(!plain) return {ok:false,error:"Referans metni alınamadı."};
+  if(env.AI){
+    try{
+      const prompt=[
+        "BTMEDYA Reference Lab.",
+        "Aşağıdaki üçüncü taraf sayfayı yalnız araştırma referansı olarak kullan.",
+        "Metni kopyalama veya cümlelerini yeniden yazıp taklit etme.",
+        "Yalnız doğrulanabilir bilgi çek; kaynak URL'sini koru.",
+        "Türkçe JSON üret: title, excerpt, body, social_caption, facts, cautions.",
+        "facts bir dizi kısa olgu; cautions belirsiz veya doğrulanması gereken noktalar.",
+        instructions ? "Ek editör talimatı: "+String(instructions).slice(0,1000) : "",
+        "Kaynak URL: "+target.toString(),
+        "Sayfa metni:\n"+plain
+      ].filter(Boolean).join("\n");
+      const ai=await env.AI.run("@cf/openai/gpt-oss-120b",{messages:[
+        {role:"system",content:"Kaynağa sadık araştırma asistanısın. Uydurma bilgi verme; JSON dışında açıklama yazma."},
+        {role:"user",content:prompt}
+      ],max_tokens:1200,temperature:0.1});
+      const raw=String(ai?.response||ai?.output_text||"").trim();
+      const m=raw.match(/\{[\s\S]*\}/);
+      if(m){
+        const j=JSON.parse(m[0]);
+        return {ok:true,source_url:target.toString(),draft:j};
+      }
+    }catch{}
+  }
+  return {ok:true,source_url:target.toString(),draft:{
+    title:target.hostname+" referans notu",
+    excerpt:plain.slice(0,500),
+    body:plain.slice(0,4000),
+    social_caption:plain.slice(0,600),
+    facts:[],
+    cautions:["AI motoru kullanılamadı; editör doğrulaması gerekli."]
+  }};
+}
+
 export async function runAutopilot(env,{force=false,limit}={}){
   await ensureTables(env);
   const policy=await autopilotPolicy(env);
