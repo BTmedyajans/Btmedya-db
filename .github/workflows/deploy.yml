@@ -12,6 +12,7 @@ on:
       - "package-lock.json"
       - ".github/workflows/deploy.yml"
       - "control-plane/**"
+      - "control-plane/reconcile-worker-domains.sh"
   workflow_dispatch:
 
 permissions:
