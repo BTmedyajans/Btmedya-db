@@ -288,7 +288,9 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   };
   const storyMedia = n => {
     const yt = String(n.video_url || '').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-    return yt ? `https://i.ytimg.com/vi/${yt[1]}/hqdefault.jpg` : kartGorseli(kapakYolu(n));
+    if (yt) return `https://i.ytimg.com/vi/${yt[1]}/hqdefault.jpg`;
+    const cover = kartGorseli(kapakYolu(n));
+    return cover || '';
   };
   const renderStoryLab = items => {
     const root = d.getElementById('storyCards');
@@ -296,10 +298,16 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     const [main, side] = items.slice(0, 2);
     // Yan kart %34 opakliga soldurulmus dekor katmani; ayni haber akisinda
     // zaten listelendigi icin ekran okuyucudan ve klavye sirasindan cikarilir.
-    const card = (n, extra) => `<article class="story-card ${extra}"${extra === 'story-card-side' ? ' aria-hidden="true" inert' : ''}>
-      <img src="${esc(storyMedia(n))}" alt="${esc(n.title || 'BTMEDYA haber görseli')}" loading="lazy" decoding="async">
-      <div class="story-card-copy"><small>${esc(n.category || 'HABER')} · ${esc(dateText(n))}</small><h3>${esc(n.title || '')}</h3><p>${esc(String(n.excerpt || '').replace(/\s+/g, ' ').slice(0, 150))}</p><a href="/haberler/${encodeURIComponent(n.slug)}">Haberi aç ↗</a></div>
-    </article>`;
+    const card = (n, extra) => {
+      const media = storyMedia(n);
+      const visual = media
+        ? `<img src="${esc(media)}" alt="${esc(n.title || 'BTMEDYA haber görseli')}" loading="lazy" decoding="async">`
+        : '<div class="story-card-media-fallback" role="img" aria-label="Bu haber için doğrulanmış kapak görseli bulunmuyor"><span>BTMEDYA / HİKÂYE</span><b>GÖRSEL KAYDI BEKLENİYOR</b></div>';
+      return `<article class="story-card ${extra}"${extra === 'story-card-side' ? ' aria-hidden="true" inert' : ''}>
+        ${visual}
+        <div class="story-card-copy"><small>${esc(n.category || 'HABER')} · ${esc(dateText(n))}</small><h3>${esc(n.title || '')}</h3><p>${esc(String(n.excerpt || '').replace(/\s+/g, ' ').slice(0, 150))}</p><a href="/haberler/${encodeURIComponent(n.slug)}">Haberi aç ↗</a></div>
+      </article>`;
+    };
     root.innerHTML = card(main, 'story-card-main') + (side ? card(side, 'story-card-side') : '');
   };
   const updateBreakingBand = (items) => {
