@@ -37,7 +37,7 @@ const VARSAYILAN = Object.freeze({
 /* Sitenin 8 kategorisi (public/home.js BTMEDYA_RELEVANCE ile aynı sıra).
    "kategori" haberin D1'deki category alanına yazılan değerdir. */
 export const KATEGORILER = [
-  { anahtar: 'balikesir', kategori: 'Yerel', kaynaklar: ['balikesir-bel', 'balikesir-valilik', 'cumha-balikesir'] },
+  { anahtar: 'balikesir', kategori: 'Yerel', kaynaklar: ['balikesir-bel', 'balikesir-valilik', 'btt', 'cumha-balikesir'] },
   { anahtar: 'gundem', kategori: 'Gündem', kaynaklar: ['trt-gundem', 'trt-turkiye', 'balikesir-valilik'] },
   { anahtar: 'ekonomi', kategori: 'Ekonomi', kaynaklar: ['trt-ekonomi', 'balikesir-bel'] },
   // TRT kültür-sanat akışı günde bir-iki haber veriyor; AA, Sabah ve belediye yedek.
@@ -70,7 +70,8 @@ const KAYNAK = {
   'sabah-saglik': { ad: 'Sabah', tur: 'rss', url: 'https://www.sabah.com.tr/rss/saglik.xml' },
   // Balıkesir yerel radar: kurumların resmi haber/duyuru sayfaları.
   'balikesir-valilik': { ad: 'Balıkesir Valiliği', tur: 'html', url: 'https://www.balikesir.gov.tr/haberler', base: 'https://www.balikesir.gov.tr' },
-  'baun': { ad: 'Balıkesir Üniversitesi', tur: 'html', url: 'https://balikesir.edu.tr/', base: 'https://balikesir.edu.tr' }
+  'baun': { ad: 'Balıkesir Üniversitesi', tur: 'html', url: 'https://balikesir.edu.tr/', base: 'https://balikesir.edu.tr' },
+  'btt': { ad: 'Balıkesir Toplu Taşıma AŞ', tur: 'html', url: 'https://baltus.balikesir.bel.tr/', base: 'https://baltus.balikesir.bel.tr' }
 };
 
 const UA = { 'user-agent': 'Mozilla/5.0 (compatible; BTMEDYA-SabahMasasi/1.0; +https://btmedya.com.tr)' };
