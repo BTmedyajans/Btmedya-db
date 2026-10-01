@@ -139,6 +139,7 @@ jobs:
           }
 
           check_http "home" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/" "200"
+          check_http "english" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/en/" "200"
           # #25'te düzeltilen menünün canlı deployda da erişilebilir olduğunu
           # iç sayfalar üzerinden kontrol et. Bu yolların 200 dönmesi, Worker
           # + Static Assets + custom domain zincirinin canlıda birlikte
