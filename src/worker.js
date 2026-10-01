@@ -982,9 +982,9 @@ async function socialApi(request, env, url, ctx){
     return json({ok:true,id,status,scheduled_at:scheduledAt});
   }
 
-  const byId=url.pathname.match(/^\/api\/admin\/social\/([^/]+)$/);
-  if(byId && url.pathname.endsWith('/retry') && request.method==='POST'){
-    const id=decodeURIComponent(byId[1].replace(/\/retry$/,''));
+  const retryMatch=url.pathname.match(/^\/api\/admin\/social\/([^/]+)\/retry$/);
+  if(retryMatch && request.method==='POST'){
+    const id=decodeURIComponent(retryMatch[1]);
     const row=await env.DB.prepare('SELECT id,title,platforms,media_key,status,scheduled_at FROM social_posts WHERE id=?').bind(id).first().catch(()=>null);
     if(!row) return json({ok:false,error:'Bulunamadı'},404);
     const teslim=await env.DB.prepare('SELECT durum,attempts,retryable,hata FROM metricool_gonderim WHERE post_id=?').bind(id).first().catch(()=>null);
