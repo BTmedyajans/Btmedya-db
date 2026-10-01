@@ -124,7 +124,7 @@ jobs:
             local host="$1"
             local ip="$2"
             local url="$3"
-            curl --resolve "$host:443:$ip" -sS --max-time 30 "$url"
+            curl --resolve "$host:443:$ip" -sS -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' --max-time 30 "$url"
           }
 
           check_http() {
@@ -196,7 +196,7 @@ jobs:
             home="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/)"
             missing=0
             for marker in "${live_markers[@]}"; do
-              if ! printf '%s\n' "$home" | grep -qF -- "$marker"; then
+              if [[ "$home" != *"$marker"* ]]; then
                 missing=1
                 echo "SMOKE home marker pending (attempt $attempt): $marker"
               else
