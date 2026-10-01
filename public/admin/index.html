@@ -1270,7 +1270,7 @@ async function loadNewsList(){
   try{trendData=await fetch('/data/editorial-trends.json',{cache:'no-store'}).then(r=>r.ok?r.json():null)}catch(e){}
   list.innerHTML='<div class="news-list">'+items.map(n=>{
     const m=calcNewsMetrics(n,intel,trendData), preview=newsPreviewUrl(n);
-    const metric=(label,val)=>'<div class="news-metric '+newsMetricClass(val)+'"><b>'+val+(label==='Önizleme'?'':'/100')+'</b><small>'+label+'</small></div>';
+    const metric=(label,val)=>'<div class="news-metric '+(label==='Önizleme'?(val==='HAZIR'?'good':'bad'):newsMetricClass(val))+'"><b>'+val+(label==='Önizleme'?'':'/100')+'</b><small>'+label+'</small></div>';
     return '<div class="news-row">'+
       (n.cover_url?'<img class="news-thumb" src="'+escStr(n.cover_url)+'" alt="" onerror="this.style.display=none">':'<div class="news-thumb-ph">BT</div>')+
       '<div class="news-row-info"><b>'+escStr(n.title)+'</b><small>'+escStr(n.category||'—')+' · '+escStr(n.author||'—')+' · <span class="pill '+(n.status==='published'?'pub':'')+'">'+(n.status==='published'?'Yayında':'Taslak')+'</span> · '+fmtDateShort(n.published_at)+'</small>'+
