@@ -94,6 +94,24 @@
       box.innerHTML='<div><b>'+esc(x.mode||'Public radar')+'</b> · '+esc((x.connectedNetworks||[]).length)+' bağlı ağ · '+esc((x.publicNetworks||[]).length)+' public ağ</div><div class="mut" style="margin-top:6px">Rakipler: '+esc((x.competitors||[]).join(' · ')||'tanımlanmadı')+'</div><div class="mut" style="margin-top:5px">Takip: '+esc((x.trackedQueries||[]).join(' · ')||'tanımlanmadı')+'</div><div class="radar-ok" style="margin-top:8px">'+esc((x.recommendations||[]).join(' · '))+'</div>';
     }catch(e){box.textContent=e.message}
   }
+  async function generateAI(){
+    if(!selectedId)return;
+    const brief=prompt('İçerik briefi / hedefi yaz:');
+    if(!brief)return;
+    const type=$('#cType')?.value||'social';
+    const platform=type==='youtube'?'youtube':type==='reel'?'instagram':type==='ads'?'facebook':'instagram';
+    const d=await api('/api/client-hub/workspace/'+selectedId+'/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({brief,content_type:type,platform})});
+    if(d?.id && window.loadContents)await window.loadContents();
+    alert('AI içerik taslağı oluşturuldu. Müşteri onayı gelmeden dış yayına gönderilmez.');
+  }
+  function injectAiButton(){
+    const bar=$('#cType')?.parentElement;
+    if(!bar || $('#clientAiGenerate'))return;
+    const b=document.createElement('button');b.id='clientAiGenerate';b.className='btn primary';b.type='button';b.textContent='✦ AI ile üret';
+    b.addEventListener('click',()=>generateAI().catch(e=>alert(e.message)));
+    bar.parentElement?.insertBefore(b,bar.parentElement.querySelector('#contents'));
+  }
+
   function injectContentTypes(){
     const select=$('#cType');if(!select)return;
     [['wedding','Düğün klip'],['black-room','Siyah Oda / podcast'],['documentary','Belgesel'],['short-film','Kısa film'],['promo','Tanıtım çekimi']].forEach(([v,t])=>{
