@@ -183,6 +183,24 @@ button,a{touch-action:manipulation}
    yatay bir içerik rayına dönüşür. Böylece ikinci kart ekranın dışına taşmaz
    ve dokunma alanları üst üste binmez. */
 @media(max-width:720px){
+  .news-card,.portfoy-kart,.archive-live-card{border-radius:18px!important;overflow:hidden!important}
+  .news-card .news-body,.portfoy-metin,.archive-live-card .archive-copy{padding:15px!important}
+  .news-card .news-body h3{font-size:clamp(20px,6.2vw,28px)!important;line-height:1.08!important}
+  .news-card .news-body p{font-size:13px!important;line-height:1.55!important}
+  .news-card .news-open,.story-card-copy a,.portfoy-metin a,.archive-actions a{min-height:44px;display:inline-flex;align-items:center}
+  .news-filter,.mobile-category-rail{display:flex!important;gap:8px!important;overflow-x:auto!important;scrollbar-width:none;padding-bottom:4px}
+  .news-filter::-webkit-scrollbar,.mobile-category-rail::-webkit-scrollbar{display:none}
+  .news-filter .filter,.mobile-category-rail a{flex:0 0 auto;min-height:42px!important;padding:10px 13px!important;border-radius:999px!important}
+  .mobile-category-rail a{display:flex;align-items:center;border:1px solid rgba(255,255,255,.12);color:#d6dbe0;text-decoration:none;font-size:11px;letter-spacing:.08em}
+  .portfoy-kart{min-height:0!important;height:auto!important}
+  .portfoy-oynat{display:block;width:100%;padding:0!important;border:0!important;background:transparent}
+  .portfoy-kapak{display:block;width:100%!important;aspect-ratio:16/9!important;height:auto!important;min-height:0!important;object-fit:cover!important}
+  .archive-live-card{min-height:0!important;height:auto!important}
+  .archive-live-card .archive-media{min-height:0!important;aspect-ratio:16/10!important;height:auto!important}
+  .archive-live-card video{width:100%;height:100%;object-fit:cover}
+  .archive-actions{display:flex;gap:8px;flex-wrap:wrap}
+}
+@media(max-width:720px){
   .story-lab{min-height:auto!important}
   .story-stage{
     height:auto!important;
