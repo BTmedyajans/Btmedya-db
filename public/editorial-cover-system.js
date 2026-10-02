@@ -45,11 +45,12 @@
 
   function categoryText(card){
     const candidates=[
-      card.querySelector('.news-kaynak')?.textContent,
-      card.querySelector('.news-source-badge')?.textContent,
       card.querySelector('.news-body>small')?.textContent,
       card.querySelector('.story-card-copy>small')?.textContent,
-      card.querySelector('.editorial-special-copy>small')?.textContent
+      card.querySelector('.editorial-special-copy>small')?.textContent,
+      card.querySelector('.latest-metin>small:not(.story-format)')?.textContent,
+      card.querySelector('.news-source-badge')?.textContent,
+      card.querySelector('.news-kaynak')?.textContent
     ].filter(Boolean);
     const raw=String(candidates.find(Boolean)||'HABER').replace(/\s+/g,' ').trim();
     return raw.split(/[·|/]/)[0].trim() || 'HABER';
