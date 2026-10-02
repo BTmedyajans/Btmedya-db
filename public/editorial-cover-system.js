@@ -96,10 +96,10 @@
     const ui=document.createElement('div');
     ui.className='bt-cover-ui';
     ui.setAttribute('aria-hidden','true');
-    ui.innerHTML=
-      '<span class="bt-cover-kicker">'+esc(kicker||'HABER')+'</span>'+\
-      '<span class="bt-cover-headline">'+headlineHtml(title)+'</span>'+\
-      '<span class="bt-cover-meta">'+esc(meta)+'</span>';
+    ui.innerHTML =
+      '<span class="bt-cover-kicker">' + esc(kicker || 'HABER') + '</span>' +
+      '<span class="bt-cover-headline">' + headlineHtml(title) + '</span>' +
+      '<span class="bt-cover-meta">' + esc(meta) + '</span>';
     node.appendChild(ui);
   }
 
