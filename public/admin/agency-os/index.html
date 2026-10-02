@@ -5,11 +5,14 @@
 <meta name="robots" content="noindex,nofollow">
 <title>BTMEDYA • Ajans Süpervizör</title>
 <link rel="stylesheet" href="./agency-os.css">
+<link rel="stylesheet" href="./agency-social-v1.css?v=20261002-1">
 </head>
 <body>
 <header class="top">
   <div class="brand">BT<span>MEDYA</span> / AGENCY OS</div>
   <nav class="nav">
+    <a href="/">Site</a>
+    <a href="/social-studio/">Social Studio</a>
     <a href="/admin/autopilot/">Haber Merkezi</a>
     <a href="/admin/client-hub/">Müşteri Merkezi</a>
     <a href="/admin/editor/">AI Editör</a>
@@ -20,14 +23,28 @@
   <section class="hero">
     <div>
       <div class="eyebrow">SÜPER VİZÖR · İÇERİK · PAZARLAMA · OTOMASYON</div>
-      <h1>BTMEDYA'yı sürekli çalışan bir ajans merkezine çevir.</h1>
-      <p>Bu panel BTMEDYA'nın kendi yayınlarını ve müşterilerin içerik akışını aynı operasyon ekranında izler. Yeni içerik üretmezken bile kuyrukları, müşteri onaylarını, satış takiplerini, sosyal yayınları ve referans fırsatlarını tarar.</p>
+      <h1>BTMEDYA'yı tek ekrandan yönet.</h1>
+      <p>Haber, medya arşivi, müşteri işleri, sosyal yayın ve AI üretimini ayrı kutulara dağıtmak yerine önce durumunu gör, sonra tek aksiyona geç.</p>
     </div>
     <div class="hero-actions">
       <button id="run" class="btn primary">Şimdi denetle</button>
       <button id="refresh" class="btn">Yenile</button>
     </div>
     <div id="heartbeat" class="status">Sistem bağlantısı hazırlanıyor…</div>
+  </section>
+
+  <section class="quick-actions" aria-label="Hızlı işlemler">
+    <a class="quick-action" href="/admin/editor/"><small>01 · HABER</small><b>AI Editör ↗</b></a>
+    <a class="quick-action" href="/admin/autopilot/"><small>02 · AKIŞ</small><b>Haber Merkezi ↗</b></a>
+    <a class="quick-action" href="/social-studio/"><small>03 · SOSYAL</small><b>Social Studio ↗</b></a>
+    <a class="quick-action" href="/admin/client-hub/"><small>04 · MÜŞTERİ</small><b>Müşteri Merkezi ↗</b></a>
+    <a class="quick-action" href="/admin/app.html"><small>05 · MEDYA</small><b>Media Vault ↗</b></a>
+    <a class="quick-action" href="/"><small>06 · ÖNİZLEME</small><b>Canlı Site ↗</b></a>
+  </section>
+
+  <section class="panel social-command" aria-labelledby="socialCommandTitle">
+    <div class="panel-head"><div><div class="eyebrow">01 · SOSYAL BAĞLANTI</div><h2 id="socialCommandTitle">Instagram · Facebook · YouTube · TikTok</h2></div><span class="pill">METRICOOL</span></div>
+    <div id="socialCommand"><div class="stack"><div class="rec"><b>Bağlantı durumu okunuyor…</b></div></div></div>
   </section>
 
   <section class="metrics" id="metrics">
@@ -41,24 +58,24 @@
 
   <section class="grid">
     <div class="panel">
-      <div class="panel-head"><div><div class="eyebrow">01 · ALARMLAR</div><h2>Bugün neye bakmalıyız?</h2></div><span id="alertCount" class="pill">0</span></div>
+      <div class="panel-head"><div><div class="eyebrow">02 · ALARMLAR</div><h2>Bugün neye bakmalıyız?</h2></div><span id="alertCount" class="pill">0</span></div>
       <div id="alerts" class="stack"></div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><div><div class="eyebrow">02 · AKSİYON</div><h2>Süpervizör notları</h2></div></div>
+      <div class="panel-head"><div><div class="eyebrow">03 · AKSİYON</div><h2>Süpervizör notları</h2></div></div>
       <div id="recommendations" class="stack"></div>
     </div>
   </section>
 
   <section class="panel">
-    <div class="panel-head"><div><div class="eyebrow">03 · MÜŞTERİ AĞI</div><h2>İçerik ritmi ve çalışma alanları</h2></div><input id="search" class="search" placeholder="Firma ara…"></div>
+    <div class="panel-head"><div><div class="eyebrow">04 · MÜŞTERİ AĞI</div><h2>İçerik ritmi ve çalışma alanları</h2></div><input id="search" class="search" placeholder="Firma ara…"></div>
     <div id="clients" class="clients"></div>
   </section>
 
   <section class="grid">
     <div class="panel">
-      <div class="eyebrow">04 · MALİYET FRENİ</div>
+      <div class="eyebrow">05 · MALİYET FRENİ</div>
       <h2>Üretimi değil, ihtiyacı otomatikleştir</h2>
       <div class="rule"><b>Ücretsiz/az maliyetli çekirdek</b><span>D1 + R2 + KV + Cron</span></div>
       <div class="rule"><b>AI çağrısı</b><span>Yalnız içerik üretimi ve medya gerektiğinde</span></div>
@@ -67,15 +84,16 @@
     </div>
 
     <div class="panel">
-      <div class="eyebrow">05 · OPERASYON HARİTASI</div>
+      <div class="eyebrow">06 · OPERASYON HARİTASI</div>
       <h2>Tek döngü</h2>
       <div class="flow"><span>Radar</span><i>→</i><span>Plan</span><i>→</i><span>Üret</span><i>→</i><span>Önizle</span><i>→</i><span>Onay</span><i>→</i><span>Yayın</span><i>→</i><span>Ölç</span></div>
-      <p class="mut">Her adım tek panelden izlenir. Denetim motoru eksik olan halkayı alarm olarak çıkarır.</p>
+      <p class="mut">Eksik olan halka alarm olarak çıkar. Her içerik önce önizlenir, sonra yayınlanır.</p>
     </div>
   </section>
 
   <footer class="foot">BTMEDYA Agency Supervisor · otomatik denetim periyodu: 15 dakika · panel güncellemesi: 60 saniye</footer>
 </main>
 <script src="./agency-os.js" defer></script>
+<script src="./agency-social-v1.js?v=20261002-1" defer></script>
 </body>
 </html>
