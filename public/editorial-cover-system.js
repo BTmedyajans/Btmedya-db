@@ -12,29 +12,24 @@
     .replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c')
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
-  const esc = s => String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+  const esc = s => String(s??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
 
-  const cleanToken = s => norm(String(s||'').replace(/^[^0-9a-zA-ZçğıöşüÇĞİÖŞÜ]+|[^0-9a-zA-ZçğıöşüÇĞİÖŞÜ]+$/g,''));
-
+  function cleanToken(s){ return norm(String(s||'').replace(/^[^0-9a-zA-ZçğıöşüÇĞİÖŞÜ]+|[^0-9a-zA-ZçğıöşüÇĞİÖŞÜ]+$/g,'')); }
   function highlightToken(title){
-    const raw=String(title||'').trim();
-    const tokens=raw.split(/(\s+)/);
-    const scored=[];
+    const raw=String(title||'').trim(), tokens=raw.split(/(\s+)/), scored=[];
     tokens.forEach((t,i)=>{
       if(/^\s+$/.test(t))return;
-      const clean=cleanToken(t);
-      if(!clean || clean.length<4 || STOP.has(clean)) return;
+      const clean=cleanToken(t); if(!clean || clean.length<4 || STOP.has(clean)) return;
       let score=clean.length;
       if(/\d/.test(clean))score+=18;
       if(/[A-ZÇĞİÖŞÜ]{3,}/.test(t))score+=5;
-      if(/(iddia|şok|sok|yangin|yangın|kaza|zam|fiyat|satış|satis|rekor|başlıyor|basliyor|kriz|uyusturucu|uyuşturucu)/i.test(t))score+=10;
+      if(/(iddia|şok|sok|yangin|yangın|kaza|zam|fiyat|satış|satis|rekor|başlıyor|basliyor|kriz|uyuşturucu|uyusturucu)/i.test(t))score+=10;
       scored.push({i,t,score});
     });
     if(!scored.length)return null;
     scored.sort((a,b)=>b.score-a.score||b.t.length-a.t.length||a.i-b.i);
     return norm(scored[0].t);
   }
-
   function headlineHtml(title){
     const target=highlightToken(title);
     return String(title||'').split(/(\s+)/).map(part=>{
@@ -42,90 +37,68 @@
       return cleanToken(part)===target ? '<span class="bt-cover-highlight">'+esc(part)+'</span>' : esc(part);
     }).join('');
   }
-
   function categoryText(card){
-    const candidates=[
-      card.querySelector('.news-body>small')?.textContent,
-      card.querySelector('.story-card-copy>small')?.textContent,
-      card.querySelector('.editorial-special-copy>small')?.textContent,
-      card.querySelector('.latest-metin>small:not(.story-format)')?.textContent,
-      card.querySelector('.news-source-badge')?.textContent,
-      card.querySelector('.news-kaynak')?.textContent
-    ].filter(Boolean);
+    const candidates=[card.querySelector('.news-body>small')?.textContent,card.querySelector('.story-card-copy>small')?.textContent,card.querySelector('.editorial-special-copy>small')?.textContent,card.querySelector('.latest-metin>small:not(.story-format)')?.textContent,card.querySelector('.news-source-badge')?.textContent,card.querySelector('.news-kaynak')?.textContent].filter(Boolean);
     const raw=String(candidates.find(Boolean)||'HABER').replace(/\s+/g,' ').trim();
     return raw.split(/[·|/]/)[0].trim() || 'HABER';
   }
-
   function sourceText(card){
-    const n=card.querySelector('.news-kaynak')?.textContent?.trim();
-    if(n)return n;
-    const b=card.querySelector('.news-source-badge')?.textContent?.replace(/\s+/g,' ').trim();
-    if(b)return b;
+    const n=card.querySelector('.news-kaynak')?.textContent?.trim(); if(n)return n;
+    const b=card.querySelector('.news-source-badge')?.textContent?.replace(/\s+/g,' ').trim(); if(b)return b;
     return card.matches('.story-card,.editorial-special-card') ? 'BTMEDYA / SAHA' : 'BTMEDYA';
   }
-
   function findTarget(card){
-    if(card.matches('.news-media')) return {
-      node:card,
-      title:card.parentElement?.querySelector('.news-body h2,.news-body h3')?.textContent?.trim(),
-      compact:!card.closest('.news-card.featured')
-    };
-    if(card.matches('.story-card')) return {
-      node:card,
-      title:card.querySelector('.story-card-copy h3')?.textContent?.trim(),
-      compact:false
-    };
-    if(card.matches('.editorial-special-card')) return {
-      node:card,
-      title:card.querySelector('.editorial-special-copy h3')?.textContent?.trim(),
-      compact:false
-    };
-    if(card.matches('.latest-kapak')) return {
-      node:card,
-      title:card.parentElement?.querySelector('.latest-metin h3')?.textContent?.trim(),
-      compact:true
-    };
+    if(card.matches('.news-media')) return {node:card,title:card.parentElement?.querySelector('.news-body h2,.news-body h3')?.textContent?.trim(),compact:!card.closest('.news-card.featured')};
+    if(card.matches('.story-card')) return {node:card,title:card.querySelector('.story-card-copy h3')?.textContent?.trim(),compact:false};
+    if(card.matches('.editorial-special-card')) return {node:card,title:card.querySelector('.editorial-special-copy h3')?.textContent?.trim(),compact:false};
+    if(card.matches('.latest-kapak')) return {node:card,title:card.parentElement?.querySelector('.latest-metin h3')?.textContent?.trim(),compact:true};
     return null;
   }
-
   function decorate(node,title,compact){
     if(!node || !title || node.querySelector(':scope>.bt-cover-ui'))return;
     node.classList.add('bt-cover-enhanced');
     const kicker=compact?categoryText(node.closest('.news-card,.latest-item,.story-card,.editorial-special-card')||node):categoryText(node);
     const meta=sourceText(node.closest('.news-card,.latest-item,.story-card,.editorial-special-card')||node);
-    const ui=document.createElement('div');
-    ui.className='bt-cover-ui';
-    ui.setAttribute('aria-hidden','true');
-    ui.innerHTML=
-      '<span class="bt-cover-kicker">'+esc(kicker||'HABER')+'</span>'+
-      '<span class="bt-cover-headline">'+headlineHtml(title)+'</span>'+
-      '<span class="bt-cover-meta">'+esc(meta)+'</span>';
+    const ui=document.createElement('div'); ui.className='bt-cover-ui'; ui.setAttribute('aria-hidden','true');
+    ui.innerHTML='<span class="bt-cover-kicker">'+esc(kicker||'HABER')+'</span><span class="bt-cover-headline">'+headlineHtml(title)+'</span><span class="bt-cover-meta">'+esc(meta)+'</span>';
     node.appendChild(ui);
   }
+  function scan(root=document){ root.querySelectorAll('.news-media,.story-card,.editorial-special-card,.latest-kapak').forEach(el=>{const info=findTarget(el);if(info)decorate(info.node,info.title,info.compact);}); }
+  function fixMobileSaha(){ if(window.innerWidth>720)return; document.querySelectorAll('.story-card-side').forEach(card=>{card.removeAttribute('aria-hidden');card.removeAttribute('inert');}); }
 
-  function scan(root=document){
-    root.querySelectorAll('.news-media,.story-card,.editorial-special-card,.latest-kapak').forEach(el=>{
-      const info=findTarget(el);
-      if(info)decorate(info.node,info.title,info.compact);
-    });
-  }
-
-  function fixMobileSaha(){
-    if(window.innerWidth>720)return;
-    document.querySelectorAll('.story-card-side').forEach(card=>{
-      card.removeAttribute('aria-hidden');
-      card.removeAttribute('inert');
-    });
+  /* Homepage editorial content layer.
+     Amaç: sahte haber üretmeden, mevcut haber/portföy/hizmet yapısını daha
+     anlaşılır bir editoryal omurgaya dönüştürmek. Gerçek haberler mevcut
+     API'den okunur; aşağıdaki metinler evergreen servis ve çalışma alanlarıdır. */
+  function injectEditorialContent(){
+    if(document.getElementById('bt-editorial-layer')) return;
+    const hero=document.querySelector('.hero,.cinematic-hero');
+    const main=document.querySelector('main');
+    if(!main) return;
+    const section=document.createElement('section');
+    section.id='bt-editorial-layer';
+    section.className='bt-editorial-layer';
+    section.setAttribute('aria-labelledby','bt-editorial-title');
+    section.innerHTML=`
+      <div class="bt-editorial-head">
+        <div><p class="bt-editorial-kicker">BTMEDYA / EDITORIAL DESK</p><h2 id="bt-editorial-title">SAHADAN<br><span>YAYINA.</span></h2></div>
+        <p>Gerçek çekim, doğrulanabilir kaynak ve güçlü anlatı. Haber ile marka içeriğini ayırıyor; AI üretimlerini açıkça AI LAB olarak işaretliyoruz.</p>
+      </div>
+      <div class="bt-editorial-grid">
+        <a class="bt-editorial-card bt-editorial-news" href="/haberler/"><small>01 / HABER</small><strong>Bugünün sahasını keşfet</strong><span>Balıkesir ve çevresinden kaynaklı haber, röportaj ve özel dosyalar.</span><b>Haber akışına git ↗</b></a>
+        <a class="bt-editorial-card" href="/kaynak-masasi/"><small>02 / KAYNAK</small><strong>Kaynağı gör, hikâyeyi anla</strong><span>Resmî kaynaklar, açık veri ve saha notlarıyla içerik zincirini takip et.</span><b>Kaynak Masası ↗</b></a>
+        <a class="bt-editorial-card" href="/video-produksiyon/"><small>03 / STUDIO</small><strong>Fikirden çekime, çekimden yayına</strong><span>Düğün klibi, tanıtım, röportaj, belgesel, kısa film, reklam ve sosyal içerik.</span><b>Studio'yu keşfet ↗</b></a>
+        <a class="bt-editorial-card" href="/sosyal-medya/"><small>04 / SOCIAL</small><strong>İçerik sadece üretilmez, dağıtılır</strong><span>Platforma uygun kısa video, kapak, metin ve yayın akışıyla markanın görünürlüğünü büyüt.</span><b>Sosyal medya ↗</b></a>
+        <a class="bt-editorial-card" href="/ai-lab/"><small>05 / AI LAB</small><strong>Yapay zekâ, etiketiyle.</strong><span>AI destekli görsel, video, web ve otomasyon deneyleri ana editoryal akıştan ayrı tutulur.</span><b>AI LAB ↗</b></a>
+        <a class="bt-editorial-card" href="/vaka-calismalari/"><small>06 / VAKA</small><strong>İşin sonucunu göster</strong><span>Marka hikâyeleri, prodüksiyon süreçleri ve yayın sonrası çıktılar tek yerde.</span><b>Vaka çalışmalarını gör ↗</b></a>
+      </div>
+      <div class="bt-editorial-strip"><span>EDITORYAL KURAL</span><strong>GERÇEK SAHA ÖNCE · KAYNAK AÇIK · AI ETİKETLİ · SPONSORLU İÇERİK AYRI</strong><a href="/kaynak-masasi/">Nasıl çalışıyoruz? ↗</a></div>`;
+    if(hero && hero.parentNode===main) hero.insertAdjacentElement('afterend',section); else main.insertBefore(section,main.firstElementChild?.nextElementSibling||main.firstChild);
   }
 
   function init(){
-    scan();
-    fixMobileSaha();
-    const mo=new MutationObserver(muts=>{
-      let changed=false;
-      muts.forEach(m=>{ if(m.addedNodes?.length)changed=true; });
-      if(changed){scan();fixMobileSaha();}
-    });
+    scan(); fixMobileSaha(); injectEditorialContent();
+    const mo=new MutationObserver(muts=>{let changed=false;muts.forEach(m=>{if(m.addedNodes?.length)changed=true;});if(changed){scan();fixMobileSaha();}});
     mo.observe(document.body,{childList:true,subtree:true});
     window.addEventListener('resize',fixMobileSaha,{passive:true});
   }
