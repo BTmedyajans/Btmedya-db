@@ -120,6 +120,10 @@ jobs:
           test -s public/admin/autopilot/index.html
           test -s public/admin/editor/index.html
           test -s public/admin/agency-os/index.html
+          test -s public/admin/yayin/index.html
+          test -s public/admin/yayin/yayin.css
+          test -s public/admin/yayin/yayin.js
+          node --check public/admin/yayin/yayin.js
           test -s public/admin/agency-os/agency-os.css
           test -s public/admin/agency-os/agency-os.js
           test -s public/admin/client-hub/index.html
@@ -220,6 +224,8 @@ jobs:
           check_http "hakkimizda" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/hakkimizda/" "200"
           check_http "iletisim" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/iletisim/" "200"
           check_http "agency-os" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/agency-os/" "200"
+          check_http "publishing-center" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/yayin/" "200"
+          check_http "social-studio-canonical" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/social-studio/" "200"
           check_http "client-hub" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/client-hub/" "200"
           check_http "legacy-client-hub" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/musteri-merkezi/" "200"
           check_http "client-review" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/client/review/" "200"
