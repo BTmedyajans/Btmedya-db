@@ -22,7 +22,7 @@ https://btmedya.com.tr
 ### Kaynak ve dağıtım
 
 - GitHub repository: `BTmedyajans/Btmedya-db`
-- `wrangler.toml`: Worker `btmedya-db`, D1 `btmedya-media`, R2 `btmedya-media` ve `btmedya-r2` tanımlı.
+- `wrangler.toml`: Worker `btmedya-db`, D1 `btmedya-media`, R2 `btmedya-media` üretim deposu olarak tanımlı; eski `btmedya-r2` artık kaldırıldı.
 - Cloudflare Workers Builds, 28 Eylül'de `btmedya-db` için başarılı bir production build/deploy gerçekleştirdi. Bilinen başarılı build: `7ac9dcd2-49b0-4fa8-a1bd-f14ca914ca40`.
 - GitHub Actions içindeki ayrı Wrangler deploy workflow'u Cloudflare Worker servisine erişim yetkisi olmadığı için başarısız oluyordu. Bu workflow artık production deploy yapmıyor; yalnızca manuel HTTP doğrulama amacıyla tutuluyor.
 - Böylece iki ayrı deploy motorunun aynı production Worker üzerinde yarışması engellendi. Kanonik deploy motoru Workers Builds'tir.
