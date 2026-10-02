@@ -326,6 +326,11 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     };
     root.innerHTML = card(main, 'story-card-main') + (side ? card(side, 'story-card-side') : '');
   };
+  /* Homepage media safety: video hatası kartı/görseli bozmasın; poster görünür kalsın. */
+  document.querySelectorAll('.cinematic-video video').forEach(v=>{
+    v.addEventListener('error',()=>v.closest('.cinematic-video')?.classList.add('video-load-failed'),{once:true});
+  });
+
   const updateBreakingBand = (items) => {
     const link = d.querySelector('.bt-breaking a');
     if (!link) return;
@@ -887,7 +892,16 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     // hero-scrub 1280x720 ve 8,7 MB; ayni cekimin dikey kesimi 0,9 MB.
     if(mobile() && /\/hero-story\.mp4$/.test(src||'')) src='/assets/media/web/hero-story-mobile.mp4';
     if(!src) return;
-    el.dataset.loaded='1'; el.src=src; el.load();
+    el.dataset.loaded='1';
+    el.addEventListener('error',()=>{
+      el.dataset.loaded='';
+      el.removeAttribute('src');
+      el.load();
+      const poster=el.getAttribute('poster');
+      if(poster) el.closest('.cinematic-video')?.classList.add('video-load-failed');
+    },{once:true});
+    el.addEventListener('loadeddata',()=>el.closest('.cinematic-video')?.classList.remove('video-load-failed'),{once:true});
+    el.src=src; el.load();
   }
   function setScene(i,p){
     const scene=scenes[i];
