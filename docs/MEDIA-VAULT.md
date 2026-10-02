@@ -8,7 +8,7 @@ GitHub `BTmedyajans/Btmedya-db` → Cloudflare Workers Builds → Cloudflare Wor
 
 Medya: Cloudflare R2 `btmedya-media`  
 Veri: Cloudflare D1 `btmedya-media`  
-Eski arşiv: R2 `btmedya-r2` yalnızca fallback/okuma
+Eski arşiv: Eski eski R2 `btmedya-r2` (artık kaldırıldı) üretim zincirinden çıkarıldı; aktif medya deposu yalnızca `btmedya-media`
 
 ## Media Vault iş akışı
 
