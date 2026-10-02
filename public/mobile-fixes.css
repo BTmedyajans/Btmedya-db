@@ -176,3 +176,67 @@ button,a{touch-action:manipulation}
 @media (min-width:721px){
   .mobile-quick-nav{display:none!important}
 }
+
+
+/* BTMEDYA SAHADAN / MOBILE FIX V2
+   Masaüstü kart düzeni dekoratif ve sabit kalır; küçük ekranda aynı haberler
+   yatay bir içerik rayına dönüşür. Böylece ikinci kart ekranın dışına taşmaz
+   ve dokunma alanları üst üste binmez. */
+@media(max-width:720px){
+  .story-lab{min-height:auto!important}
+  .story-stage{
+    height:auto!important;
+    min-height:0!important;
+    position:relative!important;
+    top:auto!important;
+    display:block!important;
+    padding-top:72px!important;
+    padding-bottom:34px!important;
+  }
+  .story-copy{max-width:none;margin-bottom:24px}
+  .story-cards{
+    height:auto!important;
+    min-height:0!important;
+    display:flex!important;
+    gap:12px;
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+    padding:2px 3vw 16px;
+    margin:0 -3vw;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .story-cards::-webkit-scrollbar{display:none}
+  .story-card,
+  .story-card.story-card-main,
+  .story-card.story-card-side{
+    position:relative!important;
+    inset:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    flex:0 0 88vw;
+    width:88vw!important;
+    max-width:88vw;
+    margin:0!important;
+    opacity:1!important;
+    transform:none!important;
+    rotate:none!important;
+    scroll-snap-align:start;
+    box-shadow:0 20px 60px rgba(0,0,0,.38);
+  }
+  .story-card img,
+  .story-card .story-card-media-fallback{
+    height:56vw!important;
+    min-height:210px;
+    max-height:320px;
+    width:100%;
+    object-fit:cover;
+  }
+  .story-card-copy{padding:14px 15px 17px}
+  .story-card-copy h3{font-size:clamp(21px,6vw,29px)!important;line-height:1!important}
+  .story-card-copy p{font-size:12px;line-height:1.55}
+  .story-scroll{position:static!important;margin:4px 0 0;color:#7d8893}
+  .story-progress{position:static!important;width:100%;margin-top:12px}
+}
