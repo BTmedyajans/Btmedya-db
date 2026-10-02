@@ -849,7 +849,12 @@ async function controlCenterApi(request, env, url){
     metricool,
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db',surum:surumBilgisi(env)},
     storage:{d1:!!env.DB,r2:!!env.MEDIA},
-    admin:{configured:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mediaSigning:!!env.MEDIA_SIGNING_SECRET},
+    admin:{configured:!!(env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD) && !!(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET),mediaSigning:!!env.MEDIA_SIGNING_SECRET},
+    readiness:{
+      ai:{openai:!!env.OPENAI_API_KEY},
+      metricool:{userToken:!!env.METRICOOL_USER_TOKEN,userId:!!env.METRICOOL_USER_ID,brandId:!!env.METRICOOL_BRAND_ID},
+      note:'Secret değerleri hiçbir zaman API yanıtında gösterilmez; yalnızca yapılandırma varlığı raporlanır.'
+    },
     automation,
     social:socialProviderStatus(env),
     socialLinks:[
