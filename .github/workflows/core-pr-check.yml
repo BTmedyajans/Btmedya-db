@@ -1,0 +1,35 @@
+name: BTMEDYA Core PR Check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/admin/agency-os/**"
+      - "wrangler.toml"
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Node syntax
+        run: |
+          set -euo pipefail
+          node --check src/worker.js
+          node --check src/btmedya-core.js
+          node --check src/metricool-scheduler.js
+          node --check src/sosyal-otomasyon.js
+          node --check public/admin/agency-os/agency-os.js
+      - name: Core wiring
+        run: |
+          grep -q 'btmedya-core' src/worker.js
+          grep -q '/api/admin/core' src/btmedya-core.js
+          grep -q '/api/admin/core' public/admin/agency-os/agency-os.js
