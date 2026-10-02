@@ -16,6 +16,7 @@ const session=async(request,secret)=>{
 };
 const clean=(v,n=500)=>String(v??'').trim().slice(0,n);
 const jsonArray=v=>{try{const x=JSON.parse(String(v||'[]'));return Array.isArray(x)?x:[]}catch{return[]}};
+const jsonObj=v=>{try{const x=JSON.parse(String(v||'{}'));return x&&typeof x==='object'&&!Array.isArray(x)?x:{};}catch{return{}}};
 
 const base64url=v=>btoa(String.fromCharCode(...new Uint8Array(v))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 async function sha256Hex(value){
