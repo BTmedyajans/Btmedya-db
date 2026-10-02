@@ -46,6 +46,10 @@ jobs:
           test -s public/sitemap.xml
           test -s package.json
           node --check src/worker.js
+          node --check src/sales-router.js
+          node --check public/editorial-cover-system.js
+          node --check public/admin/agency-os/agency-hamburger-v3.js
+          node --check public/admin/client-hub/client-hub-v3.js
           grep -q 'related-news' src/news-page.js
           grep -q 'ilgiliHaberler' src/worker.js
           node --check src/metricool-scheduler.js
@@ -123,6 +127,7 @@ jobs:
           test -s public/client/review/index.html
           test -s public/client/review/review.js
           test -s public/referanslar/referanslar.js
+          test -s migrations/0012_client_social_radar.sql
           test -s migrations/0013_client_review.sql
           test -s migrations/0014_agency_supervisor.sql
           grep -q 'reviewAdmin' src/sales-router.js
