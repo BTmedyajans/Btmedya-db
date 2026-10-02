@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BTMEDYA Yayın Merkezi</title><meta name="theme-color" content="#0b0d10">
+<link rel="stylesheet" href="/admin/yayin/yayin.css"></head>
+<body>
+<div class="shell">
+<header class="top"><a href="/admin/" class="brand">BTMEDYA <span>YAYIN MERKEZİ</span></a><div class="top-actions"><a href="/" target="_blank">Site ↗</a><button id="refresh">Yenile</button></div></header>
+<nav class="tabs">
+<button class="tab active" data-view="overview">Genel Bakış</button>
+<button class="tab" data-view="compose">İçerik Oluştur</button>
+<button class="tab" data-view="calendar">Yayın Takvimi</button>
+<button class="tab" data-view="accounts">Hesaplar</button>
+<button class="tab" data-view="settings">Otomasyon</button>
+</nav>
+<main>
+<section id="overview" class="view active">
+<div class="hero"><div><p class="eyebrow">TEK ELDEDEN YAYIN</p><h1>İçerik → Takvim → Yayın → Durum</h1><p>BTMEDYA'nın mevcut sosyal yayın API'sini tek bir yönetim ekranında kullan. BTMEDYA ve kişisel hesaplar ayrı tutulur.</p></div><button class="primary" data-go="compose">+ Yeni yayın</button></div>
+<div id="cards" class="cards"></div><div class="grid2"><div class="panel"><div class="panel-head"><h2>Bağlantı matrisi</h2></div><div id="providers"></div></div><div class="panel"><div class="panel-head"><h2>Yaklaşan yayınlar</h2></div><div id="upcoming"></div></div></div>
+</section>
+<section id="compose" class="view">
+<div class="panel"><div class="panel-head"><div><p class="eyebrow">YAYIN BESTESİ</p><h2>Yeni içerik</h2></div><span id="composeState" class="pill">Taslak</span></div>
+<form id="postForm" class="form">
+<label>Başlık<input name="title" required maxlength="180" placeholder="İçerik başlığı"></label>
+<label>Metin<textarea name="body" rows="7" required placeholder="Platformlara uyarlanacak ana metin..."></textarea></label>
+<div class="row"><label>Format<select name="format"><option>9:16</option><option>4:5</option><option>1:1</option><option>16:9</option></select></label><label>Medya anahtarı<input name="media_key" placeholder="static/... veya medya anahtarı"></label></div>
+<label>Kaynak slug<input name="source_slug" placeholder="haber slug (opsiyonel)"></label>
+<div class="platforms"><b>Platformlar</b><label><input type="checkbox" name="platforms" value="instagram-post"> Instagram</label><label><input type="checkbox" name="platforms" value="facebook-post"> Facebook</label><label><input type="checkbox" name="platforms" value="tiktok"> TikTok</label><label><input type="checkbox" name="platforms" value="youtube"> YouTube</label></div>
+<div class="row"><label>Durum<select name="status"><option value="fikir">Taslak</option><option value="onayda">Onayda</option><option value="planlandi">Planla ve yayın zincirine gönder</option></select></label><label>Tarih/saat<input type="datetime-local" name="scheduled_at"></label></div>
+<div class="actions"><button type="submit" class="primary">Kaydet / planla</button><button type="button" id="clear" class="ghost">Temizle</button></div>
+<div id="formMsg" class="msg"></div></form></div>
+</section>
+<section id="calendar" class="view"><div class="panel"><div class="panel-head"><div><p class="eyebrow">KUYRUK</p><h2>Yayın kuyruğu</h2></div><select id="statusFilter"><option value="">Tümü</option><option value="planlandi">Planlandı</option><option value="onayda">Onayda</option><option value="fikir">Taslak</option><option value="yayinlandi">Yayınlandı</option></select></div><div id="queue" class="queue"></div></div></section>
+<section id="accounts" class="view"><div class="panel"><div class="panel-head"><div><p class="eyebrow">HESAPLAR</p><h2>BTMEDYA yayın bağlantıları</h2></div></div><div id="accountsGrid" class="account-grid"></div><div class="notice">Instagram ve Facebook burada ancak gerçek Metricool bağlantısı doğrulandığında yayınlanabilir görünür. Kişisel Buse Tuncay hesapları bu çalışma alanına otomatik olarak eklenmez.</div></div></section>
+<section id="settings" class="view"><div class="panel"><div class="panel-head"><div><p class="eyebrow">OTOMASYON</p><h2>Yayın motoru</h2></div></div><form id="settingsForm" class="form"><div class="switch"><label><input type="checkbox" id="auto" name="otomatikPlanla"> Yeni haberleri otomatik planla</label></div><label>Yayın saatleri<input id="hours" name="saatler" placeholder="10:00, 12:00, 18:00"></label><label>Tazelik sınırı (saat)<input id="fresh" type="number" min="1" max="720" name="tazelikSaat"></label><div id="networkChecks" class="platforms"></div><button class="primary">Ayarları kaydet</button><div id="settingsMsg" class="msg"></div></form></div></section>
+</main><div id="toast" class="toast"></div></div>
+<script src="/admin/yayin/yayin.js"></script></body></html>
