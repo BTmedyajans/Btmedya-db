@@ -16,11 +16,11 @@
   ux.src='/btmedya-experience-v1.js?v=20261002-2'; ux.defer=true;
   document.head.appendChild(ux);
 
-  // BTMEDYA CONTENT GROWTH V1: richer editorial/service content.
+  // BTMEDYA CONTENT GROWTH V3: richer editorial, audience paths and service content.
   const contentCss=document.createElement('link');
-  contentCss.rel='stylesheet'; contentCss.href='/content-growth-v1.css?v=20261002-1';
+  contentCss.rel='stylesheet'; contentCss.href='/content-growth-v1.css?v=20261002-3';
   document.head.appendChild(contentCss);
   const contentJs=document.createElement('script');
-  contentJs.src='/content-growth-v1.js?v=20261002-1'; contentJs.defer=true;
+  contentJs.src='/content-growth-v1.js?v=20261002-3'; contentJs.defer=true;
   document.head.appendChild(contentJs);
 })();
