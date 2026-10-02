@@ -35,6 +35,8 @@ async function ensureClientTables(env){
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS client_references (id TEXT PRIMARY KEY,client_id TEXT NOT NULL,title TEXT NOT NULL DEFAULT '',slug TEXT NOT NULL UNIQUE,summary TEXT NOT NULL DEFAULT '',cover_key TEXT NOT NULL DEFAULT '',content_ids_json TEXT NOT NULL DEFAULT '[]',visibility TEXT NOT NULL DEFAULT 'draft',featured INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL,updated_at TEXT NOT NULL,FOREIGN KEY(client_id) REFERENCES client_workspaces(id) ON DELETE CASCADE)`).run().catch(()=>{});
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS client_review_tokens (id TEXT PRIMARY KEY,content_id TEXT NOT NULL,token_hash TEXT NOT NULL UNIQUE,expires_at TEXT NOT NULL,used_at TEXT,created_at TEXT NOT NULL,FOREIGN KEY(content_id) REFERENCES client_content(id) ON DELETE CASCADE)`).run().catch(()=>{});
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS client_review_events (id TEXT PRIMARY KEY,content_id TEXT NOT NULL,decision TEXT NOT NULL,comment TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL,FOREIGN KEY(content_id) REFERENCES client_content(id) ON DELETE CASCADE)`).run().catch(()=>{});
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS client_social_accounts (id TEXT PRIMARY KEY,client_id TEXT NOT NULL,network TEXT NOT NULL,handle TEXT NOT NULL DEFAULT '',profile_url TEXT NOT NULL DEFAULT '',metricool_brand_id TEXT NOT NULL DEFAULT '',competitors_json TEXT NOT NULL DEFAULT '[]',tracked_queries_json TEXT NOT NULL DEFAULT '[]',active INTEGER NOT NULL DEFAULT 1,created_at TEXT NOT NULL,updated_at TEXT NOT NULL,UNIQUE(client_id,network,handle),FOREIGN KEY(client_id) REFERENCES client_workspaces(id) ON DELETE CASCADE)`).run().catch(()=>{});
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS client_strategies (client_id TEXT PRIMARY KEY,positioning TEXT NOT NULL DEFAULT '',content_pillars_json TEXT NOT NULL DEFAULT '[]',visual_rules_json TEXT NOT NULL DEFAULT '{}',publishing_rules_json TEXT NOT NULL DEFAULT '{}',ai_template_json TEXT NOT NULL DEFAULT '{}',analysis_json TEXT NOT NULL DEFAULT '{}',approval_required INTEGER NOT NULL DEFAULT 1,autopublish_enabled INTEGER NOT NULL DEFAULT 0,last_analysis_at TEXT,created_at TEXT NOT NULL,updated_at TEXT NOT NULL,FOREIGN KEY(client_id) REFERENCES client_workspaces(id) ON DELETE CASCADE)`).run().catch(()=>{});
 }
 
 async function clientHubApi(request,env,url){
@@ -81,6 +83,90 @@ async function clientHubApi(request,env,url){
     if(!fields.length)return j({ok:false,error:'Değişiklik yok'},400); fields.push('updated_at=?');vals.push(new Date().toISOString(),id);
     await env.DB.prepare('UPDATE client_workspaces SET '+fields.join(',')+' WHERE id=?').bind(...vals).run(); return j({ok:true,id});
   }
+  const wsSocial=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/social$/);
+  if(wsSocial){
+    const clientId=wsSocial[1];
+    const owner=await env.DB.prepare('SELECT id FROM client_workspaces WHERE id=?').bind(clientId).first();
+    if(!owner)return j({ok:false,error:'Müşteri çalışma alanı bulunamadı'},404);
+    if(request.method==='GET'){
+      const q=await env.DB.prepare('SELECT * FROM client_social_accounts WHERE client_id=? ORDER BY network,handle').bind(clientId).all();
+      return j({ok:true,items:(q.results||[]).map(x=>({...x,competitors:jsonArray(x.competitors_json),tracked_queries:jsonArray(x.tracked_queries_json)}))});
+    }
+    if(request.method==='POST'){
+      const b=await request.json().catch(()=>({}));
+      const network=clean(b.network,30).toLowerCase();
+      if(!['instagram','facebook','youtube','tiktok','linkedin'].includes(network))return j({ok:false,error:'Geçersiz sosyal ağ'},400);
+      const now=new Date().toISOString(),id=crypto.randomUUID(),handle=clean(b.handle,160);
+      await env.DB.prepare('INSERT INTO client_social_accounts(id,client_id,network,handle,profile_url,metricool_brand_id,competitors_json,tracked_queries_json,active,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
+        .bind(id,clientId,network,handle,clean(b.profile_url,500),clean(b.metricool_brand_id,80),JSON.stringify(Array.isArray(b.competitors)?b.competitors.slice(0,20):[]),JSON.stringify(Array.isArray(b.tracked_queries)?b.tracked_queries.slice(0,30):[]),b.active===false?0:1,now,now).run();
+      return j({ok:true,id},201);
+    }
+  }
+
+  const wsSocialOne=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/social\/([^/]+)$/);
+  if(wsSocialOne && (request.method==='PATCH'||request.method==='DELETE')){
+    const clientId=wsSocialOne[1],id=wsSocialOne[2];
+    if(request.method==='DELETE'){
+      await env.DB.prepare('DELETE FROM client_social_accounts WHERE id=? AND client_id=?').bind(id,clientId).run();
+      return j({ok:true,id});
+    }
+    const b=await request.json().catch(()=>({})),fields=[],vals=[];
+    const map={handle:160,profile_url:500,metricool_brand_id:80};
+    for(const[k,n]of Object.entries(map))if(k in b){fields.push(k+'=?');vals.push(clean(b[k],n));}
+    if(Array.isArray(b.competitors)){fields.push('competitors_json=?');vals.push(JSON.stringify(b.competitors.slice(0,20)));}
+    if(Array.isArray(b.tracked_queries)){fields.push('tracked_queries_json=?');vals.push(JSON.stringify(b.tracked_queries.slice(0,30)));}
+    if('active' in b){fields.push('active=?');vals.push(b.active?1:0);}
+    if(!fields.length)return j({ok:false,error:'Değişiklik yok'},400);
+    fields.push('updated_at=?');vals.push(new Date().toISOString(),id,clientId);
+    await env.DB.prepare('UPDATE client_social_accounts SET '+fields.join(',')+' WHERE id=? AND client_id=?').bind(...vals).run();
+    return j({ok:true,id});
+  }
+
+  const wsStrategy=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/strategy$/);
+  if(wsStrategy && (request.method==='GET'||request.method==='PUT')){
+    const clientId=wsStrategy[1];
+    const owner=await env.DB.prepare('SELECT id FROM client_workspaces WHERE id=?').bind(clientId).first();
+    if(!owner)return j({ok:false,error:'Müşteri çalışma alanı bulunamadı'},404);
+    if(request.method==='GET'){
+      const row=await env.DB.prepare('SELECT * FROM client_strategies WHERE client_id=?').bind(clientId).first();
+      if(!row)return j({ok:true,item:null});
+      return j({ok:true,item:{...row,content_pillars:jsonArray(row.content_pillars_json),visual_rules:jsonObj(row.visual_rules_json),publishing_rules:jsonObj(row.publishing_rules_json),ai_template:jsonObj(row.ai_template_json),analysis:jsonObj(row.analysis_json)}});
+    }
+    const b=await request.json().catch(()=>({})),now=new Date().toISOString();
+    await env.DB.prepare(`INSERT INTO client_strategies(client_id,positioning,content_pillars_json,visual_rules_json,publishing_rules_json,ai_template_json,analysis_json,approval_required,autopublish_enabled,last_analysis_at,created_at,updated_at)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?)
+      ON CONFLICT(client_id) DO UPDATE SET positioning=excluded.positioning,content_pillars_json=excluded.content_pillars_json,visual_rules_json=excluded.visual_rules_json,publishing_rules_json=excluded.publishing_rules_json,ai_template_json=excluded.ai_template_json,analysis_json=excluded.analysis_json,approval_required=excluded.approval_required,autopublish_enabled=excluded.autopublish_enabled,last_analysis_at=excluded.last_analysis_at,updated_at=excluded.updated_at`)
+      .bind(clientId,clean(b.positioning,1000),JSON.stringify(Array.isArray(b.content_pillars)?b.content_pillars.slice(0,12):[]),JSON.stringify(b.visual_rules&&typeof b.visual_rules==='object'?b.visual_rules:{}),JSON.stringify(b.publishing_rules&&typeof b.publishing_rules==='object'?b.publishing_rules:{}),JSON.stringify(b.ai_template&&typeof b.ai_template==='object'?b.ai_template:{}),JSON.stringify(b.analysis&&typeof b.analysis==='object'?b.analysis:{}),b.approval_required===false?0:1,b.autopublish_enabled?1:0,b.last_analysis_at||now,now,now).run();
+    return j({ok:true,client_id:clientId});
+  }
+
+  const wsRadar=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/radar$/);
+  if(wsRadar && request.method==='GET'){
+    const clientId=wsRadar[1];
+    const owner=await env.DB.prepare('SELECT id,name,sector,brand_voice FROM client_workspaces WHERE id=?').bind(clientId).first();
+    if(!owner)return j({ok:false,error:'Müşteri çalışma alanı bulunamadı'},404);
+    const accounts=(await env.DB.prepare('SELECT * FROM client_social_accounts WHERE client_id=? AND active=1 ORDER BY network,handle').bind(clientId).all()).results||[];
+    const strategy=await env.DB.prepare('SELECT * FROM client_strategies WHERE client_id=?').bind(clientId).first();
+    const connected=accounts.filter(x=>x.metricool_brand_id).map(x=>x.network);
+    const publicOnly=accounts.filter(x=>!x.metricool_brand_id).map(x=>x.network);
+    const competitors=[...new Set(accounts.flatMap(x=>jsonArray(x.competitors_json)))].slice(0,20);
+    const queries=[...new Set(accounts.flatMap(x=>jsonArray(x.tracked_queries_json)))].slice(0,30);
+    return j({ok:true,client:owner,radar:{
+      mode:connected.length?'Metricool + public radar':'Public radar',
+      connectedNetworks:connected,
+      publicNetworks:publicOnly,
+      competitors,
+      trackedQueries:queries,
+      recommendations:[
+        'Son 7 gün içerik performansını ağ bazında karşılaştır.',
+        'Rakip başlık/konu tekrarlarını haftalık izle.',
+        'Trend sinyallerini içerik sütunlarına eşleştir.',
+        'Üretimden önce marka görsel kurallarını ve onay akışını uygula.'
+      ],
+      strategy:strategy?{positioning:strategy.positioning,approval_required:Boolean(strategy.approval_required),autopublish_enabled:Boolean(strategy.autopublish_enabled),last_analysis_at:strategy.last_analysis_at}:null
+    }});
+  }
+
   const wc=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/content$/);
   if(wc){const clientId=wc[1];if(request.method==='GET'){const q=await env.DB.prepare('SELECT * FROM client_content WHERE client_id=? ORDER BY updated_at DESC LIMIT 200').bind(clientId).all();return j({ok:true,items:q.results||[]});}
     if(request.method==='POST'){const b=await request.json().catch(()=>({}));const id=crypto.randomUUID(),now=new Date().toISOString();await env.DB.prepare('INSERT INTO client_content(id,client_id,title,content_type,engine,brief,body,media_key,preview_json,status,client_approved,published_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,clientId,clean(b.title,240),clean(b.content_type||'social',40),clean(b.engine||'btmedya',40),clean(b.brief,3000),clean(b.body,20000),clean(b.media_key,500),JSON.stringify(b.preview||{}),'draft',0,null,now,now).run();return j({ok:true,id},201);}
