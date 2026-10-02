@@ -172,6 +172,62 @@ async function clientHubApi(request,env,url){
   if(wc){const clientId=wc[1];if(request.method==='GET'){const q=await env.DB.prepare('SELECT * FROM client_content WHERE client_id=? ORDER BY updated_at DESC LIMIT 200').bind(clientId).all();return j({ok:true,items:q.results||[]});}
     if(request.method==='POST'){const b=await request.json().catch(()=>({}));const id=crypto.randomUUID(),now=new Date().toISOString();await env.DB.prepare('INSERT INTO client_content(id,client_id,title,content_type,engine,brief,body,media_key,preview_json,status,client_approved,published_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,clientId,clean(b.title,240),clean(b.content_type||'social',40),clean(b.engine||'btmedya',40),clean(b.brief,3000),clean(b.body,20000),clean(b.media_key,500),JSON.stringify(b.preview||{}),'draft',0,null,now,now).run();return j({ok:true,id},201);}
   }
+  const generateAi=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/generate$/);
+  if(generateAi && request.method==='POST'){
+    const clientId=generateAi[1];
+    const client=await env.DB.prepare('SELECT * FROM client_workspaces WHERE id=?').bind(clientId).first();
+    if(!client)return j({ok:false,error:'Müşteri çalışma alanı bulunamadı'},404);
+    const strategy=await env.DB.prepare('SELECT * FROM client_strategies WHERE client_id=?').bind(clientId).first();
+    const body=await request.json().catch(()=>({}));
+    const brief=clean(body.brief||'Yeni içerik fikri',3000);
+    const type=clean(body.content_type||'social',40);
+    const platform=clean(body.platform||'instagram',30);
+    let pillars=[];let visual={};let publishing={};let template={};
+    try{pillars=JSON.parse(String(strategy?.content_pillars_json||'[]'));if(!Array.isArray(pillars))pillars=[];}catch{}
+    try{visual=JSON.parse(String(strategy?.visual_rules_json||'{}'))||{};}catch{}
+    try{publishing=JSON.parse(String(strategy?.publishing_rules_json||'{}'))||{};}catch{}
+    try{template=JSON.parse(String(strategy?.ai_template_json||'{}'))||{};}catch{}
+    if(!env.AI)return j({ok:false,error:'AI üretim servisi yapılandırılmadı'},503);
+    let generated={};
+    try{
+      const prompt=[
+        'BTMEDYA müşteri içerik üretim motorusun.',
+        'Müşterinin marka stratejisine sadık kal. Kaynakta olmayan özel bilgi, başarı, istatistik veya müşteri yorumu uydurma.',
+        'Yalnız brief ve stratejiyle verilen bilgilerle üret.',
+        'Türkçe JSON döndür: title, caption, creative_brief, cta, seo_title, seo_description, hashtags.',
+        'İçerik tipi: '+type,
+        'Platform: '+platform,
+        'Müşteri: '+String(client.name||'').slice(0,180),
+        'Sektör: '+String(client.sector||'').slice(0,120),
+        'Marka dili: '+String(client.brand_voice||'').slice(0,1000),
+        'Konumlandırma: '+String(strategy?.positioning||'').slice(0,1000),
+        'İçerik sütunları: '+JSON.stringify(pillars),
+        'Görsel kuralları: '+JSON.stringify(visual),
+        'Yayın kuralları: '+JSON.stringify(publishing),
+        'Filtrelenmiş AI şablonu: '+JSON.stringify(template),
+        'Brief: '+brief
+      ].join('\n');
+      const out=await env.AI.run('@cf/openai/gpt-oss-120b',{messages:[
+        {role:'system',content:'Yalnız JSON döndür. Gerçek dışı bilgi ekleme. Marka stratejisini bozma.'},
+        {role:'user',content:prompt}
+      ],max_tokens:1200,temperature:0.35});
+      const raw=String(out?.response||out?.output_text||'').trim();
+      const m=raw.match(/\{[\s\S]*\}/);if(m)generated=JSON.parse(m[0]);
+    }catch{}
+    const id=crypto.randomUUID(),now=new Date().toISOString();
+    const title=clean(generated.title||brief.slice(0,240),240);
+    const caption=clean(generated.caption||brief,5000);
+    const payload={
+      title,content_type:type,engine:'btmedya-ai',brief,
+      body:JSON.stringify({caption,creative_brief:generated.creative_brief||'',cta:generated.cta||'',seo_title:generated.seo_title||'',seo_description:generated.seo_description||'',hashtags:Array.isArray(generated.hashtags)?generated.hashtags:[]}),
+      preview:{platform,type,title,caption,ai:true,approval_required:strategy?.approval_required!==0},
+      media_key:'',status:'draft',client_approved:0,published_at:null,created_at:now,updated_at:now
+    };
+    await env.DB.prepare('INSERT INTO client_content(id,client_id,title,content_type,engine,brief,body,media_key,preview_json,status,client_approved,published_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .bind(id,clientId,payload.title,type,'btmedya-ai',brief,payload.body,'',JSON.stringify(payload.preview),'draft',0,null,now,now).run();
+    return j({ok:true,id,item:{...payload}});
+  }
+
   const reviewAdmin=url.pathname.match(/^\/api\/client-hub\/content\/([^/]+)\/review-link$/);
   if(reviewAdmin && request.method==='POST'){
     const contentId=reviewAdmin[1];
