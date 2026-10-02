@@ -21,4 +21,4 @@ jobs:
       - run: |
           node --check src/worker.js
           node --check src/btmedya-core.js
-          ! grep -q 'ensureBtmedyaCore(env)' src/worker.js || true
+          if grep -q 'const coreInit=ensureBtmedyaCore(env)' src/worker.js; then echo "Core schema must not run on every scheduled tick"; exit 1; fi
