@@ -84,3 +84,16 @@
 @media (prefers-reduced-motion:reduce){
   .cinematic-copy::before,.cinematic-title,.cinematic-lead,.cinematic-kicker,.cinematic-kaynak{transition:none!important}
 }
+
+/* BTMEDYA Customer Hero Navigation v1 */
+.cinematic-hero{--choice-x:0vw;--choice-y:0vh;--cursor-x:0vw;--cursor-y:0vh}
+.cinematic-hero .cinematic-video,.cinematic-hero .cinematic-visual{transition:transform .72s cubic-bezier(.22,.8,.22,1),opacity .5s ease}
+.cinematic-hero.choice-left .cinematic-video.is-active,.cinematic-hero.choice-left .cinematic-visual{transform:translate3d(calc(var(--choice-x) + var(--cursor-x)),calc(var(--choice-y) + var(--cursor-y)),0) scale(1.035)}
+.cinematic-hero.choice-right .cinematic-video.is-active,.cinematic-hero.choice-right .cinematic-visual{transform:translate3d(calc(var(--choice-x) + var(--cursor-x)),calc(var(--choice-y) + var(--cursor-y)),0) scale(1.035)}
+.cinematic-hero.choice-up .cinematic-video.is-active,.cinematic-hero.choice-up .cinematic-visual{transform:translate3d(calc(var(--choice-x) + var(--cursor-x)),calc(var(--choice-y) + var(--cursor-y)),0) scale(1.035)}
+.hero-customer-choices{position:absolute;z-index:20;left:50%;bottom:clamp(22px,5vh,64px);transform:translateX(-50%);display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:min(92vw,720px);pointer-events:auto}
+.hero-customer-choices button{appearance:none;border:1px solid rgba(255,255,255,.32);background:rgba(0,0,0,.42);color:#fff;padding:11px 15px;border-radius:999px;backdrop-filter:blur(12px);font:600 11px/1 Manrope,system-ui,sans-serif;letter-spacing:.1em;cursor:pointer;transition:transform .2s ease,background .2s ease,border-color .2s ease}
+.hero-customer-choices button:hover,.hero-customer-choices button:focus-visible,.hero-customer-choices button.is-active{background:#fff;color:#050505;border-color:#fff;transform:translateY(-2px)}
+.hero-customer-choices button span{margin-left:5px}
+@media(max-width:720px){.hero-customer-choices{bottom:18px;width:calc(100% - 24px);gap:7px}.hero-customer-choices button{padding:10px 11px;font-size:9px}.cinematic-hero .cinematic-video,.cinematic-hero .cinematic-visual{transition:transform .55s ease}}
+@media(prefers-reduced-motion:reduce){.cinematic-hero .cinematic-video,.cinematic-hero .cinematic-visual{transition:none}}
