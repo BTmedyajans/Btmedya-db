@@ -1,0 +1,30 @@
+/* BTMEDYA Editorial Cover System v1
+   Sosyal kapak dilini web kartına taşır: gerçek fotoğraf, kırmızı editoryal
+   etiket, iri beyaz başlık, tek sarı vurgu. Başlık metni haber kaydından
+   gelir; görselin üstüne yeni bir iddia yazılmaz. */
+.bt-cover-enhanced{isolation:isolate}
+.bt-cover-ui{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;justify-content:flex-end;padding:clamp(14px,2vw,26px);pointer-events:none;color:#fff}
+.bt-cover-ui .bt-cover-kicker{align-self:flex-start;max-width:calc(100% - 12px);margin-bottom:9px;padding:7px 10px;background:#ef3e34;color:#fff;font:800 10px/1 Manrope,Arial,sans-serif;letter-spacing:.11em;text-transform:uppercase;box-shadow:0 8px 26px rgba(0,0,0,.25)}
+.bt-cover-ui .bt-cover-headline{max-width:min(96%,820px);font:800 clamp(28px,3.6vw,58px)/.92 "Space Grotesk","Bricolage Grotesque",sans-serif;letter-spacing:-.045em;text-transform:uppercase;text-wrap:balance;text-shadow:0 3px 0 rgba(0,0,0,.72),0 14px 40px rgba(0,0,0,.74)}
+.bt-cover-ui .bt-cover-headline .bt-cover-highlight{display:inline;color:#101010;background:#ffd400;padding:.02em .12em .06em;box-shadow:6px 0 0 #ffd400,-5px 0 0 #ffd400;box-decoration-break:clone;-webkit-box-decoration-break:clone;text-shadow:none}
+.bt-cover-ui .bt-cover-meta{align-self:flex-start;margin-top:10px;padding:5px 8px;background:rgba(5,8,12,.72);border-left:3px solid #ffd400;color:#f3f5f7;font:700 9px/1.25 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em}
+.news-media.bt-cover-enhanced .news-scrim{z-index:2;background:linear-gradient(180deg,rgba(0,0,0,.04) 18%,rgba(0,0,0,.18) 42%,rgba(0,0,0,.84) 100%)}
+.story-card.bt-cover-enhanced{position:relative}
+.story-card.bt-cover-enhanced .story-card-copy{position:relative;z-index:6}
+.story-card.bt-cover-enhanced>.bt-cover-ui{bottom:auto;height:min(72%,430px);justify-content:flex-end;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.08) 30%,rgba(0,0,0,.72) 100%)}
+.editorial-special-card.bt-cover-enhanced>.bt-cover-ui{height:100%;justify-content:flex-end;background:linear-gradient(180deg,transparent 24%,rgba(0,0,0,.78) 100%)}
+.latest-kapak.bt-cover-enhanced{position:relative;overflow:hidden}
+.latest-kapak.bt-cover-enhanced>.bt-cover-ui{padding:7px;justify-content:flex-end;background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.78) 100%)}
+.latest-kapak.bt-cover-enhanced>.bt-cover-ui .bt-cover-kicker{display:none}
+.latest-kapak.bt-cover-enhanced>.bt-cover-ui .bt-cover-headline{font-size:14px;line-height:.98}
+.latest-kapak.bt-cover-enhanced>.bt-cover-ui .bt-cover-meta{font-size:7px;margin-top:5px;padding:4px 5px}
+@media(max-width:720px){
+  .bt-cover-ui{padding:13px}
+  .bt-cover-ui .bt-cover-kicker{font-size:8px;padding:6px 8px;margin-bottom:7px}
+  .bt-cover-ui .bt-cover-headline{font-size:clamp(24px,8.5vw,42px);max-width:100%}
+  .bt-cover-ui .bt-cover-meta{font-size:7px;margin-top:7px}
+  .news-card:not(.featured) .bt-cover-ui .bt-cover-headline{font-size:clamp(20px,6.2vw,30px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .bt-cover-ui,.bt-cover-headline,.bt-cover-highlight{transition:none!important}
+}
