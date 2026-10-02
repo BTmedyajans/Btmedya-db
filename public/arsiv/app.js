@@ -31,13 +31,10 @@ async function loadMedia(){
    const title=x.title||x.original_name||x.key||'BTMEDYA arşivi';
    const url=x.url||'';
    const video=/^video\//i.test(x.mime||'');
-   const media=video?'<video muted loop playsinline preload="metadata" src="'+esc(url)+'"></video>':'<img loading="lazy" src="'+esc(url)+'" alt="'+esc(title)+'">';
+   const media=video?'<video controls muted playsinline preload="none" src="'+esc(url)+'"></video>':'<img loading="lazy" src="'+esc(url)+'" alt="'+esc(title)+'">';
    return '<article class="media-card">'+media+'<div class="media-copy"><b>'+esc(x.ai_generated===false?'GERÇEK ÇEKİM':'AI ÜRETİMİ')+' · '+esc(x.category||'ARŞİV')+'</b><strong>'+esc(title)+'</strong><span>BTMEDYA Media Vault</span></div></article>';
   }).join('');
-  el.querySelectorAll('video').forEach(v=>{
-   const io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting?v.play().catch(()=>{}):v.pause()),{rootMargin:'100px'});
-   io.observe(v);
-  });
+  el.querySelectorAll('video').forEach(v=>{v.removeAttribute('autoplay');v.preload='none';});
  }catch(e){
   el.innerHTML='<div class="loading">Gerçek medya arşivi şu anda okunamadı. <a href="/iletisim/">Arşiv erişimi için iletişim ↗</a></div>';
  }

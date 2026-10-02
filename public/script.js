@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       if(introVideo){
         introVideo.addEventListener('ended',()=>{clearTimeout(t);dismiss();});
         introVideo.addEventListener('error',()=>{clearTimeout(t);dismiss();},{once:true});
-        if(loadVideo(introVideo)) introVideo.play().catch(()=>{});
+        // Intro remains poster-first; playback requires an explicit control.
       }
       intro.addEventListener('click',()=>{clearTimeout(t);dismiss();});
     }
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         v.loop=true;
         v.addEventListener('loadeddata',()=>{
           heroSec.classList.add('hero-story-on');
-          v.play().catch(()=>{});
+          // User controls start playback; loading only prepares the real source.
         },{once:true});
         v.addEventListener('timeupdate',()=>paintChapter(v.currentTime));
         attach(src);
@@ -189,8 +189,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     v.addEventListener('error',loadFallbackArt,{once:true});
 
     function applyGate(){
-      if(allowed()){ begin(); }
-      else{ heroSec.classList.remove('hero-story-on'); loadFallbackArt(); }
+      heroSec.classList.remove('hero-story-on');
+      loadFallbackArt();
     }
     mqReduce.addEventListener('change',applyGate);
     applyGate();
@@ -198,26 +198,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     setTimeout(()=>{ if(!heroSec.classList.contains('hero-story-on')) loadFallbackArt(); },4000);
   })();
 
-  // ALT BOLUM VIDEOLARI: gorunur olunca iner ve oynar, ekrandan cikinca durur.
-  const lazyVideos=[...document.querySelectorAll('video.lazy-video')];
-  if(lazyVideos.length){
-    if(!('IntersectionObserver' in window)){
-      lazyVideos.forEach(v=>{ if(loadVideo(v)) v.play().catch(()=>{}); });
-    }else{
-      const lazyIO=new IntersectionObserver(entries=>{
-        entries.forEach(en=>{
-          const v=en.target;
-          if(en.isIntersecting){
-            loadVideo(v);
-            if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches) v.play().catch(()=>{});
-          }else if(!v.paused){
-            v.pause();
-          }
-        });
-      },{rootMargin:'250px 0px'});
-      lazyVideos.forEach(v=>lazyIO.observe(v));
-    }
-  }
+  // All public media remains poster-first; the shared play control loads on demand.
 
   // CURSOR LOGO — fare ile sayfa başlıkları arasında gezinen BT amblemi
   const reduced0=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -266,12 +247,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   let stateRequest=0;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function setCategory(cat,play=true){
+  function setCategory(cat,play=false){
     if(!sources[cat]) return;
     active=cat;
     cards.forEach(c=>c.classList.toggle('active',c.dataset.category===cat));
     document.documentElement.dataset.heroCategory=cat;
-    if(!stateVideo || reduced) return;
+    if(!stateVideo || reduced || !play) return;
     const request=++stateRequest;
     stateVideo.classList.remove('ready');
     stateVideo.style.opacity='0';
@@ -296,7 +277,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     card.addEventListener('mouseenter',()=>setCategory(cat));
     card.addEventListener('focus',()=>setCategory(cat,false));
     card.addEventListener('click',()=>{
-      setCategory(cat);
+      setCategory(cat,true);
       const target=document.querySelector(card.dataset.target||'#medya');
       if(target) target.scrollIntoView({behavior:reduced?'auto':'smooth'});
     });
@@ -516,31 +497,17 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
 
-  // SEKME GIZLIYKEN DURAKLAT.
-  // main dalindan gelen surum video[autoplay] seciyordu; bu dalda hicbir video
-  // artik autoplay tasimiyor (hepsi kapiya ve gorunurluge bagli indiriliyor),
-  // yani secim bos donuyor ve body.paused hic kurulmuyordu. Ekran disinda
-  // duraklatmayi zaten yukaridaki lazy gozlemcisi yapiyor, burada yalnizca
-  // sekme gizlenince duraklatma kaliyor. body.paused sinifi CSS tarafinda
-  // butun animasyonlari (::before ve ::after dahil) donduruyor.
+  // Sekme gizlenince ziyaretçinin başlattığı medyayı duraklat; geri dönünce
+  // otomatik sürdürme yapma. body.paused mevcut animasyonları da dondurur.
   (function(){
-    const inView=el=>{
-      const r=el.getBoundingClientRect();
-      return r.bottom>0 && r.top<innerHeight && r.right>0 && r.left<innerWidth;
-    };
     const playable=()=>[...document.querySelectorAll('video')]
-      .filter(v=>v.dataset.loaded && !v.closest('.intro-overlay'));
+      .filter(v=>!v.closest('.intro-overlay'));
     document.addEventListener('visibilitychange',()=>{
       const hidden=document.hidden;
       document.body.classList.toggle('paused',hidden);
       playable().forEach(v=>{
         if(hidden){ v.pause(); return; }
-        // Kaydirma ile surulen hero videosu kendi zamanina bagli: oynatilmaz.
-        if(v.dataset.scrub){
-          if(v.loop && !matchMedia('(prefers-reduced-motion: reduce)').matches) v.play().catch(()=>{});
-          return;
-        }
-        if(inView(v) && !matchMedia('(prefers-reduced-motion: reduce)').matches) v.play().catch(()=>{});
+        // Do not resume media automatically when a tab becomes visible.
       });
     });
   })();
@@ -698,7 +665,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       detail='<a href="/haberler/'+encodeURIComponent(slug)+'.html">Haberi aç ↗</a>';
     }else if(video&&url){detail='<a href="'+esc(url)+'" target="_blank" rel="noopener">Videoyu aç ↗</a>';}
     const yt='<a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube ↗</a>';
-    const media=video?'<video class="archive-media" muted loop playsinline preload="metadata" src="'+esc(url)+'"></video>':'<img class="archive-media" loading="lazy" src="'+esc(url)+'" alt="'+title+'">';
+      const media=video?'<video class="archive-media" controls muted playsinline preload="none" src="'+esc(url)+'"></video>':'<img class="archive-media" loading="lazy" src="'+esc(url)+'" alt="'+title+'">';
     return '<article class="archive-live-card '+(index===0?'featured':'')+'">'+media+'<div class="archive-overlay"></div><div class="archive-copy"><span class="archive-tag">'+(item.ai_generated===false?'GERÇEK ÇEKİM':'AI ÜRETİMİ')+' · '+cat+'</span><h3>'+title+'</h3><p>Kaynak: '+esc(source==='github-static'?'BTMEDYA arşivi':'Media Vault')+'</p><div class="archive-actions">'+detail+yt+'</div></div></article>';
   }
   async function loadArchive(){
@@ -712,7 +679,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         .sort((a,b)=>{const rank=x=>({saha:0,haber:1,video:2,portfoy:3,hero:4}[x.category]??9);return rank(a)-rank(b);}).slice(0,8);
       if(!items.length){grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv kaydı henüz yayın akışına düşmedi.</div>';return;}
       grid.innerHTML=items.map(card).join('');
-      grid.querySelectorAll('video').forEach(v=>{const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)v.play().catch(()=>{});else v.pause();}),{rootMargin:'120px'});io.observe(v);});
+      grid.querySelectorAll('video').forEach(v=>{v.removeAttribute('autoplay');v.preload='none';v.controls=true;});
     }catch(err){grid.innerHTML='<div class="archive-live-empty">Arşiv akışı şu anda okunamadı. Haber arşivi yine açık: <a href="/haberler/">/haberler/</a></div>';}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadArchive,{once:true});else loadArchive();

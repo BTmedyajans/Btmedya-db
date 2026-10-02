@@ -181,30 +181,8 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     }, {passive:true});
   }
 
-  /* Hero videolari hero motoruna aittir (sahneye gore ya da hic yuklenir);
-     burada yuklenirse ust uste duran dort video sahneden bagimsiz hepsi
-     birden iner (masaustunde ~14 MB, mobilde panel atamasiyla ~13 MB). */
-  const lazy = [...d.querySelectorAll('video[data-src]')].filter(v => !v.closest('.cinematic-hero'));
-  const loadVideo = v => {
-    if (v.dataset.loaded) return;
-    v.src = v.dataset.src;
-    v.dataset.loaded = '1';
-    v.load();
-  };
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(en => {
-        const v = en.target;
-        if (en.isIntersecting) {
-          loadVideo(v);
-          if (!reduced) v.play().catch(() => {});
-        } else if (!v.paused) {
-          v.pause();
-        }
-      });
-    }, {rootMargin:'220px 0px'});
-    lazy.forEach(v => io.observe(v));
-  } else lazy.forEach(loadVideo);
+  /* All public videos stay poster-first. The shared site-motion helper
+     attaches the real source only after the visitor activates play. */
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   /* NFD: "Zekâ" ve "İ" gibi isaretli harfler de duz harfe iner; yoksa filtre "yapay zeka" ile eslesmez. */
@@ -531,9 +509,11 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       document.querySelector('[data-fallback="media"]')?.remove();
       grid.setAttribute('aria-busy','false');
       grid.querySelectorAll('video').forEach(v=>{
-        const io=new IntersectionObserver(es=>es.forEach(e=>{
-          if(e.isIntersecting){if(!v.src&&v.dataset.src){v.src=v.dataset.src;v.load();}v.play().catch(()=>{});} else v.pause();
-        }),{rootMargin:'120px'}); io.observe(v);
+        v.removeAttribute('autoplay');
+        v.autoplay=false;
+        v.loop=false;
+        v.preload='none';
+        v.controls=true;
       });
     }catch(err){
       if(!document.querySelector('[data-fallback="media"]')){
@@ -775,7 +755,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       el.dataset.src=a.url; delete el.dataset.mobile;
       // Varsayilan poster eski videonun karesi; yeni videoyla uyusmaz.
       if(i>0) el.removeAttribute('poster');
-      if(el.dataset.loaded){ el.src=a.url; el.load(); if(i===active && i>0) el.play().catch(()=>{}); }
+      if(el.dataset.loaded){ el.src=a.url; el.load(); }
       if(i===active && kaynakEl) kaynakEl.textContent=s.kaynak;
     });
     const poster=y['hero-poster'], hv=videos[0] && videos[0].querySelector('video');
@@ -857,22 +837,8 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     kareAktif=false; tuval.remove(); tuval=null; cizer=null; sticky.style.clipPath='';
     active=-1; request();
   }
-  /* Panel atamasi okunmadan video yuklenmez: once varsayilan video inip
-     sonra atanan videoyla degistiriliyordu (mobilde ~1,1 MB bosa). Bu
-     sirada video afisi gorunur. */
-  let yuvalarOkundu=false; const bekleyen=new Set();
-  Promise.resolve(window.btYuvalar||{}).finally(()=>{ yuvalarOkundu=true; bekleyen.forEach(v=>{ loadVideo(v); const el=v.querySelector('video'); if(el && videos.indexOf(v)===active && (active>0||kompakt()) && !reduced) el.play().catch(()=>{}); }); bekleyen.clear(); });
-  function loadVideo(v){
-    if(!v) return;
-    if(!yuvalarOkundu){ bekleyen.add(v); return; }
-    const el=v.querySelector('video');
-    if(!el || el.dataset.loaded) return;
-    let src=mobile() && el.dataset.mobile ? el.dataset.mobile : el.dataset.src;
-    // hero-scrub 1280x720 ve 8,7 MB; ayni cekimin dikey kesimi 0,9 MB.
-    if(mobile() && /\/hero-story\.mp4$/.test(src||'')) src='/assets/media/web/hero-story-mobile.mp4';
-    if(!src) return;
-    el.dataset.loaded='1'; el.src=src; el.load();
-  }
+  /* Panel ataması yalnız kaynak ve gerçek/AI etiketini belirler.
+     Video kaynağı ortak oynat düğmesine kadar indirilmez. */
   function setScene(i,p){
     const scene=scenes[i];
     if(!scene) return;
@@ -893,7 +859,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
         if(n===i && !kareAktif) {
           const el=v.querySelector('video');
           const sadeceAfis=kompakt() && i>0 && el && el.getAttribute('poster') && !el.dataset.loaded;
-          if(!sadeceAfis){ loadVideo(v); if(el && (i>0 || kompakt()) && !reduced) el.play().catch(()=>{}); }
+          if(!sadeceAfis){ /* poster stays visible until a visitor activates playback */ }
         }
         const el=v.querySelector('video');
         if(el && n!==i) el.pause();
@@ -944,10 +910,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       root.style.setProperty('--hero-my',(((e.clientY-r.top)/r.height)-.5).toFixed(3));
     },{passive:true});
     sticky.addEventListener('pointerleave',()=>{root.style.setProperty('--hero-mx','0');root.style.setProperty('--hero-my','0')},{passive:true});
-  } else {
-    root.style.height='100vh';
-    loadVideo(videos[0]);
-  }
+  } else root.style.height='100vh';
   kareKur();
   window.addEventListener('resize',()=>{
     if(kompakt()) kareKapat();

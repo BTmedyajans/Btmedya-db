@@ -324,13 +324,19 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   }
 }
 
-/* 11) Hero videolari genel tembel yukleyiciye girmemeli: girerse ust uste
-       duran dort video sahneden bagimsiz hepsi birden iner (~14 MB).
-       Kare dizisi dosyalari da eksiksiz olmali. */
+/* 11) Kamuya acik videolar yalnizca acik oynatma eylemiyle yuklenip baslamali.
+       Hero posterleri ve kaynak kare dizisi eksiksiz kalmali. */
 {
   const home = readFileSync('public/home.js', 'utf8');
-  if (!/filter\(v => !v\.closest\('\.cinematic-hero'\)\)/.test(home)) {
-    bulgular.push("public/home.js genel video yukleyicisi hero videolarini disarida birakmiyor (.cinematic-hero); hero'da tum videolar birden iner.");
+  const motion = readFileSync('public/btmedya-site-motion.js', 'utf8');
+  const click = motion.indexOf("button.addEventListener('click'");
+  const source = motion.indexOf('video.src=source', click);
+  const play = motion.indexOf('video.play()', click);
+  if (click < 0 || source < click || play < source) {
+    bulgular.push('public video kaynagi veya oynatimi acik oynat dugmesinin click handleri icinde olmali.');
+  }
+  if (/\bloadVideo\s*\(/.test(home)) {
+    bulgular.push('public/home.js otomatik video yukleyicisi tasiyor; kaynak ziyaretci eyleminden once agdan alinmamali.');
   }
   const n = Number((home.match(/const KARE_SAYISI=(\d+)/) || [])[1] || 0);
   for (let i = 1; i <= n; i++) {

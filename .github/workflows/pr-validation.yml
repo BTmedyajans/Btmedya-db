@@ -44,6 +44,7 @@ jobs:
           node --check src/ai-gorunurluk.js
           node tools/ai-gorunurluk-testi.mjs
           node --check public/home.js
+          node tools/site-motion-smoke.mjs
           python3 tools/validate-assets.py
           node tools/a11y-denetimi.mjs
           node tools/gerileme-denetimi.mjs

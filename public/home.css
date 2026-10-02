@@ -82,7 +82,7 @@ footer{padding:35px var(--pad);display:grid;grid-template-columns:1fr auto auto;
 .cinematic-video video{filter:saturate(.92) contrast(1.06)}
 .cinematic-ai-visual{opacity:0}
 .cinematic-ai-visual img{filter:saturate(.78) contrast(1.08)}
-.cinematic-vignette{position:absolute;inset:0;z-index:3;background:linear-gradient(90deg,rgba(1,5,9,.86) 0%,rgba(1,5,9,.40) 45%,rgba(1,5,9,.16) 72%,rgba(1,5,9,.72) 100%),linear-gradient(0deg,rgba(1,5,9,.78),transparent 38%,rgba(1,5,9,.28))}
+.cinematic-vignette{position:absolute;inset:0;z-index:3;background:linear-gradient(90deg,rgba(1,5,9,.86) 0%,rgba(1,5,9,.40) 45%,rgba(1,5,9,.16) 72%,rgba(1,5,9,.72) 100%),linear-gradient(0deg,rgba(1,5,9,.78),transparent 38%,rgba(1,5,9,.28));pointer-events:none}
 .cinematic-grid{position:absolute;inset:0;z-index:4;opacity:.16;background:linear-gradient(rgba(53,214,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(53,214,255,.12) 1px,transparent 1px);background-size:90px 90px;mask-image:linear-gradient(to bottom,transparent 0%,black 30%,transparent 90%);pointer-events:none}
 .cinematic-noise{position:absolute;inset:0;z-index:6;opacity:.055;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 .cinematic-copy{position:absolute;z-index:8;left:clamp(24px,7vw,110px);top:50%;width:min(700px,76vw);transform:translate3d(calc(var(--hero-mx,0) * -18px),calc(-50% + var(--hero-my,0) * -10px),0);transition:transform .18s ease-out}
