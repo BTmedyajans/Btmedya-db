@@ -27,3 +27,14 @@ async function load(){try{state=await api('/api/admin/agency-supervisor');render
 async function run(){const b=$('#run');b.disabled=true;b.textContent='Denetleniyor…';try{state=await api('/api/admin/agency-supervisor/run',{method:'POST'});render()}catch(e){alert(e.message)}finally{b.disabled=false;b.textContent='Şimdi denetle'}}
 $('#run').addEventListener('click',run);$('#refresh').addEventListener('click',load);$('#search').addEventListener('input',()=>renderClients(state.latest?.summary?.clientsSnapshot||state.heartbeat?.summary?.clientsSnapshot||[]));
 load();setInterval(load,60000);
+
+/* BTMEDYA Agency OS v2: task-first command bar */
+(()=>{
+  const root=document.querySelector('.shell'),hero=root?.querySelector('.hero');
+  if(!root||!hero||root.querySelector('.admin-commandbar'))return;
+  const bar=document.createElement('section');
+  bar.className='admin-commandbar';
+  bar.setAttribute('aria-label','Öncelikli yönetim işlemleri');
+  bar.innerHTML='<a href="/admin/editor/"><small>İÇERİK</small><b>Haber / AI Editör ↗</b></a><a href="/admin/app.html"><small>MEDYA</small><b>Fotoğraf / Video Yükle ↗</b></a><a href="/social-studio/"><small>SOSYAL</small><b>Instagram · Facebook · YouTube ↗</b></a><a href="/admin/client-hub/"><small>MÜŞTERİ</small><b>Brief / Teklif / İşler ↗</b></a>';
+  hero.insertAdjacentElement('afterend',bar);
+})();
