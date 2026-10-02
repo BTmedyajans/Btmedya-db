@@ -25,8 +25,16 @@ function renderClients(items){
 }
 async function load(){try{state=await api('/api/admin/agency-supervisor');render()}catch(e){$('#heartbeat').textContent=e.message}}
 async function run(){const b=$('#run');b.disabled=true;b.textContent='Denetleniyor…';try{state=await api('/api/admin/agency-supervisor/run',{method:'POST'});render()}catch(e){alert(e.message)}finally{b.disabled=false;b.textContent='Şimdi denetle'}}
-$('#run').addEventListener('click',run);$('#refresh').addEventListener('click',load);$('#search').addEventListener('input',()=>renderClients(state.latest?.summary?.clientsSnapshot||state.heartbeat?.summary?.clientsSnapshot||[]));
-load();setInterval(load,60000);
+async function loadCategoryFeed(){
+ const box=$('#categoryFeed');if(!box)return;
+ try{
+  const d=await api('/api/public/category-feed');
+  const cats=d.categories||[];
+  box.innerHTML=cats.length?cats.map(x=>{const lead=x.items?.[0];return '<article class="category-card"><div class="category-top"><b>'+esc(x.category)+'</b><span class="badge">'+num(x.count)+' içerik</span></div><strong>'+esc(lead?.title||'Akışta içerik yok')+'</strong><small class="meta">'+esc(d.source||'live')+' · '+esc(lead?.published_at?new Date(lead.published_at).toLocaleDateString('tr-TR'):'tarih yok')+'</small><a href="'+esc(lead?.url||'#')+'" target="_blank" rel="noopener">Public haberi aç ↗</a></article>'}).join(''):'<div class="rec"><b>Yayınlanmış kategori verisi bulunamadı.</b></div>';
+ }catch(e){box.innerHTML='<div class="rec"><b>Kategori akışı okunamadı.</b><span class="meta">'+esc(e.message)+'</span></div>'}
+}
+$('#run').addEventListener('click',run);$('#refresh').addEventListener('click',()=>{load();loadCategoryFeed()});$('#categoryRefresh').addEventListener('click',loadCategoryFeed);$('#search').addEventListener('input',()=>renderClients(state.latest?.summary?.clientsSnapshot||state.heartbeat?.summary?.clientsSnapshot||[]));
+load();loadCategoryFeed();setInterval(load,60000);setInterval(loadCategoryFeed,60000);
 
 /* BTMEDYA Agency OS v2: task-first command bar */
 (()=>{

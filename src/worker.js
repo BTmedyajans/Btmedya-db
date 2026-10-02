@@ -255,6 +255,21 @@ async function newsApi(request, env, url, ctx){
     return json(await newsIntelligenceStatus(env));
   }
 
+  if(url.pathname==='/api/public/category-feed' && request.method==='GET'){
+    const sourceUrl=new URL('/api/news?limit=100',url.origin);
+    const source=await newsApi(new Request(sourceUrl,{headers:{accept:'application/json'}}),env,sourceUrl,ctx);
+    const data=await source.json().catch(()=>({items:[]}));
+    const groups=new Map();
+    for(const item of (data.items||[])){
+      const categories=String(item.category||'Haber').split(/[·,/|]/).map(x=>x.trim()).filter(Boolean);
+      for(const category of [...new Set(categories)]){
+        if(!groups.has(category)) groups.set(category,[]);
+        groups.get(category).push({slug:item.slug,title:item.title,excerpt:item.excerpt||'',cover_url:item.cover_url||null,published_at:item.published_at||item.original_date||null,url:`/haberler/${encodeURIComponent(item.slug||'')}.html`});
+      }
+    }
+    return json({ok:true,source:data.source||'live',updated_at:new Date().toISOString(),categories:[...groups.entries()].map(([category,items])=>({category,count:items.length,items:items.slice(0,6)}))});
+  }
+
   const alertMatch=url.pathname.match(/^\/api\/admin\/news-intelligence\/alerts\/(\d+)$/);
   if(alertMatch && request.method==='PATCH'){
     if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
