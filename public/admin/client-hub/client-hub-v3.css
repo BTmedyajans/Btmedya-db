@@ -1,0 +1,19 @@
+/* BTMEDYA Müşteri Merkezi v3 */
+.service-picker{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 18px}
+.service-choice{border:1px solid var(--line);background:#0b0f0f;color:var(--mut);border-radius:999px;padding:9px 11px}
+.service-choice.on{background:var(--lime);color:#071000;border-color:var(--lime);font-weight:800}
+.social-account-row{display:grid;grid-template-columns:110px 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px;background:#0b0f0f}
+.social-account-row small{display:block;color:var(--mut);overflow-wrap:anywhere;margin-top:3px}
+.radar-ok{color:var(--ok)}
+.radar-warn{color:var(--warn)}
+.customer-modal{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);padding:16px}
+.customer-modal[hidden]{display:none}
+.customer-modal-card{width:min(720px,100%);background:#0d1110;border:1px solid #2b3530;border-radius:18px;padding:18px;box-shadow:0 30px 90px rgba(0,0,0,.5)}
+.customer-modal-card h2{margin:0 0 6px}
+.customer-modal-card .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.customer-modal-card .field{display:grid;gap:6px}
+.customer-modal-card .field.full{grid-column:1/-1}
+.customer-modal-card .field label{font-size:10px;color:var(--mut);letter-spacing:.1em}
+.customer-modal-card input{width:100%;border:1px solid var(--line);background:#090c0c;color:var(--txt);padding:10px;border-radius:10px}
+.customer-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+@media(max-width:600px){.social-account-row{grid-template-columns:1fr}.customer-modal-card .modal-grid{grid-template-columns:1fr}.customer-modal-card .field.full{grid-column:auto}}
