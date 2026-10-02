@@ -127,7 +127,7 @@ jobs:
           test -s public/client/review/index.html
           test -s public/client/review/review.js
           test -s public/referanslar/referanslar.js
-          test -s migrations/0012_client_social_radar.sql
+          test -s migrations/0015_client_social_radar.sql
           test -s migrations/0013_client_review.sql
           test -s migrations/0014_agency_supervisor.sql
           grep -q 'reviewAdmin' src/sales-router.js
