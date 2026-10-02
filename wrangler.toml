@@ -69,6 +69,7 @@ METRICOOL_ACCOUNT_EMAIL = "busetuncay74@gmail.com"
 METRICOOL_TIMEZONE = "Europe/Istanbul"
 
 # Secret değerleri GitHub'a veya bu dosyaya yazılmaz.
+# Production security sync: main değişikliği, GitHub secret -> Cloudflare Worker secret senkronizasyonunu da tetikler.
 # Cloudflare Worker > Settings > Variables and Secrets altında Secret olarak eklenir.
 # wrangler deploy, aşağıdaki required secret isimlerini doğrular.
 # Süreli recovery Secret biçimi: UNIX_SANIYE:geçici-kod
