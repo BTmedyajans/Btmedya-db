@@ -56,6 +56,7 @@ jobs:
           node --check src/news-intelligence.js
           node --check src/autopilot.js
           node --check src/agency-supervisor.js
+          node --check src/btmedya-core.js
           node --check public/home.js
           node --check public/mobile-motion.js
           node --check public/admin/next-gen.js
@@ -108,6 +109,8 @@ jobs:
           grep -q 'prefers-reduced-motion' public/mobile-fixes.css
           grep -q 'Control Center' public/admin/index.html
           grep -q '/api/admin/control-center' public/admin/index.html
+          grep -q 'btmedya-core' src/worker.js
+          grep -q '/api/admin/core' public/admin/agency-os/agency-os.js
           grep -q '/kaynak-masasi' wrangler.toml
           grep -q '/rss.xml' wrangler.toml
           grep -q '/news-sitemap.xml' wrangler.toml

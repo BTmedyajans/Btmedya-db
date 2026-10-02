@@ -8,6 +8,7 @@ import { recoveryPasswordValid } from "./auth-recovery.js";
 import { runAutopilot, autopilotPolicy, setAutopilotPolicy, autopilotStatus, connectionMatrix, referenceDraft, generateAutopilotImage } from "./autopilot.js";
 import { salesApi } from "./sales-router.js";
 import { agencySupervisorApi, runAgencySupervisor } from "./agency-supervisor.js";
+import { ensureBtmedyaCore, btmedyaCoreApi } from "./btmedya-core.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
@@ -1689,6 +1690,8 @@ async function hydrateR2FromManifest(env, limit=3){
 
 /* production-reconcile: keep GitHub main as the sole Cloudflare Workers Builds source of truth. */
 export default { async scheduled(controller, env, ctx){
+  const coreInit=ensureBtmedyaCore(env).catch(e=>console.error("[btmedya-core] init:",e?.message||e));
+  if(ctx?.waitUntil) ctx.waitUntil(coreInit); else await coreInit;
   /* Sabah Masası: her gün 08:00 İstanbul (05:00 UTC). Diğer 5 dakikalık
      işler bu tetikte de çalışır; masa yeni haberleri yayınladığında sosyal
      taslaklar bir sonraki 5 dakikalık turda hazırlanır. */
@@ -1720,6 +1723,7 @@ export default { async scheduled(controller, env, ctx){
   if(ctx?.waitUntil) ctx.waitUntil(hepsi); else await hepsi;
 }, async fetch(request, env, ctx){
   const url = new URL(request.url);
+  const coreApi=await btmedyaCoreApi(request,env,url,validSession); if(coreApi) return coreApi;
 
   if(url.hostname.startsWith('www.')){
     url.hostname = url.hostname.slice(4);
