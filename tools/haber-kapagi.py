@@ -25,13 +25,14 @@ Kullanim:
   python3 tools/haber-kapagi.py            plandaki tum kapaklari uretir
   python3 tools/haber-kapagi.py <slug>...  yalnizca verilenleri uretir
 """
-import json, math, os, sys
+import json, math, os, re, sys
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 
 W, H = 1200, 675
 KEN = 56
 INK = (255, 255, 255)
 KIRMIZI = (255, 64, 56)        # editoryal aksan; src/news-page.js ile ayni
+SARI = (255, 212, 0)             # sosyal kapaklarda tek kelimelik odak rengi
 GRI = (176, 187, 200)
 
 BANT = 58                      # alttaki kirmizi kunye bandinin yuksekligi
@@ -157,6 +158,44 @@ def olcu_aralikli(d, metin, font, ara):
     return sum(d.textlength(c, font=font) + ara for c in metin) - ara
 
 
+def kapak_norm(s):
+    return str(s or "").lower().replace("ı","i").replace("ğ","g").replace("ü","u").replace("ş","s").replace("ö","o").replace("ç","c")
+
+
+def ana_vurgu(metin):
+    """Başlıktan tek güçlü kelime seçer; anlam eklemez, yalnız görsel hiyerarşi kurar."""
+    dur = {"bir","bu","şu","olan","olarak","için","icin","ile","daha","çok","cok","ve","veya","de","da","den","dan","mi","mı","mu","mü","gibi","son","bugün","bugun"}
+    aday=[]
+    for w in re.findall(r"[0-9A-Za-zÇĞİÖŞÜçğıöşü]+", str(metin or "")):
+        n=kapak_norm(w)
+        if len(n)<4 or n in dur: continue
+        puan=len(n)
+        if re.search(r"\d", n): puan+=14
+        if re.search(r"(iddia|şok|sok|yangin|yangın|uyuşturucu|uyusturucu|zam|fiyat|rekor|satış|satis|kaza|kriz|baskin|baskın)", n): puan+=12
+        aday.append((puan,w))
+    aday.sort(key=lambda x:(x[0],len(x[1])), reverse=True)
+    return kapak_norm(aday[0][1]) if aday else ""
+
+
+def satir_vurgulu(d, xy, metin, font, vurgu):
+    """Başlıkta seçilen tek kelimeyi sarı zeminle öne çıkarır; metin aynıdır."""
+    x,y=xy
+    parcalar=re.split(r"(\s+)", str(metin or ""))
+    for parca in parcalar:
+        if parca.isspace():
+            x += d.textlength(parca, font=font)
+            continue
+        if kapak_norm(re.sub(r"^[^0-9A-Za-zÇĞİÖŞÜçğıöşü]+|[^0-9A-Za-zÇĞİÖŞÜçğıöşü]+$", "", parca)) == vurgu:
+            tw=d.textlength(parca, font=font)
+            pad=max(4,int(font.size*.08))
+            d.rounded_rectangle([x-pad,y+int(font.size*.04),x+tw+pad,y+int(font.size*.88)],radius=max(2,int(font.size*.04)),fill=SARI)
+            d.text((x,y),parca,font=font,fill=(8,10,12))
+            x += tw
+        else:
+            d.text((x,y),parca,font=font,fill=INK)
+            x += d.textlength(parca, font=font)
+
+
 def kapak(baslik, kategori, altbilgi, cikti, foto=None, video=False, ust=0.30,
           kunye="BTMEDYA", gercek=False, imza="HABER: BUSE TUNCAY"):
     """imza: alt banttaki sol yazi. Haber kapaklarinda muhabirin adi dogru
@@ -197,8 +236,9 @@ def kapak(baslik, kategori, altbilgi, cikti, foto=None, video=False, ust=0.30,
 
     sat_y = int(punto * 1.04)
     y = H - BANT - 62 - len(satirlar) * sat_y
+    vurgu = ana_vurgu(baslik)
     for s in satirlar:
-        d.text((KEN, y), s, font=bf, fill=INK)
+        satir_vurgulu(d, (KEN, y), s, bf, vurgu)
         y += sat_y
 
     # Kaynak/tarih satiri. AGENTS.md geregi her kare AI URETIMI yada GERCEK
