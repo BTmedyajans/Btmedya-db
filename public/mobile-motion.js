@@ -1,7 +1,6 @@
 /* BTMEDYA Mobile Motion Engine — 2026-09-29 / V3
-   Mobile-first hero: the real mobile hero video now plays softly behind the opening.
-   Other scenes remain poster-first so the page does not download the whole video stack.
-   Scroll still drives the editorial story beats. */
+   Scroll drives editorial story beats and poster transitions.
+   Video playback is reserved for an explicit visitor play action. */
 (()=>{
   const root=document.querySelector('.cinematic-hero');
   if(!root || window.innerWidth>720) return;
@@ -24,16 +23,10 @@
   const mobileHero=videos[0];
   const prepareMobileHero=()=>{
     if(!mobileHero) return;
-    const mobileSrc=mobileHero.dataset.mobile;
-    if(mobileSrc && mobileHero.getAttribute('src')!==mobileSrc){
-      mobileHero.src=mobileSrc;
-      mobileHero.setAttribute('preload','metadata');
-      mobileHero.load();
-    }
     mobileHero.muted=true;
     mobileHero.defaultMuted=true;
     mobileHero.playsInline=true;
-    mobileHero.loop=true;
+    mobileHero.loop=false;
   };
 
   window.btYuvalar&&window.btYuvalar.then(y=>{
@@ -66,17 +59,17 @@
         v.pause();
         v.style.opacity=active?'1':'0';
         v.style.transform=active?'scale(1.03)':'scale(1.06)';
-        if(active&&!reduced){v.currentTime=0;v.play().catch(()=>{});}
+        if(!active)v.pause();
       });
     } else {
-      // Mobilde giriş videosu tüm açılış hikâyesinin altında akar.
-      // İkincil videolar oynatılmaz ve yalnızca poster katmanı devreye girer.
+      // Mobilde poster katmanı açılış hikâyesi boyunca kalır.
+      // Video ancak ortak oynat düğmesine basıldığında başlar.
       prepareMobileHero();
       videos.forEach((v,n)=>{
         if(n!==0) v.pause();
         v.style.transform=n===0?'scale(1.02)':'none';
       });
-      if(mobileHero && !reduced) mobileHero.play().catch(()=>{});
+      if(mobileHero && !mobileHero.paused) mobileHero.pause();
     }
   };
 
@@ -123,7 +116,5 @@
     window.addEventListener('resize',()=>{if(window.innerWidth<=720)resize();},{passive:true});
   }
 
-  prepareMobileHero();
   resize();
-  if(!reduced && mobileHero) mobileHero.play().catch(()=>{});
 })();

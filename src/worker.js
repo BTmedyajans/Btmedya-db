@@ -1904,12 +1904,12 @@ export default { async scheduled(controller, env, ctx){
           }
           if(!vlib) vlib=await env.DB.prepare('SELECT * FROM video_library WHERE news_slug=?').bind(slug).first();
           const related=await ilgiliHaberler(env,n);
-          return new Response(renderNewsPage(n, url.origin, vlib, related), {
+          return servisEt(request, env, publicMotionAssets(new Response(renderNewsPage(n, url.origin, vlib, related), {
             headers:{...guvenlikBasliklari(url.pathname),
                      'content-type':'text/html; charset=utf-8',
                      'x-robots-tag':robotsBasligi(url.pathname),
                      'cache-control':'public, max-age=60, s-maxage=60, must-revalidate','cache-tag':'btmedya-html'}
-          });
+          }), url.pathname, request.method));
         }
       }
     }
@@ -2064,9 +2064,24 @@ function robotsBasligi(pathname) {
     : 'max-image-preview:large, max-snippet:-1, max-video-preview:-1';
 }
 
-async function servisEt(request, env) {
+const SITE_MOTION_EXEMPT = /^\/(?:admin|api|social-studio)(?:\/|$)/;
+const SITE_MOTION_VERSION = '20261002-1';
+function publicMotionAssets(res, pathname, method) {
+  const type = res.headers.get('content-type') || '';
+  if (method === 'HEAD' || SITE_MOTION_EXEMPT.test(pathname) || !type.toLowerCase().startsWith('text/html') || ![200,404].includes(res.status)) return res;
+  return new HTMLRewriter()
+    .on('head', { element(el) {
+      el.append(`<link rel="stylesheet" href="/btmedya-site-motion.css?v=${SITE_MOTION_VERSION}">`, { html: true });
+    } })
+    .on('body', { element(el) {
+      el.append(`<script src="/btmedya-site-motion.js?v=${SITE_MOTION_VERSION}" defer></script>`, { html: true });
+    } })
+    .transform(res);
+}
+
+async function servisEt(request, env, initialResponse = null) {
   const url = new URL(request.url);
-  let res = await env.ASSETS.fetch(request);
+  let res = initialResponse || await env.ASSETS.fetch(request);
 
   /* Static Assets "/hizmetler" -> "/hizmetler/" ve "/index.html" -> "/"
      duzeltmelerini 307 (gecici) ile yapar. Gecici yonlendirmede Google eski
@@ -2135,7 +2150,7 @@ async function servisEt(request, env) {
         .on('meta[property="og:image:width"]', sil)
         .on('meta[property="og:image:height"]', sil)
         .transform(new Response(res.body, { status: res.status, statusText: res.statusText, headers: h }));
-      return yeni;
+      res = yeni;
     }
   }
 
