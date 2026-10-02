@@ -55,6 +55,9 @@ jobs:
           # Başka bir production commit'i build sırasında main'e geldiyse
           # önce güncel remote'u alıp üretilen commit'i onun üstüne taşı.
           # Böylece video çıktısı fetch-first yarışında kaybolmaz.
+          # Üretici yalnızca generated klasörünü commit eder; çalışma alanında
+          # kalan geçici değişiklikler rebase'i kilitlememelidir.
+          git reset --hard HEAD
           git fetch origin main
           git rebase origin/main
           git push origin HEAD:main
