@@ -295,15 +295,31 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   const renderStoryLab = items => {
     const root = d.getElementById('storyCards');
     if (!root || !items.length) return;
-    const [main, side] = items.slice(0, 2);
-    // Yan kart %34 opakliga soldurulmus dekor katmani; ayni haber akisinda
-    // zaten listelendigi icin ekran okuyucudan ve klavye sirasindan cikarilir.
+    const current = items.filter(n => {
+      const y = String(n.published_at || '').slice(0, 4);
+      const oy = String(n.original_date || '').slice(0, 4);
+      return n.status === 'published' && (y === '2026' || oy === '2026');
+    });
+    const adaylar = (current.length ? current : items).slice().sort((a,b) => {
+      const kind = n => kapakKaynagi[n.slug] || '';
+      const score = n => (kind(n) === 'gercek' ? 30 : kind(n) === 'arsiv' ? 18 : kind(n) === 'grafik' ? 8 : 0)
+        + (n.video_url ? 8 : 0)
+        + (/balikesir|saha|yerel/i.test(String(n.category || '') + ' ' + String(n.title || '')) ? 6 : 0);
+      return score(b) - score(a) || (Date.parse(b.published_at || '') || 0) - (Date.parse(a.published_at || '') || 0);
+    });
+    const sec = [];
+    adaylar.forEach(n => {
+      if (sec.length < 2 && !sec.some(x => String(x.category || '') === String(n.category || ''))) sec.push(n);
+    });
+    adaylar.forEach(n => { if (sec.length < 2 && !sec.includes(n)) sec.push(n); });
+    const [main, side] = sec;
+    // Mobilde iki kart da gerçek içeriğe dönüşür; masaüstü dekor düzeni CSS ile korunur.
     const card = (n, extra) => {
       const media = storyMedia(n);
       const visual = media
         ? `<img src="${esc(media)}" alt="${esc(n.title || 'BTMEDYA haber görseli')}" loading="lazy" decoding="async">`
         : '<div class="story-card-media-fallback" role="img" aria-label="Bu haber için doğrulanmış kapak görseli bulunmuyor"><span>BTMEDYA / HİKÂYE</span><b>GÖRSEL KAYDI BEKLENİYOR</b></div>';
-      return `<article class="story-card ${extra}"${extra === 'story-card-side' ? ' aria-hidden="true" inert' : ''}>
+      return `<article class="story-card ${extra}">
         ${visual}
         <div class="story-card-copy"><small>${esc(n.category || 'HABER')} · ${esc(dateText(n))}</small><h3>${esc(n.title || '')}</h3><p>${esc(String(n.excerpt || '').replace(/\s+/g, ' ').slice(0, 150))}</p><a href="/haberler/${encodeURIComponent(n.slug)}">Haberi aç ↗</a></div>
       </article>`;
