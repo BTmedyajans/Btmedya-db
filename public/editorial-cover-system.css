@@ -18,13 +18,42 @@
 .latest-kapak.bt-cover-enhanced>.bt-cover-ui .bt-cover-kicker{display:none}
 .latest-kapak.bt-cover-enhanced>.bt-cover-ui .bt-cover-headline{font-size:14px;line-height:.98}
 .latest-kapak.bt-cover-enhanced>.bt-cover-ui .bt-cover-meta{font-size:7px;margin-top:5px;padding:4px 5px}
+
+/* Homepage content enrichment */
+.bt-editorial-layer{position:relative;margin:clamp(24px,5vw,72px) auto;max-width:1380px;padding:0 clamp(18px,4vw,54px);color:#f6f7f8}
+.bt-editorial-head{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(260px,.75fr);gap:40px;align-items:end;margin-bottom:24px}
+.bt-editorial-kicker{margin:0 0 10px;font:700 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.16em;color:#c9ff3f}
+.bt-editorial-head h2{margin:0;font:800 clamp(40px,7vw,92px)/.82 "Space Grotesk",Arial,sans-serif;letter-spacing:-.065em;text-transform:uppercase}
+.bt-editorial-head h2 span{color:#c9ff3f}
+.bt-editorial-head>p{margin:0;max-width:520px;color:rgba(255,255,255,.66);font:500 14px/1.65 Manrope,Arial,sans-serif}
+.bt-editorial-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.bt-editorial-card{min-height:220px;padding:20px;display:flex;flex-direction:column;justify-content:flex-start;border:1px solid rgba(255,255,255,.11);background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));border-radius:18px;color:inherit;text-decoration:none;transition:transform .25s ease,border-color .25s ease,background .25s ease}
+.bt-editorial-card:hover,.bt-editorial-card:focus-visible{transform:translateY(-4px);border-color:rgba(201,255,63,.55);background:linear-gradient(145deg,rgba(201,255,63,.08),rgba(255,255,255,.025));outline:none}
+.bt-editorial-card small{color:#9fa6ae;font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.13em}
+.bt-editorial-card strong{margin-top:28px;font:800 clamp(22px,2.2vw,32px)/.98 "Space Grotesk",Arial,sans-serif;letter-spacing:-.035em}
+.bt-editorial-card span{margin-top:12px;color:rgba(255,255,255,.6);font:500 12px/1.55 Manrope,Arial,sans-serif}
+.bt-editorial-card b{margin-top:auto;padding-top:18px;color:#c9ff3f;font:700 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em}
+.bt-editorial-news{border-color:rgba(201,255,63,.35)}
+.bt-editorial-strip{display:flex;align-items:center;gap:16px;margin-top:10px;padding:13px 15px;border-top:1px solid rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.1);overflow:auto;white-space:nowrap}
+.bt-editorial-strip span{color:#8e969e;font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em}
+.bt-editorial-strip strong{font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em}
+.bt-editorial-strip a{margin-left:auto;color:#c9ff3f;font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;text-decoration:none}
+@media(max-width:900px){.bt-editorial-head{grid-template-columns:1fr;gap:16px}.bt-editorial-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:720px){
   .bt-cover-ui{padding:13px}
   .bt-cover-ui .bt-cover-kicker{font-size:8px;padding:6px 8px;margin-bottom:7px}
   .bt-cover-ui .bt-cover-headline{font-size:clamp(24px,8.5vw,42px);max-width:100%}
   .bt-cover-ui .bt-cover-meta{font-size:7px;margin-top:7px}
   .news-card:not(.featured) .bt-cover-ui .bt-cover-headline{font-size:clamp(20px,6.2vw,30px)}
+  .bt-editorial-layer{margin:30px auto;padding:0 14px}
+  .bt-editorial-head{margin-bottom:16px}
+  .bt-editorial-head h2{font-size:clamp(42px,15vw,68px)}
+  .bt-editorial-head>p{font-size:13px;line-height:1.55}
+  .bt-editorial-grid{grid-template-columns:1fr;gap:8px}
+  .bt-editorial-card{min-height:168px;padding:17px;border-radius:15px}
+  .bt-editorial-card strong{margin-top:20px;font-size:25px}
+  .bt-editorial-card span{font-size:12px}
+  .bt-editorial-strip{gap:11px;margin-left:0;margin-right:0}
+  .bt-editorial-strip a{display:none}
 }
-@media(prefers-reduced-motion:reduce){
-  .bt-cover-ui,.bt-cover-headline,.bt-cover-highlight{transition:none!important}
-}
+@media(prefers-reduced-motion:reduce){.bt-cover-ui,.bt-cover-headline,.bt-cover-highlight,.bt-editorial-card{transition:none!important}}
