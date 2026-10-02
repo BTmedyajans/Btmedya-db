@@ -46,3 +46,23 @@ load();loadCategoryFeed();setInterval(load,60000);setInterval(loadCategoryFeed,6
   bar.innerHTML='<a href="/admin/editor/"><small>İÇERİK</small><b>Haber / AI Editör ↗</b></a><a href="/admin/app.html"><small>MEDYA</small><b>Fotoğraf / Video Yükle ↗</b></a><a href="/social-studio/"><small>SOSYAL</small><b>Instagram · Facebook · YouTube ↗</b></a><a href="/admin/client-hub/"><small>MÜŞTERİ</small><b>Brief / Teklif / İşler ↗</b></a>';
   hero.insertAdjacentElement('afterend',bar);
 })();
+
+async function loadCore(){
+ const grid=$('#btCoreGrid'),status=$('#btCoreStatus'),boot=$('#btCoreBootstrap'); if(!grid)return;
+ try{
+   const d=await api('/api/admin/core');
+   status.textContent='AKTİF';
+   const x=d.counts||{};
+   grid.innerHTML='<div class="rule"><b>D1</b><span>Bağlı · '+num(x.content)+' içerik</span></div>'+
+     '<div class="rule"><b>R2</b><span>'+(d.storage?.r2?'Bağlı':'Eksik')+'</span></div>'+
+     '<div class="rule"><b>KV</b><span>'+(d.storage?.kv?'Bağlı':'Eksik')+'</span></div>'+
+     '<div class="rule"><b>Yayın kuyruğu</b><span>'+num(x.queued)+' bekleyen · '+num(x.events24h)+' olay / 24s</span></div>'+
+     '<div class="rule"><b>Çalışma alanı</b><span>'+num(x.workspaces)+' aktif</span></div>';
+ }catch(e){status.textContent='BEKLİYOR';grid.innerHTML='<div class="rec"><b>Core ilk kullanım için hazırlanıyor.</b><span class="meta">'+esc(e.message)+'</span></div>'}
+}
+async function bootstrapCore(){
+ const b=$('#btCoreBootstrap');if(!b)return;b.disabled=true;b.textContent='Başlatılıyor…';
+ try{await api('/api/admin/core/bootstrap',{method:'POST'});await loadCore()}catch(e){alert(e.message)}finally{b.disabled=false;b.textContent="BTMEDYA Core'u başlat"}
+}
+const coreBoot=$('#btCoreBootstrap');if(coreBoot)coreBoot.addEventListener('click',bootstrapCore);
+loadCore();setInterval(loadCore,60000);
