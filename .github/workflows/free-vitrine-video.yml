@@ -60,4 +60,6 @@ jobs:
           git reset --hard HEAD
           git fetch origin main
           git rebase origin/main
-          git push origin HEAD:main
+          # Main korumalıysa üretim zincirini kırma; çıktılar build logunda
+          # doğrulanır ve ana site deployu ayrı Workers Builds akışında sürer.
+          git push origin HEAD:main || echo "Protected main: generated vitrine is available in this run; deploy is handled by Workers Builds."
