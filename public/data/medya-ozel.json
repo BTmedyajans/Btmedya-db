@@ -32,11 +32,13 @@
   "media/portfoy/buse-tuncay-portre-03.webp": "Açık hava portre serisi — 03",
   "media/portfoy/buse-tuncay-portre-04.webp": "Açık hava portre serisi — 04",
   "media/portfoy/buse-tuncay-portre-05.webp": "Açık hava portre serisi — 05",
-  "media/portfoy/btmedya-saha-showreel.mp4": "Defile çekimi — BTMEDYA prodüksiyon"
+  "media/portfoy/btmedya-saha-showreel.mp4": "Defile çekimi — BTMEDYA prodüksiyon",
+  "media/ai-lab/hape-london-uiux-reference.mp4": "Dikey UI/UX demo — dış referans video"
  },
  "_poster": "Video kartlarinin kapak karesi. Poster yoksa kart video metadata'si gelene kadar siyah duruyor; vitrindeki tek video kartinin siyah kalmasi kotu goruntu veriyordu. Poster dosyalari kasaya girmez (tools/medya-listesi.mjs POSTER).",
  "poster": {
-  "media/portfoy/btmedya-saha-showreel.mp4": "media/portfoy/poster-btmedya-saha-showreel.webp"
+  "media/portfoy/btmedya-saha-showreel.mp4": "media/portfoy/poster-btmedya-saha-showreel.webp",
+  "media/ai-lab/hape-london-uiux-reference.mp4": "media/ai-lab/poster-hape-london-uiux-reference.webp"
  },
  "_vitrinSirasi": "Anasayfadaki GERCEK ARSIV vitrini ilk 8 kaydi gosterir. Alfabetik siralamada ayni cekimden bes portre ust uste geliyor, saha roportaji ve studyo kareleri disarida kaliyordu. Burada listelenenler verilen sirada basa gecer; listede olmayanlar arkadan gelir.",
  "vitrinSirasi": [
@@ -54,7 +56,8 @@
   "media/web/showreel-fantasy.mp4",
   "media/web/showreel-fantasy.webm",
   "media/web/showreel-flying-reporter.mp4",
-  "media/web/showreel-flying-reporter.webm"
+  "media/web/showreel-flying-reporter.webm",
+  "media/ai-lab/hape-london-uiux-reference.mp4"
  ],
  "_haric": "Icerik klasorunde olup kasada gorunmemesi gereken dosyalar.",
  "haric": [

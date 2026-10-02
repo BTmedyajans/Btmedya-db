@@ -505,29 +505,37 @@
   "category": "ai-lab"
  },
  {
-  "path": "media/kurumsal/btmedya-haber-masasi.webp",
+  "path": "media/ai-lab/hape-london-uiux-reference.mp4",
   "id": "static-102",
+  "category": "ai-lab",
+  "baslik": "Dikey UI/UX demo — dış referans video",
+  "poster": "media/ai-lab/poster-hape-london-uiux-reference.webp",
+  "vitrin": false
+ },
+ {
+  "path": "media/kurumsal/btmedya-haber-masasi.webp",
+  "id": "static-103",
   "category": "medya"
  },
  {
   "path": "media/kurumsal/btmedya-marka-kapak.webp",
-  "id": "static-103",
+  "id": "static-104",
   "category": "medya",
   "gercek": true
  },
  {
   "path": "media/kurumsal/btmedya-ofis-gun-batimi.webp",
-  "id": "static-104",
-  "category": "medya"
- },
- {
-  "path": "media/kurumsal/btmedya-studyo-pano.webp",
   "id": "static-105",
   "category": "medya"
  },
  {
-  "path": "media/portfoy/btmedya-saha-showreel.mp4",
+  "path": "media/kurumsal/btmedya-studyo-pano.webp",
   "id": "static-106",
+  "category": "medya"
+ },
+ {
+  "path": "media/portfoy/btmedya-saha-showreel.mp4",
+  "id": "static-107",
   "category": "portfoy",
   "gercek": true,
   "baslik": "Defile çekimi — BTMEDYA prodüksiyon",
@@ -536,7 +544,7 @@
  },
  {
   "path": "media/portfoy/buse-tuncay-iletisim-fakultesi.webp",
-  "id": "static-107",
+  "id": "static-108",
   "category": "portfoy",
   "gercek": true,
   "baslik": "İletişim Fakültesi önünde",
@@ -544,7 +552,7 @@
  },
  {
   "path": "media/portfoy/buse-tuncay-kamera-arkasi.webp",
-  "id": "static-108",
+  "id": "static-109",
   "category": "portfoy",
   "gercek": true,
   "baslik": "Kamera arkası — etkinlik çekimi",
@@ -552,7 +560,7 @@
  },
  {
   "path": "media/portfoy/buse-tuncay-portre-01.webp",
-  "id": "static-109",
+  "id": "static-110",
   "category": "portfoy",
   "gercek": true,
   "baslik": "Açık hava portre serisi — 01",
@@ -560,35 +568,35 @@
  },
  {
   "path": "media/portfoy/buse-tuncay-portre-02.webp",
-  "id": "static-110",
+  "id": "static-111",
   "category": "portfoy",
   "gercek": true,
   "baslik": "Açık hava portre serisi — 02"
  },
  {
   "path": "media/portfoy/buse-tuncay-portre-03.webp",
-  "id": "static-111",
+  "id": "static-112",
   "category": "portfoy",
   "gercek": true,
   "baslik": "Açık hava portre serisi — 03"
  },
  {
   "path": "media/portfoy/buse-tuncay-portre-04.webp",
-  "id": "static-112",
+  "id": "static-113",
   "category": "portfoy",
   "gercek": true,
   "baslik": "Açık hava portre serisi — 04"
  },
  {
   "path": "media/portfoy/buse-tuncay-portre-05.webp",
-  "id": "static-113",
+  "id": "static-114",
   "category": "portfoy",
   "gercek": true,
   "baslik": "Açık hava portre serisi — 05"
  },
  {
   "path": "media/portfoy/buse-tuncay-portre-siyah-beyaz.webp",
-  "id": "static-114",
+  "id": "static-115",
   "category": "portfoy",
   "gercek": true,
   "baslik": "Siyah beyaz stüdyo portresi",
@@ -596,7 +604,7 @@
  },
  {
   "path": "media/portfoy/buse-tuncay-saha-roportaj.webp",
-  "id": "static-115",
+  "id": "static-116",
   "category": "portfoy",
   "gercek": true,
   "baslik": "Saha röportajı — BTMEDYA mikrofonu",
@@ -604,7 +612,7 @@
  },
  {
   "path": "media/portfoy/buse-tuncay-studyo-kelebek.webp",
-  "id": "static-116",
+  "id": "static-117",
   "category": "portfoy",
   "gercek": true,
   "baslik": "Stüdyo — kelebek serisi",
@@ -612,12 +620,12 @@
  },
  {
   "path": "media/portfoy/buse-tuncay-sunucu-kirmizi.webp",
-  "id": "static-117",
+  "id": "static-118",
   "category": "portfoy"
  },
  {
   "path": "media/portfoy/buse-tuncay-yesil-perde-studyo.webp",
-  "id": "static-118",
+  "id": "static-119",
   "category": "portfoy",
   "gercek": true,
   "baslik": "Yeşil perde stüdyosu — çekim arası",
@@ -625,109 +633,109 @@
  },
  {
   "path": "media/portfoy/portfoy-video-01.mp4",
-  "id": "static-119",
+  "id": "static-120",
   "category": "portfoy"
  },
  {
   "path": "media/web/hero-story-mobile.mp4",
-  "id": "static-120",
-  "category": "video",
-  "gercek": true
- },
- {
-  "path": "media/web/hero-story.mp4",
   "id": "static-121",
   "category": "video",
   "gercek": true
  },
  {
-  "path": "media/web/showreel-07.mp4",
+  "path": "media/web/hero-story.mp4",
   "id": "static-122",
-  "category": "video"
+  "category": "video",
+  "gercek": true
  },
  {
-  "path": "media/web/showreel-07.webm",
+  "path": "media/web/showreel-07.mp4",
   "id": "static-123",
   "category": "video"
  },
  {
-  "path": "media/web/showreel-action.mp4",
+  "path": "media/web/showreel-07.webm",
   "id": "static-124",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-action.mp4",
+  "id": "static-125",
   "category": "video",
   "gercek": true
  },
  {
   "path": "media/web/showreel-action.webm",
-  "id": "static-125",
+  "id": "static-126",
   "category": "video"
  },
  {
   "path": "media/web/showreel-fantasy.mp4",
-  "id": "static-126",
-  "category": "video",
-  "vitrin": false
- },
- {
-  "path": "media/web/showreel-fantasy.webm",
   "id": "static-127",
   "category": "video",
   "vitrin": false
  },
  {
-  "path": "media/web/showreel-flying-reporter.mp4",
+  "path": "media/web/showreel-fantasy.webm",
   "id": "static-128",
   "category": "video",
   "vitrin": false
  },
  {
-  "path": "media/web/showreel-flying-reporter.webm",
+  "path": "media/web/showreel-flying-reporter.mp4",
   "id": "static-129",
   "category": "video",
   "vitrin": false
  },
  {
-  "path": "media/web/state-haber.mp4",
+  "path": "media/web/showreel-flying-reporter.webm",
   "id": "static-130",
-  "category": "video"
+  "category": "video",
+  "vitrin": false
  },
  {
-  "path": "media/web/state-medya.mp4",
+  "path": "media/web/state-haber.mp4",
   "id": "static-131",
   "category": "video"
  },
  {
-  "path": "media/web/state-produksiyon.mp4",
+  "path": "media/web/state-medya.mp4",
   "id": "static-132",
   "category": "video"
  },
  {
-  "path": "sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4",
+  "path": "media/web/state-produksiyon.mp4",
   "id": "static-133",
-  "category": "sosyal"
+  "category": "video"
  },
  {
-  "path": "sosyal/balikesir-pazarinda-canli-helva-sovu-dikey.mp4",
+  "path": "sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4",
   "id": "static-134",
   "category": "sosyal"
  },
  {
-  "path": "sosyal/el-emegi-yorganlar-artik-isitmiyor-dikey.mp4",
+  "path": "sosyal/balikesir-pazarinda-canli-helva-sovu-dikey.mp4",
   "id": "static-135",
   "category": "sosyal"
  },
  {
-  "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-1.jpg",
+  "path": "sosyal/el-emegi-yorganlar-artik-isitmiyor-dikey.mp4",
   "id": "static-136",
   "category": "sosyal"
  },
  {
-  "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-2.jpg",
+  "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-1.jpg",
   "id": "static-137",
   "category": "sosyal"
  },
  {
-  "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-3.jpg",
+  "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-2.jpg",
   "id": "static-138",
+  "category": "sosyal"
+ },
+ {
+  "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-3.jpg",
+  "id": "static-139",
   "category": "sosyal"
  }
 ]
