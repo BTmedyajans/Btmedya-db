@@ -109,7 +109,7 @@
     if(!bar || $('#clientAiGenerate'))return;
     const b=document.createElement('button');b.id='clientAiGenerate';b.className='btn primary';b.type='button';b.textContent='✦ AI ile üret';
     b.addEventListener('click',()=>generateAI().catch(e=>alert(e.message)));
-    bar.parentElement?.insertBefore(b,bar.parentElement.querySelector('#contents'));
+    bar.parentElement?.appendChild(b);
   }
 
   function injectContentTypes(){
