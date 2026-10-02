@@ -6,3 +6,11 @@
 .social-command{margin:16px 0}.social-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.social-card{border:1px solid #2a2f2f;border-radius:14px;padding:15px;background:#0e1111}.social-card b{display:block;font-size:15px}.social-card small{display:block;color:#8e9996;margin-top:5px;line-height:1.4}.social-card .social-status{display:inline-flex;margin-top:12px;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.05em;background:#171d1b;color:#b9c4c0}.social-card.ok .social-status{color:#8ff0b1}.social-card.warn .social-status{color:#ffd36a}.social-card.pending .social-status{color:#bfc7ff}.social-card a{display:inline-block;margin-top:10px;color:#d7ff4f;font-size:11px;text-decoration:none}.social-note{margin-top:10px;color:#8e9996;font-size:11px;line-height:1.5}
 @media(max-width:900px){.quick-actions{grid-template-columns:repeat(3,minmax(0,1fr))}.social-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.quick-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.quick-action{min-height:62px;padding:12px}.social-grid{grid-template-columns:1fr}.social-card{padding:14px}}
+
+/* BTMEDYA Agency OS v2: task-first command bar */
+.admin-commandbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+.admin-commandbar a{display:flex;flex-direction:column;gap:5px;padding:14px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:#101313;color:inherit;text-decoration:none;min-height:66px;transition:.2s ease}
+.admin-commandbar a:hover,.admin-commandbar a:focus-visible{border-color:#d7ff4f;transform:translateY(-2px);outline:none}
+.admin-commandbar small{opacity:.55;font-size:9px;letter-spacing:.12em}.admin-commandbar b{font-size:13px}
+@media(max-width:800px){.admin-commandbar{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.admin-commandbar{grid-template-columns:1fr}}
