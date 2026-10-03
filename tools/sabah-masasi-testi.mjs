@@ -94,6 +94,14 @@ const kv = new Map([['sabah:ayarlar', JSON.stringify({ model: '@cf/meta/llama-3.
 const ayar = await M.sabahAyarlari({ KV: { get: async k => kv.get(k) || null } });
 assert.equal(ayar.model, '@cf/openai/gpt-oss-120b');
 assert.equal(ayar.kategoriler.length, 8);
+// Kapak: alakası doğrulanmamış Openverse fotoğrafı varsayılan olarak kapak
+// yapılmaz (3 Ekim denetimi: yanlış spor, yanlış şehir, tanınabilir kişiler).
+{
+  const kaynak = (await import('node:fs')).readFileSync(new URL('../src/sabah-masasi.js', import.meta.url), 'utf8');
+  const cagri = kaynak.match(/const gorsel = [^\n]*/)[0];
+  assert.match(cagri, /env\.SABAH_FOTOGRAF === 'acik' \? await gorselBul/, 'fotoğraf araması bayraksız çalışmamalı');
+  assert.match(kaynak, /`\/assets\/kategori-kapak\/\$\{kat\.anahtar\}\.webp`/, 'fotoğrafsız haber kategori grafiğine düşmeli');
+}
 console.log('SABAH MASASI TESTLERİ GEÇTİ');
 
 // Kategori işçisi ayrı çağrıda çalışır: düz girdi/çıktı, aday yoksa kayıt yazmaz.

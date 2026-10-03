@@ -46,7 +46,7 @@ export const KATEGORILER = [
   { anahtar: 'saglik', kategori: 'Sağlık', kaynaklar: ['trt-saglik', 'sabah-saglik', 'balikesir-valilik', 'baun'] },
   // TRT spor akışı günlerce güncellenmeyebiliyor; Hürriyet ve Sabah yedek.
   { anahtar: 'spor', kategori: 'Spor', kaynaklar: ['trt-spor', 'hurriyet-spor', 'sabah-spor', 'baun'] },
-  { anahtar: 'teknoloji', kategori: 'Yapay Zekâ', kaynaklar: ['trt-teknoloji', 'hurriyet-teknoloji', 'aa-teknoloji', 'baun'] }
+  { anahtar: 'teknoloji', kategori: 'Teknoloji', kaynaklar: ['trt-teknoloji', 'hurriyet-teknoloji', 'aa-teknoloji', 'baun'] }
 ];
 
 const KAYNAK = {
@@ -767,7 +767,15 @@ async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit, son = [] }, denem
     }
     let slug = slugUret(y.baslik);
     if (await env.DB.prepare('SELECT 1 FROM news WHERE slug=?').bind(slug).first()) slug += '-' + Date.now().toString(36).slice(-4);
-    const gorsel = await gorselBul(env, y.gorselAnahtar, slug).catch(() => null);
+    /* 3 Ekim 2026 kapak denetimi: Openverse anahtar kelime aramasının ilk
+       karesi konuyla ilgisiz çıkıyordu (futbol haberine Amerikan futbolu,
+       benzin ÖTV'sine Kore'de gaz sayacı, doğum yardımına tanınabilir kişili
+       bir dolandırıcılık şeması, sağlık haberine çocukların klinik fotoğrafı).
+       Alakası doğrulanmamış fotoğraf kapak olmaz: varsayılan kapak kategori
+       grafiğidir, habere özel manşet kapağını günlük editör/süpervizör turu
+       tools/haber-kapagi.py ile üretir. Fotoğraf araması yalnız
+       SABAH_FOTOGRAF=acik ile, bilerek açılır. */
+    const gorsel = env.SABAH_FOTOGRAF === 'acik' ? await gorselBul(env, y.gorselAnahtar, slug).catch(() => null) : null;
     const not = [
       `Bu haber, ${o.kaynakAd} kaynağındaki bilgilerden BTMEDYA Sabah Masası tarafından yapay zekâ desteğiyle derlenmiştir${yayinla ? ' ve otomatik denetimlerden (rakam, özel ad ve dil kalitesi) geçerek yayımlanmıştır; editör denetiminden geçmemiştir' : ''}.`,
       gorsel ? `Kapaktaki görsel ${gorsel.kunye} lisanslıdır ve olayın kendisini göstermez.` : 'Kapak, BTMEDYA kategori grafiğidir; fotoğraf değildir.',
