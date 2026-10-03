@@ -4,6 +4,9 @@
   const ready=()=>{
     const root=document.querySelector('.cinematic-hero');
     if(!root)return;
+    /* Mobile uses the dedicated scroll motion layer. Do not inject a second
+       hero choice navigator into the same interaction surface. */
+    if(window.matchMedia('(max-width:720px)').matches)return;
     const copy=root.querySelector('.cinematic-copy');
     if(!copy || root.querySelector('.cinematic-choice-nav'))return;
     const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
