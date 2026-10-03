@@ -24,9 +24,9 @@
   const mobileHero=videos[0];
   const prepareMobileHero=()=>{
     if(!mobileHero) return;
-    const mobileSrc=mobileHero.dataset.mobile;
-    if(mobileSrc && mobileHero.getAttribute('src')!==mobileSrc){
-      mobileHero.src=mobileSrc;
+    const source=mobileHero.dataset.mobile || mobileHero.dataset.src;
+    if(source && mobileHero.getAttribute('src')!==source){
+      mobileHero.src=source;
       mobileHero.setAttribute('preload','metadata');
       mobileHero.load();
     }
@@ -41,6 +41,13 @@
       const a=s.yuva&&y&&y[s.yuva];
       if(!a||a.tur!=='video') return;
       s.source=a.gercek?'GERÇEK ÇEKİM':'AI ÜRETİMİ';
+      const el=videos[i];
+      if(el){
+        el.dataset.src=String(a.url||'');
+        delete el.dataset.mobile;
+        el.removeAttribute('poster');
+        if(i===state.active || i===0) prepareMobileHero();
+      }
       if(i===state.active&&source) source.textContent=s.source;
     });
   }).catch(()=>{});
@@ -131,6 +138,8 @@
 (()=>{
   const root=document.querySelector('.cinematic-hero');
   if(!root) return;
+  /* Mobile story scroll is the single entry experience. */
+  if(window.matchMedia('(max-width:720px)').matches) return;
   const sticky=root.querySelector('.cinematic-sticky');
   if(!sticky) return;
   const choices=[
@@ -181,4 +190,22 @@
       root.style.setProperty('--cursor-y',`${Math.max(-.5,Math.min(.5,y))*1.8}vh`);
     },{passive:true});
   }
+})();
+
+/* Mobile V3 lifecycle: the dedicated controller refreshes its travel distance
+   after orientation changes and preserves the lightweight mobile video source. */
+(()=>{
+  const mq=window.matchMedia('(max-width:720px)');
+  const refresh=()=>{
+    if(!mq.matches) return;
+    const root=document.querySelector('.cinematic-hero');
+    const sticky=root?.querySelector('.cinematic-sticky');
+    if(!root||!sticky) return;
+    root.style.height=Math.max(window.innerHeight*5.2,2600)+'px';
+  };
+  if(typeof mq.addEventListener==='function') mq.addEventListener('change',refresh);
+  else if(typeof mq.addListener==='function') mq.addListener(refresh);
+  window.addEventListener('orientationchange',()=>setTimeout(refresh,100),{passive:true});
+  window.addEventListener('pageshow',refresh,{passive:true});
+  refresh();
 })();
