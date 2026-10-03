@@ -167,6 +167,14 @@ jobs:
           test ! -e .github/workflows/media-smoke.yml
           test ! -e .github/workflows/storage-audit.yml
 
+      - name: D1 schema audit
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: latest
+          command: d1 execute btmedya-media --remote --command="PRAGMA table_info(media);"
+
       - name: Production smoke test
         run: |
           set -euo pipefail
