@@ -268,7 +268,8 @@ async function createSocialDraft(env,news,media,policy,runId){
     return {created:false,scheduled:false,reason:"BTMEDYA şirket Metricool Brand ID eksik."};
 
   const postId=crypto.randomUUID();
-  const body=String(news.excerpt||news.title||"")+"
+  const socialCopy=String(news.social_caption||news.excerpt||news.title||"").trim();
+  const body=socialCopy+"
 
 Haber: https://btmedya.com.tr/haberler/"+news.slug;
   const format=platformSlugs.some(x=>x==="youtube" || x==="tiktok") ? "9:16" : "4:5";
@@ -429,7 +430,7 @@ export async function runAutopilot(env,{force=false,limit}={}){
 
     let social=null;
     if(news.status==="published" && result.social_created < policy.maxSocialPerRun){
-      social=await createSocialDraft(env,{...news,title:draft.title,excerpt:draft.excerpt},media,policy,runId);
+      social=await createSocialDraft(env,{...news,title:draft.title,excerpt:draft.excerpt,social_caption:draft.social_caption},media,policy,runId);
       if(social?.created) result.social_created++;
       if(social?.scheduled) result.social_scheduled++;
     }
