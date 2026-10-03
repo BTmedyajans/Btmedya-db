@@ -357,6 +357,27 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   }
 }
 
+/* 13) Okur ölçümü kamuya açık her sayfada olmalı. 3 Ekim'e kadar Metricool
+       yalnızca anasayfadaydı; haber başına okunma hiç ölçülmüyordu. Yeni
+       sayfa eklenirken ya da şablon değişirken bu satır sessizce düşmesin.
+       Panel, müşteri önizleme, studio ve noindex dosya sayfası kapsam dışı. */
+{
+  const haric = /^public\/(admin|client|social-studio|dosyalar)\/|^public\/google[^/]*\.html$/;
+  const tara = (dizin) => readdirSync(dizin, { withFileTypes: true }).flatMap(g => {
+    const yol = join(dizin, g.name);
+    if (g.isDirectory()) return /^(assets|gorsel|data|media)$/.test(g.name) ? [] : tara(yol);
+    return g.name.endsWith('.html') ? [yol] : [];
+  });
+  for (const f of tara('public')) {
+    if (haric.test(f)) continue;
+    const html = readFileSync(f, 'utf8');
+    if (html.includes('</body>') && !html.includes('/olcum.js')) bulgular.push(`${f} okur ölçümü (/olcum.js) yüklemiyor; haber/sayfa okunması Metricool'a düşmez.`);
+  }
+  if (!readFileSync('src/news-page.js', 'utf8').includes('/olcum.js')) bulgular.push('src/news-page.js haber şablonu /olcum.js yüklemiyor; haber başına okunma ölçülmez.');
+  const olcum = readFileSync('public/olcum.js', 'utf8');
+  if (!/navigator\.webdriver/.test(olcum)) bulgular.push('public/olcum.js otomatik tarayıcıları ayıklamıyor; kendi testlerimiz okur sayısını şişirir.');
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
