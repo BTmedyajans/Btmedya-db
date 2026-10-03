@@ -269,9 +269,7 @@ async function createSocialDraft(env,news,media,policy,runId){
 
   const postId=crypto.randomUUID();
   const socialCopy=String(news.social_caption||news.excerpt||news.title||"").trim();
-  const body=socialCopy+"
-
-Haber: https://btmedya.com.tr/haberler/"+news.slug;
+  const body=socialCopy+"\n\nHaber: https://btmedya.com.tr/haberler/"+news.slug;
   const format=platformSlugs.some(x=>x==="youtube" || x==="tiktok") ? "9:16" : "4:5";
   const status=policy.autoScheduleSocial && scheduled ? "planlandi" : "onayda";
   await env.DB.prepare("INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,account_scope,metricool_brand_id,account_label,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
