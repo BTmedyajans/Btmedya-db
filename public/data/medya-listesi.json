@@ -639,14 +639,12 @@
  {
   "path": "media/web/hero-story-mobile.mp4",
   "id": "static-121",
-  "category": "video",
-  "gercek": true
+  "category": "video"
  },
  {
   "path": "media/web/hero-story.mp4",
   "id": "static-122",
-  "category": "video",
-  "gercek": true
+  "category": "video"
  },
  {
   "path": "media/web/showreel-07.mp4",
@@ -661,8 +659,7 @@
  {
   "path": "media/web/showreel-action.mp4",
   "id": "static-125",
-  "category": "video",
-  "gercek": true
+  "category": "video"
  },
  {
   "path": "media/web/showreel-action.webm",
