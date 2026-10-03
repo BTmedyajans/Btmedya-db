@@ -18,6 +18,8 @@ on:
 permissions:
   contents: read
 
+# Production verification is intentionally retained in the main deployment path.
+
 concurrency:
   group: btmedya-production-verify
   cancel-in-progress: true
