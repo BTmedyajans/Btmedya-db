@@ -1,0 +1,14 @@
+/* BTMEDYA mobil dokunma alanları · 2026-10-03
+   Neden: bu sayfalardaki tek başına duran metin bağlantıları telefonda 11-35 px
+   yüksekliğindeydi; parmakla isabet zor, yanlış bağlantıya basılıyordu.
+   Apple/Google önerisi en az 44 px. Yalnız mobilde, yalnız bağımsız bağlantılar. */
+@media (max-width:720px){
+  main.pf .card-body>a,main.pf section.cta a.button,
+  ol.bolum>li>a,.kaynak .card h3>a,
+  .case-study-list article a,
+  body>header>a.logo,main section .head>a,main .loading>a,main section.founder a.button,
+  header.top>a.brand,header.top>a.back,
+  .package-card>a,
+  footer nav>a,footer>a{display:inline-flex;align-items:center;min-height:44px}
+  footer nav{display:flex;flex-wrap:wrap;column-gap:16px}
+}
