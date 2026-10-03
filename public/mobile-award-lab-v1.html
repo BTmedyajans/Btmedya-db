@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BTMEDYA / Mobile Award Lab</title>
+<style>
+:root{color-scheme:dark;--bg:#050505;--fg:#f4f4ef;--muted:#8d8d88;--lime:#c8ff2c;--cyan:#72e7ff;--line:rgba(255,255,255,.12)}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{min-height:100vh}
+.lab{position:fixed;inset:0;z-index:20;background:var(--bg);overflow:auto}
+.head{position:sticky;top:0;z-index:3;padding:14px 16px 12px;background:rgba(5,5,5,.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.brand{font-weight:900;letter-spacing:.14em}.tag{font-size:10px;letter-spacing:.16em;color:var(--lime)}
+.intro{padding:30px 18px 22px;max-width:720px}.kicker{font-size:10px;letter-spacing:.18em;color:var(--cyan);font-weight:800}.intro h1{font-size:clamp(34px,11vw,64px);line-height:.92;letter-spacing:-.055em;margin:12px 0 14px}.intro p{color:#aaa;line-height:1.55;font-size:14px;margin:0}
+.rail{display:flex;gap:8px;overflow:auto;padding:0 18px 18px;scrollbar-width:none}.rail::-webkit-scrollbar{display:none}.chip{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;padding:9px 12px;font-size:10px;letter-spacing:.1em;text-transform:uppercase}.chip.active{background:var(--lime);color:#080808;border-color:var(--lime);font-weight:900}
+.grid{display:grid;gap:10px;padding:0 12px 100px}.card{position:relative;min-height:190px;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:linear-gradient(145deg,#121212,#080808);padding:18px;display:flex;flex-direction:column;justify-content:flex-end}.card:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 15%,rgba(114,231,255,.16),transparent 36%),linear-gradient(135deg,transparent 50%,rgba(200,255,44,.06));pointer-events:none}.num{position:absolute;top:15px;left:16px;font-size:10px;color:var(--muted);letter-spacing:.14em}.card h2{position:relative;font-size:25px;letter-spacing:-.035em;margin:0 0 6px}.card p{position:relative;margin:0;color:#a7a7a2;font-size:12px;line-height:1.45;max-width:34em}.meta{position:relative;margin-top:12px;font-size:9px;letter-spacing:.14em;color:var(--lime);text-transform:uppercase}.wide{min-height:260px}.lab-note{margin:0 18px 22px;border:1px dashed rgba(200,255,44,.35);border-radius:16px;padding:14px;color:#a9a9a4;font-size:11px;line-height:1.5}.lab-note strong{color:var(--fg)}
+@media(min-width:700px){.grid{grid-template-columns:1fr 1fr;max-width:980px;margin:auto}.wide{grid-column:span 2}.intro,.rail{max-width:980px;margin:auto}.head{padding-left:max(16px,calc((100vw - 980px)/2));padding-right:max(16px,calc((100vw - 980px)/2))}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="lab">
+<header class="head"><div class="brand">BTMEDYA</div><div class="tag">MOBILE AWARD LAB / V1</div></header>
+<section class="intro"><div class="kicker">EDITORIAL × MOTION × BRAND</div><h1>Telefon ekranında<br>marka hissi.</h1><p>Bu laboratuvar, mevcut BTMEDYA yapısının mobil deneyimini ödüllü dijital deneyimlerde öne çıkan editoryal ritim, tipografi, sinematik medya ve dokunmatik navigasyon ilkeleriyle yeniden düşünmek için hazırlandı.</p></section>
+<nav class="rail" aria-label="Lab bölümleri"><span class="chip active">Haber</span><span class="chip">Saha</span><span class="chip">Studio</span><span class="chip">Portföy</span><span class="chip">AI Lab</span><span class="chip">Teklif</span></nav>
+<section class="grid">
+<article class="card wide"><span class="num">01 / HERO</span><h2>Hikâyeyi ilk 3 saniyede kur.</h2><p>Gerçek görüntü, tek güçlü başlık, tek ana aksiyon. Hero alanında bilgi kalabalığı yerine ritim ve marka imzası.</p><div class="meta">Cinematic first impression</div></article>
+<article class="card"><span class="num">02 / NEWS</span><h2>Haber kartları dergi ritminde.</h2><p>Başlık, zaman, kaynak ve görsel hiyerarşisi. Okuma akışı tek parmakla kayarken içerik yoğunluğu kontrollü kalır.</p><div class="meta">Editorial hierarchy</div></article>
+<article class="card"><span class="num">03 / MOTION</span><h2>Hareket var, gürültü yok.</h2><p>Scroll ve reveal animasyonları içerik anlamını destekler. Reduced-motion durumunda deneyim tamamen işlevsel kalır.</p><div class="meta">Motion with purpose</div></article>
+<article class="card"><span class="num">04 / BRAND</span><h2>Lime + siyah + medya.</h2><p>Asit yeşili yalnızca aksiyon ve durum sinyali olarak kullanılır. Tipografi ve boşluk markanın ana taşıyıcısıdır.</p><div class="meta">Distinctive system</div></article>
+<article class="card"><span class="num">05 / AI LAB</span><h2>AI ayrı bir dünya, aynı marka.</h2><p>AI üretimleri açıkça etiketlenir. Gerçek saha ve portföy içeriğiyle karışmadan aynı görsel sistem içinde yaşar.</p><div class="meta">Transparent AI layer</div></article>
+<article class="card"><span class="num">06 / CONVERSION</span><h2>Teklif alanı satış baskısı değil, çıkış kapısı.</h2><p>WhatsApp ve iletişim aksiyonları thumb-zone içinde, içerik akışını bozmadan görünür tutulur.</p><div class="meta">Low-friction contact</div></article>
+</section>
+<div class="lab-note"><strong>Sonraki adım:</strong> Manus prototipi geldiğinde bu benchmark katmanını onun güçlü fikirleriyle karşılaştırıp, tekrar eden veya markayı zayıflatan parçaları ayıklayarak tek bir BTMEDYA mobil sistemine dönüştüreceğim. Canlı siteye geçiş yine senin onayınla yapılacak.</div>
+</main>
+</body>
+</html>
