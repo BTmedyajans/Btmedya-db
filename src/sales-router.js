@@ -278,17 +278,54 @@ async function clientHubApi(request,env,url){
   return j({ok:false,error:'Client Hub endpoint bulunamadı'},404);
 }
 
-export async function salesApi(request,env,url){
+/* Teklif talebi geldiğinde ekibe anında e-posta. Talep yalnız D1'de kalırsa
+   kimse görmüyordu; satış, ilk yanıtın hızına bağlı. Resend yoksa sessizce
+   atlanır, talep yine kaydedilir ve panelde görünür. */
+export async function teklifBildirimi(env,l){
+  if(!env.RESEND_API_KEY) return false;
+  const e=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const satir=(k,v)=>`<tr><th style="background:#f5f5f5;text-align:left;padding:8px 12px;width:120px;vertical-align:top">${k}</th><td style="padding:8px 12px;border-bottom:1px solid #eee;white-space:pre-wrap">${e(v||'—')}</td></tr>`;
+  const html=`<div style="font-family:sans-serif;max-width:640px;margin:auto"><h2 style="border-bottom:2px solid #eee;padding-bottom:8px">Yeni teklif talebi</h2><table style="border-collapse:collapse;width:100%">${satir('Ad Soyad',l.name)}${satir('Firma',l.company)}${satir('Telefon',l.phone)}${satir('E-posta',l.email)}${satir('Hizmet',l.service)}${satir('Bütçe',l.budget)}${satir('Geldiği yer',l.source)}${satir('Proje',l.message)}</table><p style="margin-top:20px"><a href="https://btmedya.com.tr/admin/sales/" style="background:#111;color:#fff;padding:10px 16px;text-decoration:none">Satış masasında aç</a></p><p style="font-size:12px;color:#999">btmedya.com.tr teklif formu · ${new Date().toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'})}</p></div>`;
+  try{
+    const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{'Authorization':`Bearer ${env.RESEND_API_KEY}`,'Content-Type':'application/json'},
+      body:JSON.stringify({from:env.RESEND_FROM||'BTMEDYA <noreply@btmedya.com.tr>',to:[env.RESEND_TO||'info@btmedya.com.tr'],reply_to:l.email||undefined,subject:`[BTMEDYA] Yeni teklif: ${l.service||'Genel'} — ${l.name}`,html})});
+    if(!r.ok) console.error('[teklif] Resend hatası',r.status);
+    return r.ok;
+  }catch(err){ console.error('[teklif] Resend fetch hatası',err?.message||err); return false; }
+}
+
+/* Kamuya açık form: bot tuzağı (_honey) doluysa kaydetmeden "tamam" döner,
+   IP başına saatte 5 talep. Bot ve spam kaydı satış kuyruğunu kirletir. */
+const TEKLIF_SINIR=5;
+async function teklifHizSiniri(env,ip){
+  if(!env.KV||!ip) return true;
+  const k=`ratelimit:teklif:${ip}`;
+  const n=Number(await env.KV.get(k).catch(()=>0)||0);
+  if(n>=TEKLIF_SINIR) return false;
+  await env.KV.put(k,String(n+1),{expirationTtl:3600}).catch(()=>{});
+  return true;
+}
+
+export async function salesApi(request,env,url,ctx){
   const hub=await clientHubApi(request,env,url); if(hub)return hub;
   if(!url.pathname.startsWith('/api/sales/')) return null;
   if(!env.DB)return j({ok:false,error:'CRM veritabanı bağlı değil'},503);
   if(url.pathname==='/api/sales/lead' && request.method==='POST'){
     const b=await request.json().catch(()=>null);
+    if(b&&b._honey) return j({ok:true,stage:'new',message:'Talebiniz satış kuyruğuna alındı.'},201);
     if(!b||!clean(b.name,160)||!clean(b.message,4000)) return j({ok:false,error:'Ad ve proje açıklaması gerekli'},400);
+    if(!clean(b.email,320)&&!clean(b.phone,80)) return j({ok:false,error:'Size dönebilmemiz için e-posta veya telefon gerekli'},400);
+    if(b.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(b.email).trim())) return j({ok:false,error:'Geçersiz e-posta adresi'},400);
+    if(!(await teklifHizSiniri(env,request.headers.get('cf-connecting-ip')))) return j({ok:false,error:'Çok fazla talep gönderildi; lütfen biraz sonra tekrar deneyin veya WhatsApp\'tan yazın.'},429);
     const now=new Date().toISOString(), id=crypto.randomUUID();
-    const source=clean(b.source||'web',80);
+    // Geldiği yer: form kaynağı + talebin başladığı sayfa (ör. "website-offer · /haberler/x").
+    const sayfa=clean(b.sayfa,120).replace(/[^\w\/\-.?=&%]/g,'');
+    const source=clean([clean(b.source||'web',40),sayfa].filter(Boolean).join(' · '),80);
+    const lead={id,name:clean(b.name,160),email:clean(b.email,320),phone:clean(b.phone,80),company:clean(b.company,180),service:clean(b.service,180),budget:clean(b.budget,120),message:clean(b.message,4000),source};
     await env.DB.prepare('INSERT INTO sales_leads (id,contact_id,name,email,phone,company,service,budget,message,source,stage,priority,next_action,next_action_at,notes,consent,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
-      .bind(id,b.contact_id?Number(b.contact_id):null,clean(b.name,160),clean(b.email,320),clean(b.phone,80),clean(b.company,180),clean(b.service,180),clean(b.budget,120),clean(b.message,4000),source,'new',clean(b.priority||'normal',20),clean(b.next_action,500),b.next_action_at||null,clean(b.notes,2000),b.consent?1:0,now,now).run();
+      .bind(id,b.contact_id?Number(b.contact_id):null,lead.name,lead.email,lead.phone,lead.company,lead.service,lead.budget,lead.message,source,'new',clean(b.priority||'normal',20),'İlk dönüş: 24 saat içinde ara/yaz',new Date(Date.now()+86400000).toISOString(),clean(b.notes,2000),b.consent?1:0,now,now).run();
+    const bildirim=teklifBildirimi(env,lead);
+    if(ctx&&ctx.waitUntil) ctx.waitUntil(bildirim); else await bildirim;
     return j({ok:true,id,stage:'new',message:'Talebiniz satış kuyruğuna alındı.'},201);
   }
   if(!(await session(request,env.ADMIN_SESSION_SECRET_SECRET))) return j({ok:false,error:'Yetkisiz'},401);

@@ -1893,7 +1893,7 @@ export default { async scheduled(controller, env, ctx){
     if(aiCommand) return audit(aiCommand);
     const command = await adminCommandApi(request, env, url);
     if(command) return audit(command);
-    const rSales = await salesApi(request, env, url);
+    const rSales = await salesApi(request, env, url, ctx);
     if(rSales) return audit(rSales);
     const ras = await agencySupervisorApi(request, env, url);
     if(ras) return audit(ras);
