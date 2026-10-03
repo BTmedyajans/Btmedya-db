@@ -153,3 +153,24 @@ export async function merakRadariDurumu(env){
     {name:"Siyah Oda",days:"Haftada 1-2",rule:"Uzmanlık, veri ve derinlemesine tartışma gerektiren güçlü konu olduğunda."}
   ]};
 }
+
+
+export async function ozelHaberPaketiUret(env,{id}={}){
+  await ensureTables(env);
+  if(!env.DB) return {ok:false,error:"D1 bağlı değil."};
+  const row=await env.DB.prepare("SELECT * FROM ozel_haber_firsatlari WHERE id=?").bind(Number(id)).first().catch(()=>null);
+  if(!row) return {ok:false,error:"Özel haber fırsatı bulunamadı."};
+  var sorular=[]; var kaynaklar=[];
+  try{sorular=JSON.parse(row.sorular||"[]");}catch{}
+  try{kaynaklar=JSON.parse(row.kaynaklar||"[]");}catch{}
+  const temel={konu:row.konu,kategori:row.kategori,baslik:row.baslik,neden:row.neden,ozgun_aci:row.ozgun_aci,format:row.format,konuk_profili:row.konuk_profili,sorular:sorular,kaynaklar:kaynaklar,risk:row.risk};
+  if(!env.AI) return {ok:true,source:"şablon",paket:{...temel,baslik_alternatifleri:[row.baslik],spot_taslagi:"Kaynak ve saha verisi doğrulanmadan yayınlanmayacak.",kontrol_listesi:["Kaynağın güncelliğini doğrula","Resmî belge/veriyi bul","Karşı görüşleri ara","BTMEDYA arşivini kontrol et"],sosyal_metni:"Araştırma dosyası hazırlanıyor. Doğrulanmış gelişmeleri BTMEDYA'da takip edin.",video_script_60s:["Giriş: Soruyu tek cümlede sor.","Orta: doğrulanabilir veri ve saha görüşü.","Kapanış: kaynağı ve sonraki adımı belirt."]}};
+  try{
+    const prompt=["BTMEDYA Özel Haber Üretim Masası.","Aşağıdaki fırsatı yayınlanmış bir gerçek gibi kabul etme.","Yalnız araştırma paketi oluştur. Bilinmeyen hiçbir şeyi tamamlamadan VERIFY yaz.","Kaynak URL'lerini koru. Üçüncü taraf metinleri kopyalama.","JSON alanları: baslik_alternatifleri, spot_taslagi, arastirma_sorulari, veri_ve_belge_kontrolu, konuk_ve_saha_plani, sosyal_metni, video_script_60s, gorsel_plani, risk_notu.","Fırsat: "+JSON.stringify(temel)].join("\n");
+    const ai=await env.AI.run("@cf/openai/gpt-oss-120b",{messages:[{role:"system",content:"Kaynaklı gazetecilik araştırma yardımcısısın. Uydurma bilgi verme. Eksik bilgiye VERIFY yaz. Kısa ve uygulanabilir Türkçe JSON üret."},{role:"user",content:prompt}],max_tokens:1800,temperature:0.1});
+    var raw=String(ai&&ai.response||ai&&ai.output_text||"").trim();
+    var m=raw.match(/\\{[\\s\\S]*\\}/);
+    if(m) return {ok:true,source:"workers-ai",id:Number(row.id),paket:JSON.parse(m[0]),temel:temel};
+  }catch(e){ return {ok:false,error:String(e&&e.message||e).slice(0,400),temel:temel}; }
+  return {ok:true,source:"şablon",paket:temel};
+}
