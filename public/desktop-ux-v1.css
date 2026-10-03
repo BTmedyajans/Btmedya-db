@@ -1,0 +1,116 @@
+/* BTMEDYA DESKTOP UX V1 / 2026-10-03
+   Desktop finishing pass after mobile-first stabilization.
+   Goal: stronger hierarchy, calmer scan paths, better conversion without
+   changing the editorial identity or real-media policy. */
+@media (min-width:721px){
+  :root{
+    --bt-desktop-gutter:clamp(28px,4vw,72px);
+    --bt-desktop-max:1440px;
+    --bt-desktop-gap:clamp(18px,2vw,32px);
+  }
+
+  body{overflow-x:clip}
+  main{overflow:clip}
+
+  .topbar{
+    min-height:72px!important;
+    padding-inline:var(--bt-desktop-gutter)!important;
+    position:sticky!important;
+    top:0!important;
+    z-index:80!important;
+  }
+  .topbar .brand-logo{width:154px!important;max-width:none!important}
+  .topbar-right{gap:18px!important}
+  .top-cta{min-height:44px!important;padding-inline:20px!important}
+
+  /* Keep each editorial section inside a readable visual field. */
+  .section,.manifesto,.story-lab,.founder-section,.contact-section,
+  .source-section,.archive-section,.revenue-section,.ai-section,.bt-world{
+    padding-left:var(--bt-desktop-gutter)!important;
+    padding-right:var(--bt-desktop-gutter)!important;
+  }
+  .section>*:not(.full-bleed),.manifesto>*:not(.full-bleed),.founder-section>*:not(.full-bleed),
+  .contact-section>*:not(.full-bleed),.source-section>*:not(.full-bleed),.archive-section>*:not(.full-bleed),
+  .revenue-section>*:not(.full-bleed),.ai-section>*:not(.full-bleed),.bt-world>*:not(.full-bleed){
+    max-width:var(--bt-desktop-max);
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  .section-head{display:grid!important;grid-template-columns:minmax(0,1.05fr) minmax(320px,.72fr)!important;gap:clamp(40px,7vw,120px)!important;align-items:end!important}
+  .section-head h2,.manifesto h2,.bt-world-head h2{max-width:9ch!important}
+  .section-side{max-width:48ch!important}
+
+  /* Hero: one clear headline, one clear action path. */
+  .cinematic-sticky{min-height:calc(100svh - 72px)!important}
+  .cinematic-copy{width:min(1180px,calc(100% - 2 * var(--bt-desktop-gutter)))!important;margin-inline:auto!important}
+  .cinematic-title{max-width:9ch!important;font-size:clamp(72px,8vw,128px)!important;line-height:.84!important}
+  .cinematic-lead{max-width:52ch!important;font-size:16px!important;line-height:1.65!important}
+  .cinematic-actions .button{min-height:48px!important;padding-inline:22px!important}
+
+  /* Primary content blocks: less wall-of-cards, more deliberate grouping. */
+  .bt-world-stage,.story-stage,.ai-stage{
+    max-width:var(--bt-desktop-max)!important;
+    margin-inline:auto!important;
+    border-radius:28px!important;
+  }
+  .bt-world-stage{min-height:560px!important}
+  .bt-world-nav{gap:10px!important}
+  .bt-world-tab{min-height:76px!important;padding:16px 18px!important}
+
+  .news-grid{grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:16px!important}
+  .news-card{grid-column:span 4!important}
+  .news-card.featured{grid-column:span 6!important}
+  .news-card .news-media{aspect-ratio:16/10!important}
+  .news-body{padding:20px!important}
+  .news-body h3{font-size:clamp(20px,1.7vw,30px)!important;line-height:1.02!important}
+
+  .service-grid,.ai-grid,.source-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important}
+  .service-grid article,.ai-grid article,.source-grid a{min-height:190px!important;padding:22px!important;border-radius:20px!important}
+  .service-grid h3,.ai-grid h3,.source-grid h3{font-size:18px!important}
+  .service-grid p,.ai-grid p,.source-grid p{font-size:12px!important;line-height:1.55!important}
+
+  /* Portfolio and archive: image first, metadata second. */
+  .portfoy-grid,.archive-live-grid{grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:16px!important}
+  .portfoy-kart,.archive-live-card{grid-column:span 4!important}
+  .portfoy-kart.featured,.archive-live-card.featured{grid-column:span 6!important}
+  .portfoy-kapak,.archive-live-card .archive-media{aspect-ratio:16/10!important;height:auto!important;object-fit:cover!important}
+  .portfoy-metin,.archive-live-card .archive-copy{padding:18px!important}
+
+  /* Social desk: the cards read like a live newsroom feed rather than a
+     dashboard squeezed into the page. */
+  .social-profiles{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important}
+  .social-feed-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important}
+  .social-profile-card{min-height:104px!important;padding:17px!important}
+
+  /* Commercial section: package comparison stays visible without tiny type. */
+  .offer-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px!important}
+  .offer-card{min-height:330px!important;padding:24px!important}
+  .offer-card h3{font-size:24px!important;line-height:1!important}
+
+  /* Founder and contact: create an editorial pause before conversion. */
+  .founder-section .founder-grid,.founder-section .founder-layout{grid-template-columns:minmax(0,1.05fr) minmax(320px,.75fr)!important;gap:clamp(40px,7vw,110px)!important;align-items:center!important}
+  .founder-section img{max-height:760px!important;object-fit:cover!important}
+  .contact-links{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+  .contact-links a{min-height:72px!important;padding:16px 18px!important}
+
+  /* Menu becomes a real information architecture layer. */
+  .menu-panel-inner{width:min(1280px,calc(100% - 2 * var(--bt-desktop-gutter)))!important;margin-inline:auto!important}
+  .menu-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important}
+  .menu-grid section{min-height:170px!important;padding:18px!important;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(255,255,255,.025)}
+
+  /* Reduce visual fatigue on very tall pages. */
+  .section,.manifesto,.story-lab,.founder-section,.contact-section,.source-section,.archive-section,.revenue-section,.ai-section,.bt-world{
+    scroll-margin-top:86px;
+  }
+}
+
+@media (min-width:1280px){
+  .cinematic-title{font-size:clamp(96px,8.2vw,142px)!important}
+  .news-grid,.portfoy-grid,.archive-live-grid{gap:20px!important}
+  .service-grid,.ai-grid,.source-grid{gap:16px!important}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .news-card,.service-grid article,.source-grid a,.ai-grid article,.archive-card{transform:none!important}
+}
