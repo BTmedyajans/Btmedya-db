@@ -7,7 +7,7 @@ import { runNewsIntelligence, newsIntelligenceStatus } from "./news-intelligence
 import { merakRadariCalistir, merakRadariDurumu, ozelHaberPaketiUret } from "./merak-radari.js";
 import { recoveryPasswordValid } from "./auth-recovery.js";
 import { runAutopilot, autopilotPolicy, setAutopilotPolicy, autopilotStatus, connectionMatrix, referenceDraft, generateAutopilotImage } from "./autopilot.js";
-import { salesApi } from "./sales-router.js";
+import { salesApi, satisOzeti } from "./sales-router.js";
 import { agencySupervisorApi, runAgencySupervisor } from "./agency-supervisor.js";
 import { ensureBtmedyaCore, btmedyaCoreApi } from "./btmedya-core.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
@@ -1776,7 +1776,11 @@ export default { async scheduled(controller, env, ctx){
     const masa=sabahMasasi(env)
       .then(r=>console.log('[btmedya] sabah masasi',r.yayinlanan,'yayinda',r.taslak,'taslak',r.hatalar.length,'hata'))
       .catch(e=>console.error('[btmedya] sabah masasi:',e?.message||e));
-    if(ctx?.waitUntil) ctx.waitUntil(masa); else await masa;
+    // Sabah satış özeti: yeni talepler, geciken dönüşler, dünkü temaslar.
+    const ozet=satisOzeti(env)
+      .then(r=>console.log('[btmedya] satis ozeti',JSON.stringify(r)))
+      .catch(e=>console.error('[btmedya] satis ozeti:',e?.message||e));
+    if(ctx?.waitUntil){ ctx.waitUntil(masa); ctx.waitUntil(ozet); } else await Promise.allSettled([masa,ozet]);
     return;
   }
   const autopilot=(controller && controller.cron==='*/15 * * * *')
