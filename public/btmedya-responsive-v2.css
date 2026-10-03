@@ -84,3 +84,96 @@ button,a{touch-action:manipulation}
 @media (prefers-reduced-motion:reduce){
   .news-card:hover,.portfoy-kart:hover,.bt-world-tab:hover{transform:none!important}
 }
+
+/* BTMEDYA Mobile V3 / final conflict hardening
+   Keep only cross-file conflicts here. Component-specific responsive layout
+   remains in the dedicated mobile/section stylesheets. */
+@media (max-width:720px){
+  html{scrollbar-gutter:auto}
+  body{
+    overflow-x:clip;
+    overscroll-behavior-x:none;
+    padding-bottom:calc(88px + var(--bt-safe-bottom))!important;
+  }
+  body.menu-open{overflow:hidden;overscroll-behavior:none}
+
+  .topbar .top-meta{display:none!important}
+  .topbar .brand{min-width:0;max-width:48vw}
+  .topbar .brand-logo{width:auto!important;max-width:48vw!important}
+  .hamburger{min-width:48px!important;min-height:48px!important}
+
+  .menu-panel{inset:0!important;z-index:120!important}
+  .menu-panel-inner{padding-top:calc(78px + env(safe-area-inset-top))!important}
+  .menu-open .mobile-quick-nav{display:none!important}
+
+  .mobile-quick-nav{
+    left:10px!important;
+    right:10px!important;
+    bottom:calc(10px + var(--bt-safe-bottom))!important;
+    z-index:100!important;
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    gap:3px!important;
+    padding:5px!important;
+  }
+  .mobile-quick-nav a{
+    min-width:0!important;
+    min-height:52px!important;
+    padding:6px 2px!important;
+    overflow:hidden;
+  }
+  .mobile-quick-nav a small{
+    max-width:100%;
+    font-size:8px;
+    line-height:1;
+    letter-spacing:.055em;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .hero-customer-choices,.cinematic-choice-nav{display:none!important}
+
+  .cinematic-hero.bt-mobile-motion .cinematic-progress{
+    left:18px!important;
+    right:18px!important;
+    bottom:calc(84px + var(--bt-safe-bottom))!important;
+  }
+  .cinematic-hero.bt-mobile-motion .cinematic-mobile-hint{
+    bottom:calc(96px + var(--bt-safe-bottom))!important;
+  }
+  .cinematic-hero.bt-mobile-motion .cinematic-index{
+    top:max(76px,calc(env(safe-area-inset-top) + 62px))!important;
+    bottom:auto!important;
+  }
+  .cinematic-hero.bt-mobile-motion .cinematic-copy{
+    bottom:max(82px,calc(env(safe-area-inset-bottom) + 74px))!important;
+    padding-bottom:0!important;
+  }
+
+  .floating-whatsapp{
+    right:14px!important;
+    bottom:calc(86px + var(--bt-safe-bottom))!important;
+    z-index:95!important;
+  }
+
+  .news-card,.service-grid article,.ai-grid article,.source-grid a,
+  .portfoy-kart,.archive-live-card,.offer-card{
+    min-width:0!important;
+    max-width:100%;
+  }
+  .news-body h3,.portfoy-metin h3,.service-grid h3,.ai-grid h3,.offer-card h3{
+    overflow-wrap:anywhere;
+  }
+  img,video,iframe,canvas,svg{max-width:100%}
+}
+@media (max-width:390px){
+  .topbar .brand,.topbar .brand-logo{max-width:44vw!important}
+  .mobile-quick-nav{left:7px!important;right:7px!important}
+  .mobile-quick-nav a small{font-size:7.5px;letter-spacing:.03em}
+  .mobile-quick-nav a span{font-size:13px}
+  .cinematic-title{font-size:40px!important}
+}
+@media (prefers-reduced-motion:reduce){
+  .mobile-quick-nav a,.cinematic-hero .cinematic-video,
+  .cinematic-hero .cinematic-visual{transition:none!important}
+  .cinematic-hero .cinematic-copy{transform:none!important}
+}
