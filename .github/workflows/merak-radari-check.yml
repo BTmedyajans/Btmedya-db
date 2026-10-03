@@ -1,0 +1,55 @@
+name: BTMEDYA Merak Radarı Check
+
+on:
+  pull_request:
+    paths:
+      - "src/merak-radari.js"
+      - "src/worker.js"
+      - "public/admin/merak-radari/**"
+      - "public/siyah-oda/**"
+      - "public/halk-roportaji/**"
+      - "public/index.html"
+      - "public/admin/agency-os/index.html"
+      - "public/programlar-v1.css"
+      - "migrations/0016_merak_radari.sql"
+  push:
+    branches:
+      - "feat/btmedya-merak-radari-studio"
+    paths:
+      - "src/merak-radari.js"
+      - "src/worker.js"
+      - "public/admin/merak-radari/**"
+      - "public/siyah-oda/**"
+      - "public/halk-roportaji/**"
+      - "public/index.html"
+      - "public/admin/agency-os/index.html"
+      - "public/programlar-v1.css"
+      - "migrations/0016_merak_radari.sql"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: JavaScript syntax
+        run: |
+          node --check src/merak-radari.js
+          node --check src/worker.js
+          node --check public/admin/agency-os/agency-os.js
+      - name: Required files and wiring
+        run: |
+          test -s migrations/0016_merak_radari.sql
+          test -s public/admin/merak-radari/index.html
+          test -s public/siyah-oda/index.html
+          test -s public/halk-roportaji/index.html
+          test -s public/programlar-v1.css
+          grep -q 'merak-radari' src/worker.js
+          grep -q '/api/admin/merak-radari' src/worker.js
+          grep -q 'SİYAH ODA' public/index.html
+          grep -q 'HALK RÖPORTAJI' public/index.html
