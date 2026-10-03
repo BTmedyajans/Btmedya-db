@@ -19,6 +19,44 @@ export function metricoolConnectedNetworks(env) {
   return new Set(raw.split(",").map(x => x.trim().toLowerCase()).filter(x => SOCIAL_PROVIDERS[x]));
 }
 
+export const SOCIAL_ACCOUNT_SCOPES = {
+  company: {
+    label: "BTMEDYA Şirket",
+    brandEnv: "METRICOOL_BRAND_ID",
+    networksEnv: "METRICOOL_CONNECTED_NETWORKS",
+  },
+  personal: {
+    label: "Kişisel",
+    brandEnv: "METRICOOL_PERSONAL_BRAND_ID",
+    networksEnv: "METRICOOL_PERSONAL_CONNECTED_NETWORKS",
+  },
+};
+
+export function metricoolAccountConfig(env, scope = "company") {
+  const key = scope === "personal" ? "personal" : "company";
+  const cfg = SOCIAL_ACCOUNT_SCOPES[key];
+  const brandId = String(env?.[cfg.brandEnv] ?? "").trim();
+  const fallback = key === "company" ? "tiktok,youtube" : "";
+  const raw = String(env?.[cfg.networksEnv] ?? fallback);
+  const connectedNetworks = new Set(
+    raw.split(",")
+      .map(x => x.trim().toLowerCase())
+      .filter(x => SOCIAL_PROVIDERS[x])
+  );
+  return {
+    scope: key,
+    label: cfg.label,
+    brandId,
+    connectedNetworks,
+    configured: Boolean(brandId),
+  };
+}
+
+export function metricoolAccountCanPublish(env, scope, network) {
+  const account = metricoolAccountConfig(env, scope);
+  return account.configured && account.connectedNetworks.has(String(network || "").toLowerCase());
+}
+
 export function socialProviderStatus(env) {
   const metricool = Boolean(String(env?.METRICOOL_USER_TOKEN ?? "").trim());
   const connected = metricoolConnectedNetworks(env);
