@@ -336,8 +336,21 @@ async function newsApi(request, env, url, ctx){
       const mime=String(o.httpMetadata?.contentType||'');
       return mediaLike.test(key)||/^(image|video|audio)\//i.test(mime);
     }).length:0;
+    const mediaSchemaRequired=['key','original_name','mime','size','category','tags','title','description','alt_text','published','slot','sort_order','created_at','updated_at','ai_generated'];
+    let mediaSchema={ok:false,missing:mediaSchemaRequired,error:null};
+    if(env.DB){
+      try{
+        const schema=await env.DB.prepare("PRAGMA table_info(media)").all();
+        const names=new Set((schema.results||[]).map(x=>String(x.name||'')));
+        const missing=mediaSchemaRequired.filter(x=>!names.has(x));
+        mediaSchema={ok:missing.length===0,missing,error:null};
+      }catch(e){
+        mediaSchema={ok:false,missing:mediaSchemaRequired,error:String(e?.message||e).slice(0,240)};
+      }
+    }else mediaSchema={ok:false,missing:mediaSchemaRequired,error:'D1 not configured'};
     return json({
       ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,
+      mediaSchema,
       r2Objects:!!r2Probe?.objects?.length,
       r2MediaObjects:mediaCount(r2Probe),
       admin:!!env.ADMIN_PASSWORD_SECRET && !!env.ADMIN_SESSION_SECRET_SECRET,mail:!!env.RESEND_API_KEY,
