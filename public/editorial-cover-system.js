@@ -126,6 +126,20 @@
       '<span class="bt-cover-kicker">' + esc(kicker || 'HABER') + '</span>' +
       '<span class="bt-cover-headline">' + headlineHtml(title) + '</span>' +
       '<span class="bt-cover-meta">' + esc(meta) + '</span>';
+    const style={
+      "01-impact":["#e5232e","#d4a52c","Arial Narrow,Arial,sans-serif"],
+      "02-field":["#050505","#d4a52c","Arial Narrow,Arial,sans-serif"],
+      "03-magazine":["#d4a52c","#d4a52c","Georgia,serif"],
+      "04-data":["#050505","#d4a52c","Arial Narrow,Arial,sans-serif"],
+      "05-minimal":["rgba(5,5,5,.82)","#d4a52c","Arial,sans-serif"]
+    }[template]||["#050505","#d4a52c","Arial,sans-serif"];
+    const k=ui.querySelector('.bt-cover-kicker'),h=ui.querySelector('.bt-cover-headline'),m=ui.querySelector('.bt-cover-meta');
+    k.style.background=style[0]; k.style.color=template==='03-magazine'?'#050505':style[1]; k.style.borderLeft='3px solid '+style[1];
+    h.style.fontFamily=style[2]; h.style.fontWeight='800';
+    h.style.fontSize='clamp(24px,4vw,58px)'; h.style.lineHeight='.92';
+    h.style.textShadow='0 3px 18px rgba(0,0,0,.55)';
+    if(template==='03-magazine'){ui.style.color='#111';h.style.color='#111';h.style.textShadow='none';h.style.borderBottom='3px solid '+style[1];}
+    if(template==='05-minimal'){h.style.color=style[1];h.style.textShadow='none';}
     node.appendChild(ui);
   }
 
