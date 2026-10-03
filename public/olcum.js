@@ -17,6 +17,20 @@
   } catch (e) { /* Depolama kapalıysa ölçüm sürer. */ }
   if (navigator.webdriver) return;
   if (/HeadlessChrome|bot|crawler|spider|Lighthouse|PageSpeed/i.test(navigator.userAgent)) return;
+  /* Satış temasları: WhatsApp / telefon / e-posta bağlantısına tıklayan
+     okur hangi sayfadaydı? Yalnız kanal ve sayfa yolu gider; kişisel veri yok.
+     sendBeacon sayfa değişse de isteği tamamlar. */
+  document.addEventListener('click', function (olay) {
+    const bag = olay.target && olay.target.closest ? olay.target.closest('a[href]') : null;
+    if (!bag) return;
+    const h = bag.getAttribute('href') || '';
+    const kanal = /^https?:\/\/(wa\.me|api\.whatsapp\.com)\//i.test(h) ? 'whatsapp'
+      : /^tel:/i.test(h) ? 'telefon' : /^mailto:/i.test(h) ? 'eposta' : '';
+    if (!kanal || !navigator.sendBeacon) return;
+    try {
+      navigator.sendBeacon('/api/sales/temas', new Blob([JSON.stringify({ kanal: kanal, sayfa: location.pathname })], { type: 'application/json' }));
+    } catch (e) { /* Ölçüm tıklamayı asla engellemez. */ }
+  }, { capture: true, passive: true });
   const betik = document.createElement('script');
   betik.src = 'https://tracker.metricool.com/resources/be.js';
   betik.async = true;

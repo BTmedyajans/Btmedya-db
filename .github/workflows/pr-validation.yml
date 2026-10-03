@@ -45,6 +45,7 @@ jobs:
           node tools/ai-gorunurluk-testi.mjs
           node --check src/sales-router.js
           node tools/teklif-testi.mjs
+          node tools/temas-testi.mjs
           node --check public/home.js
           python3 tools/validate-assets.py
           node tools/a11y-denetimi.mjs

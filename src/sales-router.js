@@ -306,6 +306,59 @@ async function teklifHizSiniri(env,ip){
   return true;
 }
 
+
+/* Satış temasları (WhatsApp / telefon / e-posta tıklaması). olcum.js gönderir;
+   botlar ve ?olcum=kapat diyen ekip orada zaten ayıklanıyor. Kişisel veri yok. */
+const KANALLAR=['whatsapp','telefon','eposta'];
+async function temasTablosu(env){
+  // Migration 0019 uygulanmadan önce de çalışsın.
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS sales_touches (gun TEXT NOT NULL, kanal TEXT NOT NULL, sayfa TEXT NOT NULL, sayi INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (gun, kanal, sayfa))').run();
+}
+export function temasSayfasi(v){
+  const yol=String(v||'/').split(/[?#]/)[0].slice(0,120).replace(/[^\w\/\-.]/g,'');
+  return yol.startsWith('/')?yol:'/';
+}
+async function temasKaydet(env,kanal,sayfa,ip){
+  if(env.KV&&ip){
+    // IP başına günde 30 temas: tek kişinin tekrar tıklaması tabloyu şişirmesin.
+    const k=`ratelimit:temas:${ip}`;const n=Number(await env.KV.get(k).catch(()=>0)||0);
+    if(n>=30) return false;
+    await env.KV.put(k,String(n+1),{expirationTtl:86400}).catch(()=>{});
+  }
+  await temasTablosu(env);
+  const gun=new Date().toISOString().slice(0,10);
+  await env.DB.prepare('INSERT INTO sales_touches (gun,kanal,sayfa,sayi) VALUES (?,?,?,1) ON CONFLICT(gun,kanal,sayfa) DO UPDATE SET sayi=sayi+1').bind(gun,kanal,sayfa).run();
+  return true;
+}
+export async function temasOzeti(env,gunSayisi=30){
+  await temasTablosu(env);
+  const bas=new Date(Date.now()-gunSayisi*86400000).toISOString().slice(0,10);
+  const r=await env.DB.prepare('SELECT kanal,sayfa,SUM(sayi) AS sayi FROM sales_touches WHERE gun>=? GROUP BY kanal,sayfa ORDER BY sayi DESC LIMIT 50').bind(bas).all();
+  return r.results||[];
+}
+
+/* Sabah satış özeti (08:00): yeni talepler, dönüşü geciken talepler, dünkü
+   temaslar. Söylenecek bir şey yoksa e-posta gönderilmez. */
+export async function satisOzeti(env,simdi=new Date()){
+  if(!env.DB||!env.RESEND_API_KEY) return {gonderildi:false,neden:'yapilandirma'};
+  const dun=new Date(simdi.getTime()-86400000);
+  const yeni=(await env.DB.prepare('SELECT name,service,source,phone,email FROM sales_leads WHERE created_at>=? ORDER BY created_at DESC LIMIT 20').bind(dun.toISOString()).all()).results||[];
+  const geciken=(await env.DB.prepare("SELECT name,service,next_action_at FROM sales_leads WHERE stage IN ('new','contacted','qualified','proposal','meeting') AND next_action_at IS NOT NULL AND next_action_at<=? ORDER BY next_action_at ASC LIMIT 20").bind(simdi.toISOString()).all()).results||[];
+  await temasTablosu(env);
+  const temas=(await env.DB.prepare('SELECT kanal,sayfa,sayi FROM sales_touches WHERE gun=? ORDER BY sayi DESC LIMIT 15').bind(dun.toISOString().slice(0,10)).all()).results||[];
+  if(!yeni.length&&!geciken.length&&!temas.length) return {gonderildi:false,neden:'bos'};
+  const e=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const liste=(baslik,satirlar)=>satirlar.length?`<h3 style="margin:22px 0 8px">${baslik}</h3><ul style="padding-left:18px;margin:0">${satirlar.map(x=>`<li style="margin:4px 0">${x}</li>`).join('')}</ul>`:'';
+  const html=`<div style="font-family:sans-serif;max-width:640px;margin:auto"><h2>BTMEDYA sabah satış özeti</h2>`+
+    liste(`Son 24 saatte yeni talep (${yeni.length})`,yeni.map(l=>`<b>${e(l.name)}</b> — ${e(l.service||'Genel')} · ${e(l.phone||l.email||'')} <span style="color:#888">(${e(l.source)})</span>`))+
+    liste(`Dönüşü geciken talep (${geciken.length})`,geciken.map(l=>`<b>${e(l.name)}</b> — ${e(l.service||'Genel')} · takip: ${e(String(l.next_action_at).slice(0,10))}`))+
+    liste('Dün sitedeki temaslar (tıklama)',temas.map(t=>`${e(t.kanal)} · ${e(t.sayfa)} — <b>${t.sayi}</b>`))+
+    `<p style="margin-top:22px"><a href="https://btmedya.com.tr/admin/sales/">Satış masasını aç</a></p></div>`;
+  const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{'Authorization':`Bearer ${env.RESEND_API_KEY}`,'Content-Type':'application/json'},
+    body:JSON.stringify({from:env.RESEND_FROM||'BTMEDYA <noreply@btmedya.com.tr>',to:[env.RESEND_TO||'info@btmedya.com.tr'],subject:`[BTMEDYA] Satış özeti: ${yeni.length} yeni, ${geciken.length} geciken`,html})});
+  return {gonderildi:r.ok,yeni:yeni.length,geciken:geciken.length,temas:temas.length};
+}
+
 export async function salesApi(request,env,url,ctx){
   const hub=await clientHubApi(request,env,url); if(hub)return hub;
   if(!url.pathname.startsWith('/api/sales/')) return null;
@@ -328,7 +381,18 @@ export async function salesApi(request,env,url,ctx){
     if(ctx&&ctx.waitUntil) ctx.waitUntil(bildirim); else await bildirim;
     return j({ok:true,id,stage:'new',message:'Talebiniz satış kuyruğuna alındı.'},201);
   }
+  if(url.pathname==='/api/sales/temas' && request.method==='POST'){
+    const b=await request.json().catch(()=>null);
+    const kanal=String(b?.kanal||'');
+    if(!KANALLAR.includes(kanal)) return j({ok:false,error:'Geçersiz kanal'},400);
+    await temasKaydet(env,kanal,temasSayfasi(b?.sayfa),request.headers.get('cf-connecting-ip'));
+    return new Response(null,{status:204});
+  }
   if(!(await session(request,env.ADMIN_SESSION_SECRET_SECRET))) return j({ok:false,error:'Yetkisiz'},401);
+  if(url.pathname==='/api/sales/temas' && request.method==='GET'){
+    const gun=Math.min(Math.max(Number(url.searchParams.get('gun'))||30,1),365);
+    return j({ok:true,gun,items:await temasOzeti(env,gun)});
+  }
   if(url.pathname==='/api/sales/leads' && request.method==='GET'){
     const stage=clean(url.searchParams.get('stage'),30), q=clean(url.searchParams.get('q'),120);
     let sql='SELECT * FROM sales_leads WHERE 1=1', binds=[];
