@@ -482,7 +482,7 @@ export async function autopilotStatus(env){
   if(!env.DB) return {ok:true,policy,runs:[],competitors:[],queue:[]};
   const runs=(await env.DB.prepare("SELECT * FROM autopilot_runs ORDER BY id DESC LIMIT 10").all().catch(()=>({results:[]}))).results||[];
   const competitors=(await env.DB.prepare("SELECT * FROM autopilot_competitors ORDER BY updated_at DESC").all().catch(()=>({results:[]}))).results||[];
-  const queue=(await env.DB.prepare("SELECT id,title,status,platforms,media_key,source_slug,scheduled_at,updated_at FROM social_posts ORDER BY updated_at DESC LIMIT 20").all().catch(()=>({results:[]}))).results||[];
+  const queue=(await env.DB.prepare("SELECT id,title,status,platforms,format,media_key,source_slug,account_scope,account_label,metricool_brand_id,scheduled_at,updated_at FROM social_posts ORDER BY updated_at DESC LIMIT 20").all().catch(()=>({results:[]}))).results||[];
   return {ok:true,policy,runs,competitors,queue};
 }
 
