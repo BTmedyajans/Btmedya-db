@@ -1813,6 +1813,15 @@ export default { async scheduled(controller, env, ctx){
   if(ctx?.waitUntil) ctx.waitUntil(hepsi); else await hepsi;
 }, async fetch(request, env, ctx){
   const url = new URL(request.url);
+
+  // Admin alt sayfaları doğrudan URL ile erişilebilir olmamalı. Giriş ekranı
+  // (/admin/) açık kalır; gerçek yönetim alt yolları imzalı oturum olmadan
+  // giriş ekranına döner. API'ler ayrıca kendi session kontrollerini uygular.
+  if(url.pathname.startsWith('/admin/') && url.pathname !== '/admin/'){
+    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))){
+      return Response.redirect(new URL('/admin/', url.origin), 302);
+    }
+  }
   const coreApi=await btmedyaCoreApi(request,env,url,validSession); if(coreApi) return coreApi;
 
   if(url.hostname.startsWith('www.')){
