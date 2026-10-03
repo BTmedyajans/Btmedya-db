@@ -284,11 +284,30 @@ async function newsApi(request, env, url, ctx){
   }
 
   if(url.pathname==='/api/public/social-feed' && request.method==='GET'){
-    const r=await env.ASSETS.fetch(new Request(new URL('/data/social-feed.json',url.origin)));
-    if(!r.ok) return json({ok:false,error:'Sosyal akış snapshot bulunamadı'},404);
-    const snapshot=await r.json().catch(()=>({}));
+    /* Sosyal akış public katmanı dış veri sağlayıcısına bağımlı değildir.
+       Snapshot okunamazsa endpoint 500 üretmek yerine doğrulanmış profil
+       kabuğunu döndürür; böylece ana sayfa sessizce fallback mesajına düşmez. */
+    let snapshot={profiles:[],items:[],generated_at:null,source:'snapshot-fallback'};
+    try{
+      if(env.ASSETS){
+        const r=await env.ASSETS.fetch(new Request(new URL('/data/social-feed.json',url.origin)));
+        if(r.ok){
+          const parsed=await r.json().catch(()=>null);
+          if(parsed && typeof parsed==='object') snapshot=parsed;
+        }
+      }
+    }catch(e){
+      console.error('[social-feed] snapshot okunamadı:',e?.message||e);
+    }
     const live=socialProviderStatus(env);
-    const profiles=Array.isArray(snapshot.profiles)?snapshot.profiles.map(p=>{
+    const fallbackProfiles=[
+      {key:'instagram',label:'Instagram',url:'https://www.instagram.com/btmedyajans/',status:'verification_pending',note:'Metricool bağlantısı doğrulanıyor.'},
+      {key:'facebook',label:'Facebook',url:null,status:'verification_pending',note:'Metricool bağlantısı doğrulanıyor.'},
+      {key:'youtube',label:'YouTube',url:'https://www.youtube.com/@BTmedyaAjans',status:'connected_identity',note:'YouTube kanal kimliği doğrulandı.'},
+      {key:'tiktok',label:'TikTok',url:'https://www.tiktok.com/@btmedya1010',status:'publishing_verified',note:'TikTok yayın durumu doğrulandı.'}
+    ];
+    const sourceProfiles=Array.isArray(snapshot.profiles)&&snapshot.profiles.length?snapshot.profiles:fallbackProfiles;
+    const profiles=sourceProfiles.map(p=>{
       const state=live[p.key];
       if(!state) return p;
       return {
@@ -298,13 +317,14 @@ async function newsApi(request, env, url, ctx){
           ? 'Metricool bağlantısı Worker tarafından canlı yapılandırmadan doğrulanıyor.'
           : (state.note || p.note || '')
       };
-    }):[];
+    });
     return json({
       ...snapshot,
       generated_at:new Date().toISOString(),
       source:'Metricool+live-connection',
       live_connections:live,
-      profiles
+      profiles,
+      items:Array.isArray(snapshot.items)?snapshot.items:[]
     },200,{'cache-control':'public, max-age=300'});
   }
 
@@ -1203,27 +1223,44 @@ async function mediaApi(request, env){
       .filter(x=>!q || x.path.toLowerCase().includes(q))
       .map((x,i)=>({id:x.id,key:'static/'+x.path,original_name:x.path.split('/').pop(),mime:/\.(mp4|webm)$/i.test(x.path)?'video/'+(x.path.endsWith('.webm')?'webm':'mp4'):'image/webp',size:0,category:x.category,tags:['BTMEDYA',x.gercek?'gercek':'ai-uretimi','arsiv'],title:x.baslik||x.path.split('/').pop().replace(/\.[^.]+$/,'').replace(/[-_]+/g,' '),description:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',alt_text:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',slot:x.category==='hero'?'hero':x.category==='video'?'medya':x.category==='portfoy'?'portfoy':'haber',sort_order:i,created_at:null,updated_at:null,url:'/assets/'+x.path,source:'github-static',ai_generated:!x.gercek,vitrin:x.vitrin!==false,sira:x.sira,poster:x.poster?'/assets/'+x.poster:null}));
     let r2Items=[];
+    let d1MediaError=null;
     if(env.DB && env.MEDIA && mediaSec){
-      let sql='SELECT id,key,original_name,mime,size,category,tags,title,description,alt_text,slot,sort_order,created_at,updated_at FROM media WHERE published=1'; const args=[];
-      if(q){sql+=' AND (original_name LIKE ? OR title LIKE ? OR description LIKE ? OR tags LIKE ?)'; const x='%'+q+'%'; args.push(x,x,x,x);}
-      if(cat){sql+=' AND category=?'; args.push(cat);} sql+=' ORDER BY created_at DESC LIMIT 200';
-      const r=await env.DB.prepare(sql).bind(...args).all();
-      r2Items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600)),source:'r2',ai_generated:!!x.ai_generated})));
+      try{
+        let sql='SELECT id,key,original_name,mime,size,category,tags,title,description,alt_text,slot,sort_order,created_at,updated_at FROM media WHERE published=1'; const args=[];
+        if(q){sql+=' AND (original_name LIKE ? OR title LIKE ? OR description LIKE ? OR tags LIKE ?)'; const x='%'+q+'%'; args.push(x,x,x,x);}
+        if(cat){sql+=' AND category=?'; args.push(cat);} sql+=' ORDER BY created_at DESC LIMIT 200';
+        const r=await env.DB.prepare(sql).bind(...args).all();
+        r2Items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600)),source:'r2',ai_generated:!!x.ai_generated})));
+      }catch(e){
+        d1MediaError=String(e?.message||e);
+        console.error('[public-media] D1 metadata okunamadı; R2/static katmanı kullanılacak:',d1MediaError);
+      }
     }
     // D1 metadata eksik olsa bile gerçek production R2 nesnelerini görünür tut.
     // Bu katman salt-okurdur; R2'ye yazmaz, taşımaz veya silmez.
     if(mediaSec && env.MEDIA){
-      const direct=await listR2Media(env.MEDIA,'r2-direct',{q,cat});
-      const known=new Set(r2Items.map(x=>x.key));
-      for(const x of direct){
-        if(known.has(x.key)) continue;
-        x.url=await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600));
-        r2Items.push(x);
+      try{
+        const direct=await listR2Media(env.MEDIA,'r2-direct',{q,cat});
+        const known=new Set(r2Items.map(x=>x.key));
+        for(const x of direct){
+          if(known.has(x.key)) continue;
+          x.url=await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600));
+          r2Items.push(x);
+        }
+      }catch(e){
+        console.error('[public-media] R2 direct liste okunamadı:',e?.message||e);
       }
     }
     const seen=new Set(r2Items.map(x=>x.url));
     const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url))];
-    return json({brand:'BTMedya',generated_at:new Date().toISOString(),source:r2Items.length?'r2+github-static':'github-static',items},200,cors);
+    return json({
+      brand:'BTMedya',
+      generated_at:new Date().toISOString(),
+      source:r2Items.length?'r2+github-static':'github-static',
+      items,
+      degraded:Boolean(d1MediaError),
+      ...(d1MediaError?{warning:'D1 medya metadata katmanı okunamadı; statik/R2 yayın katmanı kullanıldı.'}:{})
+    },200,cors);
   }
 
   const aiToken=env.AI_READ_TOKEN;
