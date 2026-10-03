@@ -4,6 +4,7 @@ import { WorkflowStatusDO } from "./workflow-status-do.js";
 import { renderNewsPage } from "./news-page.js";
 import { socialProviderStatus, metricoolConnectedNetworks } from "./social-platforms.js";
 import { runNewsIntelligence, newsIntelligenceStatus } from "./news-intelligence.js";
+import { merakRadariCalistir, merakRadariDurumu, ozelHaberPaketiUret } from "./merak-radari.js";
 import { recoveryPasswordValid } from "./auth-recovery.js";
 import { runAutopilot, autopilotPolicy, setAutopilotPolicy, autopilotStatus, connectionMatrix, referenceDraft, generateAutopilotImage } from "./autopilot.js";
 import { salesApi } from "./sales-router.js";
@@ -247,6 +248,32 @@ function indexNowBildir(ctx, origin, slug){
   }).then(r => { if(!r.ok && r.status!==202) console.error('[indexnow]', r.status); })
     .catch(e => console.error('[indexnow]', e?.message || e));
   if(ctx?.waitUntil) ctx.waitUntil(is);
+}
+
+async function merakRadariApi(request, env, url){
+  if(!url.pathname.startsWith('/api/admin/merak-radari')) return null;
+  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(url.pathname==='/api/admin/merak-radari' && request.method==='POST'){
+    return json(await merakRadariCalistir(env,{limit:16}));
+  }
+  if(url.pathname==='/api/admin/merak-radari' && request.method==='GET'){
+    return json(await merakRadariDurumu(env));
+  }
+  const paket=url.pathname.match(/^\/api\/admin\/merak-radari\/firsat\/(\d+)\/paket$/);
+  if(paket && request.method==='POST'){
+    return json(await ozelHaberPaketiUret(env,{id:Number(paket[1])}));
+  }
+  const durum=url.pathname.match(/^\/api\/admin\/merak-radari\/firsat\/(\d+)$/);
+  if(durum && request.method==='PATCH'){
+    if(!env.DB) return json({ok:false,error:'D1 bağlı değil'},503);
+    const body=await request.json().catch(()=>({}));
+    const izinli=['önerildi','hazırlanıyor','çekim','yayında','arsiv'];
+    const status=String(body.status||'önerildi');
+    if(!izinli.includes(status)) return json({ok:false,error:'Geçersiz durum'},400);
+    const r=await env.DB.prepare('UPDATE ozel_haber_firsatlari SET durum=?,updated_at=? WHERE id=?').bind(status,new Date().toISOString(),Number(durum[1])).run();
+    return json({ok:true,changed:Number(r.meta?.changes||0)>0});
+  }
+  return json({ok:false,error:'Merak Radarı endpoint bulunamadı'},404);
 }
 
 async function newsApi(request, env, url, ctx){
