@@ -1,0 +1,42 @@
+{
+  "surum": "2026-10-03",
+  "amac": "BTMEDYA'nın BİK başvuru hazırlığını destekleyen, gerçek okuyucu ve özgün yerel habercilik odaklı editoryal seçim çerçevesi.",
+  "uyari": "Bu dosya BİK uygunluğu veya resmî ilan yayınlama hakkı garantisi değildir; güncel mevzuat ve Kurum değerlendirmesi esas alınır.",
+  "oncelik": [
+    {"alan":"balikesir","agirlik":30,"odak":["belediye kararları","kamu hizmetleri","ulaşım","ekonomi","esnaf","eğitim","sağlık","kültür","spor","saha ve röportaj"]},
+    {"alan":"turkiye","agirlik":20,"odak":["gündem","ekonomi","kamu politikaları","afet ve güvenlik duyuruları","eğitim","sağlık","teknoloji"]},
+    {"alan":"ekonomi","agirlik":15,"odak":["yerel ekonomi","istihdam","fiyatlar","yatırım","ticaret","tarım"]},
+    {"alan":"saha-ozel","agirlik":15,"odak":["özel haber","röportaj","veri haberciliği","belgeye dayalı dosya","insan hikâyeleri"]},
+    {"alan":"spor-kultur-egitim","agirlik":10,"odak":["Balıkesir takımları","etkinlikler","üniversite","okullar","sanat ve kültür"]},
+    {"alan":"teknoloji-ai","agirlik":10,"odak":["yapay zekâ","dijital dönüşüm","yerel teknoloji girişimleri","BTMedya AI LAB"]}
+  ],
+  "yayina_alma_kurallari": [
+    "Her haberin yayın tarihi ve kaynağı görünür olacak.",
+    "Özgünlük: Kaynak haber kopyalanmayacak; doğrulanabilir bilgi yeniden yazılacak ve gerekiyorsa atıf yapılacak.",
+    "Siyasi ve tartışmalı konularda görüş değil doğrulanabilir olgu, belge ve tarafların açıklamaları esas alınacak.",
+    "Suç, soruşturma, gözaltı, tutuklama ve mağduriyet haberlerinde iddia ile kesinleşmiş olgu birbirinden ayrılacak.",
+    "Kamu kurumu açıklaması tek başına bağımsız doğrulama anlamına gelmeyecek; açıklamanın kaynağı açıkça gösterilecek.",
+    "AI ile hazırlanan içerik editör kontrolünden geçmeden otomatik olarak kesin haber olarak yayınlanmayacak.",
+    "Telif durumu belirsiz görsel kullanılmayacak; gerçek çekim ve lisanslı/izinli görsel kaynağı saklanacak.",
+    "Ticari içerik haberden ayrılacak ve açık biçimde sponsorlu/tanıtım içeriği olarak etiketlenecek."
+  ],
+  "haber_secim_skoru": {
+    "guncellik": 25,
+    "yerel_etki": 25,
+    "kamusal_onem": 20,
+    "kaynak_guveni": 15,
+    "ozgunluk": 10,
+    "multimedya_degeri": 5,
+    "not": "Skor editoryal önceliklendirme içindir; siyasi tercih, aday/parti sıralaması veya kamu kurumuna ticari ayrıcalık üretmek için kullanılmaz."
+  },
+  "otomatik_akistan_cikis": [
+    "kaynak doğrulanamıyorsa",
+    "başlık kaynakta bulunmayan kesinlik içeriyorsa",
+    "iddia açıkça atfedilmemişse",
+    "kişisel veri veya hassas mağdur bilgisi gereksizse",
+    "telif/lisans durumu belirsizse",
+    "ticari tanıtım haber gibi sunuluyorsa"
+  ],
+  "hedef_kitle": ["Balıkesir okuru", "yerel işletmeler", "kamu hizmetlerini takip eden vatandaşlar", "Türkiye gündemini takip eden okurlar"],
+  "gelir_uyumu": ["resmî ilan ve reklam için mevzuat uyumu", "doğrudan reklam", "sponsorluk", "video prodüksiyon", "AI LAB hizmetleri"]
+}
