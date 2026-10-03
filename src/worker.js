@@ -1803,6 +1803,13 @@ export default { async scheduled(controller, env, ctx){
           .catch(e=>console.error('[btmedya] merak radari:',e?.message||e));
       })()
     : Promise.resolve(null);
+  /* Metricool teslim kuyruğu: token/Brand hazırsa planlı sosyal içerikleri dış servise teslim eder.
+     Token yoksa güvenli biçimde yalnızca kuyruğu izler; cron döngüsü yine devam eder. */
+  const metricool=(controller && (controller.cron==='*/5 * * * *' || controller.cron==='*/15 * * * *'))
+    ? processMetricoolQueue(env,10)
+        .then(x=>console.log('[btmedya] Metricool handoff',JSON.stringify({enabled:x.enabled,processed:x.processed,scheduled:x.scheduled,failed:x.failed,skipped:x.skipped})))
+        .catch(e=>console.error('[btmedya] Metricool handoff:',e?.message||e))
+    : Promise.resolve(null);
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
   /* Yayındaki yeni haberleri sosyal panelde onay kuyruğuna hazırlar.
      Otomatik yayın yapmaz: son yayın kararı kullanıcı onayından sonra Metricool'a gider. */
