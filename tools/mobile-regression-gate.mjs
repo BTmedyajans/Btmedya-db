@@ -85,7 +85,7 @@ if (!/\.portfoy-grid,.archive-live-grid\{grid-template-columns:1fr 1fr/s.test(mo
 else ok("portfolio/archive mobile scan grid present");
 if (!/\.offer-grid\{display:grid!important;grid-auto-flow:column/s.test(mobilePolish)) fail("offer rail mobile contract missing");
 else ok("offer packages use a mobile swipe rail");
-if (!/mobile-polish-v4\.css\?v=20261003-1/.test(metricool)) fail("mobile polish stylesheet is not loaded by homepage UI bootstrap");
+if (!/mobile-polish-v4\.css\?v=20261003-2/.test(metricool)) fail("mobile polish stylesheet is not loaded by homepage UI bootstrap");
 else ok("mobile polish stylesheet is loaded last by homepage UI bootstrap");
 
 if (process.exitCode) process.exit();
