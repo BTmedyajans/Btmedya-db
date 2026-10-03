@@ -11,7 +11,7 @@ name = "btmedya-db"
 main = "src/worker.js"
 compatibility_date = "2026-09-19"
 # Production Cloudflare account ID is configuration, not a secret.
-account_id = "b239acae17aebe894ea76309fe32cdce"
+account_id = "55874710e92e21e5d37bfa5f384e04bd"
 
 [observability]
 enabled = true
@@ -26,8 +26,6 @@ run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/index.html", "/haber/
 
 not_found_handling = "404-page"
 
-# Ana ve www alan adları aynı Worker'a Custom Domain olarak bağlanır.
-# Worker /www isteğini ana domaine 301 yönlendirir.
 [[routes]]
 pattern = "btmedya.com.tr"
 custom_domain = true
@@ -40,7 +38,6 @@ custom_domain = true
 binding = "MEDIA"
 bucket_name = "btmedya-media"
 
-# Login brute-force koruması: IP başına başarısız denemeler 15 dakika tutulur.
 [[kv_namespaces]]
 binding = "KV"
 id = "41a0fc3c9e9848fca750d2283d4d1fc3"
@@ -52,17 +49,9 @@ database_id = "94a980cd-62c5-4c29-b7fc-40f96ab665e4"
 
 [vars]
 MEDIA_PUBLIC_TTL = "86400"
-# BTMEDYA admin login user. This is a non-secret identifier; the password remains a Worker Secret.
 ADMIN_USERNAME = "busetuncay74@gmail.com"
-# Metricool Brand 6858384'te 29 Eylül 2026 itibarıyla doğrulanan yayın ağları.
-# Bu değişiklik aynı zamanda sync-worker-secrets workflow'unun mevcut GitHub -> Cloudflare secret zincirini yeniden çalıştırır.
-# Yeni bir ağ Metricool Connections'a bağlandığında bu liste güncellenir.
 METRICOOL_CONNECTED_NETWORKS = "tiktok,youtube"
-# Kişisel hesaplar ayrı Metricool Brand olmadan hiçbir zaman otomatik yayın ağı olarak etkinleşmez.
 METRICOOL_PERSONAL_CONNECTED_NETWORKS = ""
-# Metricool kullanıcı numarası kimlik bilgisi değil (API her çağrıda ayrıca
-# METRICOOL_USER_TOKEN ister). Burada durduğu için GitHub'a yalnız anahtar
-# eklemek yeter. Secret adı METRICOOL_USER_ID ile çakışmasın diye farklı ad.
 METRICOOL_KULLANICI_NO = "5278969"
 METRICOOL_USER_ID = "5278969"
 METRICOOL_BRAND_ID = "6858384"
@@ -70,12 +59,6 @@ METRICOOL_CREATOR_EMAIL = "busetuncay74@gmail.com"
 METRICOOL_ACCOUNT_EMAIL = "busetuncay74@gmail.com"
 METRICOOL_TIMEZONE = "Europe/Istanbul"
 
-# Secret değerleri GitHub'a veya bu dosyaya yazılmaz.
-# Production security sync: main değişikliği, GitHub secret -> Cloudflare Worker secret senkronizasyonunu da tetikler.
-# Cloudflare Worker > Settings > Variables and Secrets altında Secret olarak eklenir.
-# wrangler deploy, aşağıdaki required secret isimlerini doğrular.
-# Süreli recovery Secret biçimi: UNIX_SANIYE:geçici-kod
-# Süre dolunca otomatik olarak geçersiz olur; production'da kullanımdan sonra silinmelidir.
 [secrets]
 required = [
   "ADMIN_PASSWORD_SECRET",
@@ -83,42 +66,24 @@ required = [
   "MEDIA_SIGNING_SECRET",
 ]
 
-# Opsiyonel:
-#   AI_READ_TOKEN         -> salt-okur AI erişim token'ı
-#   RESEND_API_KEY        -> Resend e-posta bildirim API anahtarı
-#   RESEND_TO             -> bildirim alıcı adresi
-#   RESEND_FROM           -> gönderici adresi
-
-# Sabah Masası kategori işçisi: Worker kendi SabahYazici giriş noktasını
-# çağırır. Her kategori ayrı çağrıda çalışır; ücretsiz planın çağrı başına
-# 50 dış istek sınırı 8 kategoriyi tek çağrıda kaldırmıyor.
 [[services]]
 binding = "SABAH_YAZICI"
 service = "btmedya-db"
 entrypoint = "SabahYazici"
 
-# Cloudflare Workflow: BTMEDYA içerik/onay otomasyonu
 [[workflows]]
 name = "btmedya-content"
 binding = "BTMEDYA_WORKFLOW"
 class_name = "BtmedyaWorkflow"
 
-# Workflow durumlarını ve canlı panel bildirimlerini tutan Durable Object
 [[durable_objects.bindings]]
 name = "WORKFLOW_STATUS"
 class_name = "WorkflowStatusDO"
 
-# Durable Object için SQLite tabanlı legacy migration akışı.
-# Bu Worker daha önce bu migration modelini kullanacak şekilde yapılandırıldı.
 [[migrations]]
 tag = "workflow-v1"
 new_sqlite_classes = ["WorkflowStatusDO"]
 
-
-# Haber Bulucu: kaynakları periyodik olarak tarar, sonuçları D1'de taslak olarak tutar.
-# Canli surumun kimligi ve yuklenme zamani; /api/health ve panel
-# Control Center bunu gosterir, dagitim bekcisi bununla kaymayi yakalar.
-# Sabah Masası özgün metin yazımı (Workers AI). Ek anahtar gerektirmez.
 [ai]
 binding = "AI"
 
@@ -126,5 +91,4 @@ binding = "AI"
 binding = "SURUM"
 
 [triggers]
-# */5: nabız, sosyal kuyruk, R2 köprüsü. 0 5: Sabah Masası (08:00 İstanbul).
 crons = ["*/5 * * * *", "*/15 * * * *", "0 5 * * *"]
