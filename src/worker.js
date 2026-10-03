@@ -1798,9 +1798,13 @@ export default { async scheduled(controller, env, ctx){
           if(once) return null;
           await env.KV.put(anahtar,'1',{expirationTtl:3700}).catch(()=>{});
         }
-        return merakRadariCalistir(env,{limit:16})
+        const intel=runNewsIntelligence(env,{limit:16})
+          .then(x=>console.log('[btmedya] haber istihbarati',JSON.stringify({scanned:x.scanned,added:x.added,hot:x.hot,errors:x.errors?.length||0})))
+          .catch(e=>console.error('[btmedya] haber istihbarati:',e?.message||e));
+        const merak=merakRadariCalistir(env,{limit:16})
           .then(x=>console.log('[btmedya] halkin merak radari',JSON.stringify({scanned:x.scanned,signals:x.signals,opportunities:x.opportunities,errors:x.errors?.length||0})))
           .catch(e=>console.error('[btmedya] merak radari:',e?.message||e));
+        return Promise.allSettled([intel,merak]);
       })()
     : Promise.resolve(null);
   /* Metricool teslim kuyruğu: token/Brand hazırsa planlı sosyal içerikleri dış servise teslim eder.
