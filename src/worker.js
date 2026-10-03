@@ -1785,7 +1785,9 @@ export default { async scheduled(controller, env, ctx){
   const supervisor=(controller && controller.cron==='*/15 * * * *')
     ? runAgencySupervisor(env,{force:false}).then(x=>console.log('[btmedya] agency supervisor',JSON.stringify({ok:x.ok,alerts:x.summary?.alerts,clients:x.summary?.clients?.active,pendingApproval:x.summary?.content?.pendingApproval}))).catch(e=>console.error('[btmedya] agency supervisor:',e?.message||e))
     : Promise.resolve(null);
-  const intelligence=Promise.resolve(null);
+  const intelligence=(controller && controller.cron==='0 * * * *')
+    ? merakRadariCalistir(env,{limit:16}).then(x=>console.log('[btmedya] halkin merak radari',JSON.stringify({scanned:x.scanned,signals:x.signals,opportunities:x.opportunities,errors:x.errors?.length||0}))).catch(e=>console.error('[btmedya] merak radari:',e?.message||e))
+    : Promise.resolve(null);
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
   /* Yayındaki yeni haberleri sosyal panelde onay kuyruğuna hazırlar.
      Otomatik yayın yapmaz: son yayın kararı kullanıcı onayından sonra Metricool'a gider. */
