@@ -113,6 +113,10 @@
   }
 
   function decorate(node,title,compact){
+    /* 4 Ekim 2026: kapaklar artik basligi kendisi tasiyan manset gorselleri
+       (tools/haber-kapagi.py). Bu katman ayni basligi gorselin ustune ikinci,
+       kartin HTML basligiyla birlikte ucuncu kez basiyordu. Kapali. */
+    if(!window.BT_KAPAK_KATMANI) return;
     if(!node || !title || node.querySelector(':scope>.bt-cover-ui'))return;
     node.classList.add('bt-cover-enhanced');
     const template=coverTemplate(node.closest('.news-card,.latest-item,.story-card,.editorial-special-card,.article-page')||node,title);
@@ -160,6 +164,9 @@
 
   function injectEditorialContent(){
     if(document.getElementById('bt-editorial-layer')) return;
+    // Yalniz anasayfa: haber sayfasinda ve portalda bu bolumun stili yok,
+    // blok haberin ustunde bicimsiz duz metin olarak gorunuyordu.
+    if(!document.querySelector('.cinematic-hero')) return;
     const hero=document.querySelector('.hero,.cinematic-hero');
     const main=document.querySelector('main');
     if(!main) return;
