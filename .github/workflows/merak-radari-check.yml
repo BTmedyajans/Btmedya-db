@@ -11,7 +11,7 @@ on:
       - "public/index.html"
       - "public/admin/agency-os/index.html"
       - "public/programlar-v1.css"
-      - "migrations/0016_merak_radari.sql"
+      - "migrations/0017_merak_radari.sql"
   push:
     branches:
       - "feat/btmedya-merak-radari-studio"
@@ -24,7 +24,7 @@ on:
       - "public/index.html"
       - "public/admin/agency-os/index.html"
       - "public/programlar-v1.css"
-      - "migrations/0016_merak_radari.sql"
+      - "migrations/0017_merak_radari.sql"
 
 permissions:
   contents: read
@@ -44,7 +44,7 @@ jobs:
           node --check public/admin/agency-os/agency-os.js
       - name: Required files and wiring
         run: |
-          test -s migrations/0016_merak_radari.sql
+          test -s migrations/0017_merak_radari.sql
           test -s public/admin/merak-radari/index.html
           test -s public/siyah-oda/index.html
           test -s public/halk-roportaji/index.html
