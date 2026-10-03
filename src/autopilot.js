@@ -259,14 +259,24 @@ async function createSocialDraft(env,news,media,policy,runId){
   const mediaKey=String(media?.social_key||media?.key||"");
   if(platformSlugs.some(x=>["youtube","tiktok"].includes(x)) && !mediaKey)
     return {created:false,scheduled:false,reason:"YouTube/TikTok için medya gerekli."};
+
+  // Autopilot sadece BTMEDYA şirket hesabını kullanır. Kişisel hesaplar
+  // ayrı Metricool Brand olmadan otomatik yayın zincirine alınmaz.
+  const accountScope="company";
+  const metricoolBrandId=String(env.METRICOOL_BRAND_ID||"").trim();
+  if(!metricoolBrandId)
+    return {created:false,scheduled:false,reason:"BTMEDYA şirket Metricool Brand ID eksik."};
+
   const postId=crypto.randomUUID();
   const body=String(news.excerpt||news.title||"")+"\n\nHaber: https://btmedya.com.tr/haberler/"+news.slug;
   const status=policy.autoScheduleSocial && scheduled ? "planlandi" : "onayda";
-  await env.DB.prepare("INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
+  await env.DB.prepare("INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,account_scope,metricool_brand_id,account_label,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
     .bind(postId,String(news.title||"").slice(0,240),body,JSON.stringify(platformSlugs),mediaKey,
-      news.slug,status,scheduled,nowIso(),nowIso()).run().catch(()=>{});
-  await log(env,runId,"social-create",postId,status,policy.autoScheduleSocial?"otomatik plan":"onay kuyruğu",{networks:platformSlugs,mediaKey});
-  return {created:true,scheduled:Boolean(scheduled),postId,scheduled_at:scheduled};
+      news.slug,accountScope,metricoolBrandId,"BTMEDYA Şirket",status,scheduled,nowIso(),nowIso()).run().catch(()=>{});
+  await log(env,runId,"social-create",postId,status,policy.autoScheduleSocial?"otomatik plan":"onay kuyruğu",{
+    accountScope,metricoolBrandId,networks:platformSlugs,mediaKey
+  });
+  return {created:true,scheduled:Boolean(scheduled),postId,scheduled_at:scheduled,accountScope,metricoolBrandId};
 }
 
 async function allowedReference(env,url){
