@@ -755,6 +755,9 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
 (function(){
   const root=document.querySelector('.cinematic-hero');
   if(!root) return;
+  /* Mobile has its own dedicated motion controller. Avoid two controllers
+     mutating the same hero scene, opacity and title state. */
+  if(window.matchMedia('(max-width:720px)').matches) return;
   const sticky=root.querySelector('.cinematic-sticky');
   const videos=[...root.querySelectorAll('.cinematic-video')];
   const ai=root.querySelector('.cinematic-ai-visual');
