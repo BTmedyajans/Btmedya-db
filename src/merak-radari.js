@@ -101,7 +101,9 @@ export async function merakRadariCalistir(env,{limit=12}={}){
     var questions=Array.from(new Set(related.filter(function(q){return SORU_SINYALI.test(q);}).concat(soruUret(topic,related.find(function(q){return SORU_SINYALI.test(q);})||anahtarMerak(topic))))).slice(0,4);
     var base=anahtarlar(topic);
     var internalHits=own.filter(function(n){ var z=duzelt(n.title+" "+n.excerpt); return base.some(function(k){return z.indexOf(k)>=0;}); }).length;
+    var socialLocalHits=sosyalYayinlari.filter(function(n){var z=duzelt(String(n.title||"")+" "+String(n.body||"")); return base.some(function(k){return z.indexOf(k)>=0;});}).length;
     var socialHits=env.KV?await env.KV.get("merak-radari:sosyal:"+duzelt(topic)).then(function(x){return Number(x||0);}).catch(function(){return 0;}):0;
+    socialHits=Math.max(socialHits,Math.min(18,socialLocalHits*3));
     var competitorHits=env.KV?await env.KV.get("merak-radari:rakip:"+duzelt(topic)).then(function(x){return Number(x||0);}).catch(function(){return 0;}):0;
     for(var qi=0;qi<questions.length;qi++){
       var soru=questions[qi], risk=hassas(topic+" "+soru);
@@ -148,7 +150,9 @@ export async function merakRadariDurumu(env){
   var opportunities=(await env.DB.prepare("SELECT * FROM ozel_haber_firsatlari WHERE durum IN ('önerildi','hazırlanıyor','çekim') ORDER BY id DESC LIMIT 20").all().catch(function(){return {results:[]};})).results||[];
   var matrix=(await env.DB.prepare("SELECT kategori,COUNT(*) toplam,MAX(puan) en_yuksek,SUM(CASE WHEN puan>=55 THEN 1 ELSE 0 END) yuksek FROM merak_sinyalleri WHERE updated_at>=? GROUP BY kategori ORDER BY en_yuksek DESC").bind(new Date(Date.now()-86400000).toISOString()).all().catch(function(){return {results:[]};})).results||[];
   var last=env.KV?await env.KV.get("merak-radari:son").catch(function(){return null;}):null;
-  return {ok:true,enabled:true,items:items,opportunities:opportunities,matrix:matrix,last:last?JSON.parse(last):null,programs:[
+  var sosyalKaynaklari=[];
+  try{ const { metricoolConnectedNetworks }=await import("./social-platforms.js"); sosyalKaynaklari=[...metricoolConnectedNetworks(env)]; }catch{}
+  return {ok:true,enabled:true,items:items,opportunities:opportunities,matrix:matrix,last:last?JSON.parse(last):null,socialSources:sosyalKaynaklari,programs:[
     {name:"Halk Röportajı",days:"Haftada 1",rule:"Saha sorusu güçlü ve doğrudan vatandaşa sorulabilir olduğunda."},
     {name:"Siyah Oda",days:"Haftada 1-2",rule:"Uzmanlık, veri ve derinlemesine tartışma gerektiren güçlü konu olduğunda."}
   ]};
