@@ -351,6 +351,44 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     link.setAttribute('aria-label', 'Son haber: ' + latest.title);
   };
 
+  /* Mobil hero, haber akışından kopuk sabit bir slogan gibi kalmasın.
+     En güncel üç başlık aynı video omurgasının üzerinde yumuşakça döner. */
+  const updateHeroNews = (items) => {
+    const copy = d.querySelector('.cinematic-copy');
+    if (!copy) return;
+    let line = copy.querySelector('[data-cinematic-newsline]');
+    if (!line) {
+      line = d.createElement('a');
+      line.className = 'cinematic-newsline';
+      line.dataset.cinematicNewsline = '1';
+      line.setAttribute('aria-label', 'Güncel haber başlığı');
+      const source = copy.querySelector('[data-cinematic-kaynak]');
+      source ? source.after(line) : copy.prepend(line);
+    }
+    const list = [...(items || [])].filter(x => x && x.slug && x.title)
+      .sort((a,b) => (Date.parse(b.published_at || b.original_date || '') || 0) - (Date.parse(a.published_at || a.original_date || '') || 0))
+      .slice(0, 4);
+    if (!list.length) { line.hidden = true; return; }
+    line.hidden = false;
+    let i = 0;
+    const paint = () => {
+      const n = list[i % list.length];
+      line.classList.remove('is-changing');
+      requestAnimationFrame(() => {
+        line.innerHTML = '<span>CANLI HABER</span><strong>' + esc(n.title) + '</strong><i aria-hidden="true">↗</i>';
+        line.href = '/haberler/' + encodeURIComponent(n.slug);
+        line.setAttribute('aria-label', 'Haberi aç: ' + n.title);
+        line.classList.add('is-changing');
+      });
+      i += 1;
+    };
+    paint();
+    if (list.length > 1) {
+      clearInterval(line._rotation);
+      line._rotation = setInterval(paint, 5200);
+    }
+  };
+
   const render = (items) => {
     const list = items.slice(0, 9);
     if (!list.length) {
@@ -417,6 +455,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
         allNews = [];
       }
     }
+    updateHeroNews(allNews);
     // Tum editoryal kategoriler veri yokken de navigasyonda gorunur.
     // Boylece kategori omurgasi ilk haber gelmeden kaybolmaz.
     const categories = (window.BTMEDYA_RELEVANCE ? window.BTMEDYA_RELEVANCE.categories : [])
