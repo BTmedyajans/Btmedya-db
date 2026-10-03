@@ -167,13 +167,6 @@ jobs:
           test ! -e .github/workflows/media-smoke.yml
           test ! -e .github/workflows/storage-audit.yml
 
-      - name: D1 schema audit
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          wranglerVersion: latest
-          command: d1 execute btmedya-media --remote --config wrangler.toml --command="PRAGMA table_info(media);"
-
       - name: Production smoke test
         run: |
           set -euo pipefail
@@ -252,6 +245,7 @@ jobs:
           echo "$health" | grep -q '"ok":true'
           echo "$health" | grep -q '"cms":true'
           echo "$health" | grep -q '"r2":true'
+          echo "$health" | grep -q '"mediaSchema":{"ok":true'
 
           media="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/api/public/media)"
           echo "SMOKE media: ${media:0:700}"
