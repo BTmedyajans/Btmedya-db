@@ -52,6 +52,7 @@ jobs:
           # yeni kareleri gostermiyor (29 Eylul: 8 trend kapagi listede yoktu).
           node tools/medya-listesi.mjs --kontrol
           node tools/css-denetimi.mjs
+          node tools/mobile-regression-gate.mjs
 
           # node --check her sozdizimi hatasini yakalamiyor: 115a50e'deki
           # /^static\\/.../ regex'i node'dan gecti ama Workers Builds'in
