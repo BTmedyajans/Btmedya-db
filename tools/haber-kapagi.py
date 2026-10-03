@@ -424,30 +424,33 @@ def bilgi_karti(h, cikti):
 
 
 def bilgi_karti_foto(h, cikti):
-    """Metinsiz kart gorselinin bilgi karti karsiligi: baslik yok (kartin
-    kendi basligi HTML'de), yalniz yer + vurgu. Kare kaynak mobil kutuda
-    ve masaustu genis kartta kirpildigi icin her sey ortada toplanir."""
-    renk = kategori_rengi(h["kategori"])
+    """Metinsiz kart gorselinin bilgi karti karsiligi, manset dilinde: baslik
+    yok (kartin kendi basligi HTML'de), ortada dev sari rakam. Kare kaynak
+    liste kucuk resminde ve genis kartta kirpildigi icin her sey ortada;
+    eski surumde kirpilan yazi parcalari ("MERKE GERCE") gorunuyordu."""
+    global W, H
     vurgu = h.get("vurgu") or {}
-    im = bilgi_zemini(FOTO, FOTO, renk, FOTO // 2, FOTO // 2)
+    eski = (W, H)
+    W, H = FOTO, FOTO
+    try:
+        im = manset_zemini()
+    finally:
+        W, H = eski
     d = ImageDraw.Draw(im)
-    gen = 780
-    deger = vurgu.get("deger") or h["kategori"]
-    vf = sigdir(d, deger, f_sg, gen, 250, 70)
-    yer = buyuk(vurgu.get("yer") or "")
-    etiket = sar(d, vurgu.get("etiket", ""), f_mr(44), gen)[:2]
-    toplam = vf.size + 30 + len(etiket) * 58 + (70 if yer else 0)
-    y = (FOTO - toplam) // 2
-    if yer:
-        yf = f_mr(32)
-        yw = olcu_aralikli(d, yer, yf, 4)
-        aralikli(d, ((FOTO - yw) // 2, y), yer, yf, GRI, 4)
-        y += 70
-    d.text(((FOTO - d.textlength(deger, font=vf)) // 2, y - vf.size * 0.12), deger, font=vf, fill=renk)
-    y += vf.size + 30
-    for s in etiket:
-        d.text(((FOTO - d.textlength(s, font=f_mr(44))) // 2, y), s, font=f_mr(44), fill=INK)
-        y += 58
+    gen = FOTO - 200
+    deger = buyuk(vurgu.get("deger") or h["kategori"].split("·")[0].strip())
+    vf = f_an(330)
+    while vf.size > 90 and d.textlength(deger, font=vf) > gen:
+        vf = f_an(vf.size - 10)
+    etiket = buyuk(vurgu.get("etiket", "").split("·")[0].strip())
+    ef = sigdir(d, etiket, f_an, gen, 64, 34) if etiket else None
+    db = d.textbbox((0, 0), deger, font=vf)
+    eh = (d.textbbox((0, 0), etiket, font=ef)[3] + 34) if etiket else 0
+    y = (FOTO - (db[3] - db[1]) - eh) // 2
+    golgeli_yazi(im, ((FOTO - (db[2] - db[0])) // 2 - db[0], y - db[1]), deger, vf, SARI_M, 6)
+    if etiket:
+        tb = d.textbbox((0, 0), etiket, font=ef)
+        golgeli_yazi(im, ((FOTO - (tb[2] - tb[0])) // 2 - tb[0], y + (db[3] - db[1]) + 34 - tb[1]), etiket, ef, INK, 3)
     os.makedirs(os.path.dirname(cikti), exist_ok=True)
     im.save(cikti, "WEBP", quality=84, method=6)
     return os.path.getsize(cikti)
