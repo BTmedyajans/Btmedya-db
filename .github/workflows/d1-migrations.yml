@@ -17,6 +17,5 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: latest
-          command: d1 migrations apply btmedya-media --remote
+          command: d1 migrations apply btmedya-media --remote --config wrangler.toml
