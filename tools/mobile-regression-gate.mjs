@@ -45,15 +45,27 @@ const mobileGuard = home.indexOf("if(window.matchMedia('(max-width:720px)').matc
 if (heroMarker < 0 || mobileGuard < heroMarker) fail("desktop cinematic hero controller still active on mobile");
 else ok("desktop cinematic hero controller is gated on mobile");
 
-if (!/const source=mobileHero\.dataset\.mobile \|\| mobileHero\.dataset\.src/.test(motion))
-  fail("mobile hero does not honor assigned source fallback");
-else ok("mobile hero honors mobile or assigned source");
+/* V5 (3 Ekim) mobil hero'yu sahne listesinden besliyor; eski dataset.mobile
+   sözleşmesi yok. Asıl korunması gereken: her sahne videosu gerçekten var ve
+   "GERÇEK ÇEKİM" diyen sahne katalogda gercek:true işaretli bir dosyayı
+   oynatıyor (AGENTS.md: varsayılan AI ÜRETİMİ). V5 ilk sürümünde AI kapaklı
+   bir sosyal kart "GERÇEK ÇEKİM · SAHA" diye etiketlenmişti. */
+const katalog = JSON.parse(read("public/data/medya-listesi.json"));
+const gercekler = new Set((katalog.items || katalog).filter(x => x && x.gercek === true).map(x => x.path));
+const sahneler = [...motion.matchAll(/source:'([^']*)'[^}]*?video:'([^']*)'/g)].map(m => ({ etiket: m[1], video: m[2] }));
+if (!sahneler.length) fail("mobile hero scene list not found");
+let sahneHata = 0;
+for (const s of sahneler) {
+  if (!fs.existsSync(path.join(root, "public", s.video))) { fail(`mobile hero scene video missing: ${s.video}`); sahneHata++; }
+  if (/^GERÇEK ÇEKİM/.test(s.etiket) && !gercekler.has(s.video.replace(/^\/assets\//, ""))) { fail(`scene labelled "${s.etiket}" plays non-verified media: ${s.video}`); sahneHata++; }
+}
+if (sahneler.length && !sahneHata) ok(`mobile hero scenes: ${sahneler.length} videos present, real-footage labels match catalog`);
 
-if (!/window\.matchMedia\('\(max-width:720px\)'\)\.matches\) return;/.test(motion))
-  fail("duplicate mobile customer navigator is not gated");
-else ok("mobile-motion duplicate navigator is gated");
+if (!/(window\.innerWidth>720\)\s*return|matchMedia\('\(max-width:720px\)'\)\.matches\)\s*return)/.test(motion) || /createElement\([^)]*\)[^;]*(choice|navigator)/i.test(motion))
+  fail("mobile-motion is not mobile-only or injects a duplicate navigator");
+else ok("mobile-motion is mobile-only and injects no duplicate navigator");
 
-if (!/if\(window\.matchMedia\('\(max-width:720px\)'\)\.matches\)return;/.test(experience))
+if (!/matchMedia\('\(max-width:720px\)'\)\.matches\)\s*return;/.test(experience))
   fail("experience navigator still injects on mobile");
 else ok("experience navigator skips mobile");
 

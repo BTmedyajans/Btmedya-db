@@ -120,6 +120,15 @@ const atifsiz = { ...iyi, baslik: "Fenerbahçe, Lukaku performans düşerse Balo
 assert.ok(M.kaliteDenetimi(atifsiz, '', kulisKaynak).sorun.some(x => x.includes('atıf')));
 const atifli = { ...atifsiz, baslik: "Hürriyet: Fenerbahçe, Lukaku istenen seviyeye gelmezse Balogun'u istiyor", spot: "Hürriyet'in haberine göre " + atifsiz.spot };
 assert.ok(!M.kaliteDenetimi(atifli, '', kulisKaynak).sorun.some(x => x.includes('atıf')));
+// İddia kaynaklı haberde başlık kesinlik bildiremez (Kökçü, 3 Ekim). Gövdedeki
+// "bildirildi" atıf sayılsa bile başlık kendi başına yakalanmalı.
+const iddiaKaynak = "Orkun Kökçü için olay iddia! Belçika maçında oynamama sebebi ortaya çıktı.";
+const kesin = { ...iyi, baslik: "Orkun Kökçü'nün Belçika maçı aday kadrosundan çıkarılma nedeni ortaya çıktı", paragraflar: ["Çıkışının gerekçesi ayak parmağındaki çatlak olarak bildirildi.", ...iyi.paragraflar.slice(1)] };
+assert.ok(M.kaliteDenetimi(kesin, '', iddiaKaynak).sorun.some(x => x.includes('kesinleşmiş')), 'iddia başlıkta kesinlik olarak sunulmamalı');
+const atifliKesin = { ...kesin, baslik: "Hürriyet: Orkun Kökçü'nün Belçika maçında oynamama nedeni ortaya çıktı" };
+assert.ok(!M.kaliteDenetimi(atifliKesin, '', iddiaKaynak).sorun.some(x => x.includes('kesinleşmiş')));
+const yumusak = { ...kesin, baslik: "Orkun Kökçü, Belçika maçının aday kadrosundan çıkarıldı" };
+assert.ok(!M.kaliteDenetimi(yumusak, '', iddiaKaynak).sorun.some(x => x.includes('kesinleşmiş')));
 // Sıradan haber kulis sayılmaz.
 assert.equal(M.kulisMi("Valilik vatandaşların dikkatli olmasını istiyor; yaz transfer döneminde"), false);
 console.log('SABAH MASASI KATEGORI ISCISI TESTI GECTI');

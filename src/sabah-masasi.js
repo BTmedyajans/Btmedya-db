@@ -102,6 +102,7 @@ export function tanitimMi(metin) { return TANITIM.test(duz(metin)); }
    kesinleştirmiş, piyasa değerini "bonservis" yapmıştı. */
 const KULIS = /\b(iddia\w*|kulis\w*|gundeminde|bombasi|golcu operasyonu|transfer operasyonu|transfer hamlesi|ilgileniyor|kadrosuna katmak istiyor|masada)\b/;
 const ATIF = /\b(gore|iddia\w*|ileri suruldu|one suruldu|haberine|aktardi|yazdi|bildirildi)\b/;
+const KESINLIK = /\b(ortaya cikti|belli oldu|kesinlesti|netlesti|gercek ortaya|perde aralandi|aciga cikti)\b/;
 export function kulisMi(metin) { return KULIS.test(duz(metin)); }
 export function atifVarMi(metin) { return ATIF.test(duz(metin)); }
 const SPOR_KELIME = /\b(futbol|mac|maci|milli takim|uefa|super lig|gol|teknik direktor|transfer|basketbol|voleybol|fenerbahce|galatasaray|besiktas|trabzonspor)\b/;
@@ -387,6 +388,13 @@ export function kaliteDenetimi(y, kaynakMetin = '', kaynakOzet = '') {
   if (ekHata) sorun.push(`skor eki hatalı: ${ekHata}`);
   if (kulisMi(kaynakOzet || String(kaynakMetin).slice(0, 600)) && !atifVarMi([baslik, spot, (y.paragraflar || [])[0] || ''].join(' '))) {
     sorun.push('kaynak bir iddia/kulis aktarıyor ama başlık, spot ve ilk paragrafta kaynağa atıf yok ("... haberine göre")');
+  }
+  // İddia aktaran kaynakta başlık kesinlik bildiremez: "nedeni ortaya çıktı"
+  // dediğimizde Hürriyet'in "iddia"sını doğrulanmış bilgi gibi sunduk (Kökçü,
+  // 3 Ekim). Gövdedeki tek bir "bildirildi" atıf sayıldığı için yukarıdaki
+  // kural bunu kaçırdı; başlığın kendisi ya atıf taşımalı ya kesinlik iddia etmemeli.
+  if (kulisMi(kaynakOzet || String(kaynakMetin).slice(0, 600)) && KESINLIK.test(duz(baslik)) && !atifVarMi(baslik) && !/^[^:]{2,40}:\s/.test(baslik)) {
+    sorun.push('kaynak bir iddia aktarıyor ama başlık bunu kesinleşmiş gibi sunuyor ("ortaya çıktı", "belli oldu"); başlıkta kaynağa atıf yapın ya da kesinlik ifadesini kaldırın');
   }
   const ay = kucukAyAdi([baslik, spot, govde].join(' '));
   if (ay) sorun.push(`tarih bildiren ay adı küçük yazılmış: "${ay}" (TDK: büyük harfle)`);
