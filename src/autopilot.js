@@ -268,10 +268,13 @@ async function createSocialDraft(env,news,media,policy,runId){
     return {created:false,scheduled:false,reason:"BTMEDYA şirket Metricool Brand ID eksik."};
 
   const postId=crypto.randomUUID();
-  const body=String(news.excerpt||news.title||"")+"\n\nHaber: https://btmedya.com.tr/haberler/"+news.slug;
+  const body=String(news.excerpt||news.title||"")+"
+
+Haber: https://btmedya.com.tr/haberler/"+news.slug;
+  const format=platformSlugs.some(x=>x==="youtube" || x==="tiktok") ? "9:16" : "4:5";
   const status=policy.autoScheduleSocial && scheduled ? "planlandi" : "onayda";
   await env.DB.prepare("INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,account_scope,metricool_brand_id,account_label,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-    .bind(postId,String(news.title||"").slice(0,240),body,JSON.stringify(platformSlugs),mediaKey,
+    .bind(postId,String(news.title||"").slice(0,240),body,JSON.stringify(platformSlugs),format,mediaKey,
       news.slug,accountScope,metricoolBrandId,"BTMEDYA Şirket",status,scheduled,nowIso(),nowIso()).run().catch(()=>{});
   await log(env,runId,"social-create",postId,status,policy.autoScheduleSocial?"otomatik plan":"onay kuyruğu",{
     accountScope,metricoolBrandId,networks:platformSlugs,mediaKey
