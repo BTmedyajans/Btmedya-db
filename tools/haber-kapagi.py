@@ -159,7 +159,9 @@ def olcu_aralikli(d, metin, font, ara):
 
 
 def kapak_norm(s):
-    return str(s or "").lower().replace("ı","i").replace("ğ","g").replace("ü","u").replace("ş","s").replace("ö","o").replace("ç","c")
+    # "İ".lower() Python'da "i" + birlesik nokta (U+0307) verir; buyuk harfe
+    # cevrilmis manset satiri ("BALIKESİR") vurgu kelimesiyle eslesmiyordu.
+    return str(s or "").replace("İ", "i").replace("\u0307", "").lower().replace("ı","i").replace("ğ","g").replace("ü","u").replace("ş","s").replace("ö","o").replace("ç","c")
 
 
 def ana_vurgu(metin):
@@ -188,7 +190,11 @@ def satir_vurgulu(d, xy, metin, font, vurgu):
         if kapak_norm(re.sub(r"^[^0-9A-Za-zÇĞİÖŞÜçğıöşü]+|[^0-9A-Za-zÇĞİÖŞÜçğıöşü]+$", "", parca)) == vurgu:
             tw=d.textlength(parca, font=font)
             pad=max(4,int(font.size*.08))
-            d.rounded_rectangle([x-pad,y+int(font.size*.04),x+tw+pad,y+int(font.size*.88)],radius=max(2,int(font.size*.04)),fill=SARI)
+            # Kutu harflerin gercek sinirindan olculur: sabit .88 oran "g, ş, j"
+            # kuyruklarini kutunun disinda birakiyor, siyah yazi koyu zeminde
+            # kayboluyordu ("Memleketinde", "Stratejileri" kesik gorunuyordu).
+            bx0, by0, bx1, by1 = d.textbbox((x, y), parca, font=font)
+            d.rounded_rectangle([bx0-pad, by0-pad//2, bx1+pad, by1+pad//2],radius=max(2,int(font.size*.04)),fill=SARI)
             d.text((x,y),parca,font=font,fill=(8,10,12))
             x += tw
         else:
@@ -307,6 +313,8 @@ KATEGORI_RENK = [
     ("saglik", (255, 122, 107)),
     ("ulasim", (80, 214, 200)),     # camgobegi-yesil: ulasim / egitim
     ("yerel", (100, 228, 255)),     # camgobegi: yerel
+    ("egitim", (80, 214, 200)),     # camgobegi-yesil: egitim (ulasim ile ayni aile)
+    ("teknoloji", (92, 168, 255)),  # mavi: teknoloji / savunma / TEKNOFEST
 ]
 
 
@@ -613,6 +621,276 @@ def kanal_karti_foto(h, foto_yolu, cikti):
     return os.path.getsize(cikti)
 
 
+# ---------------------------------------------------------------------------
+# MANSET KAPAGI (3 Ekim 2026, kullanici ornekleri: ulusal/yerel haber kanali
+# paylasim kartlari). Gorsel dil: dar ve kalin buyuk harf baslik, beyaz +
+# sari, kirmizi egik serit, sag ustte logo plakasi, mavi noktali zemin.
+#
+# Orneklerden ALINMAYANLAR, cunku AGENTS.md ve kullanicinin gazetecilik
+# kurallariyla celisir:
+#   - "RESMEN ACIKLANDI" gibi neyin aciklandigini soylemeyen tik tuzagi:
+#     kapakta her zaman haberin kendi basligi yazar.
+#   - "SOKU" gibi iddiayi kesinlesmis gosteren sifatlar: kod basliga kelime
+#     eklemez.
+#   - Habere konu olmayan bir kisinin fotografini sucla iliskili bir basligin
+#     yanina koymak (hakaret riski): kisi fotografi yalniz plandaki kendi
+#     haberinde ve lisansli/kendi karemizse girer.
+#   - "SON DAKIKA" yalniz planda son_dakika: true ise basilir.
+# ---------------------------------------------------------------------------
+ANTON = os.path.join(FONT_DIR, "anton-regular.ttf")
+SARI_M = (255, 212, 0)
+KIRMIZI_M = (227, 20, 27)
+LACIVERT = ((5, 16, 44), (10, 46, 112))
+
+
+def f_an(b): return ImageFont.truetype(ANTON, b)
+
+
+def manset_zemini():
+    """Mavi degrade + nokta izgarasi + soldan altin isik: ornek 1'deki
+    haber stüdyosu zemini. Harita kullanilmaz; sinir verisi depoda yok ve
+    yanlis cizilmis bir Turkiye haritasi kabul edilemez."""
+    im = Image.new("RGB", (W, H))
+    d = ImageDraw.Draw(im)
+    (r0, g0, b0), (r1, g1, b1) = LACIVERT
+    for y in range(H):
+        t = y / H
+        d.line([(0, y), (W, y)], fill=(int(r0 + (r1 - r0) * t), int(g0 + (g1 - g0) * t), int(b0 + (b1 - b0) * t)))
+    isik = Image.new("RGB", (W, H), (0, 0, 0))
+    di = ImageDraw.Draw(isik)
+    di.ellipse([-260, 120, 300, 640], fill=(150, 104, 10))
+    di.ellipse([W - 220, -120, W + 260, 360], fill=(20, 70, 190))
+    isik = isik.filter(ImageFilter.GaussianBlur(120))
+    im = Image.composite(isik, im, isik.convert("L").point(lambda v: min(255, v * 2)))
+    d = ImageDraw.Draw(im)
+    for y in range(18, H, 14):
+        for x in range(18, W, 14):
+            v = 46 + int(26 * ((x * 7 + y * 3) % 5 == 0))
+            d.ellipse([x - 2, y - 2, x + 2, y + 2], fill=(v, v + 22, v + 70))
+    return im
+
+
+def egik_serit(im, x, y, metin, font, zemin, yazi=INK, egim=16, pad=(22, 10)):
+    d = ImageDraw.Draw(im)
+    tw = d.textlength(metin, font=font)
+    b = d.textbbox((0, 0), metin, font=font)
+    h = (b[3] - b[1]) + 2 * pad[1]
+    gen = tw + 2 * pad[0]
+    d.polygon([(x + egim, y), (x + gen + egim, y), (x + gen, y + h), (x, y + h)], fill=zemin)
+    d.text((x + pad[0] + egim // 2, y + pad[1] - b[1]), metin, font=font, fill=yazi)
+    return x + gen + egim, y + h
+
+
+def logo_plakasi(im):
+    logo = Image.open(os.path.join(KOK, "public", "assets", "logo", "btmedya-logo-yatay-pozitif.png")).convert("RGBA")
+    lh = 40
+    logo = logo.resize((int(logo.width * lh / logo.height), lh), Image.LANCZOS)
+    d = ImageDraw.Draw(im)
+    x1, y0 = W - 30, 30
+    x0 = x1 - logo.width - 28
+    d.rounded_rectangle([x0, y0, x1, y0 + lh + 18], radius=8, fill=(255, 255, 255))
+    im.paste(logo, (x0 + 14, y0 + 9), logo)
+
+
+def golgeli_yazi(im, xy, metin, font, dolgu=INK, kontur=4):
+    golge = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    ImageDraw.Draw(golge).text((xy[0] + 3, xy[1] + 8), metin, font=font, fill=(0, 0, 0, 200),
+                               stroke_width=kontur + 2, stroke_fill=(0, 0, 0, 200))
+    golge = golge.filter(ImageFilter.GaussianBlur(7))
+    im.paste(golge, (0, 0), golge)
+    ImageDraw.Draw(im).text(xy, metin, font=font, fill=dolgu, stroke_width=kontur, stroke_fill=(0, 0, 0))
+
+
+def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
+    """h: plan kaydi. temsili_yolu: lisansli temsili/arsiv fotografi (tam
+    zemin). portre: (yol, ust) muhabirin kendi gercek karesi (sag serit)."""
+    if temsili_yolu:
+        t = h["temsili"]
+        im = kapla(Image.open(temsili_yolu).convert("RGB"), W, H, t.get("odak", 0.45))
+        im = ImageEnhance.Contrast(im).enhance(1.08)
+        # Soldan ve alttan karartma: beyaz baslik her fotografta okunsun.
+        maske = Image.new("L", (W, H), 0)
+        dm = ImageDraw.Draw(maske)
+        for x in range(W):
+            dm.line([(x, 0), (x, H)], fill=int(205 * max(0.0, 1 - x / (W * 0.95)) ** 0.9))
+        im = Image.composite(Image.new("RGB", (W, H), (4, 10, 26)), im, maske)
+        im = alt_gecis(im, 0.45, 230)
+        metin_gen = W - 2 * KEN
+        kaynak = kunye_satiri(t)
+    else:
+        im = manset_zemini()
+        metin_gen = W - 2 * KEN
+        kaynak = "BTMEDYA GRAFİK"
+        if portre and H > W:
+            # Dikey sosyal kart: kare ustte tam genislik, altta yumusak gecis;
+            # baslik altta tam genislikte durur.
+            yol, ust = portre
+            ph = int(H * 0.66)
+            # Yuz cogu karede ust yarida; yatay kapak icin secilen alt odak
+            # (or. kamera arkasi 0.78) dikey kadrajda yuzu disarida birakiyordu.
+            p = kapla(Image.open(yol).convert("RGB"), W, ph, 0.22 if ust < 0.5 else 0.45)
+            m = Image.new("L", (W, ph), 255)
+            dm = ImageDraw.Draw(m)
+            for y in range(ph - 260, ph):
+                dm.line([(0, y), (W, y)], fill=int(255 * ((ph - y) / 260) ** 1.3))
+            im.paste(p, (0, 0), m)
+            kaynak = "GERÇEK ÇEKİM · BTMEDYA"
+        elif portre:
+            yol, ust = portre
+            pw = 470
+            p = kapla(Image.open(yol).convert("RGB"), pw, H, ust)
+            m = Image.new("L", (pw, H), 255)
+            dm = ImageDraw.Draw(m)
+            for x in range(180):
+                dm.line([(x, 0), (x, H)], fill=int(255 * (x / 180) ** 1.4))
+            im.paste(p, (W - pw, 0), m)
+            metin_gen = W - pw - KEN + 20
+            kaynak = "GERÇEK ÇEKİM · BTMEDYA"
+    d = ImageDraw.Draw(im)
+
+    # Sol ust: kirmizi egik serit. SON DAKIKA yalniz planda isaretliyse.
+    vurgu = h.get("vurgu") or {}
+    yer = (vurgu.get("yer") or "").strip()
+    serit = "SON DAKİKA" if h.get("son_dakika") else buyuk(h["kategori"].split("·")[0].strip())
+    if yer and buyuk(yer) not in serit:
+        serit += "  ·  " + buyuk(yer)
+    sx, sy = egik_serit(im, KEN - 18, 36, serit, f_an(34), KIRMIZI_M)
+    if h.get("video"):
+        egik_serit(im, sx + 8, 36, "▶ VİDEO", f_an(34), (255, 255, 255), (12, 12, 12))
+    logo_plakasi(im)
+
+    # Sari etiket: haberin gercek rakami + kisa aciklama (planda yazili).
+    etiket = ""
+    dev_rakam = H > W and not temsili_yolu and not portre and bool(vurgu.get("deger"))
+    if vurgu.get("deger") and not dev_rakam:
+        etiket = buyuk(vurgu["deger"])
+        if vurgu.get("etiket"):
+            etiket += "  " + buyuk(vurgu["etiket"].split("·")[0].strip())
+
+    # Baslik: Anton, buyuk harf, en fazla 4 satir, olabildigince iri.
+    baslik = buyuk(h["baslik"])
+    dikey = H > W
+    punto = 150 if dikey else 118
+    while punto > 50:
+        bf = f_an(punto)
+        if len(sar(d, baslik, bf, metin_gen)) <= (4 if dikey else (3 if punto > 80 else 4)):
+            break
+        punto -= 4
+    bf = f_an(punto)
+    satirlar = sar(d, baslik, bf, metin_gen)[:4]
+    # Turkce buyuk harflerin noktasi (İ) ve cengeli (Ş, Ç) ust satira
+    # degmesin diye satir araligi 1.10.
+    sat_y = int(punto * (1.17 if len(satirlar) == 4 else 1.10))
+    alt = H - 60
+    y = alt - len(satirlar) * sat_y
+    if etiket:
+        ef = f_an(40)
+        while ef.size > 24 and d.textlength(etiket, font=ef) > metin_gen - 40:
+            ef = f_an(ef.size - 2)
+        if d.textlength(etiket, font=ef) > metin_gen - 40:
+            etiket = buyuk(vurgu["deger"])
+        eb = d.textbbox((0, 0), etiket, font=ef)
+        ey = y - (eb[3] - eb[1]) - 34
+        d.rectangle([KEN - 6, ey - 8, KEN + d.textlength(etiket, font=ef) + 18, ey + (eb[3] - eb[1]) + 12], fill=SARI_M)
+        d.text((KEN + 6, ey - eb[1] + 2), etiket, font=ef, fill=(10, 10, 10))
+        # Etiketin altinda altin isik cizgisi: ornekteki ayrac.
+        for i in range(6):
+            d.line([(KEN, ey + (eb[3] - eb[1]) + 22 + i // 3), (KEN + 260 - i * 30, ey + (eb[3] - eb[1]) + 22 + i // 3)], fill=(255, 196, 40))
+    if dev_rakam:
+        # Dikey grafik kart: basligin ustundeki bosluga haberin rakami dev ve
+        # sari. Metin plandaki gercek rakamdir; poster dili, tik tuzagi degil.
+        ust_sinir, alt_sinir = 150, y - 60
+        dv = buyuk(vurgu["deger"])
+        et = buyuk(vurgu.get("etiket") or "")
+        tf = sigdir(d, et, f_an, W - 2 * KEN, 60, 30) if et else None
+        th = (d.textbbox((0, 0), et, font=tf)[3] + 30) if et else 0
+        df = f_an(320)
+        while df.size > 80:
+            db = d.textbbox((0, 0), dv, font=df)
+            if db[2] - db[0] <= W - 2 * KEN and (db[3] - db[1]) + th <= alt_sinir - ust_sinir:
+                break
+            df = f_an(df.size - 8)
+        db = d.textbbox((0, 0), dv, font=df)
+        blok = (db[3] - db[1]) + th
+        by = ust_sinir + (alt_sinir - ust_sinir - blok) // 2
+        golgeli_yazi(im, ((W - (db[2] - db[0])) // 2 - db[0], by - db[1]), dv, df, SARI_M, 5)
+        if et:
+            tb = d.textbbox((0, 0), et, font=tf)
+            golgeli_yazi(im, ((W - (tb[2] - tb[0])) // 2 - tb[0], by + (db[3] - db[1]) + 30 - tb[1]), et, tf, INK, 3)
+        d = ImageDraw.Draw(im)
+    vurgu_kelime = "" if etiket else ana_vurgu(h["baslik"])
+    # Etiket yoksa vurgu kelimesini tasiyan tek satir sari (ornek 2'deki
+    # ikinci satir). Metin degismez, yalniz hiyerarsi kurulur.
+    sari_satir = next((i for i, s in enumerate(satirlar) if vurgu_kelime and kapak_norm(vurgu_kelime) in kapak_norm(s)), -1)
+    for i, s in enumerate(satirlar):
+        sari = i == sari_satir
+        golgeli_yazi(im, (KEN, y - int(punto * 0.12)), s, bf, SARI_M if sari else INK)
+        y += sat_y
+
+    # Alt satir: tarih + kaynak etiketi solda, alan adi sagda. Etiket karenin
+    # icinde durur ki gorsel tek basina paylasildiginda da kaynak belli olsun.
+    serit_y = H - 44
+    alt_kat = Image.new("RGBA", (W, 44), (0, 0, 0, 165))
+    im.paste(alt_kat, (0, serit_y), alt_kat)
+    d = ImageDraw.Draw(im)
+    sol = f"{h['altbilgi']} · {kaynak}"
+    kf = sigdir(d, sol, f_mr, W - 2 * KEN - 260, 19, 13)
+    d.text((KEN, serit_y + 12), sol, font=kf, fill=(226, 232, 240))
+    sf = f_sg(20)
+    d.text((W - KEN - d.textlength("BTMEDYA.COM.TR", font=sf), serit_y + 10), "BTMEDYA.COM.TR", font=sf, fill=SARI_M)
+    os.makedirs(os.path.dirname(cikti), exist_ok=True)
+    if bicim == "JPEG":
+        im.save(cikti, "JPEG", quality=88, optimize=True, progressive=True)
+    else:
+        im.save(cikti, "WEBP", quality=90, method=6)
+    return os.path.getsize(cikti)
+
+
+def manset_kaynagi(h, kareler=None):
+    """Plan kaydindan manset kapaginin gorsel kaynagini cozer. None donerse
+    kayit manset kapagina uygun degildir (gercek olmayan havuz karesi)."""
+    if h.get("temsili"):
+        return {"temsili_yolu": os.path.join(KOK, h["temsili"]["dosya"])}
+    kareler = kareler if kareler is not None else havuz()
+    kare = kareler.get(h.get("foto") or "")
+    if kare and kare.get("gercek"):
+        return {"portre": (os.path.join(KOK, kare["yol"]), kare.get("ust", 0.30))}
+    if h.get("vurgu") and not h.get("foto"):
+        return {}
+    return None
+
+
+def manset_sosyal(h, cikti, **kaynak):
+    """Ayni manset dilinde 4:5 (1080x1350) JPEG sosyal kart. Instagram webp
+    kabul etmez; akista 4:5 en buyuk alani kaplar."""
+    global W, H
+    eski = (W, H)
+    W, H = 1080, 1350
+    try:
+        return manset_karti(h, cikti, bicim="JPEG", **kaynak)
+    finally:
+        W, H = eski
+
+
+KATEGORI_PLAKALARI = {
+    "gundem": "Gündem", "balikesir": "Balıkesir", "ekonomi": "Ekonomi", "spor": "Spor",
+    "kultur": "Kültür Sanat", "saglik": "Sağlık", "egitim": "Eğitim", "teknoloji": "Teknoloji",
+}
+
+
+def kategori_plakalari():
+    """Sabah Masasi'nin fotografsiz haberlerine gecici kapak. Eski plakalar
+    her habere ayni "gunun one cikan gelismesi" cumlesini basiyordu; haber
+    hakkinda bir sey soylemeyen cumle yanlis beyana yakindi. Plaka yalniz
+    kategori adini ve kaynagini tasir; habere ozel manset sonra uretilir."""
+    hedef = os.path.join(KOK, "public", "assets", "kategori-kapak")
+    for anahtar, ad in KATEGORI_PLAKALARI.items():
+        h = {"baslik": ad, "kategori": "BTMEDYA HABER MERKEZİ", "altbilgi": "BTMEDYA · kategori grafiği"}
+        manset_karti(h, os.path.join(hedef, anahtar + ".webp"))
+        manset_sosyal(h, os.path.join(hedef, anahtar + "-sosyal.jpg"))
+        print("  plaka", anahtar)
+
+
 def plan():
     p = os.path.join(KOK, "public", "data", "haber-kapak-plani.json")
     with open(p, encoding="utf-8") as f:
@@ -651,6 +929,9 @@ def kaynak_dosyasi(kareler, plan_kayitlari):
 
 
 if __name__ == "__main__":
+    if sys.argv[1:] == ["--kategori"]:
+        kategori_plakalari()
+        raise SystemExit(0)
     istenen = set(sys.argv[1:])
     hedef = os.path.join(KOK, "public", "assets", "haber-kapak")
     n = fotolu = 0
@@ -660,13 +941,13 @@ if __name__ == "__main__":
             continue
         if h.get("temsili"):
             foto = os.path.join(KOK, h["temsili"]["dosya"])
-            boyut = kanal_karti(h, foto, os.path.join(hedef, h["slug"] + ".webp"))
+            boyut = manset_karti(h, os.path.join(hedef, h["slug"] + ".webp"), temsili_yolu=foto)
             fb = kanal_karti_foto(h, foto, os.path.join(hedef, h["slug"] + "-foto.webp"))
             n += 1
             print(f"  T {h['slug'][:40]:42} {boyut/1024:>5.0f} KB + kart {fb/1024:>4.0f} KB")
             continue
         if h.get("vurgu"):
-            boyut = bilgi_karti(h, os.path.join(hedef, h["slug"] + ".webp"))
+            boyut = manset_karti(h, os.path.join(hedef, h["slug"] + ".webp"))
             fb = bilgi_karti_foto(h, os.path.join(hedef, h["slug"] + "-foto.webp"))
             n += 1
             print(f"  B {h['slug'][:40]:42} {boyut/1024:>5.0f} KB + kart {fb/1024:>4.0f} KB")
@@ -675,7 +956,11 @@ if __name__ == "__main__":
         if h.get("foto") and not kare:
             raise SystemExit(f"{h['slug']}: '{h['foto']}' kapak karesi havuzda yok.")
         foto = os.path.join(KOK, kare["yol"]) if kare else None
-        boyut = kapak(h["baslik"], h["kategori"], h["altbilgi"],
+        if kare and kare.get("gercek"):
+            # Muhabirin kendi gercek karesi: manset kapaginda sag serit.
+            boyut = manset_karti(h, os.path.join(hedef, h["slug"] + ".webp"), portre=(foto, kare.get("ust", 0.30)))
+        else:
+          boyut = kapak(h["baslik"], h["kategori"], h["altbilgi"],
                       os.path.join(hedef, h["slug"] + ".webp"),
                       foto=foto, video=h.get("video", False),
                       ust=kare.get("ust", 0.30) if kare else 0.30,

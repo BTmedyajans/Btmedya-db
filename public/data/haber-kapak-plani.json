@@ -236,7 +236,7 @@
   "kategori": "Spor",
   "altbilgi": "BTMEDYA · 26 Ağustos 2024",
   "video": false,
-  "foto": "portre-sb"
+  "foto": "kamera-arkasi"
  },
  {
   "slug": "el-emegi-yorganlar-artik-isitmiyor",
@@ -284,7 +284,7 @@
   "kategori": "Sağlık · Estetik",
   "altbilgi": "BTMEDYA · 07 Ağustos 2024",
   "video": false,
-  "foto": "portre-sb"
+  "foto": "portre-03"
  },
  {
   "slug": "balikesir-in-son-kalaycisi-ilyas-baykal",
@@ -300,7 +300,7 @@
   "kategori": "Yaşam · Düğün",
   "altbilgi": "BTMEDYA · 05 Ağustos 2024",
   "video": false,
-  "foto": "portre-sb"
+  "foto": "kamera-arkasi"
  },
  {
   "slug": "balikesir-esnafi-eleman-bulmakta-zorlaniyor",
@@ -364,7 +364,7 @@
   "kategori": "Spor · Beslenme",
   "altbilgi": "BTMEDYA · 29 Mayıs 2024",
   "video": false,
-  "foto": "portre-sb"
+  "foto": "portre-02"
  },
  {
   "slug": "sogan-tarlada-5-pazarda-15tl",
@@ -1601,5 +1601,461 @@
   },
   "altbilgi": "BTMEDYA · 29 Eylül 2026",
   "imza": "BTMEDYA HABER MERKEZİ"
+ },
+ {
+  "slug": "turkiye-sinema-festivali-iki-gunde-777-bin-seyirciyle-rekor-kirdi",
+  "baslik": "Türkiye Sinema Festivali iki günde 777 bin seyirciyle rekor kırdı",
+  "kategori": "Kültür",
+  "altbilgi": "BTMEDYA · 29 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "777 bin",
+   "etiket": "seyirci · 75 ilde yaklaşık 1.500 salon",
+   "yer": "Türkiye"
+  }
+ },
+ {
+  "slug": "sanliurfa-30-eylul-4-ekim-teknofest-guneydogu-na-ev-sahipligi-yapiyor",
+  "baslik": "Şanlıurfa, 30 Eylül-4 Ekim TEKNOFEST Güneydoğu'na ev sahipliği yapıyor",
+  "kategori": "Teknoloji",
+  "altbilgi": "BTMEDYA · 29 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "30 Eylül",
+   "etiket": "4 Ekim'e kadar GAP Havalimanı'nda",
+   "yer": "Şanlıurfa"
+  }
+ },
+ {
+  "slug": "istanbul-da-hafta-boyunca-40-60-km-saat-ruzgarla-kuvvetli-yagis-gurultulu-saganak-bekleniy",
+  "baslik": "İstanbul'da hafta boyunca 40-60 km/saat rüzgârla kuvvetli yağış, gürültülü sağanak bekleniyor",
+  "kategori": "Gündem",
+  "altbilgi": "BTMEDYA · 29 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "40-60 km/sa",
+   "etiket": "rüzgâr · İstanbul Valiliği uyarısı",
+   "yer": "İstanbul"
+  }
+ },
+ {
+  "slug": "toki-46-ilde-383-arsayi-29-30-eylul-de-acik-artirmayla-satacak",
+  "baslik": "TOKİ, 46 ilde 383 arsayı 29-30 Eylül'de açık artırmayla satacak",
+  "kategori": "Ekonomi",
+  "altbilgi": "BTMEDYA · 29 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "383",
+   "etiket": "arsa · 46 ilde açık artırma",
+   "yer": "Türkiye"
+  }
+ },
+ {
+  "slug": "yok-ui-greenmetric-2026-da-150-turk-universitesinin-surdurulebilirlik-basarisini-acikladi",
+  "baslik": "YÖK, UI GreenMetric 2026'da 150 Türk üniversitesinin sürdürülebilirlik başarısını açıkladı",
+  "kategori": "Eğitim",
+  "altbilgi": "BTMEDYA · 29 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "150",
+   "etiket": "Türk üniversitesi listede · 110 ülke",
+   "yer": "Türkiye"
+  }
+ },
+ {
+  "slug": "fenerbahce-lukaku-performans-duserse-50-milyon-euroluk-balogun-transferi-hedefliyor",
+  "baslik": "Hürriyet: Fenerbahçe, Lukaku istenen seviyeye gelmezse devre arasında Balogun'u istiyor",
+  "kategori": "Spor",
+  "altbilgi": "BTMEDYA · 29 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "Balogun",
+   "etiket": "ocak dönemi hedefi · kaynak: Hürriyet",
+   "yer": "Fenerbahçe"
+  }
+ },
+ {
+  "slug": "ayvalik-unesco-adayliginda-calismalar-suruyor",
+  "baslik": "Ayvalık UNESCO adaylığında çalışmalar sürüyor",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 30 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "UNESCO",
+   "etiket": "Dünya Mirası Listesi adaylığı",
+   "yer": "Ayvalık"
+  }
+ },
+ {
+  "slug": "nafaka-karari-iptal-edildi",
+  "baslik": "Anayasa Mahkemesi süresiz yoksulluk nafakasını iptal etti",
+  "kategori": "Gündem",
+  "altbilgi": "BTMEDYA · 30 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "İptal",
+   "etiket": "süresiz yoksulluk nafakası Anayasa'ya aykırı bulundu",
+   "yer": "Ankara"
+  }
+ },
+ {
+  "slug": "altin-fiyatlari",
+  "baslik": "Standart altının kilogramı 6 milyon 548 bin liraya çıktı",
+  "kategori": "Ekonomi",
+  "altbilgi": "BTMEDYA · 30 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "6,548 mn TL",
+   "etiket": "standart altının kilogramı",
+   "yer": "Türkiye"
+  }
+ },
+ {
+  "slug": "istanbul-kultur-yolu-festivali",
+  "baslik": "İstanbul Kültür Yolu Festivali üçüncü gününde konser ve sergilerle sürdü",
+  "kategori": "Kültür",
+  "altbilgi": "BTMEDYA · 30 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "3. gün",
+   "etiket": "konser, sergi, tiyatro ve atölye",
+   "yer": "İstanbul"
+  }
+ },
+ {
+  "slug": "egitim-suresi-16-8-yil",
+  "baslik": "TÜİK: Türkiye'de muhtemel eğitim süresi 2025'te 16,8 yıl oldu",
+  "kategori": "Eğitim",
+  "altbilgi": "BTMEDYA · 30 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "16,8 yıl",
+   "etiket": "muhtemel eğitim süresi · TÜİK, 2025",
+   "yer": "Türkiye"
+  }
+ },
+ {
+  "slug": "kalp-merkezleri",
+  "baslik": "Sağlık Bakanlığı: 117 kalp merkezinde tanı ve tedavi hizmeti veriliyor",
+  "kategori": "Sağlık",
+  "altbilgi": "BTMEDYA · 30 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "117",
+   "etiket": "kalp merkezinde tanı, tedavi ve takip",
+   "yer": "Türkiye"
+  }
+ },
+ {
+  "slug": "manchester-city",
+  "baslik": "Manchester City, Premier Lig'in mali kurallarını ihlalden suçlu bulundu",
+  "kategori": "Spor",
+  "altbilgi": "BTMEDYA · 30 Eylül 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "9 sezon",
+   "etiket": "mali kural ihlali suçlamaları",
+   "yer": "İngiltere"
+  }
+ },
+ {
+  "slug": "prof-dr-osman-muftuoglu-coklu-gorevlerin-verimliligi-azalttigini-vurguladi",
+  "baslik": "Prof. Dr. Osman Müftüoğlu, çoklu görevlerin verimliliği azalttığını vurguladı",
+  "kategori": "Sağlık",
+  "altbilgi": "BTMEDYA · 1 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "Çoklu görev",
+   "etiket": "beyni yoruyor, verimliliği düşürüyor",
+   "yer": "Sağlık"
+  }
+ },
+ {
+  "slug": "istanbul-da-bu-hafta-sinema-muzik-tiyatro-ve-sergi-etkinlikleri-sanatseverlerle-bulusacak",
+  "baslik": "İstanbul'da bu hafta sinema, müzik, tiyatro ve sergi etkinlikleri sanatseverlerle buluşacak",
+  "kategori": "Kültür",
+  "altbilgi": "BTMEDYA · 1 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "4 alan",
+   "etiket": "sinema, müzik, tiyatro, sergi",
+   "yer": "İstanbul"
+  }
+ },
+ {
+  "slug": "balikesir-toplu-tasima-yeni-egitim-yili-icin-399-hatta-6-bin-473-seferle-hizmete-basladi",
+  "baslik": "Balıkesir Toplu Taşıma, yeni eğitim yılı için 399 hatta 6 bin 473 seferle hizmete başladı",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 1 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "399 hat",
+   "etiket": "ortalama 6 bin 473 sefer",
+   "yer": "Balıkesir"
+  }
+ },
+ {
+  "slug": "turk-yildizlari-teknofest-guneydogu-nun-acilisinda-binlerce-izleyiciye-akrobasi-gosterisi",
+  "baslik": "Türk Yıldızları, TEKNOFEST Güneydoğu'nun açılışında binlerce izleyiciye akrobasi gösterisi sundu",
+  "kategori": "Teknoloji",
+  "altbilgi": "BTMEDYA · 1 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "Açılış",
+   "etiket": "TEKNOFEST Güneydoğu · GAP Havalimanı",
+   "yer": "Şanlıurfa"
+  }
+ },
+ {
+  "slug": "eylul-ayi-dogum-yardimi-odemeleri-annelerin-hesaplarina-yatirildi",
+  "baslik": "Eylül ayı doğum yardımı ödemeleri annelerin hesaplarına yatırıldı",
+  "kategori": "Ekonomi",
+  "altbilgi": "BTMEDYA · 1 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "Eylül",
+   "etiket": "doğum yardımı ödemeleri hesaplarda",
+   "yer": "Türkiye"
+  }
+ },
+ {
+  "slug": "van-in-bahcesaray-tek-sinifli-okulunda-ogretmen-umut-demir-iki-kardesi-gelecege-hazirliyor",
+  "baslik": "Van'ın Bahçesaray tek sınıflı okulunda öğretmen Umut Demir iki kardeşi geleceğe hazırlıyor",
+  "kategori": "Eğitim",
+  "altbilgi": "BTMEDYA · 1 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "11 km",
+   "etiket": "öğretmenin her gün yürüdüğü yol",
+   "yer": "Van"
+  }
+ },
+ {
+  "slug": "meteoroloji-20-ilde-sari-kodlu-uyari-yayinladi-serin-ve-yagisli-hava-etkili-olacak",
+  "baslik": "Meteoroloji 20 ilde sarı kodlu uyarı yayınladı; serin ve yağışlı hava etkili olacak",
+  "kategori": "Gündem",
+  "altbilgi": "BTMEDYA · 1 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "20 il",
+   "etiket": "sarı kodlu uyarı · 30 Eylül-6 Ekim",
+   "yer": "Türkiye"
+  }
+ },
+ {
+  "slug": "turkiye-nin-muhendis-kizlari-programina-yeni-donem-basvurulari-8-ekim-e-kadar-basladi",
+  "baslik": "Türkiye'nin Mühendis Kızları programına yeni dönem başvuruları 8 Ekim'e kadar başladı",
+  "kategori": "Eğitim",
+  "altbilgi": "BTMEDYA · 2 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "8 Ekim",
+   "etiket": "son başvuru · 11 yıllık program",
+   "yer": "Türkiye"
+  }
+ },
+ {
+  "slug": "kadikoy-imam-hatip-lisesi-ogrencileri-teknofest-te-ucunculukle-sampiyonlar-gecidi-nde-yer",
+  "baslik": "Kadıköy İmam Hatip Lisesi öğrencileri TEKNOFEST'te üçüncülükle Şampiyonlar Geçidi'nde yer aldı",
+  "kategori": "Teknoloji",
+  "altbilgi": "BTMEDYA · 2 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "3.",
+   "etiket": "Liselerarası İHA Yarışması",
+   "yer": "İstanbul"
+  }
+ },
+ {
+  "slug": "antalya-altin-portakal-film-festivali-nde-24-31-ekim-de-yarisma-disi-kisa-ve-belgesel-film",
+  "baslik": "Antalya Altın Portakal Film Festivali'nde 24-31 Ekim'de yarışma dışı kısa ve belgesel filmler açıklandı",
+  "kategori": "Kültür",
+  "altbilgi": "BTMEDYA · 2 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "63.",
+   "etiket": "Antalya Altın Portakal · 24-31 Ekim",
+   "yer": "Antalya"
+  }
+ },
+ {
+  "slug": "turkiye-liege-de-belcika-karsisinda-uluslar-ligi-a-da-galibiyet-pesinde",
+  "baslik": "Türkiye, Liege'de Belçika karşısında Uluslar Ligi A'da galibiyet peşinde",
+  "kategori": "Spor",
+  "altbilgi": "BTMEDYA · 2 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "21.45",
+   "etiket": "Belçika - Türkiye · Uluslar Ligi A",
+   "yer": "Liege"
+  }
+ },
+ {
+  "slug": "kardiyoloji-uzmani-akin-torun-olculu-kahve-tuketiminin-kalbe-zararli-olmadigini-belirtti",
+  "baslik": "Kardiyoloji Uzmanı Akın Torun, ölçülü kahve tüketiminin kalbe zararlı olmadığını belirtti",
+  "kategori": "Sağlık",
+  "altbilgi": "BTMEDYA · 2 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "2-3 fincan",
+   "etiket": "günlük kahve çoğu sağlıklı yetişkin için güvenli",
+   "yer": "Sağlık"
+  }
+ },
+ {
+  "slug": "benzinde-otv-artisi-kademeli-sisteme-alindi-esel-mobil-sistemi-bugun-sona-erdi",
+  "baslik": "Benzinde ÖTV artışı kademeli sisteme alındı, eşel mobil sistemi bugün sona erdi",
+  "kategori": "Ekonomi",
+  "altbilgi": "BTMEDYA · 2 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "ÖTV",
+   "etiket": "benzinde kademeli artış · eşel mobil sona erdi",
+   "yer": "Türkiye"
+  }
+ },
+ {
+  "slug": "firtina-gokceada-ve-bozcaada-hatlarindaki-feribot-seferlerini-iptal-etti",
+  "baslik": "Fırtına, Gökçeada ve Bozcaada hatlarındaki feribot seferlerini iptal etti",
+  "kategori": "Gündem",
+  "altbilgi": "BTMEDYA · 2 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "Feribot",
+   "etiket": "Gökçeada ve Bozcaada seferleri iptal",
+   "yer": "Çanakkale"
+  }
+ },
+ {
+  "slug": "turkiye-nin-ilk-yapay-zeka-destekli-filmi-efsaneler-takimi-2-ekim-de-vizyona-girdi",
+  "baslik": "Türkiye'nin ilk yapay zekâ destekli filmi 'Efsaneler Takımı' 2 Ekim'de vizyona girdi",
+  "kategori": "Kültür",
+  "altbilgi": "BTMEDYA · 3 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "2 Ekim",
+   "etiket": "Efsaneler Takımı vizyonda",
+   "yer": "İstanbul"
+  }
+ },
+ {
+  "slug": "gaziantepli-ogrenciler-teknogaraj-viento-takimiyla-teknofest-guneydogu-da-bir-kez-daha-bir",
+  "baslik": "Gaziantepli öğrenciler Teknogaraj Viento takımıyla TEKNOFEST Güneydoğu'da bir kez daha birincilik kazandı",
+  "kategori": "Teknoloji",
+  "altbilgi": "BTMEDYA · 3 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "1.",
+   "etiket": "Teknogaraj Viento · TEKNOFEST Güneydoğu",
+   "yer": "Gaziantep"
+  }
+ },
+ {
+  "slug": "meteoroloji-hafta-sonu-yurdun-buyuk-bir-bolumunde-yagis-ve-70-km-sa-ruzgar-bekliyor",
+  "baslik": "Meteoroloji, hafta sonu yurdun büyük bir bölümünde yağış ve 70 km/sa rüzgâr bekliyor",
+  "kategori": "Gündem",
+  "altbilgi": "BTMEDYA · 3 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "70 km/sa",
+   "etiket": "Marmara'da rüzgâr · hafta sonu yağış",
+   "yer": "Türkiye"
+  }
+ },
+ {
+  "slug": "edremit-belediyesi-14-donumluk-santiyede-moloz-ve-bahce-atiklarini-geri-donusturmeyi-hedef",
+  "baslik": "Edremit Belediyesi, 14 dönümlük şantiyede moloz ve bahçe atıklarını geri dönüştürmeyi hedefliyor",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 3 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "14 dönüm",
+   "etiket": "yeni şantiye · Akçay Dallas Mevkii",
+   "yer": "Edremit"
+  }
+ },
+ {
+  "slug": "turkiye-belcika-karsisinda-42-dakikada-merih-demiral-in-kacirdigi-firsatla-3-0-yenildi",
+  "baslik": "Türkiye, Uluslar Ligi'nde Belçika'ya 3-0 yenildi",
+  "kategori": "Spor",
+  "altbilgi": "BTMEDYA · 3 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "3-0",
+   "etiket": "Belçika - Türkiye · Uluslar Ligi 3. hafta",
+   "yer": "Liege"
+  }
+ },
+ {
+  "slug": "kpss-on-lisans-sinavi-4-ekim-pazar-gunu-160-merkezde-gerceklestirilecek",
+  "baslik": "KPSS Ön Lisans sınavı 4 Ekim Pazar günü 160 merkezde gerçekleştirilecek",
+  "kategori": "Eğitim",
+  "altbilgi": "BTMEDYA · 3 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "160",
+   "etiket": "sınav merkezi · 81 il · 4 Ekim 10.15",
+   "yer": "Türkiye"
+  }
+ },
+ {
+  "slug": "turkiye-de-otomobil-ve-hafif-ticari-arac-satislari-9-ayda-803-bin-465-e-dustu",
+  "baslik": "Türkiye'de otomobil ve hafif ticari araç satışları 9 ayda 803 bin 465'e düştü",
+  "kategori": "Ekonomi",
+  "altbilgi": "BTMEDYA · 3 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "%13,39",
+   "etiket": "düşüş · ocak-eylül 803 bin 465 araç",
+   "yer": "Türkiye"
+  }
+ },
+ {
+  "slug": "orta-yasta-obezite-ileri-yasta-demans-riskini-yuzde-33-artiriyor",
+  "baslik": "Orta yaşta obezite, ileri yaşta demans riskini yüzde 33 artırıyor",
+  "kategori": "Sağlık",
+  "altbilgi": "BTMEDYA · 3 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "%33",
+   "etiket": "demans riskinde artış · 589 bin 649 kişi",
+   "yer": "Araştırma"
+  }
+ },
+ {
+  "slug": "yaren-ozdemir-uc-yil-once-ogrenci-oldugu-teknofest-te-muhendis-olarak-urununu-sergiliyor",
+  "baslik": "Yaren Özdemir, üç yıl önce öğrenci olduğu TEKNOFEST'te mühendis olarak ürününü sergiliyor",
+  "kategori": "Teknoloji",
+  "altbilgi": "BTMEDYA · 3 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "3 yıl",
+   "etiket": "öğrenci yarışmacıdan mühendise",
+   "yer": "TEKNOFEST"
+  }
+ },
+ {
+  "slug": "selami-sahin-cso-ada-ankara-nin-yeni-sezon-acilis-konserinde-60-yillik-sarkilarini-seslend",
+  "baslik": "Selami Şahin, CSO Ada Ankara'nın yeni sezon açılış konserinde 60 yıllık şarkılarını seslendirdi",
+  "kategori": "Kültür",
+  "altbilgi": "BTMEDYA · 3 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "60 yıl",
+   "etiket": "şarkılar CSO Ada Ankara sahnesinde",
+   "yer": "Ankara"
+  }
+ },
+ {
+  "slug": "sanliurfa-gap-havalimani-nda-teknofest-guneydogu-cocuklari-yerli-hava-araclariyla-tanistir",
+  "baslik": "Şanlıurfa GAP Havalimanı'nda TEKNOFEST Güneydoğu, çocukları yerli hava araçlarıyla tanıştırdı",
+  "kategori": "Teknoloji",
+  "altbilgi": "BTMEDYA · 3 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "Yerli",
+   "etiket": "hava araçları çocuklarla buluştu",
+   "yer": "Şanlıurfa"
+  }
  }
 ]

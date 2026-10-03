@@ -141,13 +141,19 @@ if __name__ == "__main__":
     hedef = os.path.join(KOK, "public", "assets", "sosyal-kart")
     canli = canli_haberler()
     n = 0
+    kareler = kapak.havuz()
     for h in kapak.plan():
         if istenen and h["slug"] not in istenen:
             continue
         c = canli.get(h["slug"]) or {}
         h = {**h, "baslik": c.get("title") or h["baslik"]}
         spot = " ".join(str(c.get("excerpt") or "").split())
-        boyut = kart(h, turler.get(h["slug"], "ai"), os.path.join(hedef, h["slug"] + ".jpg"), spot)
+        # 3 Ekim 2026: sosyal kart da kapakla ayni manset dilinde (kullanici
+        # ornekleri). Manset kaynagi cozulemeyen kayit eski karta duser.
+        kaynak = kapak.manset_kaynagi(h, kareler)
+        cikti = os.path.join(hedef, h["slug"] + ".jpg")
+        boyut = (kapak.manset_sosyal(h, cikti, **kaynak) if kaynak is not None
+                 else kart(h, turler.get(h["slug"], "ai"), cikti, spot))
         n += 1
         print(f"  {h['slug'][:56]:58} {boyut/1024:>5.0f} KB")
     print(f"\n  {n} sosyal kart uretildi -> public/assets/sosyal-kart/")
