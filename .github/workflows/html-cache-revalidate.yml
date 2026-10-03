@@ -23,18 +23,18 @@ jobs:
     steps:
       - name: Verify Cloudflare credentials
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           set -euo pipefail
           test -n "$CLOUDFLARE_API_TOKEN" || {
-            echo "::error::CLOUDFLARE_API_TOKEN secret eksik."
+            echo "::error::Cloudflare deploy/API secret eksik."
             exit 1
           }
 
       - name: Resolve zone
         id: zone
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           set -euo pipefail
           api="https://api.cloudflare.com/client/v4"
@@ -50,7 +50,7 @@ jobs:
 
       - name: Revalidate live HTML
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_CACHE_PURGE_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_CACHE_PURGE_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
           ZONE_ID: ${{ steps.zone.outputs.zone_id }}
         run: |
           set -euo pipefail
@@ -58,22 +58,8 @@ jobs:
           urls=(
             "https://btmedya.com.tr/"
             "https://www.btmedya.com.tr/"
-            "https://btmedya.com.tr/en/"
             "https://btmedya.com.tr/haberler/"
             "https://btmedya.com.tr/kaynak-masasi/"
-            "https://btmedya.com.tr/hakkimizda/"
-            "https://btmedya.com.tr/iletisim/"
-            "https://btmedya.com.tr/hizmetler/"
-            "https://btmedya.com.tr/sosyal-medya/"
-            "https://btmedya.com.tr/video-produksiyon/"
-            "https://btmedya.com.tr/vaka-calismalari/"
-            "https://btmedya.com.tr/reklam-ve-sponsorluk/"
-            "https://btmedya.com.tr/sosyal-medya-kit/"
-            "https://btmedya.com.tr/whatsapp-katalog/"
-            "https://btmedya.com.tr/arsiv/"
-            "https://btmedya.com.tr/portfoy/"
-            "https://btmedya.com.tr/portfoy/buse-tuncay/"
-            "https://btmedya.com.tr/ai-lab/"
             "https://btmedya.com.tr/robots.txt"
             "https://btmedya.com.tr/sitemap.xml"
             "https://btmedya.com.tr/news-sitemap.xml"
@@ -91,7 +77,7 @@ jobs:
             "$api" || true)"
           response="$(cat "$response_file")"
           if [ "$http_code" = "401" ] || [ "$http_code" = "403" ]; then
-            echo "::warning::Cloudflare Cache Purge yetkisi bu token'da yok. HTML origin cache TTL'i 60 saniyeye düşürüldüğü için güvenli şekilde devam ediliyor."
+            echo "::warning::Cloudflare Cache Purge yetkisi bu token'da yok; güvenli şekilde devam ediliyor."
             exit 0
           fi
           if [ "$http_code" != "200" ] || [ "$(jq -r '.success // false' <<<"$response")" != "true" ]; then
