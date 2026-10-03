@@ -62,15 +62,12 @@ body{background:var(--cin-bg);color:var(--cin-ink)}
   .cinematic-actions .button:active,.news-open:hover,.news-open:focus-visible{transform:none}
 }
 
-/* ===== MOBILE HERO + REAL BTMEDYA BRAND / 28 EYLÜL 2026 ===== */
+/* ===== MOBILE HERO + REAL BTMEDYA BRAND / 28 EYLUL 2026 ===== */
 @media(max-width:760px){
   .topbar .brand{display:inline-flex!important;align-items:center;gap:8px;height:44px;line-height:1;max-width:68vw}
   .topbar .brand img{display:block!important;width:30px!important;height:30px!important;max-width:30px!important;object-fit:contain;object-position:center;flex:0 0 30px}
   .topbar .brand b{display:inline-flex!important;align-items:baseline;font-size:15px!important;line-height:1;letter-spacing:.04em;white-space:nowrap}
   .topbar .brand b span{letter-spacing:.06em}
-
-  /* Mobilde hero tek ekran: sahne sabitlenmez, sahneler home.js'te zamanla
-     doner. Kapsayici 420vh kalirsa sahnenin altinda ~2.700 px bos kaydirma olusur. */
   .cinematic-hero{height:auto}
   .cinematic-visual{transition:opacity .9s ease,transform .9s ease}
   .cinematic-sticky{position:relative;min-height:560px;height:100svh;max-height:none;overflow:hidden}
@@ -86,37 +83,25 @@ body{background:var(--cin-bg);color:var(--cin-ink)}
   .cinematic-copy{top:82px}
 }
 
-/* ===== HERO KARE DIZISI / 28 EYLUL 2026 =====
-   home.js masaustunde hero videosunu 93 karelik diziden canvas'a cizer.
-   Ilk kare inene kadar gorunmez; video afisi yerinde kalir. */
+/* ===== HERO KARE DIZISI / 28 EYLUL 2026 ===== */
 .cinematic-kare{position:absolute;inset:0;width:100%;height:100%;z-index:2;opacity:0;transition:opacity .45s ease;pointer-events:none;background:#02060a}
 .cinematic-kare.hazir{opacity:1}
 @media (max-width:760px){.cinematic-kare{display:none}}
 
-/* ===== CANLI RAKAMLAR (manifesto) ===== */
+/* ===== CANLI RAKAMLAR ===== */
 .canli-sayac{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line,rgba(255,255,255,.1));border:1px solid var(--line,rgba(255,255,255,.1));border-radius:18px;overflow:hidden;margin-top:18px}
 .canli-sayac>div{background:rgba(6,10,18,.92);padding:26px 24px 22px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .canli-sayac b{font:700 clamp(42px,5vw,78px)/.9 "Space Grotesk",Space,sans-serif;letter-spacing:-.05em;color:#fff;font-variant-numeric:tabular-nums}
 .canli-sayac>div:first-child b{color:var(--gold,#e7b24a)}
 .canli-sayac span{font:600 11px/1.4 "JetBrains Mono",Jet,monospace;letter-spacing:.08em;text-transform:uppercase;color:#aab6c3}
 .canli-sayac-not{grid-column:1/-1;margin:0;padding:12px 24px;background:rgba(6,10,18,.92);font:500 11px/1.5 Manrope,sans-serif;color:#8b97a6}
-@media (max-width:760px){
-  .canli-sayac{grid-template-columns:1fr 1fr}
-  .canli-sayac>div{padding:18px 16px}
-  .canli-sayac b{font-size:clamp(34px,11vw,52px)}
-}
+@media (max-width:760px){.canli-sayac{grid-template-columns:1fr 1fr}.canli-sayac>div{padding:18px 16px}.canli-sayac b{font-size:clamp(34px,11vw,52px)}}
 
-/* ===== EKRAN ROZETI (TV kanal logosu) =====
-   Ulusal yayincilardaki gibi sag ust kosede yari saydam daire amblem.
-   Metin sol tarafta oldugu icin mobilde de cakismaz. */
+/* ===== EKRAN ROZETI ===== */
 .cinematic-brand.ekran-rozeti{display:flex;align-items:center;gap:10px;left:auto!important;right:clamp(18px,4vw,64px);top:clamp(84px,11vh,112px);font:700 11px/1 "JetBrains Mono",Jet,monospace;letter-spacing:.14em;color:rgba(255,255,255,.82);opacity:.9;pointer-events:none}
 .cinematic-brand.ekran-rozeti img{width:58px;height:58px;border-radius:50%;box-shadow:0 0 0 1px rgba(231,178,74,.35),0 8px 28px rgba(0,0,0,.55);opacity:.92}
 .cinematic-brand.ekran-rozeti span{color:rgba(255,255,255,.82)}
-@media (max-width:760px){
-  .cinematic-brand.ekran-rozeti{top:78px;right:14px;gap:0}
-  .cinematic-brand.ekran-rozeti img{width:40px;height:40px}
-  .cinematic-brand.ekran-rozeti span{display:none}
-}
+@media (max-width:760px){.cinematic-brand.ekran-rozeti{top:78px;right:14px;gap:0}.cinematic-brand.ekran-rozeti img{width:40px;height:40px}.cinematic-brand.ekran-rozeti span{display:none}}
 
 /* ===== HERO SES DUGMESI ===== */
 .ses-dugme{position:absolute;z-index:9;left:var(--bt-gutter,clamp(24px,7vw,110px));bottom:52px;display:inline-flex;align-items:center;gap:9px;min-height:40px;padding:0 14px 0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.28);background:rgba(4,8,14,.55);backdrop-filter:blur(10px);color:#fff;font:700 10px/1 "JetBrains Mono",Jet,monospace;letter-spacing:.12em;cursor:pointer}
@@ -129,3 +114,101 @@ body{background:var(--cin-bg);color:var(--cin-ink)}
 @keyframes ses-dalga{from{height:30%}to{height:100%}}
 @media (prefers-reduced-motion:reduce){.ses-dugme.acik i::before{animation:none;height:70%}}
 @media (max-width:760px){.ses-dugme{left:16px;bottom:58px;min-height:44px}}
+
+/* ===== SUPERVISOR AWARD SYSTEM / 04 EKİM 2026 =====
+   One visual language for desktop + mobile. The existing editorial markup remains
+   canonical; this layer adds hierarchy, rhythm, tactile states and app-like polish. */
+:root{
+  --award-lime:#D9FF3F;
+  --award-cyan:#35D6FF;
+  --award-paper:#F4F7F8;
+  --award-black:#050607;
+  --award-line:rgba(244,247,248,.13);
+  --award-soft:rgba(244,247,248,.055);
+  --award-radius:18px;
+  --award-ease:cubic-bezier(.16,1,.3,1);
+}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(circle at 50% -12%,rgba(53,214,255,.07),transparent 28%),var(--award-black)}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:9990;opacity:.045;background-image:radial-gradient(rgba(255,255,255,.9) .45px,transparent .45px);background-size:4px 4px;mix-blend-mode:screen}
+.topbar{border-bottom-color:var(--award-line);box-shadow:0 10px 45px rgba(0,0,0,.22)}
+.topbar .brand{transition:transform .35s var(--award-ease)}
+.topbar .brand:hover{transform:translateY(-1px)}
+.top-cta{box-shadow:0 8px 30px rgba(217,255,63,.14);transition:transform .25s var(--award-ease),box-shadow .25s ease}
+.top-cta:hover{transform:translateY(-2px);box-shadow:0 14px 38px rgba(217,255,63,.2)}
+.cinematic-sticky{border-bottom:1px solid rgba(255,255,255,.08)}
+.cinematic-copy{z-index:8}
+.cinematic-title{text-shadow:0 2px 0 rgba(255,255,255,.02),0 24px 80px rgba(0,0,0,.62)}
+.cinematic-kicker:before{content:"";display:inline-block;width:28px;height:2px;margin:0 9px 3px 0;background:var(--award-lime);box-shadow:0 0 14px rgba(217,255,63,.45)}
+.cinematic-actions .button-dark{background:var(--award-lime);border-color:var(--award-lime);color:#071000!important;box-shadow:0 12px 38px rgba(217,255,63,.16)}
+.cinematic-actions .button-dark:hover{box-shadow:0 18px 50px rgba(217,255,63,.24);transform:translateY(-2px)}
+.cinematic-actions .button-light:hover{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.11);transform:translateY(-2px)}
+.vitrine-status{border-inline:0;border-radius:0!important;background:rgba(5,6,7,.86)}
+.section{position:relative}
+.section:after{content:"";position:absolute;left:clamp(18px,4vw,56px);right:clamp(18px,4vw,56px);bottom:0;height:1px;background:var(--award-line)}
+.section-head{position:relative}
+.section-head:before,.bt-world-head:before{content:"01";position:absolute;right:0;top:18px;font:700 10px/1 "JetBrains Mono",monospace;letter-spacing:.14em;color:rgba(255,255,255,.35)}
+.section:nth-of-type(2) .section-head:before{content:"02"}.section:nth-of-type(3) .section-head:before{content:"03"}.section:nth-of-type(4) .section-head:before{content:"04"}
+.news-card{border-radius:var(--award-radius)!important;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.018));box-shadow:0 10px 40px rgba(0,0,0,.14)}
+.news-card:hover{transform:translateY(-6px);box-shadow:0 26px 70px rgba(0,0,0,.34);border-color:rgba(255,255,255,.24)!important}
+.news-card .news-media img,.news-card .news-media video{transition:transform .8s var(--award-ease),filter .8s ease}
+.news-card:hover .news-media img,.news-card:hover .news-media video{transform:scale(1.035);filter:saturate(1.05)}
+.news-body{position:relative}
+.news-body small{color:var(--award-lime)}
+.service-grid,.offer-grid,.nextgen-proof-grid{border-radius:var(--award-radius);overflow:hidden}
+.service-grid article,.offer-card,.nextgen-proof-grid article{transition:background .3s ease,transform .35s var(--award-ease)}
+.service-grid article:hover,.nextgen-proof-grid article:hover{background:#101416;transform:translateY(-3px)}
+.portfoy-kart{border-radius:var(--award-radius)!important;overflow:hidden;transition:transform .45s var(--award-ease),box-shadow .45s ease}
+.portfoy-kart:hover{transform:translateY(-6px);box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.ai-section{position:relative;overflow:hidden;border-block:1px solid rgba(53,214,255,.14)}
+.ai-section:before{content:"AI LAB / SIGNAL";position:absolute;right:clamp(18px,4vw,56px);top:26px;font:700 9px/1 "JetBrains Mono",monospace;letter-spacing:.16em;color:rgba(53,214,255,.58)}
+.source-grid a,.archive-live-card{transition:transform .3s var(--award-ease),border-color .3s ease,background .3s ease}
+.source-grid a:hover,.archive-live-card:hover{transform:translateY(-3px);border-color:rgba(217,255,63,.3);background:rgba(255,255,255,.05)}
+.contact-section{position:relative;background:linear-gradient(135deg,rgba(217,255,63,.035),transparent 38%)}
+.contact-section .display{letter-spacing:-.09em}
+footer{background:#030404}
+footer a{transition:color .2s ease}footer a:hover{color:var(--award-lime)}
+
+/* App shell on mobile: fixed navigation, thumb-safe spacing, no horizontal traps. */
+@media(max-width:720px){
+  body{padding-bottom:calc(94px + env(safe-area-inset-bottom))!important}
+  .topbar{min-height:60px!important;padding-inline:14px!important}
+  .topbar .brand{max-width:52vw!important}
+  .hamburger{border:1px solid rgba(255,255,255,.14)!important;border-radius:999px;background:rgba(255,255,255,.04)}
+  .cinematic-sticky{height:100svh!important;min-height:540px!important}
+  .cinematic-copy{top:auto!important;bottom:calc(118px + env(safe-area-inset-bottom))!important}
+  .cinematic-title{font-size:clamp(44px,13.5vw,68px)!important;line-height:.88!important;max-width:9ch!important}
+  .cinematic-lead{font-size:13px!important;max-width:38ch!important}
+  .cinematic-actions{gap:8px!important}
+  .cinematic-actions .button{min-height:50px!important;font-size:10px!important}
+  .cinematic-index{top:76px!important;right:16px!important;bottom:auto!important}
+  .cinematic-progress{left:16px!important;right:16px!important;bottom:calc(96px + env(safe-area-inset-bottom))!important}
+  .ses-dugme{bottom:calc(106px + env(safe-area-inset-bottom))!important}
+  .section{padding-block:68px!important}
+  .section:after{left:18px;right:18px}
+  .section-head{display:block!important;margin-bottom:28px!important}
+  .section-head:before,.bt-world-head:before{top:5px!important;right:0}
+  .section-head h2,.manifesto h2{max-width:9ch!important}
+  .news-grid{gap:10px!important}
+  .news-card:hover{transform:none;box-shadow:none}
+  .news-card .news-media img,.news-card .news-media video{transform:none!important}
+  .service-grid,.offer-grid,.nextgen-proof-grid{border-radius:14px}
+  .service-grid article,.offer-card,.nextgen-proof-grid article{min-height:auto!important}
+  .ai-section{padding-inline:18px!important}
+  .ai-section:before{top:16px;right:18px}
+  .contact-section{gap:30px!important}
+  .mobile-quick-nav{border-color:rgba(255,255,255,.18)!important;background:rgba(5,6,7,.82)!important;box-shadow:0 18px 55px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.04);backdrop-filter:blur(20px) saturate(1.25)}
+  .mobile-quick-nav a{border-radius:11px!important;transition:background .2s ease,transform .2s ease,color .2s ease}
+  .mobile-quick-nav a[aria-current="true"],.mobile-quick-nav a.is-active{background:rgba(217,255,63,.12)!important;color:var(--award-lime)!important}
+  .mobile-quick-nav a:active{transform:scale(.94)}
+}
+@media(max-width:390px){
+  .cinematic-title{font-size:39px!important}
+  .cinematic-lead{font-size:12px!important}
+  .mobile-quick-nav{left:6px!important;right:6px!important;gap:2px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .news-card:hover,.portfoy-kart:hover,.service-grid article:hover,.nextgen-proof-grid article:hover{transform:none}
+  .top-cta:hover,.cinematic-actions .button:hover{transform:none}
+}
