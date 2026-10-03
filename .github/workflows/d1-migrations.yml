@@ -2,6 +2,11 @@ name: BTMEDYA D1 Migrations
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "migrations/**"
+      - ".github/workflows/d1-migrations.yml"
 
 permissions:
   contents: read
