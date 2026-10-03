@@ -1,12 +1,11 @@
-/* BTMEDYA Mobile Motion Engine — 2026-09-29 / V3
-   Mobile-first hero: the real mobile hero video now plays softly behind the opening.
-   Other scenes remain poster-first so the page does not download the whole video stack.
-   Scroll still drives the editorial story beats. */
+/* BTMEDYA Mobile Motion Engine — V4
+   Mobilde tek video omurgası: scroll yalnızca hikâye metnini ve ritmini değiştirir;
+   görüntü asla posterler arasında kesilmez. Ses kullanıcı etkileşiminden sonra %12 ile açılır. */
 (()=>{
   const root=document.querySelector('.cinematic-hero');
   if(!root || window.innerWidth>720) return;
   const sticky=root.querySelector('.cinematic-sticky'), videos=[...root.querySelectorAll('.cinematic-video video')];
-  const title=root.querySelector('[data-cinematic-title]'),kicker=root.querySelector('[data-cinematic-kicker]'),source=root.querySelector('[data-cinematic-kaynak]'),lead=root.querySelector('[data-cinematic-lead]'),index=root.querySelector('[data-cinematic-index]'),progress=root.querySelector('[data-cinematic-progress]'),label=root.querySelector('[data-cinematic-label]');
+  const title=root.querySelector('[data-cinematic-title]'),kicker=root.querySelector('[data-cinematic-kicker]'),source=root.querySelector('[data-cinematic-kaynak]'),lead=root.querySelector('[data-cinematic-lead]'),index=root.querySelector('[data-cinematic-index]'),progress=root.querySelector('[data-cinematic-progress]'),label=root.querySelector('[data-cinematic-label]'),sound=root.querySelector('[data-hero-ses]');
   if(!sticky||!title)return;
 
   root.classList.add('bt-mobile-motion');
@@ -22,6 +21,7 @@
 
   const state={active:-1,raf:0};
   const mobileHero=videos[0];
+  const lowVolume=.12;
   const swapText=(el,value,html=false)=>{
     if(!el||el.dataset.mmValue===value)return;
     el.dataset.mmValue=value;
@@ -45,9 +45,24 @@
     }
     mobileHero.muted=true;
     mobileHero.defaultMuted=true;
+    mobileHero.volume=lowVolume;
     mobileHero.playsInline=true;
     mobileHero.loop=true;
   };
+  const enableLowSound=()=>{
+    if(!mobileHero||reduced)return;
+    mobileHero.volume=lowVolume;
+    mobileHero.muted=false;
+    mobileHero.play().catch(()=>{});
+    sound?.removeAttribute('hidden');
+    if(sound){sound.setAttribute('aria-pressed','true');sound.querySelector('span')?.replaceChildren('SESİ KAPAT · %12');}
+  };
+  const disableSound=()=>{
+    if(!mobileHero)return;
+    mobileHero.muted=true;
+    if(sound){sound.setAttribute('aria-pressed','false');sound.querySelector('span')?.replaceChildren('SESİ AÇ · %12');}
+  };
+  sound?.addEventListener('click',e=>{e.preventDefault();mobileHero?.muted?enableLowSound():disableSound();});
 
   window.btYuvalar&&window.btYuvalar.then(y=>{
     scenes.forEach((s,i)=>{
@@ -77,7 +92,9 @@
     label&&(label.textContent=s.k);
     root.dataset.mmScene=s.key;
     root.style.setProperty('--mm-accent',`var(--mm-${s.tone})`);
-    root.style.setProperty('--mm-bg',"url('"+s.bg+"')");
+    /* Tek video akışında sahne değişimi görsel kesme yapmaz; poster yalnızca
+       video yüklenene kadar sabit fallback olarak kalır. */
+    root.style.setProperty('--mm-bg',"url('/assets/media/web/hero-story-poster.jpg')");
     root.style.setProperty('--mm-scale','1.02');
     root.classList.remove('beat-haber','beat-medya','beat-produksiyon','beat-ai');
     if(i>0) root.classList.add('beat-'+['hero','haber','medya','produksiyon','ai'][i]);
@@ -95,6 +112,7 @@
       videos.forEach((v,n)=>{
         if(n!==0) v.pause();
         v.style.transform=n===0?'scale(1.02)':'none';
+        if(n!==0) v.style.visibility='hidden';
       });
       if(mobileHero && !reduced) mobileHero.play().catch(()=>{});
     }
@@ -111,7 +129,7 @@
     root.style.setProperty('--mm-progress',p.toFixed(4));
     root.style.setProperty('--hero-progress',p.toFixed(4));
     if(progress)progress.style.width=(p*100)+'%';
-    root.style.setProperty('--mm-video-opacity',String(Math.max(0,Math.min(1,(.84-p)/.16))));
+    root.style.setProperty('--mm-video-opacity','1');
     root.style.setProperty('--mm-copy-y',(local*18)+'px');
     root.style.setProperty('--mm-copy-opacity',String(1-Math.min(1,local*2.2)*.24));
     sticky.style.setProperty('--hero-progress',p.toFixed(4));
@@ -142,6 +160,10 @@
   }
 
   prepareMobileHero();
+  root.addEventListener('pointerdown',e=>{
+    if(e.target.closest('a,button'))return;
+    enableLowSound();
+  },{passive:true,once:true});
   resize();
   if(!reduced && mobileHero) mobileHero.play().catch(()=>{});
 })();

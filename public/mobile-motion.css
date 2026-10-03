@@ -1,6 +1,4 @@
-/* BTMEDYA Mobile Motion Layer — 2026-09-29 / V3
-   Mobile-first scroll choreography. The real mobile intro video stays in flow
-   across the opening story; secondary scene videos remain unloaded/hidden. */
+/* BTMEDYA Mobile Motion Layer — V4 / single-video story flow */
 @media (max-width:720px){
   .cinematic-hero.bt-mobile-motion{
     --mm-progress:0;
@@ -34,8 +32,8 @@
     background-position:center 32%;
     background-repeat:no-repeat;
     transform:scale(var(--mm-scale,1.02));
-    transition:background-image .35s ease,transform .8s ease,opacity .35s ease!important;
-    will-change:background-image,transform;
+    transition:transform .8s ease!important;
+    will-change:transform;
   }
 
   .cinematic-hero.bt-mobile-motion .cinematic-video video{
@@ -44,16 +42,24 @@
     pointer-events:none;
   }
 
-  /* Giriş videosu mobilde akışın omurgasıdır. Kaydırma sırasında yavaşça
-     kaybolur, böylece ikinci/üçüncü hikâye beat'lerine yumuşak geçiş olur. */
+  /* Hikâyenin tek görsel omurgası: poster/sahne video değişimi yok. */
   .cinematic-hero.bt-mobile-motion .cinematic-video-1 video{
-    opacity:var(--mm-video-opacity,1)!important;
+    opacity:1!important;
     visibility:visible!important;
-    transition:opacity .65s ease!important;
+    display:block!important;
     object-fit:cover;
     object-position:center center;
+    filter:saturate(.94) contrast(1.04);
+  }
+  .cinematic-hero.bt-mobile-motion .cinematic-video-2 video,
+  .cinematic-hero.bt-mobile-motion .cinematic-video-3 video,
+  .cinematic-hero.bt-mobile-motion .cinematic-video-4 video,
+  .cinematic-hero.bt-mobile-motion .cinematic-ai-visual{
+    display:none!important;
   }
 
+  /* Giriş videosu mobilde akışın omurgasıdır. Kaydırma sırasında yavaşça
+     kaybolur, böylece ikinci/üçüncü hikâye beat'lerine yumuşak geçiş olur. */
   .cinematic-hero.bt-mobile-motion .cinematic-video-2,
   .cinematic-hero.bt-mobile-motion .cinematic-video-3,
   .cinematic-hero.bt-mobile-motion .cinematic-video-4{
@@ -67,8 +73,8 @@
     z-index:2;
     pointer-events:none;
     background:
-      linear-gradient(180deg,rgba(0,0,0,.22) 0%,rgba(0,0,0,.08) 28%,rgba(0,0,0,.58) 68%,rgba(0,0,0,.9) 100%),
-      linear-gradient(90deg,rgba(0,0,0,.3),transparent 55%);
+      linear-gradient(180deg,rgba(0,0,0,.12) 0%,rgba(0,0,0,.03) 32%,rgba(0,0,0,.46) 70%,rgba(0,0,0,.82) 100%),
+      linear-gradient(90deg,rgba(0,0,0,.22),transparent 58%);
   }
 
   .cinematic-hero.bt-mobile-motion .cinematic-noise,
@@ -82,7 +88,7 @@
     left:16px;
     right:16px;
     top:auto!important;
-    bottom:max(74px,calc(env(safe-area-inset-bottom) + 54px));
+    bottom:max(126px,calc(env(safe-area-inset-bottom) + 92px));
     max-width:none!important;
     will-change:transform,opacity;
     transform:translate3d(0,var(--mm-copy-y,0px),0);
@@ -190,10 +196,27 @@
   }
 
   .cinematic-hero.bt-mobile-motion .cinematic-label,
-  .cinematic-hero.bt-mobile-motion .cinematic-cursor,
-  .cinematic-hero.bt-mobile-motion .ses-dugme{
+  .cinematic-hero.bt-mobile-motion .cinematic-cursor{
     display:none!important;
   }
+
+  .cinematic-hero.bt-mobile-motion .ses-dugme{
+    display:flex!important;
+    position:absolute;
+    right:16px;
+    top:max(126px,calc(env(safe-area-inset-top) + 88px));
+    z-index:9;
+    min-height:32px;
+    padding:7px 10px;
+    border:1px solid rgba(255,255,255,.34);
+    border-radius:999px;
+    background:rgba(5,8,13,.62);
+    color:#fff;
+    font:700 8px/1 Jet,monospace;
+    letter-spacing:.08em;
+    backdrop-filter:blur(10px);
+  }
+  .cinematic-hero.bt-mobile-motion .ses-dugme i{display:none}
 
   .cinematic-hero.bt-mobile-motion .cinematic-mobile-hint{
     position:absolute;
