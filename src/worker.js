@@ -277,6 +277,8 @@ async function merakRadariApi(request, env, url){
 }
 
 async function newsApi(request, env, url, ctx){
+  const merakApi=await merakRadariApi(request,env,url); if(merakApi) return merakApi;
+
   if(url.pathname==='/api/admin/news-intelligence' && (request.method==='GET'||request.method==='POST')){
     if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
     if(request.method==='POST') return json(await runNewsIntelligence(env,{limit:16}));
