@@ -1811,6 +1811,16 @@ export default { async scheduled(controller, env, ctx){
         .catch(e=>console.error('[btmedya] Metricool handoff:',e?.message||e))
     : Promise.resolve(null);
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
+  /* Metricool sosyal tesliminden önce yardımcı kuyruk bakımı: zamanı geçmiş,
+     henüz dış servise teslim edilmemiş planları ileri alır; teslim edilmiş
+     gönderilerin süresi dolduğunda yerel durumunu yayınlandı olarak işaretler. */
+  const sosyalAyar=ayarlariOku(env).catch(()=>({aglar:[],otomatikPlanla:false}));
+  const takip=sosyalAyar.then(a=>gecikenleriKaydir(env,a,5))
+    .then(x=>{ if(x) console.log('[btmedya] geciken sosyal planlar kaydirildi',x); })
+    .catch(e=>console.error('[btmedya] geciken sosyal planlar:',e?.message||e));
+  const archive=yayinlananlariIsaretle(env)
+    .then(x=>{ if(x) console.log('[btmedya] Metricool teslimleri yayinlandi olarak işaretlendi',x); })
+    .catch(e=>console.error('[btmedya] Metricool yayın durumu:',e?.message||e));
   /* Yayındaki yeni haberleri sosyal panelde onay kuyruğuna hazırlar.
      Otomatik yayın yapmaz: son yayın kararı kullanıcı onayından sonra Metricool'a gider. */
   const drafts=autoPrepareSocialDrafts(env,3)
