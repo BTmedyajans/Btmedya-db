@@ -247,12 +247,22 @@ jobs:
           echo "$health" | grep -q '"r2":true'
 
           media="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/api/public/media)"
-          echo "SMOKE media: ${media:0:500}"
+          echo "SMOKE media: ${media:0:700}"
           echo "$media" | grep -q '"items"'
+          echo "$media" | grep -q '"generated_at"'
+          echo "$media" | grep -q '"source"'
+          # D1 metadata katmanı bozulsa bile endpoint 200 kalabilir; bu durumda
+          # deploy doğrulaması sessizce yeşil olmamalı.
+          if echo "$media" | grep -q '"degraded":true'; then
+            echo "SMOKE media: degraded=true — D1 medya metadata katmanı hatalı"
+            exit 1
+          fi
 
           social="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/api/public/social-feed)"
-          echo "SMOKE social: ${social:0:500}"
+          echo "SMOKE social: ${social:0:700}"
           echo "$social" | grep -q '"items"'
+          echo "$social" | grep -q '"profiles"'
+          echo "$social" | grep -q '"live_connections"'
 
           admin_api="$(curl --resolve "btmedya.com.tr:443:$HOME_IP" -sS -o /dev/null -w "%{http_code}" --max-time 30 https://btmedya.com.tr/api/admin/control-center)"
           echo "SMOKE admin API without session: HTTP $admin_api (expected 401)"
