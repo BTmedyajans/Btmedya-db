@@ -1,3 +1,4 @@
+import { metricoolConnectedNetworks } from "./social-platforms.js";
 /* BTMEDYA Halkın Merak Radarı
  * Google Trends + arama önerileri + BTMEDYA yayın geçmişi + Metricool bağlantı
  * durumu üzerinden "hangi soru büyüyor?" sinyali üretir.
@@ -151,7 +152,7 @@ export async function merakRadariDurumu(env){
   var matrix=(await env.DB.prepare("SELECT kategori,COUNT(*) toplam,MAX(puan) en_yuksek,SUM(CASE WHEN puan>=55 THEN 1 ELSE 0 END) yuksek FROM merak_sinyalleri WHERE updated_at>=? GROUP BY kategori ORDER BY en_yuksek DESC").bind(new Date(Date.now()-86400000).toISOString()).all().catch(function(){return {results:[]};})).results||[];
   var last=env.KV?await env.KV.get("merak-radari:son").catch(function(){return null;}):null;
   var sosyalKaynaklari=[];
-  try{ const { metricoolConnectedNetworks }=await import("./social-platforms.js"); sosyalKaynaklari=[...metricoolConnectedNetworks(env)]; }catch{}
+  try{ sosyalKaynaklari=[...metricoolConnectedNetworks(env)]; }catch{}
   return {ok:true,enabled:true,items:items,opportunities:opportunities,matrix:matrix,last:last?JSON.parse(last):null,socialSources:sosyalKaynaklari,programs:[
     {name:"Halk Röportajı",days:"Haftada 1",rule:"Saha sorusu güçlü ve doğrudan vatandaşa sorulabilir olduğunda."},
     {name:"Siyah Oda",days:"Haftada 1-2",rule:"Uzmanlık, veri ve derinlemesine tartışma gerektiren güçlü konu olduğunda."}
