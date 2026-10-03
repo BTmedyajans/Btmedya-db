@@ -70,6 +70,13 @@ Bu iki bağlantı açıldığında hedef akış:
 Drive -> metadata/kaynak kontrolü -> R2/D1 -> Social Studio -> Metricool schedule
 Calendar -> çekim/yayın etkinliği -> Social Studio takvimi
 
+## Hesap izolasyonu
+
+- Sosyal kayıtlar `account_scope` ile ayrılır: `company` = BTMEDYA Şirket, `personal` = Kişisel.
+- Autopilot yalnız şirket scope'u kullanır.
+- Kişisel yayın için ayrı Metricool Brand ID + ayrı network bağlantısı gerekir.
+- Kişisel bağlantı yoksa gönderi şirket Brand'ine geri düşmez.
+
 ## Site entegrasyonu
 
 Ana siteye /api/public/social-feed endpoint'i eklendi.
