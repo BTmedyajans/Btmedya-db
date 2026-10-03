@@ -26,11 +26,10 @@
   root.classList.add('bt-mobile-motion','bt-mobile-story-v7');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const lowVolume=.12;
-  const storyVideo='/assets/media/web/btmedya-mobile-story-v7.mp4';
+  const storyVideo='/assets/media/web/btmedya-mobile-story-v7-lite.mp4';
   const fallbackVideo=mobileHero.dataset.mobile||mobileHero.dataset.src||'';
   const state={raf:0,started:false,introApplied:false};
 
-  /* One source only. Never replace src during scroll. */
   mobileHero.muted=true;
   mobileHero.defaultMuted=true;
   mobileHero.playsInline=true;
@@ -161,7 +160,6 @@
     }
   },{once:true});
 
-  /* Prepared continuous story is the first source. It is never changed by scroll. */
   mobileHero.src=storyVideo;
   mobileHero.load();
 
