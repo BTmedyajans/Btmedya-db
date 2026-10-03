@@ -13,16 +13,11 @@ name: BTMEDYA canli site denetimi
 # e-posta gonderir; bu yuzden ayrica bildirim kurmak gerekmez.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "public/**"
-      - "src/**"
-      - "wrangler.toml"
-      - "tools/site-denetimi.mjs"
-      - "tools/a11y-denetimi.mjs"
-      - "tools/link-denetimi.mjs"
-      - ".github/workflows/site-denetimi.yml"
+  # Canli denetim production verify tamamlandiktan sonra calisir; böylece
+  # yeni deploy henüz yayına inmeden yanlış "canlı geride" alarmı üretmez.
+  workflow_run:
+    workflows: ["BTMEDYA Production Verify"]
+    types: [completed]
   schedule:
     # Saat basi degil 17. dakika: GitHub zamanlanmis isleri saat basinda
     # yogunlugundan gecikebiliyor.
@@ -38,6 +33,7 @@ concurrency:
 
 jobs:
   denetim:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
