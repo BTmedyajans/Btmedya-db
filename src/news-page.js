@@ -290,6 +290,7 @@ document.querySelectorAll('.yt-lite').forEach(function(el){
   });
 });
 </script>
+<script src="/editorial-cover-system.js?v=20261003-1" defer></script>
 </body>
 </html>`;
 }
