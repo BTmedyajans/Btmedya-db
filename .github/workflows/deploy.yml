@@ -259,3 +259,53 @@ jobs:
             echo "SMOKE media: degraded=true — D1 medya metadata katmanı hatalı"
             exit 1
           fi
+
+          social="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/api/public/social-feed)"
+          echo "SMOKE social: ${social:0:700}"
+          echo "$social" | grep -q '"items"'
+          echo "$social" | grep -q '"profiles"'
+          echo "$social" | grep -q '"live_connections"'
+
+          admin_api="$(curl --resolve "btmedya.com.tr:443:$HOME_IP" -sS -o /dev/null -w "%{http_code}" --max-time 30 https://btmedya.com.tr/api/admin/control-center)"
+          echo "SMOKE admin API without session: HTTP $admin_api (expected 401)"
+          test "$admin_api" = "401"
+
+          www_status="$(curl --resolve "www.btmedya.com.tr:443:$WWW_IP" -sS -o /dev/null -w "%{http_code}" --max-time 30 https://www.btmedya.com.tr/)"
+          echo "SMOKE www: HTTP $www_status (expected 301)"
+          test "$www_status" = "301"
+
+          home="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/)"
+          home_type="$(curl --resolve "btmedya.com.tr:443:$HOME_IP" -sS -o /dev/null -w "%{content_type}" --max-time 30 https://btmedya.com.tr/)"
+          echo "SMOKE home content-type: $home_type"
+          echo "$home_type" | grep -qi "^text/html"
+          live_markers=(
+            "GERÇEK ÇEKİM"
+            "AI ÜRETİMİ"
+            "Kaynak Masası"
+            "https://www.instagram.com/btmedyajans/"
+            "https://tr.linkedin.com/in/buse-tuncay-6b217623"
+            "meta name=\"color-scheme\" content=\"dark\""
+            "meta name=\"referrer\" content=\"strict-origin-when-cross-origin\""
+          )
+
+          live_ok=0
+          for attempt in $(seq 1 8); do
+            home="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/)"
+            missing=0
+            for marker in "${live_markers[@]}"; do
+              if [[ "$home" != *"$marker"* ]]; then
+                missing=1
+                echo "SMOKE home marker pending (attempt $attempt): $marker"
+              else
+                echo "SMOKE home marker OK: $marker"
+              fi
+            done
+            if [ "$missing" -eq 0 ]; then
+              live_ok=1
+              break
+            fi
+            sleep 15
+          done
+
+          test "$live_ok" = "1"
+
