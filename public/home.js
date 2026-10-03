@@ -1270,6 +1270,8 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     links.forEach(a=>{
       const active=a.dataset.mobileNav===key;
       a.classList.toggle('is-active',active);
+      if(active) a.style.setProperty('--mobile-accent',a.dataset.accent||'#d9ff3f');
+      else a.style.removeProperty('--mobile-accent');
       if(active) a.setAttribute('aria-current','page');
       else a.removeAttribute('aria-current');
     });

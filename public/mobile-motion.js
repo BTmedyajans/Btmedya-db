@@ -13,15 +13,28 @@
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const scenes=[
-    {yuva:'hero-video',k:'01 / GİRİŞ',source:'KAYNAK DURUMU DOĞRULANIYOR',t:'GERÇEK<br><span>HİKÂYELER.</span>',d:'Balıkesir’den sahaya, içerikten yayına tek üretim zinciri.',bg:'/assets/media/web/hero-story-poster.jpg'},
-    {yuva:'kategori-haber',k:'02 / HABER · SAHA',source:'KAYNAK DURUMU DOĞRULANIYOR',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.',bg:'/assets/media/web/poster-state-haber.webp'},
-    {yuva:'kategori-medya',k:'03 / MEDYA · İÇERİK',source:'KAYNAK DURUMU DOĞRULANIYOR',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, kısa video ve sosyal medya için platforma uygun üretim.',bg:'/assets/media/web/poster-state-medya.webp'},
-    {yuva:'kategori-prod',k:'04 / PRODÜKSİYON',source:'KAYNAK DURUMU DOĞRULANIYOR',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj, kurgu ve yayın: fikri görüntüye dönüştürüyoruz.',bg:'/assets/media/web/poster-state-produksiyon.webp'},
-    {k:'05 / AI LAB · AÇIK ETİKET',source:'AI ÜRETİMİ · AÇIKÇA ETİKETLİ',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI video, AI görsel ve otomasyon ayrı, açık ve kontrollü bir üretim alanı.',bg:'/assets/media/ai-lab/ai-portre-studyo.webp'}
+    {yuva:'hero-video',key:'home',tone:'gold',k:'01 / GİRİŞ',source:'KAYNAK DURUMU DOĞRULANIYOR',t:'GERÇEK<br><span>HİKÂYELER.</span>',d:'Balıkesir’den sahaya, içerikten yayına tek üretim zinciri.',bg:'/assets/media/web/hero-story-poster.jpg'},
+    {yuva:'kategori-haber',key:'news',tone:'cyan',k:'02 / HABER · SAHA',source:'KAYNAK DURUMU DOĞRULANIYOR',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.',bg:'/assets/media/web/poster-state-haber.webp'},
+    {yuva:'kategori-medya',key:'media',tone:'violet',k:'03 / MEDYA · İÇERİK',source:'KAYNAK DURUMU DOĞRULANIYOR',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, kısa video ve sosyal medya için platforma uygun üretim.',bg:'/assets/media/web/poster-state-medya.webp'},
+    {yuva:'kategori-prod',key:'studio',tone:'green',k:'04 / PRODÜKSİYON',source:'KAYNAK DURUMU DOĞRULANIYOR',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj, kurgu ve yayın: fikri görüntüye dönüştürüyoruz.',bg:'/assets/media/web/poster-state-produksiyon.webp'},
+    {key:'ai',tone:'red',k:'05 / AI LAB · AÇIK ETİKET',source:'AI ÜRETİMİ · AÇIKÇA ETİKETLİ',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI video, AI görsel ve otomasyon ayrı, açık ve kontrollü bir üretim alanı.',bg:'/assets/media/ai-lab/ai-portre-studyo.webp'}
   ];
 
   const state={active:-1,raf:0};
   const mobileHero=videos[0];
+  const swapText=(el,value,html=false)=>{
+    if(!el||el.dataset.mmValue===value)return;
+    el.dataset.mmValue=value;
+    if(reduced){if(html)el.innerHTML=value;else el.textContent=value;return;}
+    el.classList.remove('mm-text-in');
+    el.classList.add('mm-text-out');
+    window.setTimeout(()=>{
+      if(html)el.innerHTML=value;else el.textContent=value;
+      el.classList.remove('mm-text-out');
+      el.classList.add('mm-text-in');
+      window.setTimeout(()=>el.classList.remove('mm-text-in'),360);
+    },150);
+  };
   const prepareMobileHero=()=>{
     if(!mobileHero) return;
     const source=mobileHero.dataset.mobile || mobileHero.dataset.src;
@@ -56,12 +69,14 @@
     if(i<0||i>=scenes.length||(!force&&i===state.active))return;
     state.active=i;
     const s=scenes[i];
-    kicker&&(kicker.textContent=s.k);
-    source&&(source.textContent=s.source);
-    title.innerHTML=s.t;
-    lead&&(lead.textContent=s.d);
+    swapText(kicker,s.k);
+    swapText(source,s.source);
+    swapText(title,s.t,true);
+    swapText(lead,s.d);
     index&&(index.textContent=String(i+1).padStart(2,'0'));
     label&&(label.textContent=s.k);
+    root.dataset.mmScene=s.key;
+    root.style.setProperty('--mm-accent',`var(--mm-${s.tone})`);
     root.style.setProperty('--mm-bg',"url('"+s.bg+"')");
     root.style.setProperty('--mm-scale','1.02');
     root.classList.remove('beat-haber','beat-medya','beat-produksiyon','beat-ai');

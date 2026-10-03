@@ -6,6 +6,12 @@
     --mm-progress:0;
     --mm-scene:0;
     --mm-video-opacity:1;
+    --mm-gold:#d9ff3f;
+    --mm-cyan:#64e4ff;
+    --mm-violet:#a78bfa;
+    --mm-green:#65e6a4;
+    --mm-red:#ff5662;
+    --mm-accent:var(--mm-gold);
     --mm-bg:url('/assets/media/web/hero-story-poster.jpg');
   }
 
@@ -88,6 +94,8 @@
     margin-bottom:7px;
     font-size:10px;
     letter-spacing:.16em;
+    color:var(--mm-accent);
+    transition:color .35s ease;
   }
 
   .cinematic-hero.bt-mobile-motion .cinematic-kaynak{
@@ -111,6 +119,27 @@
     letter-spacing:-.035em;
     text-wrap:balance;
     will-change:transform,opacity;
+  }
+
+  .cinematic-hero.bt-mobile-motion .mm-text-out{
+    opacity:0!important;
+    transform:translate3d(0,10px,0)!important;
+    transition:opacity .15s ease,transform .15s ease!important;
+  }
+  .cinematic-hero.bt-mobile-motion .mm-text-in{
+    animation:mm-text-in .36s var(--cin-ease,cubic-bezier(.22,.8,.2,1)) both;
+  }
+  .cinematic-hero.bt-mobile-motion [data-cinematic-title] span{
+    color:var(--mm-accent);
+    transition:color .35s ease;
+  }
+  .cinematic-hero.bt-mobile-motion .cinematic-kaynak{
+    border-color:color-mix(in srgb,var(--mm-accent),transparent 55%);
+    transition:border-color .35s ease;
+  }
+  @keyframes mm-text-in{
+    from{opacity:0;transform:translate3d(0,-10px,0)}
+    to{opacity:1;transform:translate3d(0,0,0)}
   }
 
   .cinematic-hero.bt-mobile-motion .cinematic-lead{
@@ -188,5 +217,10 @@
   }
   .cinematic-hero.bt-mobile-motion .cinematic-copy{
     transform:none!important;
+  }
+  .cinematic-hero.bt-mobile-motion .mm-text-out,
+  .cinematic-hero.bt-mobile-motion .mm-text-in{
+    animation:none!important;
+    transition:none!important;
   }
 }

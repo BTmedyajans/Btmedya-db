@@ -722,18 +722,20 @@ document.addEventListener('DOMContentLoaded',()=>{
 (function(){
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const style=document.createElement('style');
-  style.textContent='.bt-page-transition{position:fixed;inset:0;z-index:100000;background:#05080d;display:grid;place-items:center;opacity:0;pointer-events:none;transition:opacity .28s ease}.bt-page-transition.is-on{opacity:1;pointer-events:auto}.bt-page-transition img{width:min(52vw,520px);height:min(68vh,680px);object-fit:cover;filter:saturate(.9) contrast(1.05);transform:scale(.94);transition:transform .7s cubic-bezier(.2,.75,.2,1)}.bt-page-transition.is-on img{transform:scale(1)}.bt-page-transition .bt-transition-label{position:absolute;left:24px;bottom:24px;font:700 11px Jet,monospace;letter-spacing:.16em;color:#d6a84a}.bt-page-transition .bt-transition-line{position:absolute;left:24px;top:24px;font:600 10px Jet,monospace;letter-spacing:.13em;color:#91a0ad}@media(max-width:700px){.bt-page-transition img{width:72vw;height:58vh}.bt-page-transition .bt-transition-label{left:16px;bottom:16px}}';
+  style.textContent='.bt-page-transition{--bt-transition-accent:#d9ff3f;position:fixed;inset:0;z-index:100000;background:#05080d;display:grid;place-items:center;opacity:0;pointer-events:none;clip-path:inset(0 0 100% 0);transition:opacity .22s ease,clip-path .46s cubic-bezier(.2,.75,.2,1)}.bt-page-transition.is-on{opacity:1;pointer-events:auto;clip-path:inset(0)}.bt-page-transition img{width:min(52vw,520px);height:min(68vh,680px);object-fit:cover;filter:saturate(.9) contrast(1.05);transform:scale(.94);transition:transform .7s cubic-bezier(.2,.75,.2,1),filter .4s ease}.bt-page-transition.is-on img{transform:scale(1)}.bt-page-transition:after{content:"";position:absolute;inset:auto 0 0;height:4px;background:var(--bt-transition-accent);transform:scaleX(0);transform-origin:left;transition:transform .6s ease}.bt-page-transition.is-on:after{transform:scaleX(1)}.bt-page-transition .bt-transition-label{position:absolute;left:24px;bottom:24px;font:700 11px Jet,monospace;letter-spacing:.16em;color:var(--bt-transition-accent)}.bt-page-transition .bt-transition-line{position:absolute;left:24px;top:24px;font:600 10px Jet,monospace;letter-spacing:.13em;color:#91a0ad}.bt-page-transition .bt-transition-route{position:absolute;right:24px;top:24px;font:600 10px Jet,monospace;letter-spacing:.13em;color:#fff;opacity:.72}@media(max-width:700px){.bt-page-transition img{width:72vw;height:58vh}.bt-page-transition .bt-transition-label{left:16px;bottom:16px}.bt-page-transition .bt-transition-line{left:16px;top:16px}.bt-page-transition .bt-transition-route{right:16px;top:16px;font-size:8px}}@media(prefers-reduced-motion:reduce){.bt-page-transition{transition:none;clip-path:none}.bt-page-transition:after{transition:none}}';
   document.head.appendChild(style);
   const overlay=document.createElement('div');
   overlay.className='bt-page-transition';
-  overlay.innerHTML='<div class="bt-transition-line">BTMEDYA / NEXT WORLD</div><div class="bt-transition-label">GEÇİŞ HAZIRLANIYOR</div>';
+  overlay.innerHTML='<div class="bt-transition-line">BTMEDYA / NEXT WORLD</div><div class="bt-transition-route">HABER · MEDYA · AI</div><div class="bt-transition-label">GEÇİŞ HAZIRLANIYOR</div>';
   document.body.appendChild(overlay);
   let img=null;
   const map=[
-    [/(^|\/)haber/i,'/assets/media/portfoy/buse-tuncay-saha-roportaj.webp','01 / HABER'],
-    [/(^|\/)(portfoy|medya|studio)/i,'/assets/media/portfoy/buse-tuncay-kamera-arkasi.webp','03 / MEDYA'],
-    [/(^|\/|#)ai-lab/i,'/assets/media/ai-lab/btmedya-siber-sunucu-02.webp','04 / AI LAB'],
-    [/(^|\/)(iletisim|hakkimizda)/i,'/assets/media/portfoy/buse-tuncay-portre-01.webp','BTMEDYA']
+    [/(^|\/)haber/i,'/assets/media/portfoy/buse-tuncay-saha-roportaj.webp','01 / HABER','#64e4ff'],
+    [/(^|\/)(portfoy|medya|studio|video-produksiyon|sosyal-medya|hizmetler)/i,'/assets/media/portfoy/buse-tuncay-kamera-arkasi.webp','03 / MEDYA','#a78bfa'],
+    [/(^|\/|#)(ai-lab|ai)/i,'/assets/media/ai-lab/btmedya-siber-sunucu-02.webp','04 / AI LAB','#ff5662'],
+    [/(^|\/)(kaynak-masasi|arsiv|basin-kiti|whatsapp-katalog|sosyal-medya-kit)/i,'/assets/media/portfoy/buse-tuncay-saha-roportaj.webp','02 / ARŞİV','#65e6a4'],
+    [/(^|\/)(vaka-calismalari|reklam-ve-sponsorluk|dosyalar)/i,'/assets/media/portfoy/buse-tuncay-kamera-arkasi.webp','05 / STÜDYO','#d9ff3f'],
+    [/(^|\/)(iletisim|hakkimizda)/i,'/assets/media/portfoy/buse-tuncay-portre-01.webp','BTMEDYA','#d9ff3f']
   ];
   function go(a,e){
     if(e.defaultPrevented || e.button!==0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -744,7 +746,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     e.preventDefault();
     if(!img){ img=document.createElement('img'); img.alt=''; overlay.insertBefore(img, overlay.firstChild); }
     img.src=match[1];
+    overlay.style.setProperty('--bt-transition-accent',match[3]);
     overlay.querySelector('.bt-transition-label').textContent=match[2];
+    overlay.querySelector('.bt-transition-route').textContent=match[2].replace(/^\d+\s*\/\s*/,'')+' → BTMEDYA';
     overlay.classList.add('is-on');
     setTimeout(()=>{window.location.href=href},380);
   }

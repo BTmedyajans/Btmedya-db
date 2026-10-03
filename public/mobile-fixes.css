@@ -158,8 +158,9 @@ button,a{touch-action:manipulation}
   .mobile-quick-nav a.is-active{
     color:#fff;
     background:rgba(255,255,255,.08);
+    box-shadow:inset 0 -2px 0 var(--mobile-accent,#d9ff3f);
   }
-  .mobile-quick-nav a.is-active span{transform:translateY(-1px)}
+  .mobile-quick-nav a.is-active span{transform:translateY(-1px);color:var(--mobile-accent,#d9ff3f)}
   .mobile-quick-nav .mobile-quick-cta{
     color:#111;
     background:#f2f2f2;
