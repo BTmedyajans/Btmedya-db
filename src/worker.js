@@ -1785,8 +1785,19 @@ export default { async scheduled(controller, env, ctx){
   const supervisor=(controller && controller.cron==='*/15 * * * *')
     ? runAgencySupervisor(env,{force:false}).then(x=>console.log('[btmedya] agency supervisor',JSON.stringify({ok:x.ok,alerts:x.summary?.alerts,clients:x.summary?.clients?.active,pendingApproval:x.summary?.content?.pendingApproval}))).catch(e=>console.error('[btmedya] agency supervisor:',e?.message||e))
     : Promise.resolve(null);
-  const intelligence=(controller && controller.cron==='0 * * * *')
-    ? merakRadariCalistir(env,{limit:16}).then(x=>console.log('[btmedya] halkin merak radari',JSON.stringify({scanned:x.scanned,signals:x.signals,opportunities:x.opportunities,errors:x.errors?.length||0}))).catch(e=>console.error('[btmedya] merak radari:',e?.message||e))
+  const intelligence=(controller && controller.cron==='*/15 * * * *')
+    ? (async()=>{
+        const saat=Math.floor(Date.now()/3600000);
+        const anahtar='merak-radari:calisti:'+saat;
+        if(env.KV){
+          const once=await env.KV.get(anahtar).catch(()=>null);
+          if(once) return null;
+          await env.KV.put(anahtar,'1',{expirationTtl:3700}).catch(()=>{});
+        }
+        return merakRadariCalistir(env,{limit:16})
+          .then(x=>console.log('[btmedya] halkin merak radari',JSON.stringify({scanned:x.scanned,signals:x.signals,opportunities:x.opportunities,errors:x.errors?.length||0})))
+          .catch(e=>console.error('[btmedya] merak radari:',e?.message||e));
+      })()
     : Promise.resolve(null);
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
   /* Yayındaki yeni haberleri sosyal panelde onay kuyruğuna hazırlar.
