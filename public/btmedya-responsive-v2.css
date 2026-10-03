@@ -86,150 +86,8 @@ button,a{touch-action:manipulation}
 }
 
 /* BTMEDYA Mobile V3 / final conflict hardening
-   Loaded after all visual layers so mobile has one predictable interaction surface. */
-@media (max-width:720px){
-  html{scrollbar-gutter:auto}
-  body{
-    overflow-x:clip;
-    overscroll-behavior-x:none;
-    padding-bottom:calc(88px + var(--bt-safe-bottom))!important;
-  }
-  body.menu-open{
-    overflow:hidden;
-    overscroll-behavior:none;
-  }
-
-  .topbar{
-    padding-top:max(7px,env(safe-area-inset-top))!important;
-    padding-bottom:7px!important;
-    padding-left:12px!important;
-    padding-right:12px!important;
-  }
-  .topbar .top-meta{display:none!important}
-  .topbar .brand{min-width:0;max-width:48vw}
-  .topbar .brand-logo{width:auto!important;max-width:48vw!important;height:auto!important}
-  .topbar-right{min-width:48px}
-  .hamburger{min-width:48px!important;min-height:48px!important}
-
-  .menu-panel{inset:0!important;z-index:120!important}
-  .menu-panel-inner{padding-top:calc(78px + env(safe-area-inset-top))!important}
-  .menu-open .mobile-quick-nav{display:none!important}
-
-  .mobile-quick-nav{
-    left:10px!important;
-    right:10px!important;
-    bottom:calc(10px + var(--bt-safe-bottom))!important;
-    z-index:100!important;
-    grid-template-columns:repeat(6,minmax(0,1fr))!important;
-    gap:3px!important;
-    padding:5px!important;
-  }
-  .mobile-quick-nav a{
-    min-width:0!important;
-    min-height:52px!important;
-    padding:6px 2px!important;
-    overflow:hidden;
-  }
-  .mobile-quick-nav a span{
-    min-height:17px;
-    font-size:14px;
-    line-height:1;
-  }
-  .mobile-quick-nav a small{
-    max-width:100%;
-    font-size:8px;
-    line-height:1;
-    letter-spacing:.055em;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-
-  /* Tek sabit hero etkileşimi: müşteri seçim rayı mobilde gizlenir;
-     hikâye kaydırması ve alt hızlı navigasyon tek başına yeterlidir. */
-  .hero-customer-choices{display:none!important}
-
-  /* Alt sabit gezinme ile hero göstergeleri aynı piksel alanını paylaşmasın. */
-  .cinematic-hero.bt-mobile-motion .cinematic-progress{
-    left:18px!important;
-    right:18px!important;
-    bottom:calc(84px + var(--bt-safe-bottom))!important;
-  }
-  .cinematic-hero.bt-mobile-motion .cinematic-mobile-hint{
-    bottom:calc(96px + var(--bt-safe-bottom))!important;
-  }
-  .cinematic-hero.bt-mobile-motion .cinematic-index{
-    top:max(76px,calc(env(safe-area-inset-top) + 62px))!important;
-    bottom:auto!important;
-  }
-  .cinematic-hero.bt-mobile-motion .cinematic-copy{
-    bottom:max(82px,calc(env(safe-area-inset-bottom) + 74px))!important;
-    padding-bottom:0!important;
-  }
-
-  .floating-whatsapp{
-    right:14px!important;
-    bottom:calc(86px + var(--bt-safe-bottom))!important;
-    z-index:95!important;
-  }
-
-  .vitrine-status-inner{
-    grid-template-columns:1fr!important;
-  }
-  .vitrine-status-brand,.vitrine-status-links{
-    grid-column:auto!important;
-  }
-  .vitrine-status-links{
-    width:100%;
-    overflow-x:auto;
-    flex-wrap:nowrap!important;
-    justify-content:flex-start!important;
-    scrollbar-width:none;
-    padding-bottom:2px;
-  }
-  .vitrine-status-links::-webkit-scrollbar{display:none}
-  .vitrine-status-links a{flex:0 0 auto}
-
-  .news-filter,.mobile-category-rail{
-    max-width:100%;
-    scrollbar-width:none;
-  }
-  .news-filter::-webkit-scrollbar,.mobile-category-rail::-webkit-scrollbar{display:none}
-  .news-filter .filter,.mobile-category-rail a{
-    flex:0 0 auto;
-    min-height:44px!important;
-  }
-
-  .contact-links a,
-  .cinematic-actions a,
-  .button,
-  .social-profile-card a,
-  .social-feed-card a,
-  .archive-actions a{
-    min-height:48px!important;
-  }
-
-  .news-card,.service-grid article,.ai-grid article,.source-grid a,
-  .portfoy-kart,.archive-live-card,.offer-card{
-    min-width:0!important;
-    max-width:100%;
-  }
-  .news-body h3,.portfoy-metin h3,.service-grid h3,.ai-grid h3,.offer-card h3{
-    overflow-wrap:anywhere;
-    word-break:normal;
-  }
-  img,video,iframe,canvas,svg{max-width:100%}
-}
-
-@media (max-width:390px){
-  .topbar .brand{max-width:44vw}
-  .topbar .brand-logo{max-width:44vw!important}
-  .mobile-quick-nav{left:7px!important;right:7px!important}
-  .mobile-quick-nav a small{font-size:7.5px;letter-spacing:.03em}
-  .mobile-quick-nav a span{font-size:13px}
-  .cinematic-title{font-size:40px!important}
-}
-
-/* BTMEDYA Mobile V3 / final conflict hardening */
+   Keep only cross-file conflicts here. Component-specific responsive layout
+   remains in the dedicated mobile/section stylesheets. */
 @media (max-width:720px){
   html{scrollbar-gutter:auto}
   body{
@@ -239,23 +97,15 @@ button,a{touch-action:manipulation}
   }
   body.menu-open{overflow:hidden;overscroll-behavior:none}
 
-  .topbar{
-    padding-top:max(7px,env(safe-area-inset-top))!important;
-    padding-bottom:7px!important;
-    padding-left:12px!important;
-    padding-right:12px!important;
-  }
   .topbar .top-meta{display:none!important}
   .topbar .brand{min-width:0;max-width:48vw}
-  .topbar .brand-logo{width:auto!important;max-width:48vw!important;height:auto!important}
-  .topbar-right{min-width:48px}
+  .topbar .brand-logo{width:auto!important;max-width:48vw!important}
   .hamburger{min-width:48px!important;min-height:48px!important}
 
   .menu-panel{inset:0!important;z-index:120!important}
   .menu-panel-inner{padding-top:calc(78px + env(safe-area-inset-top))!important}
   .menu-open .mobile-quick-nav{display:none!important}
 
-  /* Exactly six links, one row, no wrapping. */
   .mobile-quick-nav{
     left:10px!important;
     right:10px!important;
@@ -271,11 +121,6 @@ button,a{touch-action:manipulation}
     padding:6px 2px!important;
     overflow:hidden;
   }
-  .mobile-quick-nav a span{
-    min-height:17px;
-    font-size:14px;
-    line-height:1;
-  }
   .mobile-quick-nav a small{
     max-width:100%;
     font-size:8px;
@@ -285,8 +130,8 @@ button,a{touch-action:manipulation}
     text-overflow:ellipsis;
   }
 
-  /* The dedicated mobile motion engine is the only hero controller. */
   .hero-customer-choices,.cinematic-choice-nav{display:none!important}
+
   .cinematic-hero.bt-mobile-motion .cinematic-progress{
     left:18px!important;
     right:18px!important;
@@ -304,40 +149,10 @@ button,a{touch-action:manipulation}
     padding-bottom:0!important;
   }
 
-  /* Floating contact UI sits above the fixed navigation. */
   .floating-whatsapp{
     right:14px!important;
     bottom:calc(86px + var(--bt-safe-bottom))!important;
     z-index:95!important;
-  }
-
-  .vitrine-status-inner{grid-template-columns:1fr!important}
-  .vitrine-status-brand,.vitrine-status-links{grid-column:auto!important}
-  .vitrine-status-links{
-    width:100%;
-    overflow-x:auto;
-    flex-wrap:nowrap!important;
-    justify-content:flex-start!important;
-    scrollbar-width:none;
-    padding-bottom:2px;
-  }
-  .vitrine-status-links::-webkit-scrollbar{display:none}
-  .vitrine-status-links a{flex:0 0 auto}
-
-  .news-filter,.mobile-category-rail{
-    max-width:100%;
-    overflow-x:auto!important;
-    scrollbar-width:none;
-  }
-  .news-filter::-webkit-scrollbar,.mobile-category-rail::-webkit-scrollbar{display:none}
-  .news-filter .filter,.mobile-category-rail a{
-    flex:0 0 auto;
-    min-height:44px!important;
-  }
-
-  .contact-links a,.cinematic-actions a,.button,.social-profile-card a,
-  .social-feed-card a,.archive-actions a{
-    min-height:48px!important;
   }
 
   .news-card,.service-grid article,.ai-grid article,.source-grid a,
@@ -347,13 +162,11 @@ button,a{touch-action:manipulation}
   }
   .news-body h3,.portfoy-metin h3,.service-grid h3,.ai-grid h3,.offer-card h3{
     overflow-wrap:anywhere;
-    word-break:normal;
   }
   img,video,iframe,canvas,svg{max-width:100%}
 }
 @media (max-width:390px){
-  .topbar .brand{max-width:44vw}
-  .topbar .brand-logo{max-width:44vw!important}
+  .topbar .brand,.topbar .brand-logo{max-width:44vw!important}
   .mobile-quick-nav{left:7px!important;right:7px!important}
   .mobile-quick-nav a small{font-size:7.5px;letter-spacing:.03em}
   .mobile-quick-nav a span{font-size:13px}
