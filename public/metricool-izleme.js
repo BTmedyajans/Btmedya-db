@@ -3,8 +3,9 @@
 (function () {
   // CSS katmanlarını sırayla yükle. Dinamik <link> etiketleri paralel yüklenirse
   // ağ gecikmesine göre eski bir katman sonradan uygulanıp responsive hiyerarşiyi
-  // bozabiliyordu. Sıralı yükleme, mobile-polish-v4'ün gerçekten son otorite
-  // olmasını garanti eder.
+  // bozabiliyordu. Mobil katman önce, desktop katmanı en son gelir. Böylece
+  // desktop-ux-v1 yalnızca 721px+ alanında son otorite olur; mobil kurallar
+  // ise kendi medya sorguları içinde korunur.
   function loadStyle(href) {
     return new Promise(function (resolve, reject) {
       var link = document.createElement('link');
@@ -32,13 +33,13 @@
       // BTMEDYA CONTENT GROWTH V3: richer editorial, audience paths and service content.
       await loadStyle('/content-growth-v1.css?v=20261002-3');
 
-      // BTMEDYA DESKTOP UX V1: desktop-only editorial hierarchy.
-      // Mobile layer is intentionally loaded after this layer.
-      await loadStyle('/desktop-ux-v1.css?v=20261003-1');
+      // BTMEDYA MOBILE POLISH V4: mobile composition layer.
+      // It is intentionally loaded before desktop UX so the desktop pass can
+      // become the final >=721px layer without changing mobile behavior.
+      await loadStyle('/mobile-polish-v4.css?v=20261003-2');
 
-      // BTMEDYA MOBILE POLISH V4: final mobile composition layer.
-      // This must remain the last CSS layer for deterministic responsive overrides.
-      await loadStyle('/mobile-polish-v4.css?v=20261003-1');
+      // BTMEDYA DESKTOP UX V1: final desktop editorial hierarchy.
+      await loadStyle('/desktop-ux-v1.css?v=20261003-2');
 
       // Behaviour can start after the visual cascade is deterministic.
       loadScript('/btmedya-experience-v1.js?v=20261002-2');
