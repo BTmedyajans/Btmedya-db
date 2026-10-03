@@ -1,5 +1,5 @@
 import { statikGorselAiMi } from "./sosyal-otomasyon.js";
-import { metricoolConnectedNetworks } from "./social-platforms.js";
+import { metricoolConnectedNetworks, metricoolAccountConfig } from "./social-platforms.js";
 
 const NETWORKS = new Set(["facebook","instagram","tiktok","youtube","linkedin","twitter","threads","pinterest","gmb","bluesky"]);
 
@@ -88,9 +88,22 @@ function youtubeDataFor(providers,row){
 export async function scheduleToMetricool(env,row){
   if(!env.METRICOOL_USER_TOKEN) return {ok:false,skipped:true,retryable:false,error:"METRICOOL_USER_TOKEN eksik"};
   const userId=String(env.METRICOOL_USER_ID||env.METRICOOL_KULLANICI_NO||"");
-  const blogId=String(env.METRICOOL_BRAND_ID||"");
   if(!userId) return {ok:false,retryable:false,error:"METRICOOL_USER_ID eksik"};
-  if(!blogId) return {ok:false,retryable:false,error:"METRICOOL_BRAND_ID eksik"};
+
+  // Her sosyal gönderi explicit bir hesap scope'u taşır. Scope personal ise
+  // şirket Brand'ine hiçbir koşulda geri düşülmez.
+  const accountScope=String(row.account_scope||"company").toLowerCase()==="personal" ? "personal" : "company";
+  const account=metricoolAccountConfig(env,accountScope);
+  const blogId=String(row.metricool_brand_id||account.brandId||"");
+  if(accountScope==="personal" && !account.configured)
+    return {ok:false,retryable:false,error:"Kişisel Metricool Brand bağlantısı yapılandırılmadı; şirket hesabına geri düşülemez"};
+  if(accountScope==="company" && !account.configured)
+    return {ok:false,retryable:false,error:"BTMEDYA şirket Metricool Brand bağlantısı eksik"};
+  if(!blogId) return {ok:false,retryable:false,error:"Metricool Brand ID eksik"};
+  if(accountScope==="personal" && row.metricool_brand_id && String(row.metricool_brand_id)!==account.brandId)
+    return {ok:false,retryable:false,error:"Kişisel gönderi kayıtlı Brand ID ile kişisel bağlantı uyuşmuyor"};
+  if(accountScope==="company" && row.metricool_brand_id && String(row.metricool_brand_id)!==account.brandId)
+    return {ok:false,retryable:false,error:"Şirket gönderisi şirket Brand ID'si dışında bir hesaba yönlenemez"};
   const timezone=String(env.METRICOOL_TIMEZONE||"Europe/Istanbul");
   const scheduledMs=new Date(row.scheduled_at||"").getTime();
   const dateTime=localDateTime(row.scheduled_at,timezone);
@@ -100,8 +113,7 @@ export async function scheduleToMetricool(env,row){
   const providers=providersFrom(row);
   if(!providers.length) return {ok:false,retryable:false,error:"Geçerli sosyal platformu yok"};
 
-  const connected=metricoolConnectedNetworks(env);
-  const disconnected=providers.filter(p=>!connected.has(p.network)).map(p=>p.network);
+  const disconnected=providers.filter(p=>!account.connectedNetworks.has(p.network)).map(p=>p.network);
   if(disconnected.length){
     return {ok:false,retryable:false,error:"Metricool Brand bağlantısı yok: "+disconnected.join(", ")};
   }
@@ -171,7 +183,7 @@ export async function scheduleToMetricool(env,row){
     return {ok:false,status:res.status,retryable,error:detail||`Metricool HTTP ${res.status}`};
   }
   const id=data?.id ?? data?.data?.id ?? data?.uuid ?? data?.data?.uuid ?? null;
-  return {ok:true,id:id?String(id):null,response:data};
+  return {ok:true,id:id?String(id):null,response:data,accountScope,metricoolBrandId:blogId};
 }
 
 export async function processMetricoolQueue(env,limit=10){
