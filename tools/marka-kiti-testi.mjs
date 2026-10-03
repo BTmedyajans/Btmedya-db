@@ -55,4 +55,11 @@ const og = (ana.match(/<meta property="og:image" content="https:\/\/btmedya\.com
 assert.equal(og, '/assets/paylasim/btmedya-og.jpg');
 assert.deepEqual(jpegBoyut('public' + og), [1200, 630]);
 assert.match(worker, /'og-image':\s*'paylasim\/btmedya-og\.jpg'/);
+
+// Haber kapakları kişi fotoğrafı kullanmaz: foto havuzundaki portreler
+// BTMEDYA ekibine ait, haberle ilgisi yok (yayın kararı, 2026-10-03).
+// Kapak içerikten türetilen vurgu kartı ya da temsili saha karesiyle üretilir.
+const plan = JSON.parse(oku('public/data/haber-kapak-plani.json'));
+const fotolu = plan.filter(h => h && typeof h === 'object' && 'foto' in h).map(h => h.slug);
+assert.deepEqual(fotolu, [], `kişi fotoğraflı kapak planı: ${fotolu.join(', ')}`);
 console.log('MARKA KITI TESTI GECTI');

@@ -180,7 +180,11 @@
   "kategori": "Ekonomi · Emlak",
   "altbilgi": "BTMEDYA · Ağustos 2024",
   "video": false,
-  "foto": "portre-04"
+  "vurgu": {
+   "deger": "%30",
+   "etiket": "beklenen kira artışı",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-in-en-kalabalik-pazari",
@@ -188,7 +192,11 @@
   "kategori": "Yerel · Pazar",
   "altbilgi": "BTMEDYA · 04 Ekim 2024",
   "video": false,
-  "foto": "kamera-arkasi"
+  "vurgu": {
+   "deger": "5-7 TL",
+   "etiket": "domatesin kilosu · Cuma Pazarı",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-de-berber-ve-kuafor-fiyatlari-el-yakiyor",
@@ -196,7 +204,11 @@
   "kategori": "Ekonomi · Yaşam",
   "altbilgi": "BTMEDYA · 02 Ekim 2024",
   "video": false,
-  "foto": "portre-01"
+  "vurgu": {
+   "deger": "Maliyet",
+   "etiket": "elektrik, su, kira ve bakım ürünü tarifeye yansıdı",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "okul-doneminde-ayakkabicilar-carsisi-na-yogun-ilgi",
@@ -204,7 +216,11 @@
   "kategori": "Yerel · Alışveriş",
   "altbilgi": "BTMEDYA · 01 Ekim 2024",
   "video": false,
-  "foto": "portre-05"
+  "vurgu": {
+   "deger": "350-500 TL",
+   "etiket": "okul ayakkabısı fiyat bandı",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "acikogretim-lisesi-ikinci-bir-sans-mi-yeni-zorluklar-mi",
@@ -212,7 +228,11 @@
   "kategori": "Eğitim",
   "altbilgi": "BTMEDYA · 13 Eylül 2024",
   "video": false,
-  "foto": "portre-03"
+  "vurgu": {
+   "deger": "Açık lise",
+   "etiket": "örgün eğitimden geçişin maddi ve bürokratik yükü",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-ali-suuri-pazari-nda-fiyatlar-ne-durumda",
@@ -220,7 +240,11 @@
   "kategori": "Yerel · Pazar",
   "altbilgi": "BTMEDYA · 29 Ağustos 2024",
   "video": false,
-  "foto": "portre-05"
+  "vurgu": {
+   "deger": "650 TL",
+   "etiket": "tunik · Ali Şuuri Pazarı",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "gayrimenkul-uzmani-uyardi",
@@ -228,7 +252,11 @@
   "kategori": "Ekonomi · Emlak",
   "altbilgi": "BTMEDYA · 26 Ağustos 2024",
   "video": false,
-  "foto": "portre-02"
+  "vurgu": {
+   "deger": "Yüksek faiz",
+   "etiket": "pazarlık gücü alıcıya geçti",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-in-gururu-memleketinde-sov-yapacak",
@@ -236,7 +264,11 @@
   "kategori": "Spor",
   "altbilgi": "BTMEDYA · 26 Ağustos 2024",
   "video": false,
-  "foto": "kamera-arkasi"
+  "vurgu": {
+   "deger": "6 Eylül",
+   "etiket": "Halalca'da at binme etkinliği",
+   "yer": "Halalca"
+  }
  },
  {
   "slug": "el-emegi-yorganlar-artik-isitmiyor",
@@ -244,7 +276,11 @@
   "kategori": "Kültür · Zanaat",
   "altbilgi": "BTMEDYA · 19 Ağustos 2024",
   "video": true,
-  "foto": "portre-04"
+  "vurgu": {
+   "deger": "2 gün",
+   "etiket": "bir yorganın elle dikimi",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "mangalin-yeni-gozdesi-istiridye-mantari",
@@ -252,7 +288,11 @@
   "kategori": "Gastronomi · Sağlık",
   "altbilgi": "BTMEDYA · 15 Ağustos 2024",
   "video": false,
-  "foto": "kamera-arkasi"
+  "vurgu": {
+   "deger": "İstiridye mantarı",
+   "etiket": "mangalda sebze ağırlıklı seçenek",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "igneli-epilasyonun-bilinmeyen-riskleri",
@@ -260,7 +300,11 @@
   "kategori": "Sağlık · Bakım",
   "altbilgi": "BTMEDYA · 15 Ağustos 2024",
   "video": false,
-  "foto": "portre-01"
+  "vurgu": {
+   "deger": "Hijyen",
+   "etiket": "eğitimli uygulayıcı ve uygun iğne şart",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-meyhaneler-bogazi-nda-pide-fiyatlari-ne-kadar",
@@ -268,7 +312,11 @@
   "kategori": "Gastronomi",
   "altbilgi": "BTMEDYA · 08 Ağustos 2024",
   "video": false,
-  "foto": "portre-05"
+  "vurgu": {
+   "deger": "130 TL",
+   "etiket": "kıymalı pide · Meyhaneler Boğazı",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "gunes-koruyucu-seciminde-cilt-tipine-ozel-tavsiyeler",
@@ -276,7 +324,11 @@
   "kategori": "Sağlık · Bakım",
   "altbilgi": "BTMEDYA · 07 Ağustos 2024",
   "video": false,
-  "foto": "portre-03"
+  "vurgu": {
+   "deger": "UVA + UVB",
+   "etiket": "cilt tipine göre formül",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-de-genclik-asisi-estetik-dunyasini-buyuluyor",
@@ -284,7 +336,11 @@
   "kategori": "Sağlık · Estetik",
   "altbilgi": "BTMEDYA · 07 Ağustos 2024",
   "video": false,
-  "foto": "portre-03"
+  "vurgu": {
+   "deger": "Hyaluronik asit",
+   "etiket": "nem ve kolajen desteği",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-in-son-kalaycisi-ilyas-baykal",
@@ -292,7 +348,11 @@
   "kategori": "Kültür · Zanaat",
   "altbilgi": "BTMEDYA · 07 Ağustos 2024",
   "video": false,
-  "foto": "portre-02"
+  "vurgu": {
+   "deger": "1967",
+   "etiket": "kalaycılığa başladığı yıl · Bakırcılar Çarşısı",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-de-dugunlerin-vazgecilmez-dans-sarkilari",
@@ -300,7 +360,11 @@
   "kategori": "Yaşam · Düğün",
   "altbilgi": "BTMEDYA · 05 Ağustos 2024",
   "video": false,
-  "foto": "kamera-arkasi"
+  "vurgu": {
+   "deger": "İlk dans",
+   "etiket": "Yüreğimden Tut · Aşk · Hoşgeldin",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-esnafi-eleman-bulmakta-zorlaniyor",
@@ -308,7 +372,11 @@
   "kategori": "Ekonomi · Esnaf",
   "altbilgi": "BTMEDYA · 01 Ağustos 2024",
   "video": false,
-  "foto": "portre-04"
+  "vurgu": {
+   "deger": "İş gücü",
+   "etiket": "çalışan bulma ve işte tutma sorunu",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-de-yaz-sicaklariyla-vantilator-satislari-patladi",
@@ -316,7 +384,11 @@
   "kategori": "Ekonomi · Yaşam",
   "altbilgi": "BTMEDYA · 30 Temmuz 2024",
   "video": false,
-  "foto": "kamera-arkasi"
+  "vurgu": {
+   "deger": "700-1400 TL",
+   "etiket": "ayaklı ve masa tipi vantilatör",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-in-gelin-ayakkabilari-ve-kina-terlikleri-modasi",
@@ -324,7 +396,11 @@
   "kategori": "Moda · Düğün",
   "altbilgi": "BTMEDYA · 17 Temmuz 2024",
   "video": false,
-  "foto": "portre-01"
+  "vurgu": {
+   "deger": "500-800 TL",
+   "etiket": "kına terliği fiyat aralığı",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "kiralik-evlerde-yeni-donem-basliyor",
@@ -332,7 +408,11 @@
   "kategori": "Ekonomi · Emlak",
   "altbilgi": "BTMEDYA · 17 Temmuz 2024",
   "video": false,
-  "foto": "portre-05"
+  "vurgu": {
+   "deger": "Deprem yönetmeliği",
+   "etiket": "kiracı güvenli binaya yöneliyor",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-muay-thai-de-dunya-arenasinda",
@@ -340,7 +420,11 @@
   "kategori": "Spor",
   "altbilgi": "BTMEDYA · 16 Temmuz 2024",
   "video": false,
-  "foto": "portre-03"
+  "vurgu": {
+   "deger": "8 uzuv",
+   "etiket": "Muay Thai: sekiz uzvun sanatı",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "kadin-firincidan-30-yillik-basari-oykusu",
@@ -348,7 +432,11 @@
   "kategori": "İnsan Hikâyesi",
   "altbilgi": "BTMEDYA · 12 Temmuz 2024",
   "video": false,
-  "foto": "portre-04"
+  "vurgu": {
+   "deger": "30 yıl",
+   "etiket": "taş fırın başında · Plevne",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "diyetisyen-den-yaz-aylarinda-saglikli-beslenme-ve-hizli-zayiflama-sirlari",
@@ -356,7 +444,11 @@
   "kategori": "Sağlık · Beslenme",
   "altbilgi": "BTMEDYA · 22 Haziran 2024",
   "video": false,
-  "foto": "portre-02"
+  "vurgu": {
+   "deger": "Su",
+   "etiket": "sıcakta sıvı ve hafif öğün",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "uzmanlardan-kilo-alma-ve-verme-stratejileri",
@@ -364,7 +456,11 @@
   "kategori": "Spor · Beslenme",
   "altbilgi": "BTMEDYA · 29 Mayıs 2024",
   "video": false,
-  "foto": "portre-02"
+  "vurgu": {
+   "deger": "Kalori dengesi",
+   "etiket": "antrenman ve beslenme birlikte",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "sogan-tarlada-5-pazarda-15tl",
@@ -372,7 +468,11 @@
   "kategori": "Tarım · Ekonomi",
   "altbilgi": "BTMEDYA · 28 Mayıs 2024",
   "video": false,
-  "foto": "portre-04"
+  "vurgu": {
+   "deger": "5 TL → 15 TL",
+   "etiket": "soğan: tarla ve pazar fiyatı",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "beydonoglu-yaprak-satarken-festival-yonetiyor",
@@ -380,7 +480,11 @@
   "kategori": "Tarım · Etkinlik · Video",
   "altbilgi": "BTMEDYA · 02 Mayıs 2024",
   "video": true,
-  "foto": "kamera-arkasi"
+  "vurgu": {
+   "deger": "75 TL",
+   "etiket": "taze asma yaprağının kilosu",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "balikesir-pazarinda-canli-helva-sovu",
@@ -388,7 +492,11 @@
   "kategori": "Gastronomi · Video",
   "altbilgi": "BTMEDYA · 02 Mayıs 2024",
   "video": true,
-  "foto": "portre-01"
+  "vurgu": {
+   "deger": "8 çeşit",
+   "etiket": "helva · Gümüşçeşme Pazar Pazarı",
+   "yer": "Balıkesir"
+  }
  },
  {
   "slug": "bandirma-yolunda-kaza-hamile-anne-3-yasindaki-kizi-ve-dogmamis-bebegi-hayatini-kaybetti",
