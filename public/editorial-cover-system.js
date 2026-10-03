@@ -13,6 +13,24 @@
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
   const esc = s => String(s??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
+  
+  /* Haber niteliğine göre 5 kapak dili.
+     Marka sabitleri aynı kalır; yalnızca bilgi hiyerarşisi değişir. */
+  function coverTemplate(card,title){
+    const scope = String([
+      title||'',
+      card?.textContent||'',
+      card?.closest('.news-card,.story-card,.editorial-special-card,.latest-item,.article-page')?.textContent||''
+    ].join(' ')).toLocaleLowerCase('tr-TR');
+    const cat = norm(categoryText(card||document.body));
+    if (/(son dakika|acil|flaş|flash|son gelisme|son gelişme|yangin|yangın|kaza|deprem|afet|saldiri|saldırı|patlama|gozalt|gözalt)/.test(scope)) return '01-impact';
+    if (/(ekonomi|fiyat|zam|enflasyon|piyasa|dolar|euro|altin|altın|maas|maaş|ücret|satış|satis|tarim|tarım)/.test(scope) || /\d+\s*(tl|₺|%|milyon|milyar)/i.test(scope)) return '04-data';
+    if (/(kultur|kültür|sanat|edebiyat|sinema|müzik|muzik|tiyatro|turizm|gastronomi|etkinlik|egitim|eğitim|üniversite|universite|okul)/.test(scope)) return '03-magazine';
+    if (/(teknoloji|yapay zek|yazilim|yazılım|dijital|ai|spor|futbol|basketbol|voleybol|tenis)/.test(scope)) return '05-minimal';
+    if (/(canli|canlı|saha|röportaj|roportaj|muhabir|buse tuncay|video haber)/.test(scope) || card?.matches('.story-card,.editorial-special-card')) return '02-field';
+    return '01-impact';
+  }
+
 
   const cleanToken = s => norm(String(s||'').replace(/^[^0-9a-zA-ZçğıöşüÇĞİÖŞÜ]+|[^0-9a-zA-ZçğıöşüÇĞİÖŞÜ]+$/g,''));
 
@@ -85,12 +103,20 @@
       title:card.parentElement?.querySelector('.latest-metin h3')?.textContent?.trim(),
       compact:true
     };
+    if(card.matches('.article-cover-wrap')) return {
+      node:card,
+      title:card.closest('.article-page')?.querySelector('h1')?.textContent?.trim(),
+      compact:false,
+      article:true
+    };
     return null;
   }
 
   function decorate(node,title,compact){
     if(!node || !title || node.querySelector(':scope>.bt-cover-ui'))return;
     node.classList.add('bt-cover-enhanced');
+    const template=coverTemplate(node.closest('.news-card,.latest-item,.story-card,.editorial-special-card,.article-page')||node,title);
+    node.dataset.coverTemplate=template;
     const kicker=compact?categoryText(node.closest('.news-card,.latest-item,.story-card,.editorial-special-card')||node):categoryText(node);
     const meta=sourceText(node.closest('.news-card,.latest-item,.story-card,.editorial-special-card')||node);
     const ui=document.createElement('div');
@@ -104,7 +130,7 @@
   }
 
   function scan(root=document){
-    root.querySelectorAll('.news-media,.story-card,.editorial-special-card,.latest-kapak').forEach(el=>{
+    root.querySelectorAll('.news-media,.story-card,.editorial-special-card,.latest-kapak,.article-cover-wrap').forEach(el=>{
       const info=findTarget(el);
       if(info)decorate(info.node,info.title,info.compact);
     });
