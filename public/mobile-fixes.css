@@ -107,7 +107,7 @@ button,a{touch-action:manipulation}
    kalıcı erişim. Safe-area desteği ve dokunmatik hedef standardı korunur. */
 .mobile-quick-nav{display:none}
 @media (max-width:720px){
-  body{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+  body{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
   .mobile-quick-nav{
     position:fixed;
     left:10px;
@@ -115,7 +115,7 @@ button,a{touch-action:manipulation}
     bottom:calc(10px + env(safe-area-inset-bottom));
     z-index:90;
     display:grid;
-    grid-template-columns:repeat(5,1fr);
+    grid-template-columns:repeat(6,minmax(0,1fr));
     gap:4px;
     padding:5px;
     border:1px solid rgba(255,255,255,.12);
@@ -257,4 +257,14 @@ button,a{touch-action:manipulation}
   .story-card-copy p{font-size:12px;line-height:1.55}
   .story-scroll{position:static!important;margin:4px 0 0;color:#7d8893}
   .story-progress{position:static!important;width:100%;margin-top:12px}
+}
+
+/* Mobile V3 compatibility hardening
+   This file is also used by legacy inner pages that do not load the final
+   responsive layer. Keep the shared mobile navigation self-contained. */
+@media (max-width:720px){
+  .topbar .top-meta{display:none!important}
+  .mobile-quick-nav{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+  .menu-open .mobile-quick-nav{display:none!important}
+  .menu-open{overflow:hidden;overscroll-behavior:none}
 }

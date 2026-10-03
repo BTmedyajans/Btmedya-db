@@ -96,6 +96,7 @@ jobs:
           node --check src/sabah-masasi.js
           node --check src/news-intelligence.js
           node tools/link-denetimi.mjs
+          node tools/mobile-regression-gate.mjs
           grep -q 'mobile-fixes.css' public/index.html
           grep -q 'mobile-motion.css' public/index.html
           grep -q 'mobile-motion.js' public/index.html
