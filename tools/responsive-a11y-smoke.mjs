@@ -43,16 +43,24 @@ for (const vp of viewports) {
         scrollWidth:Math.max(html.scrollWidth,body?.scrollWidth||0),
         imageWithoutAlt:imgs.filter(i=>!i.hasAttribute('alt')).length,
         unnamedButtons:unnamedButtons.length,
-        unnamedLinks:unnamedLinks.length
+        unnamedLinks:unnamedLinks.length,
+        hiddenFocusable:[...document.querySelectorAll('[aria-hidden="true"]')].filter(e=>!e.inert && e.querySelector('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')).length,
+        portfolioLabelMismatch:[...document.querySelectorAll('.portfoy-oynat')].filter(b=>{const label=(b.getAttribute('aria-label')||'').trim(),visible=(b.querySelector('.portfoy-sure')?.textContent||'').trim();return visible&&label&&!label.includes(visible)}).length
       };
     });
     if(result.scrollWidth > result.width + 2) failures.push(vp.name+' '+item.path+' horizontal-overflow '+result.scrollWidth+'>'+result.width);
     if(result.imageWithoutAlt) failures.push(vp.name+' '+item.path+' images-without-alt '+result.imageWithoutAlt);
     if(result.unnamedButtons) failures.push(vp.name+' '+item.path+' unnamed-buttons '+result.unnamedButtons);
     if(result.unnamedLinks) failures.push(vp.name+' '+item.path+' unnamed-links '+result.unnamedLinks);
+    if(result.hiddenFocusable) failures.push(vp.name+' '+item.path+' aria-hidden-focusable '+result.hiddenFocusable);
+    if(result.portfolioLabelMismatch) failures.push(vp.name+' '+item.path+' portfolio-label-mismatch '+result.portfolioLabelMismatch);
     if(item.path==='/' && vp.name==='mobile'){
       const toggle=page.locator('#menuToggle');
       if(await toggle.count()){
+        const initiallyInert=await page.locator('#siteMenu').evaluate(el=>el.inert);
+        if(!initiallyInert) failures.push('mobile / hidden menu is not inert on initial load');
+        const mobileVideo=await page.locator('.mfilm-video').getAttribute('data-mobile-src');
+        if(!mobileVideo?.endsWith('-mobile.mp4')) failures.push('mobile / hero video is not the optimized mobile asset');
         await toggle.click();
         const state=await page.locator('#siteMenu').getAttribute('aria-hidden');
         if(state!=='false') failures.push('mobile / menu did not open');
