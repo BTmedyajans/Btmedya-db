@@ -1,10 +1,11 @@
-/* BTMEDYA Mobil Giriş Filmi V6 · 2026-10-03
+/* BTMEDYA Mobil Giriş Filmi V7 · 2026-10-04
    Neden: V5 mobil girişi 5,2 ekran boyunda sabitlenmiş, kaydırmayla sahne
    değiştiren bir yapıydı. Film ancak okur kaydırdıkça ilerliyor, 1152x648
    yatay kaynak dikey ekrana kırpılıp ~2,5 kat büyütüldüğü için bulanık
-   görünüyordu. V6: film sayfa açılınca kendiliğinden, sessiz ve döngüde
+   görüyor. V7: film poster ile görünür; kullanıcı açıkça başlatmadan video
    oynar; kendi en-boy oranında gösterilir, kırpılmaz, bulanıklık yok.
-   Ekrandan çıkınca durur (pil/veri), geri gelince devam eder.
+   kaynağı yüklenmez ve oynatılmaz. Kullanıcı başlatırsa ekran dışına çıkınca
+   durur ve geri gelince devam eder.
 
    Etiket: giriş filmi AI üretimidir (zırha dönüşen kişi, robotlar, patlama).
    Panel yuvası gercek:true derse GERÇEK ÇEKİM yazar; varsayılan AI ÜRETİMİ
@@ -24,13 +25,13 @@
   root.classList.add('bt-mobile-film');
   root.style.removeProperty('height');
 
-  let gorunur=true, kullaniciDurdurdu=false;
+  let gorunur=true, kullaniciDurdurdu=false, kullaniciBaslatti=false, bekleyenUrl='';
   const oranUygula=()=>{
     if(video.videoWidth&&video.videoHeight) kutu.style.setProperty('--mfilm-oran',video.videoWidth+' / '+video.videoHeight);
     kutu.classList.toggle('mfilm-dikey',video.videoHeight>video.videoWidth);
   };
   const oynat=()=>{
-    if(kullaniciDurdurdu||!gorunur||document.hidden)return;
+    if(!kullaniciBaslatti||kullaniciDurdurdu||!gorunur||document.hidden)return;
     const p=video.play();
     if(p&&p.catch)p.then(()=>{oynatDugme&&(oynatDugme.hidden=true);}).catch(()=>{
       /* iPhone Düşük Güç Modu ve bazı tarayıcılar otomatik oynatmayı engeller. */
@@ -41,15 +42,21 @@
     if(!url)return;
     if(etiket)etiket.textContent=gercek?'GERÇEK ÇEKİM · BTMEDYA':filmler[0].source;
     if(video.dataset.yuklu===url)return;
-    video.dataset.yuklu=url;
-    video.preload='auto';video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;
-    video.src=url;video.load();
-    if(!reduced)oynat();else oynatDugme&&(oynatDugme.hidden=false);
+    bekleyenUrl=url;
+    if(oynatDugme){oynatDugme.hidden=false;oynatDugme.textContent='▶ Filmi oynat';}
+  };
+  const yukleVeOynat=()=>{
+    kullaniciBaslatti=true;
+    if(!video.src&&bekleyenUrl){
+      video.preload='auto';video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;
+      video.src=bekleyenUrl;video.load();
+      video.addEventListener('canplay',oynat,{once:true});
+    }else oynat();
   };
   video.addEventListener('loadedmetadata',oranUygula);
 
-  oynatDugme&&oynatDugme.addEventListener('click',()=>{kullaniciDurdurdu=false;gorunur=true;video.play().then(()=>{oynatDugme.hidden=true;}).catch(()=>{});});
-  video.addEventListener('click',()=>{if(video.paused){kullaniciDurdurdu=false;oynat();}else{kullaniciDurdurdu=true;video.pause();oynatDugme&&(oynatDugme.hidden=false);}});
+  oynatDugme&&oynatDugme.addEventListener('click',()=>{kullaniciDurdurdu=false;gorunur=true;yukleVeOynat();});
+  video.addEventListener('click',()=>{if(video.paused){kullaniciDurdurdu=false;yukleVeOynat();}else{kullaniciDurdurdu=true;video.pause();if(oynatDugme){oynatDugme.hidden=false;oynatDugme.textContent='▶ Filmi sürdür';}}});
 
   if('IntersectionObserver' in window){
     new IntersectionObserver(es=>es.forEach(e=>{gorunur=e.isIntersecting;if(gorunur){if(!reduced)oynat();}else video.pause();}),{threshold:.15}).observe(video);
