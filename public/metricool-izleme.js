@@ -20,17 +20,16 @@
     return script;
   }
 
-  /* Resilience katmanı artık ilk sırada yüklenir. Böylece canlı public
-     endpoint kısa süreli 4xx/5xx verse bile Social Desk ve Media Vault
-     kullanıcıya hata kutusu bırakmadan doğrulanmış repository snapshotına
-     dönebilir. Cache bust sürümü 2026-10-04. */
+  /* Resilience katmanı ilk sırada yüklenir. Canlı public endpoint kısa süreli
+     4xx/5xx verse bile Social Desk ve Media Vault doğrulanmış snapshot/catalog
+     katmanına dönebilir. */
   loadScript('/btmedya-resilience-v1.js?v=20261004-1');
 
   (async function () {
     try {
       await loadStyle('/btmedya-experience-v1.css?v=20261002-2');
       await loadStyle('/content-growth-v1.css?v=20261002-3');
-      await loadStyle('/mobile-polish-v4.css?v=20261004-1');
+      await loadStyle('/mobile-polish-v4.css?v=20261003-2');
       await loadStyle('/desktop-ux-v1.css?v=20261003-2');
 
       loadScript('/btmedya-experience-v1.js?v=20261002-2');
