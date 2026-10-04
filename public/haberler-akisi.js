@@ -183,7 +183,7 @@
   function aktifKategori() {
     var server = document.documentElement.getAttribute('data-bt-haber-kategori') || '';
     if (server && AD[server]) return server;
-    var m = location.pathname.match(/^\\/haberler\\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji)\\/\\$/);
+    var m = location.pathname.match(/^\/haberler\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji)\/\$/);
     if (m && AD[m[1]]) return m[1];
     return new URLSearchParams(location.search).get('kategori') || '';
   }
