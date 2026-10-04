@@ -169,6 +169,11 @@
   }
   var ray = kok.querySelector('.hm-ray-iz'), imlec = kok.querySelector('.hm-imlec');
   function rayIsaretle(anahtar) {
+    document.querySelectorAll('.hm-cekmece-liste a').forEach(function (a) {
+      if (a.getAttribute('data-hm-kategori') === anahtar) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    var etiket = kok.querySelector('[data-hm-etkin]');
+    if (etiket) { etiket.textContent = anahtar === 'tumu' ? 'Tümü' : AD[anahtar] || 'Tümü'; etiket.parentNode.setAttribute('data-kat', anahtar); }
     if (!ray) return;
     var etkin = null;
     ray.querySelectorAll('a').forEach(function (a) {
@@ -183,14 +188,38 @@
       ray.scrollTo({ left: hedef, behavior: azHareket ? 'auto' : 'smooth' });
     }
   }
-  kok.addEventListener('click', function (e) {
+  function kategoriTik(e) {
     var a = e.target.closest('[data-hm-kategori]');
     if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
     if (!tumHaberler.length) return; // Veri gelmediyse bağlantı normal sayfa yüklemesi yapar.
     e.preventDefault();
+    cekmeceKapat();
     var k = a.getAttribute('data-hm-kategori');
     kategoriGoster(k === 'tumu' ? '' : k, true);
-  });
+  }
+  kok.addEventListener('click', kategoriTik);
+  /* Mobil kategori çekmecesi (hamburger). Açıkken sayfa kaymaz, Esc kapatır,
+     odak çekmeceye girer ve kapanınca düğmeye döner. */
+  var cekmece = kok.querySelector('.hm-cekmece'), acDugme = kok.querySelector('[data-hm-ac]');
+  // Üst çubuk kendi katmanında; çekmece body'ye taşınınca her şeyin üstünde açılır.
+  if (cekmece) {
+    document.body.appendChild(cekmece);
+    cekmece.addEventListener('click', function (e) { if (e.target.closest('[data-hm-kapat]') || e.target === cekmece) { cekmeceKapat(); return; } kategoriTik(e); });
+  }
+  function cekmeceAc() {
+    if (!cekmece) return;
+    cekmece.hidden = false; acDugme.setAttribute('aria-expanded', 'true');
+    document.documentElement.style.overflow = 'hidden';
+    var etkin = cekmece.querySelector('a[aria-current]') || cekmece.querySelector('a'); if (etkin) etkin.focus();
+  }
+  function cekmeceKapat() {
+    if (!cekmece || cekmece.hidden) return;
+    cekmece.hidden = true; acDugme.setAttribute('aria-expanded', 'false');
+    document.documentElement.style.overflow = ''; acDugme.focus();
+  }
+  if (acDugme) acDugme.addEventListener('click', cekmeceAc);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') cekmeceKapat(); });
+
   window.addEventListener('popstate', function () { kategoriGoster(new URLSearchParams(location.search).get('kategori') || '', false); });
 
   /* ---- Hareket: görünür olunca belirme ---- */
@@ -245,6 +274,10 @@
     // Bloğu boş kalan kategoriye sürmanşet dışındaki en yeni haberleri ver; yine de tekrar etme.
     KATEGORILER.forEach(function (k) { if (!gruplar[k[0]].length) gruplar[k[0]] = kalan.filter(function (n) { return n._kat === k[0] && surler.indexOf(n) < 0; }); });
 
+    document.querySelectorAll('[data-hm-sayi]').forEach(function (el) {
+      var k = el.getAttribute('data-hm-sayi');
+      el.textContent = (k === 'tumu' ? guncel.length : guncel.filter(function (n) { return n._kat === k; }).length) + ' haber';
+    });
     serit(guncel);
     akis(guncel.slice(0, 7));
     manset(mansetler);
