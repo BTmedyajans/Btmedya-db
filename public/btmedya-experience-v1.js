@@ -3,7 +3,8 @@
 (function(){
   const ready=()=>{
     const root=document.querySelector('.cinematic-hero');
-    if(!root || window.matchMedia('(max-width:720px)').matches)return;
+    if(window.matchMedia('(max-width:720px)').matches)return;
+    if(!root)return;
     const copy=root.querySelector('.cinematic-copy');
     if(!copy || root.querySelector('.cinematic-choice-nav'))return;
     const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
