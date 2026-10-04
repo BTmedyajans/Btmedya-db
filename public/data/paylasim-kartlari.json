@@ -1,0 +1,93 @@
+[
+ {
+  "ad": "haberler",
+  "baslik": "BTMEDYA Haber Merkezi",
+  "kategori": "HABER",
+  "altbilgi": "BTMEDYA · Balıkesir ve Türkiye gündemi",
+  "foto": "portre-01"
+ },
+ {
+  "ad": "hizmetler",
+  "baslik": "Hizmet Paketleri",
+  "kategori": "HİZMET",
+  "altbilgi": "BTMEDYA · Video, sosyal medya ve marka içeriği",
+  "foto": "portre-02"
+ },
+ {
+  "ad": "sosyal-medya",
+  "baslik": "Sosyal Medya Yönetimi",
+  "kategori": "SOSYAL MEDYA",
+  "altbilgi": "BTMEDYA · Reels, içerik ve yayın planı",
+  "foto": "portre-04"
+ },
+ {
+  "ad": "video-produksiyon",
+  "baslik": "Video Prodüksiyon",
+  "kategori": "PRODÜKSİYON",
+  "altbilgi": "BTMEDYA · Tanıtım, reklam ve röportaj",
+  "foto": "kamera-arkasi"
+ },
+ {
+  "ad": "vaka-calismalari",
+  "baslik": "Vaka Çalışmaları",
+  "kategori": "PORTFÖY",
+  "altbilgi": "BTMEDYA · Gerçek işler ve portföy",
+  "foto": "portre-05"
+ },
+ {
+  "ad": "portfoy-buse-tuncay",
+  "baslik": "Buse Tuncay · Gazeteci Portföyü",
+  "kategori": "PORTFÖY",
+  "altbilgi": "BTMEDYA · Saha, röportaj, prodüksiyon",
+  "foto": "portre-sb"
+ },
+ {
+  "ad": "hakkimizda",
+  "baslik": "Hakkımızda",
+  "kategori": "KURUMSAL",
+  "altbilgi": "BTMEDYA · Balıkesir merkezli medya ajansı",
+  "foto": "portre-03"
+ },
+ {
+  "ad": "iletisim",
+  "baslik": "İletişim",
+  "kategori": "İLETİŞİM",
+  "altbilgi": "BTMEDYA · Projenizi anlatın",
+  "foto": "portre-01"
+ },
+ {
+  "ad": "basin-kiti",
+  "baslik": "Basın Kiti",
+  "kategori": "KURUMSAL",
+  "altbilgi": "BTMEDYA · Kurumsal bilgi ve iletişim",
+  "foto": "portre-02"
+ },
+ {
+  "ad": "kaynak-masasi",
+  "baslik": "Kaynak Masası",
+  "kategori": "EDİTORYAL",
+  "altbilgi": "BTMEDYA · Doğrulanmış kaynak listesi",
+  "foto": "portre-04"
+ },
+ {
+  "ad": "whatsapp-katalog",
+  "baslik": "WhatsApp Katalog",
+  "kategori": "HİZMET",
+  "altbilgi": "BTMEDYA · Hizmet seç, brief başlat",
+  "foto": "portre-05"
+ },
+ {
+  "ad": "sosyal-medya-kit",
+  "baslik": "Sosyal Medya Güncelleme Kiti",
+  "kategori": "HİZMET",
+  "altbilgi": "BTMEDYA · Hazır içerik ve yayın takvimi",
+  "foto": "portre-03"
+ },
+ {
+  "ad": "gizlilik",
+  "baslik": "Gizlilik ve KVKK",
+  "kategori": "BİLGİLENDİRME",
+  "altbilgi": "BTMEDYA · Veri işleme ve haklarınız",
+  "foto": "portre-sb"
+ }
+]

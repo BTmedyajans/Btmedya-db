@@ -1,0 +1,313 @@
+name: BTMEDYA Production Verify
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "wrangler.toml"
+      - "src/**"
+      - "public/**"
+      - "migrations/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/deploy.yml"
+      - "control-plane/**"
+      - "control-plane/reconcile-worker-domains.sh"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Production verification is intentionally retained in the main deployment path.
+
+concurrency:
+  group: btmedya-production-verify
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    name: Verify source and production chain
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Source preflight
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Validate source and assets
+        run: |
+          set -euo pipefail
+          trap 'rc=$?; echo "VALIDATE_FAILURE line=${BASH_LINENO[0]} command=${BASH_COMMAND} rc=${rc}"; exit $rc' ERR
+          test -s src/worker.js
+          test -s wrangler.toml
+          test -s public/index.html
+          test -s public/robots.txt
+          test -s public/sitemap.xml
+          test -s package.json
+          node --check src/worker.js
+          node --check src/sales-router.js
+          node --check public/editorial-cover-system.js
+          node --check public/admin/agency-os/agency-hamburger-v3.js
+          node --check public/admin/client-hub/client-hub-v3.js
+          grep -q 'related-news' src/news-page.js
+          grep -q 'ilgiliHaberler' src/worker.js
+          node --check src/metricool-scheduler.js
+          node --check src/news-intelligence.js
+          node --check src/autopilot.js
+          node --check src/agency-supervisor.js
+          node --check src/btmedya-core.js
+          node --check public/home.js
+          node --check public/mobile-motion.js
+          node --check public/admin/next-gen.js
+          node --check public/admin/agency-os/agency-os.js
+          node --check public/admin/client-hub/client-hub.js
+          node --check public/client/review/review.js
+          node --check public/referanslar/referanslar.js
+          python3 - <<'PY'
+          import re, pathlib, subprocess, tempfile
+          html=pathlib.Path("public/admin/index.html").read_text(encoding="utf-8")
+          blocks=re.findall(r"<script([^>]*)>(.*?)</script>", html, flags=re.I|re.S)
+          checked=0
+          for attrs,src in blocks:
+              if not src.strip() or re.search(r"application/ld\+json", attrs, flags=re.I):
+                  continue
+              with tempfile.NamedTemporaryFile("w",suffix=".js",delete=False,encoding="utf-8") as f:
+                  f.write(src); path=f.name
+              subprocess.run(["node","--check",path],check=True)
+              checked+=1
+          print(f"ADMIN_INLINE_JS_CHECKED {checked}")
+          PY
+          # 27 Sep 2026'da yaşanan home.js truncation regresyonunu tekrar
+          # üretime taşımamak için yalnızca sözdizimini değil, runtime'ın
+          # beklenen minimum bütünlüğünü de kapıdan kontrol ediyoruz.
+          test "$(wc -l < public/home.js)" -ge 400
+          grep -q 'btYuvalar' public/home.js
+          grep -q 'cinematic' public/home.js
+          grep -q 'story' public/home.js
+          grep -q 'social' public/home.js
+          grep -q 'data-kategori="' public/home.js
+          ! grep -q 'data-kategori=""' public/home.js
+          python3 tools/validate-assets.py
+          node tools/a11y-denetimi.mjs
+          # Etiket, sitemap/JSON-LD ve hero butunlugu: sessiz editoryal gerilemeleri yakalar.
+          node tools/gerileme-denetimi.mjs
+          node --check src/sosyal-otomasyon.js
+          node --check src/sabah-masasi.js
+          node --check src/news-intelligence.js
+          node tools/link-denetimi.mjs
+          node tools/mobile-regression-gate.mjs
+          grep -q 'mobile-fixes.css' public/index.html
+          grep -q 'mobile-motion.css' public/index.html
+          grep -q 'mobile-motion.js' public/index.html
+          test -s public/mobile-motion.css
+          test -s public/mobile-motion.js
+          grep -q 'mobile-quick-nav' public/index.html
+          test "$(grep -o 'data-mobile-nav=' public/index.html | wc -l)" -ge 5
+          grep -q 'data-fallback="social"' public/index.html
+          grep -q 'data-fallback="media"' public/index.html
+          grep -q 'preserve verified fallbacks' public/home.js
+          grep -q 'prefers-reduced-motion' public/mobile-fixes.css
+          grep -q 'Control Center' public/admin/index.html
+          grep -q '/api/admin/control-center' public/admin/index.html
+          grep -q 'btmedya-core' src/worker.js
+          grep -q '/api/admin/core' public/admin/agency-os/agency-os.js
+          grep -q '/kaynak-masasi' wrangler.toml
+          grep -q '/rss.xml' wrangler.toml
+          grep -q '/news-sitemap.xml' wrangler.toml
+          grep -q '/.well-known/*' wrangler.toml
+          grep -q 'Sitemap: https://btmedya.com.tr/sitemap.xml' public/robots.txt
+          grep -q 'Sitemap: https://btmedya.com.tr/news-sitemap.xml' public/robots.txt
+          test -s public/.well-known/security.txt
+          test -s public/site.webmanifest
+          test -s public/admin/manifest.webmanifest
+          test -s public/admin/autopilot/index.html
+          test -s public/admin/editor/index.html
+          test -s public/admin/agency-os/index.html
+          test -s public/admin/yayin/index.html
+          test -s public/admin/yayin/yayin.css
+          test -s public/admin/yayin/yayin.js
+          node --check public/admin/yayin/yayin.js
+          test -s public/admin/agency-os/agency-os.css
+          test -s public/admin/agency-os/agency-os.js
+          test -s public/admin/client-hub/index.html
+          test -s public/admin/musteri-merkezi/index.html
+          test -s public/client/review/index.html
+          test -s public/client/review/review.js
+          test -s public/referanslar/referanslar.js
+          test -s migrations/0015_client_social_radar.sql
+          test -s migrations/0013_client_review.sql
+          test -s migrations/0014_agency_supervisor.sql
+          grep -q 'reviewAdmin' src/sales-router.js
+          grep -q 'Müşteriye önizleme linki' public/admin/client-hub/index.html
+          ! grep -q '<script>const' public/client/review/index.html
+          ! grep -q '<script>const' public/referanslar/index.html
+          grep -q 'Otonom Yayın Merkezi' public/admin/next-gen.js
+          grep -q '/api/admin/autopilot' src/worker.js
+          python3 - <<'PY'
+          import re, pathlib, subprocess, tempfile
+          for name in ["public/admin/editor/index.html","public/admin/autopilot/index.html"]:
+              html=pathlib.Path(name).read_text(encoding="utf-8")
+              for attrs,src in re.findall(r"<script([^>]*)>(.*?)</script>", html, flags=re.I|re.S):
+                  if not src.strip() or re.search(r"application/ld\+json", attrs, flags=re.I):
+                      continue
+                  with tempfile.NamedTemporaryFile("w",suffix=".js",delete=False,encoding="utf-8") as f:
+                      f.write(src); path=f.name
+                  subprocess.run(["node","--check",path],check=True)
+          print("ADMIN_EDITOR_AUTOPILOT_JS_CHECKED")
+          PY
+          test -s public/sosyal-medya-kit/index.html
+          grep -q "00 / REAL PHOTO SYSTEM" public/sosyal-medya-kit/index.html
+          grep -q "buse-tuncay-saha-roportaj.webp" public/sosyal-medya-kit/index.html
+          grep -q "buse-tuncay-kamera-arkasi.webp" public/sosyal-medya-kit/index.html
+          grep -q "buse-tuncay-portre-siyah-beyaz.webp" public/sosyal-medya-kit/index.html
+          grep -q "buse-tuncay-yesil-perde-studyo.webp" public/sosyal-medya-kit/index.html
+          grep -q "YAPAY ZEKÂ ÜRETİMİ" public/sosyal-medya-kit/index.html
+          test -s public/admin/sw.js
+          test -s public/admin/mobile-admin.css
+          test ! -e .github/workflows/media-smoke.yml
+          test ! -e .github/workflows/storage-audit.yml
+
+      - name: Production smoke test
+        run: |
+          set -euo pipefail
+
+          resolve_ip() {
+            local host="$1"
+            local ip=""
+            local resolver=""
+            for resolver in 1.1.1.1 8.8.8.8 9.9.9.9; do
+              for attempt in 1 2 3; do
+                ip="$(dig +short A "$host" @"$resolver" | head -n1 || true)"
+                if [ -n "$ip" ]; then
+                  echo "DNS_RESOLVED $host via $resolver -> $ip" >&2
+                  printf '%s' "$ip"
+                  return 0
+                fi
+                sleep 3
+              done
+            done
+            echo "DNS_RESOLVE_FAILED $host (resolvers: 1.1.1.1, 8.8.8.8, 9.9.9.9)" >&2
+            return 1
+          }
+
+          # Cloudflare Workers Builds deploys the same main push asynchronously.
+          # Wait before the first live probe so the verification job does not race the production build.
+          sleep 90
+
+          HOME_IP="$(resolve_ip btmedya.com.tr)"
+          WWW_IP="$(resolve_ip www.btmedya.com.tr)"
+          echo "SMOKE DNS: btmedya.com.tr -> $HOME_IP"
+          echo "SMOKE DNS: www.btmedya.com.tr -> $WWW_IP"
+
+          curl_url() {
+            local host="$1"
+            local ip="$2"
+            local url="$3"
+            curl --resolve "$host:443:$ip" -sS -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' --max-time 30 "$url"
+          }
+
+          check_http() {
+            local label="$1"
+            local host="$2"
+            local ip="$3"
+            local url="$4"
+            local expected="$5"
+            local actual
+            actual="$(curl --resolve "$host:443:$ip" -sS -o /dev/null -w "%{http_code}" --max-time 30 "$url")"
+            echo "SMOKE $label: HTTP $actual (expected $expected)"
+            test "$actual" = "$expected"
+          }
+
+          check_http "home" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/" "200"
+          check_http "english" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/en/" "200"
+          # #25'te düzeltilen menünün canlı deployda da erişilebilir olduğunu
+          # iç sayfalar üzerinden kontrol et. Bu yolların 200 dönmesi, Worker
+          # + Static Assets + custom domain zincirinin canlıda birlikte
+          # çalıştığını doğrular.
+          check_http "hakkimizda" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/hakkimizda/" "200"
+          check_http "iletisim" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/iletisim/" "200"
+          check_http "agency-os" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/agency-os/" "302"
+          check_http "publishing-center" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/yayin/" "302"
+          check_http "social-studio-canonical" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/social-studio/" "200"
+          check_http "client-hub" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/client-hub/" "302"
+          check_http "legacy-client-hub" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/musteri-merkezi/" "302"
+          check_http "client-review" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/client/review/" "200"
+          check_http "haberler" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/haberler/" "200"
+          check_http "kaynak-masasi" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/kaynak-masasi/" "200"
+          check_http "robots" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/robots.txt" "200"
+          check_http "sitemap" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/sitemap.xml" "200"
+          check_http "news-sitemap" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/news-sitemap.xml" "200"
+          check_http "rss" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/rss.xml" "200"
+          check_http "security" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/.well-known/security.txt" "200"
+
+          health="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/api/health)"
+          echo "SMOKE health: $health"
+          echo "$health" | grep -q '"ok":true'
+          echo "$health" | grep -q '"cms":true'
+          echo "$health" | grep -q '"r2":true'
+          echo "$health" | grep -q '"mediaSchema":{"ok":true'
+
+          media="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/api/public/media)"
+          echo "SMOKE media: ${media:0:700}"
+          echo "$media" | grep -q '"items"'
+          echo "$media" | grep -q '"generated_at"'
+          echo "$media" | grep -q '"source"'
+          # D1 metadata katmanı bozulsa bile endpoint 200 kalabilir; bu durumda
+          # deploy doğrulaması sessizce yeşil olmamalı.
+          if echo "$media" | grep -q '"degraded":true'; then
+            echo "SMOKE media: degraded=true — D1 medya metadata katmanı hatalı"
+            exit 1
+          fi
+
+          social="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/api/public/social-feed)"
+          echo "SMOKE social: ${social:0:700}"
+          echo "$social" | grep -q '"items"'
+          echo "$social" | grep -q '"profiles"'
+          echo "$social" | grep -q '"live_connections"'
+
+          admin_api="$(curl --resolve "btmedya.com.tr:443:$HOME_IP" -sS -o /dev/null -w "%{http_code}" --max-time 30 https://btmedya.com.tr/api/admin/control-center)"
+          echo "SMOKE admin API without session: HTTP $admin_api (expected 401)"
+          test "$admin_api" = "401"
+
+          www_status="$(curl --resolve "www.btmedya.com.tr:443:$WWW_IP" -sS -o /dev/null -w "%{http_code}" --max-time 30 https://www.btmedya.com.tr/)"
+          echo "SMOKE www: HTTP $www_status (expected 301)"
+          test "$www_status" = "301"
+
+          home="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/)"
+          home_type="$(curl --resolve "btmedya.com.tr:443:$HOME_IP" -sS -o /dev/null -w "%{content_type}" --max-time 30 https://btmedya.com.tr/)"
+          echo "SMOKE home content-type: $home_type"
+          echo "$home_type" | grep -qi "^text/html"
+          live_markers=(
+            "GERÇEK ÇEKİM"
+            "AI ÜRETİMİ"
+            "Kaynak Masası"
+            "https://www.instagram.com/btmedyajans/"
+            "https://tr.linkedin.com/in/buse-tuncay-6b217623"
+            "meta name=\"color-scheme\" content=\"dark\""
+            "meta name=\"referrer\" content=\"strict-origin-when-cross-origin\""
+          )
+
+          live_ok=0
+          for attempt in $(seq 1 8); do
+            home="$(curl_url btmedya.com.tr "$HOME_IP" https://btmedya.com.tr/)"
+            missing=0
+            for marker in "${live_markers[@]}"; do
+              if [[ "$home" != *"$marker"* ]]; then
+                missing=1
+                echo "SMOKE home marker pending (attempt $attempt): $marker"
+              else
+                echo "SMOKE home marker OK: $marker"
+              fi
+            done
+            if [ "$missing" -eq 0 ]; then
+              live_ok=1
+              break
+            fi
+            sleep 15
+          done
+
+          test "$live_ok" = "1"
+

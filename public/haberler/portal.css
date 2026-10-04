@@ -1,0 +1,201 @@
+/* BTMEDYA Haber Merkezi V14 · 2026-10-04
+   Neden yeniden: V13 mobilde 13.900 px'ti; aynı haber iki üç bölümde
+   tekrar ediyor, kapağın üstüne ikinci bir HTML başlık biniyor, güncel
+   haberlerde "ARŞİVDEN BUGÜNE" yazıyor, kategori seçimi yalnız alttaki iki
+   listeyi değiştiriyordu. V14 ulusal kanalların sırasını izler (son haber
+   şeridi, numaralı manşet, sürmanşet, kategori blokları) ama marka kitinin
+   renkleri ve Anton manşet yazısıyla BTMEDYA'ya özgü kalır.
+   Hareket: kaydırmaya bağlı ilerleme çubuğu, kelime kelime açılan başlıklar,
+   görünür olunca beliren kartlar. prefers-reduced-motion hepsini kapatır. */
+@font-face{font-family:Anton;src:url(/assets/fonts/anton-tr.woff2) format('woff2');font-display:swap}
+:root{--hm-zemin:#050607;--hm-panel:#0b0f13;--hm-panel2:#10161c;--hm-yazi:#f4f7f8;--hm-soluk:#9aa6b0;--hm-cizgi:rgba(255,255,255,.1);
+  --hm-kirmizi:#e3141b;--hm-sari:#ffd400;--hm-lacivert:#0a2e70;--hm-camgobegi:#35d6ff;--hm-ust:62px;--hm-kenar:16px}
+@media(min-width:901px){:root{--hm-ust:72px;--hm-kenar:clamp(24px,4vw,64px)}}
+
+/* Kategori renkleri: kapak aracındaki KATEGORI_RENK ile aynı aile. */
+[data-kat=balikesir]{--kat:#64e4ff}[data-kat=gundem]{--kat:#ff4038}[data-kat=ekonomi]{--kat:#f2c14e}[data-kat=kultur]{--kat:#c77dff}
+[data-kat=egitim]{--kat:#50d6c8}[data-kat=saglik]{--kat:#ff7a6b}[data-kat=spor]{--kat:#65e6a4}[data-kat=teknoloji]{--kat:#5ca8ff}[data-kat=tumu]{--kat:#ffd400}
+
+.hm{max-width:1440px;margin:0 auto;padding:calc(var(--hm-ust) + 14px) var(--hm-kenar) 72px;color:var(--hm-yazi)}
+.hm a{color:inherit;text-decoration:none}
+.hm img{display:block;max-width:100%;height:auto}
+.hm-gizli{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Okuma ilerlemesi: destekleyen tarayıcıda saf CSS (scroll timeline), diğerlerinde JS --hm-oran yazar. */
+.hm-ilerleme{position:fixed;left:0;right:0;top:0;height:3px;z-index:140;pointer-events:none}
+.hm-ilerleme i{display:block;height:100%;background:linear-gradient(90deg,var(--hm-kirmizi),var(--hm-sari));transform-origin:0 50%;transform:scaleX(var(--hm-oran,0))}
+@supports (animation-timeline:scroll()){.hm-ilerleme i{animation:hm-ilerle linear both;animation-timeline:scroll(root)}}
+@keyframes hm-ilerle{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+/* Sayfa başı: tarih satırı + kelime kelime açılan Anton başlık. */
+.hm-bas{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 24px;padding:6px 0 14px}
+.hm-tarih{display:flex;align-items:center;gap:8px;margin:0 0 6px;color:var(--hm-soluk);font:700 12px/1.3 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase}
+.hm-tarih i{width:8px;height:8px;border-radius:50%;background:var(--hm-kirmizi);box-shadow:0 0 0 0 rgba(227,20,27,.6);animation:hm-nabiz 2s infinite}
+@keyframes hm-nabiz{70%{box-shadow:0 0 0 9px rgba(227,20,27,0)}100%{box-shadow:0 0 0 0 rgba(227,20,27,0)}}
+.hm-baslik{margin:0;font:400 clamp(46px,13vw,128px)/.9 Anton,'Bricolage Grotesque',Impact,sans-serif;letter-spacing:.005em;text-transform:uppercase}
+.hm-kelime{display:inline-block;overflow:hidden;vertical-align:bottom;padding-top:.06em}
+.hm-kelime>span{display:inline-block;animation:hm-kelime .9s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 110ms)}
+.hm-kelime.sari>span{color:var(--hm-sari)}
+@keyframes hm-kelime{from{transform:translateY(105%)}to{transform:none}}
+.hm-ozet{margin:0;max-width:34em;color:var(--hm-soluk);font:500 15px/1.55 Manrope,Inter,Arial,sans-serif}
+
+/* Kategori rayı: yapışkan, kaydırılabilir, etkin kategoride akan imleç. */
+.hm-ray{position:sticky;top:var(--hm-ust);z-index:60;margin:0 calc(var(--hm-kenar) * -1);padding:0 var(--hm-kenar);background:rgba(5,6,7,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--hm-cizgi)}
+.hm-ray-iz{position:relative;display:flex;gap:4px;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-mask:linear-gradient(90deg,#000 88%,transparent);mask:linear-gradient(90deg,#000 88%,transparent)}
+.hm-ray-iz::-webkit-scrollbar{display:none}
+.hm-ray a{position:relative;flex:none;display:flex;align-items:center;gap:8px;min-height:48px;padding:0 13px;scroll-snap-align:start;color:#c7d0d8;font:400 17px/1 Anton,Impact,sans-serif;letter-spacing:.04em;text-transform:uppercase;transition:color .2s}
+.hm-ray a::before{content:'';width:7px;height:7px;border-radius:2px;background:var(--kat);transform:rotate(45deg)}
+.hm-ray a[aria-current=page],.hm-ray a:hover{color:#fff}
+.hm-ray a:focus-visible{outline:2px solid var(--hm-sari);outline-offset:-4px}
+.hm-imlec{position:absolute;left:0;bottom:0;height:3px;width:var(--w,0);background:var(--kat,var(--hm-sari));transform:translateX(var(--x,0));transition:transform .45s cubic-bezier(.2,.8,.2,1),width .45s cubic-bezier(.2,.8,.2,1),background .3s;border-radius:3px 3px 0 0}
+
+/* Son haber şeridi. Kırmızı etiket yalnız gerçekten son 3 saatte haber varsa "SON DAKİKA" der. */
+.hm-serit{display:flex;align-items:stretch;margin:14px 0 18px;border:1px solid var(--hm-cizgi);border-radius:8px;overflow:hidden;background:var(--hm-panel)}
+.hm-serit b{flex:none;display:flex;align-items:center;gap:7px;padding:0 12px;background:var(--hm-kirmizi);color:#fff;font:400 15px/1 Anton,Impact,sans-serif;letter-spacing:.06em}
+.hm-serit-pencere{flex:1;min-width:0;overflow:hidden;-webkit-mask:linear-gradient(90deg,transparent,#000 18px,#000 92%,transparent);mask:linear-gradient(90deg,transparent,#000 18px,#000 92%,transparent)}
+.hm-serit-iz{display:flex;width:max-content;animation:hm-akis var(--sure,60s) linear infinite}
+.hm-serit:hover .hm-serit-iz,.hm-serit:focus-within .hm-serit-iz{animation-play-state:paused}
+.hm-serit-iz a{display:flex;align-items:center;gap:10px;min-height:42px;padding:0 22px 0 4px;white-space:nowrap;font:600 14px/1.2 Manrope,Inter,Arial,sans-serif}
+.hm-serit-iz a time{color:var(--hm-sari);font:700 12px/1 'JetBrains Mono',ui-monospace,monospace}
+.hm-serit-iz a::after{content:'';width:5px;height:5px;margin-left:12px;border-radius:50%;background:#ffffff40}
+@keyframes hm-akis{to{transform:translateX(-50%)}}
+
+/* Manşet: kapakların kendisi manşet afişidir (başlık kapağa basılı); ikinci bir başlık katmanı yoktur. */
+.hm-manset{position:relative;margin:0 0 30px}
+.hm-manset-iz{display:grid;grid-auto-flow:column;grid-auto-columns:100%;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;overscroll-behavior-x:contain;scrollbar-width:none;border-radius:12px;background:#000}
+.hm-manset-iz::-webkit-scrollbar{display:none}
+.hm-manset-kart{scroll-snap-align:start;scroll-snap-stop:always;position:relative;display:block}
+.hm-manset-kart img{width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--hm-panel)}
+.hm-manset-alt{display:flex;align-items:center;gap:10px;padding:11px 12px 12px;background:var(--hm-panel);border-top:3px solid var(--kat,var(--hm-kirmizi))}
+.hm-manset-alt p{flex:1;min-width:0;margin:0;color:#d8dee4;font:500 14px/1.4 Manrope,Inter,Arial,sans-serif;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hm-sayac{display:grid;grid-template-columns:repeat(var(--adet,10),minmax(0,1fr));gap:4px;margin-top:8px}
+.hm-sayac button{position:relative;min-height:40px;border:0;border-radius:6px;background:var(--hm-panel2);color:#cbd3da;font:400 17px/1 Anton,Impact,sans-serif;cursor:pointer;overflow:hidden}
+.hm-sayac button[aria-current=true]{background:var(--hm-kirmizi);color:#fff}
+.hm-sayac button[aria-current=true]::after{content:'';position:absolute;left:0;bottom:0;height:3px;width:100%;background:var(--hm-sari);transform-origin:0 50%;animation:hm-sure var(--bekle,6s) linear both}
+.hm-manset.durdu .hm-sayac button::after{animation-play-state:paused}
+.hm-sayac button:focus-visible{outline:2px solid var(--hm-sari);outline-offset:2px}
+@keyframes hm-sure{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+/* Ortak etiketler. */
+.hm-kat{display:inline-flex;align-items:center;gap:6px;color:var(--kat,var(--hm-sari));font:800 11px/1 Manrope,Inter,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.hm-kat::before{content:'';width:12px;height:3px;background:currentColor}
+.hm-zaman{color:var(--hm-soluk);font:600 12px/1.2 'JetBrains Mono',ui-monospace,monospace;white-space:nowrap}
+.hm-kaynak{display:inline-block;padding:3px 6px;border-radius:4px;background:rgba(255,255,255,.08);color:#c9d2da;font:700 10px/1.2 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.05em;text-transform:uppercase}
+
+/* Sürmanşet: yatay kayan şerit (mobil), dört sütun (masaüstü). */
+.hm-bolum-bas{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 14px;padding-top:14px;border-top:1px solid var(--hm-cizgi)}
+.hm-bolum-bas h2{margin:0;display:flex;align-items:center;gap:10px;font:400 clamp(28px,7.4vw,46px)/1 Anton,Impact,sans-serif;letter-spacing:.01em;text-transform:uppercase}
+.hm-bolum-bas h2::before{content:'';width:6px;height:.86em;border-radius:2px;background:var(--kat,var(--hm-sari))}
+.hm-bolum-bas a{flex:none;display:inline-flex;align-items:center;min-height:44px;color:var(--kat,var(--hm-sari));font:800 13px/1 Manrope,Inter,Arial,sans-serif;letter-spacing:.06em}
+.hm-sur{margin:0 0 34px}
+.hm-sur-iz{display:grid;grid-auto-flow:column;grid-auto-columns:76%;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 calc(var(--hm-kenar) * -1);padding:0 var(--hm-kenar) 4px;scroll-padding:0 var(--hm-kenar)}
+.hm-sur-iz::-webkit-scrollbar{display:none}
+@media(min-width:901px){.hm-sur-iz{grid-auto-flow:row;grid-template-columns:repeat(4,1fr);overflow:visible;margin:0;padding:0}}
+.hm-kart{scroll-snap-align:start;display:flex;flex-direction:column;gap:9px;min-width:0}
+.hm-kart figure{position:relative;margin:0;border-radius:10px;overflow:hidden;background:var(--hm-panel)}
+.hm-kart img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.hm-kart:hover img{transform:scale(1.04)}
+.hm-kart figure .hm-kaynak{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.72)}
+.hm-kart h3{margin:0;font:800 17px/1.3 Manrope,Inter,Arial,sans-serif;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.hm-kart:hover h3{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px;text-decoration-color:var(--kat,var(--hm-sari))}
+.hm-ust-bilgi{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 8px;min-width:0}
+
+/* Kategori blokları: bir büyük haber + kompakt satırlar. */
+.hm-bloklar{display:grid;gap:38px}
+.hm-blok-ic{display:grid;gap:14px}
+@media(min-width:901px){.hm-bloklar{grid-template-columns:1fr 1fr;gap:48px 40px}.hm-blok-ic{grid-template-columns:1.1fr 1fr;align-items:start}}
+.hm-buyuk h3{font-size:clamp(20px,5.4vw,26px);line-height:1.18}
+.hm-buyuk img{aspect-ratio:16/10}
+.hm-satirlar{display:grid}
+.hm-satir{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;align-items:start;padding:12px 0;border-bottom:1px solid var(--hm-cizgi)}
+.hm-satir:first-child{padding-top:0}
+.hm-satir img{width:96px;height:72px;border-radius:7px;object-fit:cover;background:var(--hm-panel)}
+.hm-satir h3{margin:0 0 6px;font:700 15px/1.32 Manrope,Inter,Arial,sans-serif;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.hm-satir:hover h3{color:var(--kat,var(--hm-sari))}
+
+/* Kategori sayfası (?kategori=): dev başlık + tüm haberler. */
+.hm-katsayfa{display:none}
+.hm.kategori-modu .hm-katsayfa{display:block}
+.hm.kategori-modu .hm-anasayfa{display:none}
+.hm-kat-bas{position:relative;margin:6px 0 22px;padding:22px 0 18px;border-bottom:1px solid var(--hm-cizgi);overflow:hidden}
+.hm-kat-bas h2{margin:0;font:400 clamp(56px,17vw,170px)/.86 Anton,Impact,sans-serif;text-transform:uppercase;color:var(--kat);letter-spacing:.005em}
+.hm-kat-bas h2 .hm-golge{display:block;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.22);margin-top:-.08em}
+.hm-kat-bas p{margin:12px 0 0;color:var(--hm-soluk);font:600 14px/1.4 Manrope,Inter,Arial,sans-serif}
+.hm-izgara{display:grid;grid-template-columns:1fr;gap:22px}
+@media(min-width:620px){.hm-izgara{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1100px){.hm-izgara{grid-template-columns:repeat(3,1fr)}}
+.hm-bos{padding:28px;border:1px dashed var(--hm-cizgi);border-radius:10px;color:var(--hm-soluk)}
+
+/* Arşiv (2024): statik HTML, görselli. */
+.hm-arsiv{margin-top:44px}
+.hm-arsiv-arac{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 14px}
+.hm-arsiv-arac input{flex:1;min-width:220px;min-height:46px;padding:0 14px;border:1px solid var(--hm-cizgi);border-radius:8px;background:var(--hm-panel);color:#fff;font:500 15px Manrope,Inter,Arial,sans-serif}
+.hm-arsiv-arac input:focus-visible{outline:2px solid var(--hm-sari);outline-offset:1px}
+.hm-arsiv-izgara{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px}
+@media(min-width:900px){.hm-arsiv-izgara{grid-template-columns:repeat(4,1fr);gap:24px 18px}}
+.hm-arsiv-izgara .hm-kart h3{font-size:14.5px}
+.hm-arsiv-izgara .hm-kart img{aspect-ratio:1}
+
+/* Haber gönder + ilkeler. */
+.hm-ihbar{display:grid;gap:14px;margin:48px 0 0;padding:24px 20px;border-radius:14px;background:linear-gradient(135deg,#0a2e70,#05101f 70%);border:1px solid rgba(53,214,255,.25)}
+.hm-ihbar h2{margin:0;font:400 clamp(30px,8vw,52px)/1 Anton,Impact,sans-serif;text-transform:uppercase}
+.hm-ihbar p{margin:0;color:#c6d3df;font:500 15px/1.55 Manrope,Inter,Arial,sans-serif;max-width:40em}
+.hm-ihbar a{justify-self:start;display:inline-flex;align-items:center;min-height:48px;padding:0 18px;border-radius:10px;background:var(--hm-sari);color:#0a0a0a;font:800 15px/1 Manrope,Inter,Arial,sans-serif}
+.hm-ilkeler{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;margin:24px 0 0;background:var(--hm-cizgi);border:1px solid var(--hm-cizgi);border-radius:12px;overflow:hidden}
+@media(min-width:900px){.hm-ilkeler{grid-template-columns:repeat(4,1fr)}}
+.hm-ilkeler div{padding:16px;background:var(--hm-zemin)}
+.hm-ilkeler b{display:block;margin-bottom:6px;font:400 19px/1 Anton,Impact,sans-serif;text-transform:uppercase;color:var(--hm-sari)}
+.hm-ilkeler span{color:var(--hm-soluk);font:500 13px/1.5 Manrope,Inter,Arial,sans-serif}
+
+/* Görünür olunca beliren kartlar: yalnız JS hazırsa (html.hm-hareket). */
+.hm-hareket .hm-gor{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1);transition-delay:calc(var(--s,0) * 70ms)}
+.hm-hareket .hm-gor.gorundu{opacity:1;transform:none}
+
+@media(prefers-reduced-motion:reduce){
+  .hm *,.hm-ilerleme i{animation:none!important;transition:none!important}
+  .hm-hareket .hm-gor{opacity:1;transform:none}
+  .hm-serit-pencere{overflow-x:auto}
+  .hm-manset-iz{scroll-behavior:auto}
+}
+
+/* JS çalışmazsa manşet yerine en yeni haberlerin düz listesi (arama motoru ve eski tarayıcı). */
+.hm-yedek{margin:0;padding:18px;border:1px solid var(--hm-cizgi);border-radius:12px;background:var(--hm-panel);display:grid;gap:10px;font:700 16px/1.35 Manrope,Inter,Arial,sans-serif}
+.hm-yedek a:hover{color:var(--hm-sari)}
+/* Yatay şeritte ekran dışındaki kart dikey kaydırmada hiç kesişmez; belirme efekti burada yok. */
+.hm-hareket .hm-sur-iz .hm-gor{opacity:1;transform:none}
+
+/* Masaüstü üst ızgara: manşet + saatli son haber akışı. */
+.hm-akis{display:none}
+@media(min-width:1100px){
+  .hm-ust-izgara{display:grid;grid-template-columns:minmax(0,2.1fr) minmax(300px,1fr);gap:28px;align-items:start;margin-bottom:30px}
+  .hm-ust-izgara .hm-manset{margin:0}
+  .hm-akis{display:block;position:sticky;top:calc(var(--hm-ust) + 64px);padding:16px 18px;border:1px solid var(--hm-cizgi);border-radius:12px;background:var(--hm-panel)}
+  .hm-akis h2{margin:0 0 6px;font:400 26px/1 Anton,Impact,sans-serif;text-transform:uppercase;color:var(--hm-sari)}
+  .hm-akis ol{list-style:none;margin:0;padding:0;counter-reset:a}
+  .hm-akis li{border-bottom:1px solid var(--hm-cizgi)}
+  .hm-akis li:last-child{border-bottom:0}
+  .hm-akis a{display:grid;grid-template-columns:52px 1fr;gap:2px 10px;padding:11px 0}
+  .hm-akis time{grid-row:span 2;color:var(--hm-kirmizi);font:700 14px/1.3 'JetBrains Mono',ui-monospace,monospace}
+  .hm-akis b{font:700 14.5px/1.35 Manrope,Inter,Arial,sans-serif;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .hm-akis a:hover b{color:var(--hm-sari)}
+}
+@media(min-width:901px){.hm-ray{margin:0;padding:0 8px;border:1px solid var(--hm-cizgi);border-radius:10px}}
+
+/* Yayın saati: tarih satırının sonunda, kanal ekranı köşe saati. */
+.hm-saat{margin-left:4px;padding:3px 7px;border-radius:4px;background:var(--hm-kirmizi);color:#fff;font:700 12px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.06em}
+.hm-saat:empty{display:none}
+
+/* Blok numarası: başlığın solunda dergi dizgisi gibi kontur Anton rakam. */
+.hm-bolum-bas>div{display:flex;align-items:baseline;gap:10px;min-width:0}
+.hm-no{font:400 clamp(34px,9vw,52px)/.9 Anton,Impact,sans-serif;color:transparent;-webkit-text-stroke:1.2px var(--kat,#fff);opacity:.85}
+
+/* Kaydırmayla akan dev yazı şeridi: sayfa aşağı indikçe yazı sola kayar
+   (scroll-driven animation). Desteklemeyen tarayıcıda durağan kalır. */
+.hm-akan{margin:6px calc(var(--hm-kenar) * -1) 30px;overflow:hidden;white-space:nowrap;pointer-events:none}
+.hm-akan span{display:inline-block;padding-left:4vw;font:400 clamp(64px,19vw,190px)/1 Anton,Impact,sans-serif;text-transform:uppercase;color:transparent;-webkit-text-stroke:1.2px rgba(255,212,0,.38)}
+@supports (animation-timeline:view()){
+  .hm-akan span{animation:hm-kay linear both;animation-timeline:view();animation-range:entry 0% exit 100%}
+}
+@keyframes hm-kay{from{transform:translateX(0)}to{transform:translateX(-55%)}}
+.hm.kategori-modu .hm-akan{display:none}
+@media(prefers-reduced-motion:reduce){.hm-akan span{animation:none!important}}

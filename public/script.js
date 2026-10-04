@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     card.addEventListener('focus',()=>setCategory(cat,false));
     card.addEventListener('click',()=>{
       setCategory(cat);
-      const target=document.querySelector(card.dataset.target||'#services');
+      const target=document.querySelector(card.dataset.target||'#medya');
       if(target) target.scrollIntoView({behavior:reduced?'auto':'smooth'});
     });
     card.addEventListener('touchstart',()=>setCategory(cat,false),{passive:true});
@@ -642,4 +642,118 @@ document.addEventListener('DOMContentLoaded',()=>{
   window.addEventListener('scroll', plan, { passive:true });
   window.addEventListener('resize', function(){ pencereY = window.innerHeight; plan(); }, { passive:true });
   ciz();
+})();
+
+
+/* SOSYAL AKIŞ / METRICOOL SNAPSHOT */
+(function(){
+  function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+  function profileCard(p){
+    const statusMap={publishing_verified:'YAYIN DOĞRULANDI',connected_identity:'KANAL BAĞLI',profile_link:'PROFİL',verification_pending:'DOĞRULAMA BEKLİYOR'};
+    const label=esc(p.label||'Platform'), status=esc(statusMap[p.status]||p.status||'');
+    const action=p.url
+      ? '<a href="'+esc(p.url)+'" target="_blank" rel="noopener">'+label+' ↗</a>'
+      : '<span class="is-disabled">'+label+' · URL bekleniyor</span>';
+    return '<article class="social-profile-card"><div><span class="social-platform-tag">'+label+'</span><small>'+status+'</small></div><div>'+action+'</div></article>';
+  }
+  function feedCard(item){
+    const title=esc(item.title), platform=esc(item.platform), date=esc(item.date);
+    return '<article class="social-feed-card"><div class="social-feed-card-top"><span>'+platform+'</span><time datetime="'+date+'">'+date+'</time></div><h3>'+title+'</h3><p>'+esc(item.archive_context||'')+'</p><a href="'+esc(item.url)+'" target="_blank" rel="noopener">Yayını aç ↗</a></article>';
+  }
+  async function loadSocialFeed(){
+    const profiles=document.getElementById('socialProfiles');
+    const meta=document.getElementById('socialFeedMeta');
+    const grid=document.getElementById('socialFeedGrid');
+    if(!profiles||!meta||!grid)return;
+    try{
+      const r=await fetch('/api/public/social-feed',{headers:{accept:'application/json'}});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const data=await r.json();
+      profiles.innerHTML=(Array.isArray(data.profiles)?data.profiles:[]).map(profileCard).join('');
+      const count=Array.isArray(data.items)?data.items.length:0;
+      meta.textContent='Kaynak: '+String(data.source||'Metricool')+' · '+count+' doğrulanmış yayın snapshotı · '+String(data.generated_at||'');
+      grid.innerHTML=count ? data.items.map(feedCard).join('') : '<div class="social-feed-empty">Doğrulanmış yayın kaydı yok.</div>';
+    }catch(err){
+      profiles.innerHTML='';
+      meta.textContent='Sosyal profil bağlantıları korunuyor; son yayın snapshotı şu anda okunamadı.';
+      grid.innerHTML='<div class="social-feed-empty">Sosyal akış geçici olarak kullanılamıyor.</div>';
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadSocialFeed,{once:true});else loadSocialFeed();
+})();
+
+/* GERÇEK ARŞİV / MEDIA VAULT */
+(function(){
+  function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+  function slugFromPath(path){const name=String(path||'').split('/').pop()||'';return name.replace(/\.[^.]+$/,'');}
+  function titleFromPath(path){return slugFromPath(path).replace(/[-_]+/g,' ').replace(/\b\w/g,m=>m.toUpperCase());}
+  function isVideo(item){return /^video\//i.test(String(item.mime||''));}
+  function isExcluded(item){const p=String(item.path||item.original_name||'').toLowerCase();return /showreel-fantasy|showreel-flying-reporter/.test(p);}
+  function card(item,index){
+    const video=isVideo(item), title=esc(item.title||titleFromPath(item.key||item.original_name));
+    const cat=esc((item.category||'arşiv').replace(/-/g,' ')), url=String(item.url||''), source=String(item.source||'');
+    let detail='';
+    if(item.category==='haber'){
+      const slug=slugFromPath(item.key||item.original_name);
+      detail='<a href="/haberler/'+encodeURIComponent(slug)+'.html">Haberi aç ↗</a>';
+    }else if(video&&url){detail='<a href="'+esc(url)+'" target="_blank" rel="noopener">Videoyu aç ↗</a>';}
+    const yt='<a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube ↗</a>';
+    const media=video?'<video class="archive-media" muted loop playsinline preload="metadata" src="'+esc(url)+'"></video>':'<img class="archive-media" loading="lazy" src="'+esc(url)+'" alt="'+title+'">';
+    return '<article class="archive-live-card '+(index===0?'featured':'')+'">'+media+'<div class="archive-overlay"></div><div class="archive-copy"><span class="archive-tag">'+(item.ai_generated===false?'GERÇEK ÇEKİM':'AI ÜRETİMİ')+' · '+cat+'</span><h3>'+title+'</h3><p>Kaynak: '+esc(source==='github-static'?'BTMEDYA arşivi':'Media Vault')+'</p><div class="archive-actions">'+detail+yt+'</div></div></article>';
+  }
+  async function loadArchive(){
+    const grid=document.getElementById('gercekArsivGrid'); if(!grid)return;
+    try{
+      const r=await fetch('/api/public/media?limit=40',{headers:{accept:'application/json'}});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const data=await r.json();
+      const items=(Array.isArray(data.items)?data.items:[]).filter(x=>x&&!x.ai_generated&&!isExcluded(x))
+        .filter(x=>['saha','haber','video','portfoy','hero','sosyal'].includes(String(x.category||'')))
+        .sort((a,b)=>{const rank=x=>({saha:0,haber:1,video:2,portfoy:3,hero:4}[x.category]??9);return rank(a)-rank(b);}).slice(0,8);
+      if(!items.length){grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv kaydı henüz yayın akışına düşmedi.</div>';return;}
+      grid.innerHTML=items.map(card).join('');
+      grid.querySelectorAll('video').forEach(v=>{const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)v.play().catch(()=>{});else v.pause();}),{rootMargin:'120px'});io.observe(v);});
+    }catch(err){grid.innerHTML='<div class="archive-live-empty">Arşiv akışı şu anda okunamadı. Haber arşivi yine açık: <a href="/haberler/">/haberler/</a></div>';}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadArchive,{once:true});else loadArchive();
+})();
+
+/* BTMEDYA page transition: category-aware, lightweight, no framework */
+(function(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const style=document.createElement('style');
+  style.textContent='.bt-page-transition{--bt-transition-accent:#d9ff3f;position:fixed;inset:0;z-index:100000;background:#05080d;display:grid;place-items:center;opacity:0;pointer-events:none;clip-path:inset(0 0 100% 0);transition:opacity .22s ease,clip-path .46s cubic-bezier(.2,.75,.2,1)}.bt-page-transition.is-on{opacity:1;pointer-events:auto;clip-path:inset(0)}.bt-page-transition img{width:min(52vw,520px);height:min(68vh,680px);object-fit:cover;filter:saturate(.9) contrast(1.05);transform:scale(.94);transition:transform .7s cubic-bezier(.2,.75,.2,1),filter .4s ease}.bt-page-transition.is-on img{transform:scale(1)}.bt-page-transition:after{content:"";position:absolute;inset:auto 0 0;height:4px;background:var(--bt-transition-accent);transform:scaleX(0);transform-origin:left;transition:transform .6s ease}.bt-page-transition.is-on:after{transform:scaleX(1)}.bt-page-transition .bt-transition-label{position:absolute;left:24px;bottom:24px;font:700 11px Jet,monospace;letter-spacing:.16em;color:var(--bt-transition-accent)}.bt-page-transition .bt-transition-line{position:absolute;left:24px;top:24px;font:600 10px Jet,monospace;letter-spacing:.13em;color:#91a0ad}.bt-page-transition .bt-transition-route{position:absolute;right:24px;top:24px;font:600 10px Jet,monospace;letter-spacing:.13em;color:#fff;opacity:.72}@media(max-width:700px){.bt-page-transition img{width:72vw;height:58vh}.bt-page-transition .bt-transition-label{left:16px;bottom:16px}.bt-page-transition .bt-transition-line{left:16px;top:16px}.bt-page-transition .bt-transition-route{right:16px;top:16px;font-size:8px}}@media(prefers-reduced-motion:reduce){.bt-page-transition{transition:none;clip-path:none}.bt-page-transition:after{transition:none}}';
+  document.head.appendChild(style);
+  const overlay=document.createElement('div');
+  overlay.className='bt-page-transition';
+  overlay.innerHTML='<div class="bt-transition-line">BTMEDYA / NEXT WORLD</div><div class="bt-transition-route">HABER · MEDYA · AI</div><div class="bt-transition-label">GEÇİŞ HAZIRLANIYOR</div>';
+  document.body.appendChild(overlay);
+  let img=null;
+  const map=[
+    [/(^|\/)haber/i,'/assets/media/portfoy/buse-tuncay-saha-roportaj.webp','01 / HABER','#64e4ff'],
+    [/(^|\/)(portfoy|medya|studio|video-produksiyon|sosyal-medya|hizmetler)/i,'/assets/media/portfoy/buse-tuncay-kamera-arkasi.webp','03 / MEDYA','#a78bfa'],
+    [/(^|\/|#)(ai-lab|ai)/i,'/assets/media/ai-lab/btmedya-siber-sunucu-02.webp','04 / AI LAB','#ff5662'],
+    [/(^|\/)(kaynak-masasi|arsiv|basin-kiti|whatsapp-katalog|sosyal-medya-kit)/i,'/assets/media/portfoy/buse-tuncay-saha-roportaj.webp','02 / ARŞİV','#65e6a4'],
+    [/(^|\/)(vaka-calismalari|reklam-ve-sponsorluk|dosyalar)/i,'/assets/media/portfoy/buse-tuncay-kamera-arkasi.webp','05 / STÜDYO','#d9ff3f'],
+    [/(^|\/)(iletisim|hakkimizda)/i,'/assets/media/portfoy/buse-tuncay-portre-01.webp','BTMEDYA','#d9ff3f']
+  ];
+  function go(a,e){
+    if(e.defaultPrevented || e.button!==0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const href=a.getAttribute('href');
+    if(!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || a.target==='_blank' || a.hasAttribute('download')) return;
+    const match=map.find(x=>x[0].test(href));
+    if(!match) return;
+    e.preventDefault();
+    if(!img){ img=document.createElement('img'); img.alt=''; overlay.insertBefore(img, overlay.firstChild); }
+    img.src=match[1];
+    overlay.style.setProperty('--bt-transition-accent',match[3]);
+    overlay.querySelector('.bt-transition-label').textContent=match[2];
+    overlay.querySelector('.bt-transition-route').textContent=match[2].replace(/^\d+\s*\/\s*/,'')+' → BTMEDYA';
+    overlay.classList.add('is-on');
+    setTimeout(()=>{window.location.href=href},380);
+  }
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('a');
+    if(a) go(a,e);
+  },true);
 })();

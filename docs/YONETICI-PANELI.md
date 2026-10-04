@@ -4,8 +4,7 @@ Video, fotoğraf ve haber girişlerini buradan yaparsınız. Kod bilmenize gerek
 
 **Adres:** https://btmedya.com.tr/admin/
 
-Panel siteye bağlantı verilmez, adresi bilen girer. Şifre Cloudflare tarafında
-`ADMIN_PASSWORD` olarak tanımlıdır.
+Panel siteye bağlantı verilmez, adresi bilen girer. Şifre Cloudflare tarafında `ADMIN_PASSWORD_SECRET` olarak tanımlıdır. Eski `ADMIN_PASSWORD` adı yalnızca geriye dönük uyumluluk için desteklenir.
 
 ---
 
@@ -16,7 +15,7 @@ Panel siteye bağlantı verilmez, adresi bilen girer. Şifre Cloudflare tarafın
 3. Oturum çerezi 7 gün geçerlidir, her seferinde şifre girmeniz gerekmez.
 
 Şifreyi unutursanız Cloudflare panelinden değiştirilir:
-Workers & Pages > btmedya-db > Settings > Variables and Secrets > `ADMIN_PASSWORD`.
+Workers & Pages > btmedya-db > Settings > Variables and Secrets > `ADMIN_PASSWORD_SECRET`.
 
 ---
 
@@ -30,8 +29,11 @@ Panelde **Haber yayınla** bölümü.
 | Slug | Adres eki, `orn-haber-basligi` biçiminde, Türkçe karakter ve boşluk olmadan |
 | Kategori | Yerel, Ekonomi, Spor gibi |
 | Gövde | Haber metni |
+| Kaynak URL | Yayınlanan haber için özgün/resmî kaynak bağlantısı; zorunlu |
+| Özgün tarih | Arşiv haberinin veya olayın ilk tarihi |
+| Arşiv/kaynak notu | İzin, arşiv bağlamı veya doğrulama notu |
 
-İki buton var: **Taslak kaydet** ve **Yayınla**. Yalnızca yayınlananlar siteye çıkar.
+İki buton var: **Taslak kaydet** ve **Yayınla**. Yalnızca yayınlananlar siteye çıkar. Yayın için kaynak URL girilmesi zorunludur; kaynak bilinmiyorsa içerik taslak olarak tutulmalıdır.
 
 **Yayınlanan haber nereye düşer:**
 
@@ -85,6 +87,12 @@ Bu ayrım mevzuat açısından da önemli. Ayrıntı: `docs/10K-TASARIM-PAKETI.m
 
 ---
 
+## Trendler ve sosyal profil kiti
+
+Panelde **Trendler & Kaynaklar** sekmesi; Instagram, TikTok, YouTube ve WhatsApp için resmi kaynaklı pilot formatları, yayın ritmini, serileri ve sosyal profil metinlerine giden bağlantıları gösterir. Bu öneriler algoritma garantisi değildir; dört haftalık ölçüm pilotudur.
+
+Profil metinleri ve görsel etiket sistemi: `/sosyal-medya-kit/`. Kaynak kataloğu: `/kaynak-masasi/`.
+
 ## İletişim mesajları
 
 Sitedeki formdan gelen mesajlar `contact_messages` tablosuna düşer ve
@@ -108,9 +116,6 @@ anlatın, ben değiştirip yayına alırım.
 
 ---
 
-## Bilinen eksik
+## Güncel durum
 
-Panelin haber formunda kapak görseli alanı sınırlı. Anasayfa haber kartları
-`cover_url` alanını destekliyor ve dolu olduğunda kapak görselini gösteriyor,
-ancak bu alanı panelden rahat doldurmak için küçük bir ekleme gerekir.
-İstenirse yapılır.
+Haber formu `cover_url` alanını destekler. Kapak girilmezse sistem haber slug'ına göre `/assets/haber-kapak/<slug>.webp` arşiv kapağına düşer; böylece boş/kırık kapak gösterilmez.

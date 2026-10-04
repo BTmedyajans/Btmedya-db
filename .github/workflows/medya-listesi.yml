@@ -1,0 +1,92 @@
+name: BTMedya medya listesi
+
+# Depoya medya eklendiginde kasanin listesini yeniden uretir. Boylece
+# "GitHub'a yukle -> sitede gorun" akisi kod duzenlemeden tamamlanir.
+#
+# Dongu riski yok: tetikleyici public/assets/** yolunu izler, bu is ise
+# yalnizca public/data/medya-listesi.json dosyasini yazar.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "public/assets/**"
+      - "public/data/medya-ozel.json"
+      - "tools/medya-listesi.mjs"
+      - "tools/gerileme-denetimi.mjs"
+      - "src/worker.js"
+      - "public/**/*.css"
+      - "public/index.html"
+      - "public/data/haber-kapak-plani.json"
+      - "public/data/kapak-fotograflari.json"
+      - "public/data/haber-kapak-kaynagi.json"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: btmedya-medya-listesi
+  cancel-in-progress: false
+
+jobs:
+  liste:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: CSS butunluk denetimi
+        run: node tools/css-denetimi.mjs
+
+      - name: Gerileme denetimi
+        run: node tools/gerileme-denetimi.mjs
+
+      - name: Listeyi yeniden uret
+        run: node tools/medya-listesi.mjs
+
+      - name: Liste farkini raporla
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- public/data/medya-listesi.json; then
+            echo "Medya katalogu guncel."
+          else
+            echo "::notice::Medya katalogu üreticiyle farkli; güncel katalog production kaynağına commit edilecek."
+            mkdir -p .artifacts
+            cp public/data/medya-listesi.json .artifacts/medya-listesi-generated.json
+          fi
+
+      - name: Commit updated media catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- public/data/medya-listesi.json; then
+            echo "Commit edilecek katalog değişikliği yok."
+            exit 0
+          fi
+
+          git config user.name "BTMEDYA Media Catalog"
+          git config user.email "actions@users.noreply.github.com"
+          git add public/data/medya-listesi.json
+          git commit -m "chore: refresh generated media catalog"
+
+          # Asset commit'i çalışırken main ilerlediyse güncel production kaynağının
+          # üstüne yeniden oturt; katalog değişikliği ayrı bir push döngüsü oluşturmaz.
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
+
+      - name: Generated media catalog artifact
+        if: always() && hashFiles('.artifacts/medya-listesi-generated.json') != ''
+        uses: actions/upload-artifact@v6
+        with:
+          name: btmedya-generated-media-catalog
+          path: .artifacts/medya-listesi-generated.json
+          if-no-files-found: ignore

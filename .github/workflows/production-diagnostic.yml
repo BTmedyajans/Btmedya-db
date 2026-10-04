@@ -1,0 +1,152 @@
+name: BTMedya production diagnostic
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "wrangler.toml"
+      - "migrations/**"
+      - "control-plane/**"
+      - "public/**"
+      - ".github/workflows/production-diagnostic.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btmedya-production-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install Wrangler
+        run: npm install --global wrangler@latest
+
+      - name: Verify Cloudflare secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
+        run: |
+          set -eu
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN eksik."; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID eksik."; exit 1; }
+
+      - name: Report deploy token availability (values hidden)
+        env:
+          DEPLOY_TOKEN_SET: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN != '' && 'yes' || 'no' }}
+          API_TOKEN_SET: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && 'yes' || 'no' }}
+        run: |
+          set -eu
+          echo "CLOUDFLARE_DEPLOY_TOKEN configured: $DEPLOY_TOKEN_SET"
+          echo "CLOUDFLARE_API_TOKEN configured: $API_TOKEN_SET"
+
+      - name: Inspect Cloudflare rules for API challenge (optional)
+        env:
+          CLOUDFLARE_RULESETS_TOKEN: ${{ secrets.CLOUDFLARE_RULESETS_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4"
+          if [ -z "${CLOUDFLARE_RULESETS_TOKEN:-}" ]; then
+            echo "INFO: CLOUDFLARE_RULESETS_TOKEN tanımlı değil; Rulesets API kontrolü atlandı. Production deploy bundan bağımsızdır." | tee -a btmedya-production-report.txt
+            exit 0
+          fi
+          auth=(-H "Authorization: Bearer ${CLOUDFLARE_RULESETS_TOKEN}" -H "Content-Type: application/json")
+          if ! zones="$(curl -fsS "${api}/zones?name=btmedya.com.tr&per_page=50" "${auth[@]}")"; then
+            echo "INFO: Rulesets token ile Cloudflare zone API erişimi yok; Rulesets kontrolü atlandı." | tee -a btmedya-production-report.txt
+            exit 0
+          fi
+          zone_id="$(jq -r '.result[] | select(.name=="btmedya.com.tr") | .id' <<<"$zones" | head -n1)"
+          echo "===== CLOUDFLARE RULESETS MATCHING API/NEWS =====" | tee -a btmedya-production-report.txt
+
+          if [ -z "$zone_id" ]; then
+            echo "UYARI: btmedya.com.tr zone ID bulunamadı; ruleset incelemesi atlandı." | tee -a btmedya-production-report.txt
+            exit 0
+          fi
+
+          if ! rulesets="$(curl -fsS "${api}/zones/${zone_id}/rulesets" "${auth[@]}")"; then
+            echo "INFO: Cloudflare Rulesets API erişimi reddedildi; Rulesets kontrolü atlandı. Ana production diagnostic devam ediyor." | tee -a btmedya-production-report.txt
+            exit 0
+          fi
+
+          jq -r '.result[] | [.id,.name,.kind,.phase] | @tsv' <<<"$rulesets" | tee -a btmedya-production-report.txt
+          while IFS= read -r rid; do
+            [ -z "$rid" ] && continue
+            curl -fsS "${api}/zones/${zone_id}/rulesets/${rid}" "${auth[@]}" |
+              jq -c '.result.rules[]? | select((.expression // "") | test("api/news|/api/"; "i")) | {id,description,action,enabled,expression}' |
+              tee -a btmedya-production-report.txt || true
+          done < <(jq -r '.result[].id' <<<"$rulesets")
+
+      - name: Verify authoritative nameservers
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN }}
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4"
+          auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
+          if ! zone_json="$(curl -fsS "${api}/zones?name=btmedya.com.tr&status=active&per_page=10" "${auth[@]}")"; then
+            echo "UYARI: Cloudflare zone API erişimi 403/erişim hatası verdi; NS karşılaştırması atlandı."
+            exit 0
+          fi
+          zone_success="$(jq -r '.success // false' <<<"$zone_json")"
+          if [ "$zone_success" != "true" ]; then
+            echo "UYARI: Cloudflare zone sorgusu başarısız; NS karşılaştırması atlandı."
+            exit 0
+          fi
+
+          expected="$(jq -r '.result[0].name_servers[]?' <<<"$zone_json" | tr '[:upper:]' '[:lower:]' | sed 's/\.$//' | sort -u)"
+          actual="$(dig +short NS btmedya.com.tr | tr '[:upper:]' '[:lower:]' | sed 's/\.$//' | sort -u)"
+
+          echo "Cloudflare authoritative NS:"
+          printf '%s\n' "$expected"
+          echo "Public DNS NS:"
+          printf '%s\n' "$actual"
+
+          if [ -z "$expected" ] || [ -z "$actual" ]; then
+            echo "UYARI: authoritative/public NS çıktısı eksik; diagnostic devam ediyor."
+            exit 0
+          fi
+
+          if diff -u <(printf '%s\n' "$expected") <(printf '%s\n' "$actual"); then
+            echo "OK: registrar/public NS delegation matches Cloudflare zone."
+          else
+            echo "UYARI: public NS delegation Cloudflare zone nameservers ile eşleşmiyor."
+          fi
+
+      - name: Run diagnostic
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
+        run: |
+          chmod +x control-plane/diagnose.sh
+          ./control-plane/diagnose.sh
+
+      - name: Print diagnostic report
+        if: always()
+        run: |
+          echo "===== BTMEDYA PRODUCTION REPORT ====="
+          cat btmedya-production-report.txt 2>/dev/null || true
+
+      - name: Upload diagnostic report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: btmedya-production-diagnostic-${{ github.run_id }}
+          path: btmedya-production-report.txt
+          if-no-files-found: warn
+          retention-days: 14

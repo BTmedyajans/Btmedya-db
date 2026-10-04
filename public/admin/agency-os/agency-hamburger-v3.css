@@ -1,0 +1,17 @@
+/* BTMEDYA Agency OS / Categorized Hamburger v3 */
+.menu-toggle{display:inline-flex;align-items:center;gap:8px;border:1px solid #2b3430;background:#0b100e;color:#f5f7f6;padding:10px 13px;border-radius:12px;font-weight:800}
+.menu-toggle span{font-size:18px;line-height:1}
+.admin-menu{position:fixed;inset:0;z-index:100;background:rgba(3,5,4,.96);backdrop-filter:blur(22px);padding:18px;overflow:auto;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-10px);transition:opacity .25s ease,transform .25s ease,visibility .25s ease}
+.admin-menu.open{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0)}
+.admin-menu-top{display:flex;justify-content:space-between;align-items:center;max-width:1320px;margin:0 auto 18px;padding-bottom:12px;border-bottom:1px solid #25302a;color:#aab5ae;font-size:10px;letter-spacing:.16em}
+.admin-menu-top button{border:1px solid #2b3430;background:#101512;color:#f4f7f5;border-radius:10px;padding:8px 11px}
+.admin-menu-grid{max-width:1320px;margin:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.admin-menu-grid section{min-height:128px;border:1px solid #25302a;border-radius:16px;padding:16px;background:linear-gradient(160deg,#0e1411,#090c0b);display:flex;flex-direction:column}
+.admin-menu-grid section:hover{border-color:#5d7352;transform:translateY(-2px)}
+.admin-menu-grid small{color:#7c8982;font:700 9px/1 ui-monospace,monospace;letter-spacing:.15em}
+.admin-menu-grid a{margin-top:auto;color:#f5f7f5;text-decoration:none;font-size:18px;font-weight:900;letter-spacing:.03em}
+.admin-menu-grid section:nth-child(3n+3) a{color:#d8ff4f}
+.admin-menu-grid span{margin-top:6px;color:#7f8c84;font-size:11px;line-height:1.45}
+body.menu-open{overflow:hidden}
+@media(max-width:900px){.admin-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.admin-menu{padding:12px}.admin-menu-grid{grid-template-columns:1fr}.admin-menu-grid section{min-height:104px}.admin-menu-grid a{font-size:16px}}

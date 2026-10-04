@@ -1,68 +1,71 @@
-# Cloudflare Workers Builds bu adı yok sayar ve daima bağlı olduğu servise
-# (btmedya-db) deploy eder. Alan adı bu Worker'a taşındığında push'lar doğrudan
-# canlı siteyi günceller.
+# Cloudflare Workers Builds bu Worker'ı otomatik deploy eder.
+# Alan adı bağlantıları da bu dosyada tutulur: GitHub = kaynak gerçek.
+# Production deploy gate: .github/workflows/deploy.yml.
+# Production sync finalization trigger: current main must pass all live-chain gates.
+# Production chain audit: 2026-09-28 — Workers Builds is the canonical live deploy path.
+# Audit trigger: 2026-09-28 production chain revalidation / live smoke retrigger.
+# Live repair: re-trigger Workers Builds so declared Custom Domains are reconciled.
+# Live repair retrigger: 2026-10-01 — rebuild production from canonical main to reconcile apex/www.
+# DNS administration is intentionally kept outside the application deploy path.
 name = "btmedya-db"
 main = "src/worker.js"
-compatibility_date = "2026-09-02"
+compatibility_date = "2026-09-19"
+# Production Cloudflare account ID is configuration, not a secret.
+account_id = "b239acae17aebe894ea76309fe32cdce"
 
 [observability]
 enabled = true
 
-# Statik dosyalar public/ altında tutulur. Böylece wrangler.toml, src/ ve
-# migrations/ gibi backend dosyaları hiçbir koşulda herkese açık servis edilmez
-# (.assetsignore'a gerek kalmaz).
 [assets]
 directory = "public"
 binding = "ASSETS"
 
-# Eşleşmeyen adreslerde public/404.html doğru 404 koduyla sunulur.
-# Worker'daki servisEt() de özel 404 veriyor, ama o yalnızca aşağıdaki
-# run_worker_first desenlerinde çalışıyor; siteye rastgele bir adres
-# girildiğinde Worker hiç devreye girmiyordu ve çıplak 404 dönüyordu.
-# Bu ayar o boşluğu kapatır. Karşılığında bu yoldan gelen 404 sayfası
-# statik katmandan geldiği için Worker'ın güvenlik başlıklarını taşımaz;
-# başlıkları her istekte uygulamak run_worker_first = true gerektirir,
-# bu da her isteği ücretli Worker çağrısına çevirir. Bilinçli tercih.
-not_found_handling = "404-page"
-# Eşleşen bir statik dosya varsa Cloudflare Worker'ı hiç çalıştırmaz ve dosyayı
-# doğrudan sunar. Bu, indekslenen HTML sayfalarında iki soruna yol açıyordu:
-#   1. /haberler/ — panelden yapılan düzenleme ve video kütüphanesi anahtarı
-#      ancak Worker çalışırsa geçerli olur.
-#   2. www.btmedya.com.tr — Worker'daki www -> apex 301 yönlendirmesi hiç
-#      çalışmıyordu, çünkü statik dosya Worker'dan önce servis ediliyordu. Sonuç:
-#      her sayfa iki ayrı adreste 200 dönüyordu (yinelenen içerik).
-# Bu yüzden yalnızca indekslenen HTML adreslerinde Worker öne alınır. Görseller,
-# styles.css, script.js ve /assets/* eskisi gibi doğrudan servis edilmeye devam
-# eder. Kayıt bulunamazsa Worker zaten env.ASSETS.fetch ile statik sürüme
-# düşüyor, yani yedek korunuyor.
-run_worker_first = ["/", "/haberler/*", "/hakkimizda*", "/iletisim*"]
+# API ve medya istekleri önce Worker'a gitmeli; aksi halde Static Assets
+# katmanı mevcut olmayan /api/* yollarını 404 olarak keser.
+# Sitemap'e giren her sayfa bu listede olmak zorunda. Olmayan sayfada Worker
+# hiç çalışmaz: www -> apex 301'i, güvenlik başlıkları ve X-Robots-Tag devre
+# dışı kalır, sayfa hem www hem apex adresinde 200 döner (yinelenen içerik).
+# /marka-kiti/, /ai-lab/, /reklam-ve-sponsorluk/ ve /en/ bu yüzden eklendi;
+# dördü de sitemap'te olduğu halde listede yoktu ve canlıda www adresinde 200
+# dönüyordu. tools/alan-adi-denetimi.mjs bu boşluğu bir daha açılırsa yakalar.
+run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/index.html", "/haber/*", "/haberler", "/haberler/*", "/hakkimizda*", "/iletisim*", "/hizmetler*", "/sosyal-medya*", "/video-produksiyon*", "/whatsapp-katalog*", "/basin-kiti*", "/vaka-calismalari*", "/gizlilik*", "/admin/*", "/gorsel/*", "/social-studio/*", "/kaynak-masasi*", "/portfoy/*", "/marka-kiti*", "/ai-lab*", "/reklam-ve-sponsorluk*", "/en", "/en/*", "/robots.txt", "/llms.txt", "/llms-full.txt", "/index.json", "/jsonld", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml", "/.well-known/*"]
 
-# ALAN ADI YÖNLENDİRMESİ — routes bloğu bilerek KAPALI.
-# Alan adı panelden Custom Domain olarak eklenir. Routes burada açılırsa
-# wrangler paneldeki alan adı bağlantılarının tek yetkilisi olur ve mevcut
-# ayarları EZER — gereksiz risk.
-#
-# Custom Domain eklemek için:
-# Workers & Pages > btmedya-db > Settings > Domains & Routes > Add > Custom Domain
-#
-# İKİNCİL ALAN ADI (btmedyaajans.com) BURAYA BAĞLANMAZ.
+not_found_handling = "404-page"
+
+# Ana ve www alan adları aynı Worker'a Custom Domain olarak bağlanır.
+# Worker /www isteğini ana domaine 301 yönlendirir.
+[[routes]]
+pattern = "btmedya.com.tr"
+custom_domain = true
+
+[[routes]]
+pattern = "www.btmedya.com.tr"
+custom_domain = true
+
+# İKİNCİL ALAN ADI (btmedyaajans.com) BURAYA EKLENMEZ.
 # Marka ikinci bir alan adı taşıyor ama ikinci bir site yok: ikincil adres
-# btmedya.com.tr'ye 301 döner. Bunun doğru yeri Worker değil, ikincil zone
-# üzerindeki Redirect Rule'dur. Gerekçe:
-#   - Redirect Rule Worker'dan ÖNCE çalışır, yani her yolu kapsar. Worker'daki
-#     yönlendirme yalnızca yukarıdaki run_worker_first desenlerinde devreye
-#     girer; /styles.css gibi dosyalar ikincil adreste 200 dönmeye devam eder.
-#   - Redirect Rule hiç Worker çağrısı üretmez, yani ücretsizdir. Alan adını
-#     Custom Domain olarak bağlamak, sadece yönlendirme için her isteği ücretli
-#     Worker çağrısına çevirir.
-# src/worker.js içindeki KANONIK_HOST / IKINCIL_HOSTLAR tablosu bu kuralın
-# yedeğidir; kural kurulmadan önce ya da ikincil adres bir gün bu Worker'a
+# btmedya.com.tr'ye 301 döner. Yalnızca yönlendirme için Custom Domain açmak
+# yanlış araç olur, iki nedenle:
+#   - Her istek ücretli bir Worker çağrısına dönüşür; oysa yönlendirme hiç kod
+#     çalıştırmadan yapılabilir.
+#   - Worker yalnızca yukarıdaki run_worker_first desenlerinde çalışır.
+#     Kapsam dışı kalan /styles.css, /assets/* gibi dosyalar ikincil adreste
+#     200 dönmeye devam eder; yönlendirme alan adı genelinde olmaz.
+# Doğru yer: btmedyaajans.com zone'u üzerinde bir Redirect Rule. Worker'dan
+# önce çalışır, her yolu kapsar, ücretsizdir.
+# src/worker.js içindeki KANONIK_HOST / IKINCIL_HOSTLAR tablosu o kuralın
+# yedeğidir; kural kurulmadan önce ya da ikincil adres bir gün buraya
 # bağlanırsa devreye girer.
 # Adım adım: docs/ALAN-ADI-YAPILANDIRMA.md
 
 [[r2_buckets]]
 binding = "MEDIA"
 bucket_name = "btmedya-media"
+
+# Login brute-force koruması: IP başına başarısız denemeler 15 dakika tutulur.
+[[kv_namespaces]]
+binding = "KV"
+id = "41a0fc3c9e9848fca750d2283d4d1fc3"
 
 [[d1_databases]]
 binding = "DB"
@@ -71,12 +74,79 @@ database_id = "94a980cd-62c5-4c29-b7fc-40f96ab665e4"
 
 [vars]
 MEDIA_PUBLIC_TTL = "86400"
+# BTMEDYA admin login user. This is a non-secret identifier; the password remains a Worker Secret.
+ADMIN_USERNAME = "busetuncay74@gmail.com"
+# Metricool Brand 6858384'te 29 Eylül 2026 itibarıyla doğrulanan yayın ağları.
+# Bu değişiklik aynı zamanda sync-worker-secrets workflow'unun mevcut GitHub -> Cloudflare secret zincirini yeniden çalıştırır.
+# Yeni bir ağ Metricool Connections'a bağlandığında bu liste güncellenir.
+METRICOOL_CONNECTED_NETWORKS = "tiktok,youtube"
+# Kişisel hesaplar ayrı Metricool Brand olmadan hiçbir zaman otomatik yayın ağı olarak etkinleşmez.
+METRICOOL_PERSONAL_CONNECTED_NETWORKS = ""
+# Metricool kullanıcı numarası kimlik bilgisi değil (API her çağrıda ayrıca
+# METRICOOL_USER_TOKEN ister). Burada durduğu için GitHub'a yalnız anahtar
+# eklemek yeter. Secret adı METRICOOL_USER_ID ile çakışmasın diye farklı ad.
+METRICOOL_KULLANICI_NO = "5278969"
+METRICOOL_USER_ID = "5278969"
+METRICOOL_BRAND_ID = "6858384"
+METRICOOL_CREATOR_EMAIL = "busetuncay74@gmail.com"
+METRICOOL_ACCOUNT_EMAIL = "busetuncay74@gmail.com"
+METRICOOL_TIMEZONE = "Europe/Istanbul"
 
-# Secrets — bu dosyaya YAZILMAZ, `wrangler secret put` ile eklenir:
-#   ADMIN_PASSWORD        -> /admin/ giriş şifresi
-#   ADMIN_SESSION_SECRET  -> oturum çerezi imzalama anahtarı
-#   MEDIA_SIGNING_SECRET  -> /media/ imzalı bağlantı anahtarı
-#   AI_READ_TOKEN         -> (opsiyonel) salt-okunur AI erişim token'ı
-#   RESEND_API_KEY        -> (opsiyonel) Resend e-posta bildirimi API anahtarı
-#   RESEND_TO             -> (opsiyonel) bildirim alıcı adresi (varsayılan: busetuncay1029@gmail.com)
-#   RESEND_FROM           -> (opsiyonel) gönderici adresi (varsayılan: BTMEDYA <noreply@btmedya.com.tr>)
+# Secret değerleri GitHub'a veya bu dosyaya yazılmaz.
+# Production security sync: main değişikliği, GitHub secret -> Cloudflare Worker secret senkronizasyonunu da tetikler.
+# Cloudflare Worker > Settings > Variables and Secrets altında Secret olarak eklenir.
+# wrangler deploy, aşağıdaki required secret isimlerini doğrular.
+# Süreli recovery Secret biçimi: UNIX_SANIYE:geçici-kod
+# Süre dolunca otomatik olarak geçersiz olur; production'da kullanımdan sonra silinmelidir.
+[secrets]
+required = [
+  "ADMIN_PASSWORD_SECRET",
+  "ADMIN_SESSION_SECRET_SECRET",
+  "MEDIA_SIGNING_SECRET",
+]
+
+# Opsiyonel:
+#   AI_READ_TOKEN         -> salt-okur AI erişim token'ı
+#   RESEND_API_KEY        -> Resend e-posta bildirim API anahtarı
+#   RESEND_TO             -> bildirim alıcı adresi
+#   RESEND_FROM           -> gönderici adresi
+
+# Sabah Masası kategori işçisi: Worker kendi SabahYazici giriş noktasını
+# çağırır. Her kategori ayrı çağrıda çalışır; ücretsiz planın çağrı başına
+# 50 dış istek sınırı 8 kategoriyi tek çağrıda kaldırmıyor.
+[[services]]
+binding = "SABAH_YAZICI"
+service = "btmedya-db"
+entrypoint = "SabahYazici"
+
+# Cloudflare Workflow: BTMEDYA içerik/onay otomasyonu
+[[workflows]]
+name = "btmedya-content"
+binding = "BTMEDYA_WORKFLOW"
+class_name = "BtmedyaWorkflow"
+
+# Workflow durumlarını ve canlı panel bildirimlerini tutan Durable Object
+[[durable_objects.bindings]]
+name = "WORKFLOW_STATUS"
+class_name = "WorkflowStatusDO"
+
+# Durable Object için SQLite tabanlı legacy migration akışı.
+# Bu Worker daha önce bu migration modelini kullanacak şekilde yapılandırıldı.
+[[migrations]]
+tag = "workflow-v1"
+new_sqlite_classes = ["WorkflowStatusDO"]
+
+
+# Haber Bulucu: kaynakları periyodik olarak tarar, sonuçları D1'de taslak olarak tutar.
+# Canli surumun kimligi ve yuklenme zamani; /api/health ve panel
+# Control Center bunu gosterir, dagitim bekcisi bununla kaymayi yakalar.
+# Sabah Masası özgün metin yazımı (Workers AI). Ek anahtar gerektirmez.
+[ai]
+binding = "AI"
+
+[version_metadata]
+binding = "SURUM"
+
+[triggers]
+# */5: nabız, sosyal kuyruk, R2 köprüsü. 0 5: Sabah Masası (08:00 İstanbul).
+crons = ["*/5 * * * *", "*/15 * * * *", "0 5 * * *"]

@@ -1,0 +1,78 @@
+{
+  "generated_at": "2026-09-29T22:00:00+03:00",
+  "source": "Metricool",
+  "mode": "verified_connection_snapshot",
+  "note": "29 Eylül 2026 denetimi: Metricool Brand 6858384 üzerinde TikTok ve YouTube bağlantıları doğrulandı. Instagram ve Facebook, Metricool Brand tarafında doğrulanana kadar bağlı kabul edilmez.",
+  "profiles": [
+    {
+      "key": "instagram",
+      "label": "Instagram",
+      "url": "https://www.instagram.com/btmedyajans/",
+      "status": "verification_pending",
+      "note": "Metricool Brand bağlantısı bu denetimde doğrulanmadı."
+    },
+    {
+      "key": "facebook",
+      "label": "Facebook",
+      "url": null,
+      "status": "verification_pending",
+      "note": "Metricool Brand bağlantısı bu denetimde doğrulanmadı."
+    },
+    {
+      "key": "youtube",
+      "label": "YouTube",
+      "url": "https://www.youtube.com/@BTmedyaAjans",
+      "status": "connected_identity",
+      "note": "Metricool Brand kanal kimliği doğrulandı."
+    },
+    {
+      "key": "tiktok",
+      "label": "TikTok",
+      "url": "https://www.tiktok.com/@btmedya1010",
+      "status": "publishing_verified",
+      "note": "Metricool Brand bağlantısı ve yayın durumu doğrulandı."
+    }
+  ],
+  "items": [
+    {
+      "platform": "TikTok",
+      "date": "2026-09-29",
+      "title": "Balıkesir Tarım ve Hayvancılık Fuarı dört günde 108 bin ziyaretçiyi ağırladı",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7690849170395057426",
+      "archive_context": "BTMEDYA haber bağlantılı sosyal yayın",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "TikTok",
+      "date": "2026-09-29",
+      "title": "Balıkesir Büyükşehir Belediyespor sporcuları Avrupa ve Balkanlar'dan dereceyle döndü",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7690879973330128148",
+      "archive_context": "BTMEDYA haber bağlantılı sosyal yayın",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "TikTok",
+      "date": "2026-09-29",
+      "title": "Türkiye, İtalya'ya 1-4 yenildi: Milliler Uluslar Ligi'nde iki maçta puansız",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7690910919664176390",
+      "archive_context": "BTMEDYA spor haberi",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "TikTok",
+      "date": "2026-09-29",
+      "title": "Balıkesir 8 yıl sonra yeniden başpehlivan çıkardı: Necip Al başpehlivanlığa yükseldi",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7690942137399004437",
+      "archive_context": "BTMEDYA spor haberi",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "TikTok",
+      "date": "2026-09-29",
+      "title": "DMM, fon ödemeleri için vatandaştan ücret alınacağı iddiasını yalanladı",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7691004002514799878",
+      "archive_context": "BTMEDYA gündem haberi",
+      "note": "Metricool durumu: PUBLISHED."
+    }
+  ]
+}

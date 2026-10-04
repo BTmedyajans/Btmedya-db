@@ -1,0 +1,70 @@
+{
+  "generated_at": "2026-09-26T01:42:00+03:00",
+  "label": "BTMEDYA Editoryal Trend Masası",
+  "policy": "Bu öneriler resmi platform belgeleri ve BTMEDYA editoryal ilkeleriyle hazırlanmış pilot önerilerdir; algoritma garantisi değildir.",
+  "platforms": [
+    {
+      "key": "instagram",
+      "name": "Instagram",
+      "formats": ["Reels", "Carousel", "Stories"],
+      "pilot": "Haftada 3–5 Reels, 2 carousel ve aktif haber günlerinde kaynaklı Stories dizisi.",
+      "series": ["60 saniyede ilçe", "Sahadan 3 soru", "Belgeyi açıyoruz", "Önce/sonra", "Yorumdan Reels"],
+      "official_sources": [
+        "https://creators.instagram.com/blog/best-practices-for-creators",
+        "https://about.instagram.com/blog/announcements/instagram-ranking-explained",
+        "https://creators.instagram.com/blog/instagram-recommendations-eligibility-tips-creators",
+        "https://creators.instagram.com/reels",
+        "https://creators.instagram.com/stories"
+      ]
+    },
+    {
+      "key": "tiktok",
+      "name": "TikTok",
+      "formats": ["9:16 kısa video", "Search caption", "Creator Search Insights"],
+      "pilot": "Haftada 5–7 nitelikli ana video; yer + olay + kaynak ilk karede.",
+      "series": ["Bugün Balıkesir'de", "Sahadan tek soru", "Belgeyi açıyoruz", "Doğrulama", "Mahalle etkisi"],
+      "official_sources": [
+        "https://support.tiktok.com/en/using-tiktok/exploring-videos/how-tiktok-recommends-content",
+        "https://support.tiktok.com/en/using-tiktok/growing-your-audience/creator-search-insights",
+        "https://support.tiktok.com/en/using-tiktok/creating-videos/accessibility",
+        "https://support.tiktok.com/en/using-tiktok/creating-videos/ai-generated-content",
+        "https://support.tiktok.com/en/safety-hc/account-and-user-safety/copyright"
+      ]
+    },
+    {
+      "key": "youtube",
+      "name": "YouTube",
+      "formats": ["Shorts", "6–12 dk açıklayıcı", "Oynatma listeleri"],
+      "pilot": "Hafta içi 1–2 Shorts, haftada 1 açıklayıcı, iki haftada veya ayda 1 saha dosyası.",
+      "series": ["Günün yerel gündemi", "Karar ne değiştiriyor?", "Mahallenin meselesi", "Belgeyi açıyoruz", "Haftanın özeti"],
+      "official_sources": [
+        "https://support.google.com/youtube/answer/15424877?hl=tr",
+        "https://support.google.com/youtube/answer/13616979?hl=en",
+        "https://support.google.com/youtube/answer/3219384?hl=en",
+        "https://support.google.com/youtube/answer/9057101?hl=en",
+        "https://support.google.com/youtube/answer/14328491?hl=en"
+      ]
+    },
+    {
+      "key": "whatsapp",
+      "name": "WhatsApp Business",
+      "formats": ["Profil", "Katalog", "Status", "Click-to-chat"],
+      "pilot": "6–8 hizmet kartı, haftada 2–3 Status, her lead için beş bilgilik brief.",
+      "series": ["Tek Gün İçerik", "Aylık Sosyal Akış", "Marka Hikâyesi", "Video Prodüksiyon", "Web / SEO", "AI LAB"],
+      "official_sources": [
+        "https://business.whatsapp.com/products/business-app-features",
+        "https://business.whatsapp.com/resources/resource-library/whatsapp-business-catalog",
+        "https://faq.whatsapp.com/smba/account-and-profile/how-to-use-quick-replies",
+        "https://faq.whatsapp.com/smba/account-and-profile/how-to-use-greeting-messages",
+        "https://business.whatsapp.com/policy"
+      ]
+    }
+  ],
+  "editorial_rules": [
+    "Gerçek haber, marka içeriği ve AI LAB açıkça ayrılır.",
+    "Yayınlanan haber için kaynak URL, özgün tarih ve arşiv notu tutulur.",
+    "WhatsApp ihbarı veya kullanıcı mesajı tek başına doğrulanmış kaynak değildir.",
+    "Üçüncü taraf fotoğraf, video, müzik ve ekran görüntüsü için izin/lisans kaydı gerekir.",
+    "Trend önerisi algoritma garantisi değil, dört haftalık ölçülebilir pilot olarak uygulanır."
+  ]
+}

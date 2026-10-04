@@ -1,0 +1,271 @@
+/* BTMEDYA V12 responsive media layer
+   Real site assets remain the source of truth. */
+html,body{width:100%;max-width:100%;overflow-x:clip}
+img,video,svg,canvas,iframe{max-width:100%}
+button,a{touch-action:manipulation}
+
+
+@media (max-width:900px){
+  :root{--bt-gutter:clamp(16px,5.5vw,26px)}
+  body{overflow-x:clip}
+  .topbar{min-height:64px;padding-left:var(--bt-gutter);padding-right:var(--bt-gutter);padding-top:env(safe-area-inset-top)}
+  .topbar .brand{min-width:0;max-width:55vw}
+  .topbar .top-cta{white-space:nowrap;min-height:44px;display:inline-flex;align-items:center}
+  .hamburger,.menu-toggle{min-width:44px;min-height:44px}
+
+
+  .cinematic-sticky{min-height:100svh;height:100svh;max-height:none}
+  .cinematic-video video,.cinematic-video-1 video{width:100%;height:100%;object-fit:cover;object-position:center center}
+  .cinematic-copy{left:var(--bt-gutter);right:var(--bt-gutter);max-width:calc(100% - 2 * var(--bt-gutter))}
+  .cinematic-title{font-size:clamp(44px,13vw,72px);line-height:.9;overflow-wrap:break-word}
+  .cinematic-lead{max-width:34ch;font-size:14px;line-height:1.55}
+  .cinematic-actions{display:grid;grid-template-columns:1fr;gap:8px}
+  .cinematic-actions .button{min-height:48px;display:flex;align-items:center;justify-content:center}
+  .cinematic-index{right:var(--bt-gutter)}
+  .cinematic-brand{left:var(--bt-gutter)}
+  .cinematic-label{left:var(--bt-gutter);bottom:18px}
+
+
+  .bt-world{overflow:hidden}
+  .bt-world-head,.bt-world-stage{padding-left:var(--bt-gutter);padding-right:var(--bt-gutter)}
+  .bt-world-stage{grid-template-columns:1fr}
+  .bt-world-nav{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .bt-world-tab{min-height:56px;text-align:left}
+  .bt-world-visual,.bt-world-frame{min-height:58svh}
+
+
+  .section,.archive-section,.source-section{padding-left:var(--bt-gutter);padding-right:var(--bt-gutter)}
+  .section-head{grid-template-columns:1fr;gap:20px}
+  .section-side{max-width:58ch}
+  .news-grid,.service-grid,.ai-grid,.source-grid{grid-template-columns:1fr}
+  .news-card,.service-grid article,.ai-grid article,.source-grid a{min-height:0}
+  .news-media{aspect-ratio:16/10}
+  .news-media img{width:100%;height:100%;object-fit:cover}
+  .article-cover{width:100%;height:auto;object-fit:cover}
+
+
+  .portfoy-grid,.archive-live-grid{grid-template-columns:1fr}
+  .portfoy-kart,.archive-live-card,.archive-live-card.featured{grid-column:auto;min-height:300px}
+  .portfoy-kapak,.archive-live-card .archive-media,.archive-live-card.featured .archive-media{width:100%;height:100%;min-height:300px;object-fit:cover}
+
+
+  .ai-stage{grid-template-columns:1fr}
+  .ai-visual{min-height:360px}
+  .ai-visual img{width:100%;height:100%;object-fit:cover}
+  .source-grid a{min-height:82px}
+
+
+  .floating-whatsapp{right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));max-width:calc(100vw - 28px)}
+  .topbar a,.topbar button,.site-menu a,.footer-social a,.footer-contact a,.contact-info-card a,.kariyer-baglanti a{min-height:44px}
+
+
+  .service-rail,.hero-cards{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .service-rail::-webkit-scrollbar,.hero-cards::-webkit-scrollbar{display:none}
+  .news-card:hover,.archive-live-card:hover,.portfoy-kart:hover,.news-media img:hover,.portfoy-kapak:hover{transform:none!important}
+}
+
+
+@media (max-width:600px){
+  .cinematic-title{font-size:clamp(40px,14vw,58px)}
+  .cinematic-copy{top:13vh}
+  .cinematic-kaynak{font-size:9px}
+  .cinematic-lead{font-size:13px}
+  .bt-world-nav{grid-template-columns:1fr}
+  .bt-world-visual,.bt-world-frame{min-height:52svh}
+  .news-card h3{font-size:clamp(20px,6vw,28px)}
+  .ai-visual{min-height:300px}
+}
+
+
+@media (max-width:390px){
+  .topbar .top-cta{display:none}
+  .cinematic-copy{top:11vh}
+  .cinematic-title{font-size:40px}
+  .cinematic-actions .button{width:100%}
+}
+
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important}
+  .cinematic-video,.cinematic-visual,.news-media img,.portfoy-kapak,.archive-live-card,.float-card{transform:none!important;transition:none!important}
+}
+
+
+/* Mobile V12.1: editorial cards + admin control center */
+
+/* MOBILE SOCIAL DESK / 29 EYLÜL 2026 */
+@media (max-width: 600px){
+  .social-profiles{grid-template-columns:1fr!important;gap:10px}
+  .social-profile-card{min-height:84px;padding:15px 16px;gap:10px}
+  .social-profile-card>div:first-child{align-items:flex-start}
+  .social-platform-tag,.social-profile-card a,.social-profile-card .is-disabled{overflow-wrap:anywhere}
+  .social-feed-meta{line-height:1.5}
+}
+
+
+/* BTMEDYA mobile quick navigation: long-form homepage için başparmak mesafesinde
+   kalıcı erişim. Safe-area desteği ve dokunmatik hedef standardı korunur. */
+.mobile-quick-nav{display:none}
+@media (max-width:720px){
+  body{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+  .mobile-quick-nav{
+    position:fixed;
+    left:10px;
+    right:10px;
+    bottom:calc(10px + env(safe-area-inset-bottom));
+    z-index:90;
+    display:grid;
+    grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:4px;
+    padding:5px;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:18px;
+    background:rgba(8,8,8,.88);
+    box-shadow:0 12px 34px rgba(0,0,0,.36);
+    backdrop-filter:blur(18px) saturate(120%);
+    -webkit-backdrop-filter:blur(18px) saturate(120%);
+  }
+  .mobile-quick-nav a{
+    min-width:0;
+    min-height:54px;
+    padding:7px 4px 6px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+    border-radius:12px;
+    color:#a7a7a7;
+    text-decoration:none;
+    font-size:11px;
+    line-height:1;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .mobile-quick-nav a span{
+    min-height:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+    letter-spacing:.02em;
+  }
+  .mobile-quick-nav a small{
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:.08em;
+    white-space:nowrap;
+  }
+  .mobile-quick-nav a.is-active{
+    color:#fff;
+    background:rgba(255,255,255,.08);
+    box-shadow:inset 0 -2px 0 var(--mobile-accent,#d9ff3f);
+  }
+  .mobile-quick-nav a.is-active span{transform:translateY(-1px);color:var(--mobile-accent,#d9ff3f)}
+  .mobile-quick-nav .mobile-quick-cta{
+    color:#111;
+    background:#f2f2f2;
+  }
+  .mobile-quick-nav .mobile-quick-cta.is-active{
+    color:#111;
+    background:#fff;
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .mobile-quick-nav a{transition:background .2s ease,color .2s ease,transform .2s ease}
+    .mobile-quick-nav a:active{transform:scale(.97)}
+  }
+}
+@media (min-width:721px){
+  .mobile-quick-nav{display:none!important}
+}
+
+
+/* BTMEDYA SAHADAN / MOBILE FIX V2
+   Masaüstü kart düzeni dekoratif ve sabit kalır; küçük ekranda aynı haberler
+   yatay bir içerik rayına dönüşür. Böylece ikinci kart ekranın dışına taşmaz
+   ve dokunma alanları üst üste binmez. */
+@media(max-width:720px){
+  .news-card,.portfoy-kart,.archive-live-card{border-radius:18px!important;overflow:hidden!important}
+  .news-card .news-body,.portfoy-metin,.archive-live-card .archive-copy{padding:15px!important}
+  .news-card .news-body h3{font-size:clamp(20px,6.2vw,28px)!important;line-height:1.08!important}
+  .news-card .news-body p{font-size:13px!important;line-height:1.55!important}
+  .news-card .news-open,.story-card-copy a,.portfoy-metin a,.archive-actions a{min-height:44px;display:inline-flex;align-items:center}
+  .news-filter,.mobile-category-rail{display:flex!important;gap:8px!important;overflow-x:auto!important;scrollbar-width:none;padding-bottom:4px}
+  .news-filter::-webkit-scrollbar,.mobile-category-rail::-webkit-scrollbar{display:none}
+  .news-filter .filter,.mobile-category-rail a{flex:0 0 auto;min-height:42px!important;padding:10px 13px!important;border-radius:999px!important}
+  .mobile-category-rail a{display:flex;align-items:center;border:1px solid rgba(255,255,255,.12);color:#d6dbe0;text-decoration:none;font-size:11px;letter-spacing:.08em}
+  .portfoy-kart{min-height:0!important;height:auto!important}
+  .portfoy-oynat{display:block;width:100%;padding:0!important;border:0!important;background:transparent}
+  .portfoy-kapak{display:block;width:100%!important;aspect-ratio:16/9!important;height:auto!important;min-height:0!important;object-fit:cover!important}
+  .archive-live-card{min-height:0!important;height:auto!important}
+  .archive-live-card .archive-media{min-height:0!important;aspect-ratio:16/10!important;height:auto!important}
+  .archive-live-card video{width:100%;height:100%;object-fit:cover}
+  .archive-actions{display:flex;gap:8px;flex-wrap:wrap}
+}
+@media(max-width:720px){
+  .story-lab{min-height:auto!important}
+  .story-stage{
+    height:auto!important;
+    min-height:0!important;
+    position:relative!important;
+    top:auto!important;
+    display:block!important;
+    padding-top:72px!important;
+    padding-bottom:34px!important;
+  }
+  .story-copy{max-width:none;margin-bottom:24px}
+  .story-cards{
+    height:auto!important;
+    min-height:0!important;
+    display:flex!important;
+    gap:12px;
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+    padding:2px 3vw 16px;
+    margin:0 -3vw;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .story-cards::-webkit-scrollbar{display:none}
+  .story-card,
+  .story-card.story-card-main,
+  .story-card.story-card-side{
+    position:relative!important;
+    inset:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    flex:0 0 88vw;
+    width:88vw!important;
+    max-width:88vw;
+    margin:0!important;
+    opacity:1!important;
+    transform:none!important;
+    rotate:none!important;
+    scroll-snap-align:start;
+    box-shadow:0 20px 60px rgba(0,0,0,.38);
+  }
+  .story-card img,
+  .story-card .story-card-media-fallback{
+    height:56vw!important;
+    min-height:210px;
+    max-height:320px;
+    width:100%;
+    object-fit:cover;
+  }
+  .story-card-copy{padding:14px 15px 17px}
+  .story-card-copy h3{font-size:clamp(21px,6vw,29px)!important;line-height:1!important}
+  .story-card-copy p{font-size:12px;line-height:1.55}
+  .story-scroll{position:static!important;margin:4px 0 0;color:#7d8893}
+  .story-progress{position:static!important;width:100%;margin-top:12px}
+}
+
+/* Mobile V3 compatibility hardening
+   This file is also used by legacy inner pages that do not load the final
+   responsive layer. Keep the shared mobile navigation self-contained. */
+@media (max-width:720px){
+  .topbar .top-meta{display:none!important}
+  .mobile-quick-nav{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+  .menu-open .mobile-quick-nav{display:none!important}
+  .menu-open{overflow:hidden;overscroll-behavior:none}
+}

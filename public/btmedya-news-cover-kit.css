@@ -1,0 +1,4 @@
+:root{--bt-cover-gold:#d4a52c;--bt-cover-red:#e5232e}
+.bt-cover-enhanced[data-cover-template]{position:relative;overflow:hidden}
+.bt-cover-enhanced[data-cover-template="01-impact"] .bt-cover-kicker{background:var(--bt-cover-red)}
+.bt-cover-enhanced[data-cover-template="01-impact"] .bt-cover-highlight{background:var(--bt-cover-gold);color:#050505}

@@ -1,0 +1,88 @@
+name: BTMEDYA HTML Cache Revalidate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "public/**"
+      - "src/worker.js"
+      - ".github/workflows/html-cache-revalidate.yml"
+      - "wrangler.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btmedya-html-cache-revalidate
+  cancel-in-progress: true
+
+jobs:
+  revalidate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify Cloudflare credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN" || {
+            echo "::error::Cloudflare deploy/API secret eksik."
+            exit 1
+          }
+
+      - name: Resolve zone
+        id: zone
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4"
+          response="$(curl -fsS --retry 2 --connect-timeout 15 --max-time 45 \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            "$api/zones?name=btmedya.com.tr&per_page=10")"
+          success="$(jq -r '.success // false' <<<"$response")"
+          zone_id="$(jq -r '.result[0].id // empty' <<<"$response")"
+          test "$success" = "true"
+          test -n "$zone_id"
+          echo "zone_id=$zone_id" >> "$GITHUB_OUTPUT"
+
+      - name: Revalidate live HTML
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_CACHE_PURGE_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          ZONE_ID: ${{ steps.zone.outputs.zone_id }}
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4/zones/$ZONE_ID/invalidate_cache"
+          urls=(
+            "https://btmedya.com.tr/"
+            "https://www.btmedya.com.tr/"
+            "https://btmedya.com.tr/haberler/"
+            "https://btmedya.com.tr/kaynak-masasi/"
+            "https://btmedya.com.tr/robots.txt"
+            "https://btmedya.com.tr/sitemap.xml"
+            "https://btmedya.com.tr/news-sitemap.xml"
+            "https://btmedya.com.tr/rss.xml"
+            "https://btmedya.com.tr/.well-known/security.txt"
+          )
+          payload="$(printf '%s\n' "${urls[@]}" | jq -R -s 'split("\n") | map(select(length>0)) | {files:.}')"
+          response_file="$(mktemp)"
+          http_code="$(curl -sS --retry 2 --connect-timeout 15 --max-time 60 \
+            -o "$response_file" -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data "$payload" \
+            "$api" || true)"
+          response="$(cat "$response_file")"
+          if [ "$http_code" = "401" ] || [ "$http_code" = "403" ]; then
+            echo "::warning::Cloudflare Cache Purge yetkisi bu token'da yok; güvenli şekilde devam ediliyor."
+            exit 0
+          fi
+          if [ "$http_code" != "200" ] || [ "$(jq -r '.success // false' <<<"$response")" != "true" ]; then
+            echo "::error::Cloudflare HTML cache revalidation başarısız (HTTP $http_code)."
+            jq -c '{success,errors,messages}' <<<"$response" || true
+            exit 1
+          fi
+          echo "Cloudflare HTML cache revalidation kabul edildi."

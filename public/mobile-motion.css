@@ -1,0 +1,110 @@
+/* BTMEDYA Mobil Giriş Filmi V6 · 2026-10-03
+   Masaüstü sinematik sahnesi (.cinematic-sticky) mobilde gizlenir; yerine
+   akışta duran, kendiliğinden oynayan .mfilm bloğu gelir. Film kendi en-boy
+   oranında, tam genişlikte ve filtresiz gösterilir: 1152 px kaynak 390 pt
+   genişlikte (3x ekran = 1170 px) neredeyse birebir piksel, yani keskin. */
+.mfilm{display:none}
+@media (max-width:720px){
+  section#hero.cinematic-hero{height:auto!important;min-height:0!important;padding:0!important;margin:0!important;background:#05080c!important;overflow:visible!important}
+  section#hero.cinematic-hero>.cinematic-sticky{display:none!important}
+  /* Hero'nun üstündeki dekoratif durum paneli mobilde filmi ekranın altına itiyordu. */
+  main#icerik>.vitrine-status:first-child{display:none!important}
+
+  .mfilm{display:block;color:#eef3f7;background:#05080c}
+  .mfilm-kare{position:relative;width:100%;aspect-ratio:var(--mfilm-oran,16 / 9);max-height:72svh;background:#000 url('/assets/media/web/hero-story-poster.jpg') center/cover no-repeat;overflow:hidden}
+  .mfilm-dikey .mfilm-kare{margin:0 auto;width:auto;height:72svh}
+  .mfilm-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;display:block;filter:none!important}
+  .mfilm-etiket{position:absolute;left:12px;top:12px;padding:6px 9px;border-radius:4px;background:rgba(0,0,0,.72);color:#fff;font:700 11px/1.2 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.08em;pointer-events:none}
+  .mfilm-oynat{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-height:48px;padding:0 22px;border:0;border-radius:999px;background:#fff;color:#05080c;font:800 15px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer}
+  .mfilm-oynat[hidden]{display:none}
+  .mfilm-metin{padding:22px 16px 28px}
+  .mfilm-ust{margin:0 0 10px;color:#7fdcff;font:700 12px/1.2 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.14em}
+  .mfilm-baslik{margin:0;font:800 clamp(34px,10.5vw,46px)/.98 'Bricolage Grotesque','Space Grotesk',Inter,Arial,sans-serif;letter-spacing:-.035em;color:#fff}
+  .mfilm-baslik span{color:#35d6ff}
+  .mfilm-spot{margin:14px 0 0;color:#b6c4cf;font:400 16px/1.55 Manrope,Inter,Arial,sans-serif;max-width:34em}
+  .mfilm-aksiyon{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+  .mfilm-btn{display:flex;align-items:center;justify-content:center;min-height:52px;padding:0 12px;border:1px solid rgba(255,255,255,.22);border-radius:12px;color:#fff;text-decoration:none;font:800 15px/1.1 Manrope,Inter,Arial,sans-serif;text-align:center}
+  .mfilm-btn-ana{background:#35d6ff;border-color:#35d6ff;color:#001017}
+  .mfilm-btn:focus-visible,.mfilm-oynat:focus-visible{outline:3px solid #fff;outline-offset:3px}
+}
+/* Mobil sayfa düzeni V6. Neden: anasayfa mobilde 31.000 px'ti; aynı içerik
+   haritası, "SAHADAN YAYINA" başlığı ve hizmet listesi birkaç kez tekrar
+   ediyor, haberler 11. sırada kalıyordu. Tekrarlar yalnız mobilde gizlenir
+   (masaüstü ve HTML aynı kalır), haber ve hizmetler öne alınır. */
+@media (max-width:720px){
+  main#icerik{display:flex!important;flex-direction:column!important}
+  main#icerik>*{order:50}
+  main#icerik>.bt-breaking{order:0}
+  main#icerik>#hero{order:1}
+  main#icerik>#news{order:2}
+  main#icerik>#story-lab{order:3}
+  main#icerik>#medya{order:4}
+  main#icerik>#hizli-baslangic{order:5}
+  main#icerik>#portfoy{order:6}
+  main#icerik>#siyah-oda{order:7}
+  main#icerik>#programlar{order:8}
+  main#icerik>#sehir-radari{order:9}
+  main#icerik>#bt-world{order:10}
+  main#icerik>.manifesto{order:11}
+  main#icerik>#iletisim{order:90}
+  main#icerik>#btmedya-content-map,
+  main#icerik>#bt-editorial-layer,
+  main#icerik>.vitrine-status,
+  main#icerik>.ticker,
+  main#icerik>#global-desk,
+  main#icerik>#icerik-haritasi,
+  main#icerik>#nextgen-proof,
+  main#icerik>.bt-content-cta{display:none!important}
+
+  /* Anasayfa haberleri: ilk haber büyük kart, diğerleri haber uygulamalarındaki
+     gibi küçük görsel + başlık satırı. Önceden her kart 554 px'ti; 9 haber
+     5.000 px kaydırma demekti. Kart bütünüyle dokunulabilir (HABERİ AÇ
+     bağlantısı kartı kaplar), KAYNAK bağlantısı ayrıca tıklanır. Görseldeki
+     TEMSİLİ FOTOĞRAF / AI etiketi küçük kartta da görünür kalır. */
+  #news .news-grid{gap:0!important}
+  #news .news-card:not(.featured):not(.news-empty-category){position:relative;display:grid!important;grid-template-columns:104px minmax(0,1fr);gap:0 14px;align-items:start;min-height:0!important;height:auto!important;padding:14px 0!important;margin:0!important;background:none!important;border:0!important;border-bottom:1px solid rgba(255,255,255,.1)!important;border-radius:0!important;box-shadow:none!important;transform:none!important}
+  #news .news-card:not(.featured) .news-media{position:relative;width:104px!important;height:104px!important;aspect-ratio:1/1!important;min-height:0!important;border-radius:8px;overflow:hidden}
+  #news .news-card:not(.featured) .news-media img{width:100%!important;height:100%!important;object-fit:cover}
+  #news .news-card:not(.featured) .bt-cover-ui{display:none!important}
+  #news .news-card:not(.featured) .news-kaynak{position:absolute!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;margin:0!important;padding:3px 4px!important;background:rgba(0,0,0,.78)!important;color:#fff!important;font-size:9.5px!important;line-height:1.2!important;letter-spacing:.04em!important;text-align:center;border-radius:0!important}
+  #news .news-card:not(.featured) .news-body{padding:0!important;min-height:0!important;gap:6px!important;background:none!important}
+  #news .news-card:not(.featured) .news-body small{font-size:11px!important;letter-spacing:.06em}
+  #news .news-card:not(.featured) h3{margin:0!important;font-size:16.5px!important;line-height:1.3!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  #news .news-card:not(.featured) p{display:none!important}
+  #news .news-card:not(.featured) .news-meta{font-size:11px!important;margin:0!important;gap:8px!important}
+  #news .news-card:not(.featured) .news-meta span+span{display:none}
+  #news .news-card:not(.featured) .news-open{font-size:11px!important;min-height:0!important;padding:0!important}
+  #news .news-card:not(.featured) .news-open:first-of-type{position:static!important;color:transparent!important;font-size:0!important;height:0;overflow:hidden}
+  #news .news-card:not(.featured) .news-open:first-of-type::after{content:'';position:absolute;inset:0;z-index:1}
+  #news .news-card:not(.featured) .news-open+.news-open{position:relative;z-index:2;display:inline-flex;align-items:center;min-height:32px!important}
+
+  /* Öne çıkan haber: JS'in kapak üstüne bastığı ikinci başlık katmanı mobilde
+     gövdedeki başlığı tekrarlıyor, görsele basılı fotoğraf künyesini (CC BY)
+     örtüyordu; tek "TEMSİLİ FOTOĞRAF" etiketi kalır. */
+  #news .news-card.featured .bt-cover-ui{display:none!important}
+  #news .news-card.featured p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  #news .news-card.featured .news-open{min-height:44px!important;display:inline-flex!important;align-items:center;margin:0 18px 0 0!important;padding:0!important}
+  #news .news-card.featured .news-body{gap:10px!important;min-height:0!important;height:auto!important;justify-content:flex-start!important}
+  #news .news-card.featured{min-height:0!important;height:auto!important}
+
+  /* Haber kategorisi üç ayrı seçiciyle tekrar ediyordu; mobil kategori şeridi
+     masaüstü filtresini zaten tetiklediği için tek başına yeter. */
+  #news .news-filter,#news .category-directory{display:none!important}
+  /* Gelir başlığı mobilde 24 px'e düşüyor, gradyan metin "D" harfini yutuyordu. */
+  #gelir-baslik{font-size:clamp(34px,10vw,44px)!important;line-height:1.02!important}
+  #gelir-baslik span{background:none!important;-webkit-text-fill-color:currentColor!important;color:#1f6fe0!important}
+
+  /* Büyük başlıklar: Türkçe büyük harflerin şapka ve noktaları üst satıra
+     binmesin. */
+  main#icerik h2.display{line-height:1.02!important}
+  main#icerik>section{scroll-margin-top:72px}
+  main#icerik>#news{padding-top:36px!important}
+
+  /* Dil seçici: TR / EN tek satırda, dokunma alanı 44 px. */
+  .topbar .language-switch{display:inline-flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;gap:2px!important}
+  .topbar .language-switch a{display:inline-flex!important;align-items:center;justify-content:center;min-width:34px;min-height:44px;padding:0 4px!important;font-size:12px!important}
+  .topbar .language-switch span{display:inline-block!important;font-size:12px}
+}
+@media (max-width:720px) and (prefers-reduced-motion:reduce){
+  .mfilm *{transition:none!important;animation:none!important}
+}

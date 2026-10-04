@@ -1,0 +1,65 @@
+name: BTMEDYA Free Vitrine Video
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 2 * * 1"
+  push:
+    branches: [main]
+    paths:
+      - "public/assets/media/**"
+      - "public/assets/.pipeline-trigger"
+      - "public/assets/haber-kapak/**"
+      - "public/assets/logo/**"
+      - "tools/build-free-vitrine-video.sh"
+      - ".github/workflows/free-vitrine-video.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: btmedya-free-vitrine-video
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Build free vitrine videos
+        run: |
+          chmod +x tools/build-free-vitrine-video.sh
+          tools/build-free-vitrine-video.sh
+
+      - name: Commit generated vitrine
+        run: |
+          if [ -z "$(git status --porcelain -- public/assets/generated)" ]; then
+            echo "No generated vitrine changes."
+            exit 0
+          fi
+
+          git config user.name "BTMEDYA Free Media Builder"
+          git config user.email "actions@users.noreply.github.com"
+          git add public/assets/generated
+          git commit -m "chore: refresh free BTMEDYA vitrine videos"
+
+          # Başka bir production commit'i build sırasında main'e geldiyse
+          # önce güncel remote'u alıp üretilen commit'i onun üstüne taşı.
+          # Böylece video çıktısı fetch-first yarışında kaybolmaz.
+          # Üretici yalnızca generated klasörünü commit eder; çalışma alanında
+          # kalan geçici değişiklikler rebase'i kilitlememelidir.
+          git reset --hard HEAD
+          git fetch origin main
+          git rebase origin/main
+          # Main korumalıysa üretim zincirini kırma; çıktılar build logunda
+          # doğrulanır ve ana site deployu ayrı Workers Builds akışında sürer.
+          git push origin HEAD:main || echo "Protected main: generated vitrine is available in this run; deploy is handled by Workers Builds."

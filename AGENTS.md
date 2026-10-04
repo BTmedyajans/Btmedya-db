@@ -3,119 +3,132 @@
 BTMEDYA bir **haber markası**. Buradaki kararların çoğu teknik değil editoryal:
 yanlış bir etiket ya da uydurulmuş bir cümle, bozuk bir CSS'ten çok daha pahalı.
 
-Depo yapısı, API uçları ve Cloudflare durumu: [`README.md`](README.md).
+Depo yapısı, API uçları ve Cloudflare durumu: README.md.
+
+## Tek kaynak ve çalışma modeli
+
+Bu depo **tek kanonik uygulama deposudur**.
+
+- **Canlı uygulama:** btmedya-db Cloudflare Worker
+- **Canlı alan adı:** https://btmedya.com.tr
+- **İçerik yönetimi:** https://btmedya.com.tr/admin/
+- **Medya:** Cloudflare R2
+- **Veri:** Cloudflare D1
+- **Kod/sürüm geçmişi:** GitHub
+- **Production deploy:** main → Cloudflare Workers Builds → npx wrangler deploy
+
+Günlük içerik için GitHub veya Cloudflare Dashboard kullanılmaz. Haber, medya,
+video ve mesaj işlemleri admin panelinden yapılır. Cloudflare Dashboard yalnızca
+altyapı ve yetkilendirme ayarları gerektiğinde kullanılır.
+
+**Hostinger/Güzelhosting/Manus bu uygulamanın production yayın zincirinde değildir.**
+Eski dokümanlarda bunlara rastlarsanız yeni işlem başlatmadan önce bu yönergeyi
+esas alın.
 
 ## Kod stili
 
 Saf HTML, CSS ve sade JavaScript. **Kütüphane yok, derleme adımı yok, npm yok.**
-`package.json` yokluğu bir eksiklik değil, karar. `npm install` çalıştırmayın.
+package.json yokluğu bir eksiklik değil, karar. npm install çalıştırmayın.
 
-Tanımlayıcılar ve yorumlar **Türkçe**: `servisEt`, `guvenlikBasliklari`,
-`onbellek`, `KAYNAKLAR`. Örnek için [`src/worker.js`](src/worker.js) ve
-[`public/anasayfa.js`](public/anasayfa.js). Yeni kodu İngilizceye çevirmeyin.
+Tanımlayıcılar ve yorumlar **Türkçe**: servisEt, guvenlikBasliklari, onbellek,
+KAYNAKLAR. Yeni kodu İngilizceye çevirmeyin.
 
-Yorum, *ne* yaptığını değil **neden** öyle yapıldığını anlatır. Sessizce
-başarısız olan bir tuzağı kapatan satırın üstüne o tuzağı yazın:
-`.band{isolation:isolate}` satırındaki not iyi bir örnek.
+Yorum, *ne* yaptığını değil **neden** öyle yapıldığını anlatır.
 
 ## Mimari
 
 | Katman | Yer |
 |---|---|
-| Worker (API + statik servis) | `src/worker.js`, `src/news-page.js` |
-| Şema | `migrations/` |
-| Yayınlanan her şey | `public/` |
+| Worker (API + statik servis) | src/worker.js, src/news-page.js |
+| Şema | migrations/ |
+| Yayınlanan her şey | public/ |
+| Yönetim paneli | public/admin/index.html |
+| Cloudflare yapılandırması | wrangler.toml |
 
-`public/` **olduğu gibi servis edilir.** Oraya koyduğunuz her dosya herkese
+public/ **olduğu gibi servis edilir.** Oraya koyduğunuz her dosya herkese
 açıktır. Backend dosyaları bu klasörün dışında kalır.
+
+## AI geliştirme istemcileri
+
+Bu repository üzerinde geliştirme iki istemciyle yapılabilir: **ChatGPT + GitHub bağlantısı** ve **Claude Code**.
+
+İkisinin de kaynak gerçeği aynıdır: `main` branch ve bu repository. Bir istemci başka bir production backend'i, Manus projesi veya ayrı bir Cloudflare Worker oluşturmaz.
+
+ChatGPT/GitHub bağlantısı dosya inceleme ve hedefli repository değişiklikleri için kullanılabilir. Claude Code yerel çalışma kopyasında test, refactor ve commit/PR için kullanılabilir. Her iki istemci de mevcut mimariyi değiştirmeden önce bu dosyayı ve `docs/BTMEDYA-TEK-ZINCIR.md` dosyasını okumalıdır.
+
+Gizli anahtarlar sohbet mesajlarına, kaynak dosyalara veya commit'e yazılmaz. GitHub Actions secrets ve Cloudflare Worker Secrets kullanılır.
 
 ## Yayına alma
 
-`main` dalına push **doğrudan canlı siteyi günceller** (Cloudflare Workers
-Builds → `btmedya-db` → btmedya.com.tr). Ayrı bir deploy adımı yoktur.
-Ayrıntı: [`docs/CANLIYA-ALMA.md`](docs/CANLIYA-ALMA.md).
+main dalına push production dağıtımını tetikler. Cloudflare Builds üzerinde
+**Dağıtım komutu npx wrangler deploy** olmalıdır.
+
+npx wrangler versions upload production akışının ana komutu değildir.
+Yeni bir version yüklemek ile production'a geçirmek aynı işlem değildir.
+
+Yeni kod göndermeden önce aktif production değişikliğini bozmayacak küçük,
+hedefli bir commit tercih edin.
 
 ## Doğrulama
 
-Test paketi yok. Doğrulama, sayfayı gerçekten sürerek yapılır:
+Değişiklikler için öncelik sırası:
 
-```bash
-python3 -m http.server 8788 --directory public   # ya da eşdeğeri
-node --check src/worker.js public/anasayfa.js    # sözdizimi
-node tools/dogrula.mjs                           # yapılandırma kontrolleri
-```
+1. sözdizimi
+2. yapılandırma (`node tools/alan-adi-denetimi.mjs`)
+3. yerel davranış
+4. mobil davranış
+5. canlı smoke test
 
-`tools/dogrula.mjs`, aşağıdaki "sessizce bozan tuzaklar" bölümünde yazılı
-hataların makineyle yakalanabilen kısmını denetler: kanonik adres tutarlılığı,
-`run_worker_first` kapsamı, nonce'suz satır içi script, migration numaraları,
-`routes` kapalılığı ve host yönlendirme tablosu. Aynı kontroller her pull
-request'te `.github/workflows/dogrulama.yml` ile çalışır.
+Production smoke test GitHub Actions üzerinden ana sayfa ve /api/health
+için çalışır.
 
-Betik görsel hiçbir şey denetlemez. Kontrast, perde ve video oynatma hâlâ gözle
-kontrol edilir; "doğrulama temiz" çıktısı sayfanın doğru göründüğü anlamına
-gelmez.
+`tools/alan-adi-denetimi.mjs`, aşağıdaki "sessizce bozan tuzaklar" bölümünde
+yazılı hataların alan adı ve yönlendirme ile ilgili olanlarını denetler:
+kanonik adres tutarlılığı (sitemap, robots.txt, sayfa içi `canonical`),
+`run_worker_first` kapsamı ve `src/worker.js` içindeki host yönlendirme
+tablosunun gerçek davranışı. Her pull request'te
+`.github/workflows/pr-validation.yml` içinde çalışır.
 
-Görsel ve davranış kontrolü için headless Chrome (CDP) kullanılır:
-`/opt/pw-browsers/chromium-1194/chrome-linux/chrome`. Bu Chromium'da **H.264
-yoktur.** `.mp4` oynatılamaz, `.webm` oynar. Bir videonun açılmaması tek
-başına sitede hata olduğunu göstermez.
+Betik görsel hiçbir şey denetlemez; "denetim temiz" çıktısı sayfanın doğru
+göründüğü anlamına gelmez.
 
-"Çalışıyor olmalı" bir doğrulama değildir. Ekran görüntüsü alın ve bakın;
-son iki gerçek hata (perde sisteminin tümüyle etkisiz olması, perdenin sert
-kenarı) yalnızca göze görünüyordu, sayısal testler ikisinde de geçiyordu.
+Görsel ve davranış kontrolü için headless Chrome kullanılabilir. Chromium'da
+H.264 olmayabilir; .mp4 oynatılamaması tek başına sitede hata değildir.
 
 ## Sessizce bozan tuzaklar
 
-**`run_worker_first` yalnızca dört yol desenini kapsar** (`/`, `/haberler/*`,
-`/hakkimizda*`, `/iletisim*`). Worker kodu diğer adreslerde **hiç çalışmaz**.
-Oraya eklediğiniz başlık, yönlendirme ya da mantık sessizce devre dışı kalır.
-Yeni bir üst düzey HTML sayfası eklerken listeyi de güncelleyin.
+run_worker_first yalnızca listelenen yol desenlerinde Worker'ı öne alır.
+Yeni bir üst düzey HTML sayfası eklenirken wrangler.toml kontrol edilmelidir.
 
-**CSP yola göre kurulur** (`cspKur`, `src/worker.js`). Kamuya açık sayfalarda
-`script-src 'self'`: satır içi `<script>` ya da `onclick` eklerseniz sayfa
-konsolda hata bile vermeden çalışmaz. Kodu ayrı bir `.js` dosyasına alın.
-`/admin/` bunun tek istisnasıdır.
+CSP yola göre kurulur (cspKur, src/worker.js). Kamuya açık sayfalarda
+script-src 'self': satır içi script veya onclick eklemeyin. /admin/ bunun
+mevcut istisnasıdır.
 
-**Migration numaraları sıralıdır.** Yeni dosya eklemeden önce `migrations/`
-içine bakın; aynı numara iki kez kullanıldığında `wrangler d1 migrations apply`
-tökezler.
+Migration numaraları sıralıdır. Yeni dosya eklemeden önce migrations/ içine
+bakın; aynı numarayı ikinci kez kullanmayın.
 
 ## Editoryal kurallar
 
 **Uydurmayın.** Müşteri yorumu, fiyat, teslim süresi, referans, istatistik:
-elinizde kaynağı yoksa üretilmez. Eksik bırakıp sahibine sormak, doldurup
-yanlış söylemekten iyidir. Bu bir haber markası; uydurulmuş bir yorum gerçek
-bir risktir.
+kaynağı yoksa üretilmez.
 
-**AI etiketlemesi zorunluluk, süs değil.** Sitedeki her kare `AI ÜRETİMİ` ya da
-`GERÇEK ÇEKİM` etiketi taşır. **Varsayılan `AI ÜRETİMİ`'dir.** Bir kareyi
-gerçek çekim olarak işaretlemek için kaynağının doğrulanmış olması gerekir;
-"gerçek gibi duruyor" yeterli değildir. Üçüncü taraf filigranı taşıyan bir
-görsel, izni bilinmeden portföye konmaz.
-
-Gerekçe: Ticari Reklam ve Haksız Ticari Uygulamalar Yönetmeliği (RG 1/7/2026,
-sayı 33297; yürürlük 1/8/2026) reklamlarda yapay zekâ kullanımının açıkça
-belirtilmesini zorunlu kılıyor. Hukuki görüş değildir.
-Ayrıntı: [`docs/10K-TASARIM-PAKETI.md`](docs/10K-TASARIM-PAKETI.md) 6.5.
-
-**Metin kapısı.** Yayına giden her metin şunlardan geçer: sıfır uzun tire (—),
-sıfır İngilizce stok kelime (leverage, seamless, robust, solutions…), sıfır
-Türkçe kurumsal klişe (çözümler, kusursuz, uçtan uca, fark yaratmak, benzersiz,
-yenilikçi…), sıfır "sadece X değil, Y" kalıbı, sıfır belirsiz atıf
-("uzmanlara göre").
+**AI etiketlemesi zorunluluk, süs değil.** Sitedeki her kare AI ÜRETİMİ ya da
+GERÇEK ÇEKİM etiketi taşır. Varsayılan AI ÜRETİMİdir.
 
 ## Tasarım
 
-Anasayfanın kaynağı [`docs/10K-TASARIM-PAKETI.md`](docs/10K-TASARIM-PAKETI.md):
-palet token'ları ölçülmüş kontrast oranlarıyla, yazı tipi üçlüsü, bant haritası,
-birebir metinler.
+Site geneli görsel sistem için `docs/REDESIGN-BRIEF-2026-09-23.md`, sinematik hero ve kaydırmalı giriş için `docs/HERO-TASARIM-PAKETI.md` kanonik tasarım kaynaklarıdır.
 
-Bant metinlerinin en kötü kare kontrastı **3.5:1'in altına düşemez**. Perdeye,
-banda ya da hero videosuna dokunan her değişiklikten sonra ölçümü yeniden
-çalıştırın.
+Bant metinlerinin en kötü kare kontrastı **3.5:1'in altına düşemez**.
 
-**İki komşu bölüm aynı iskeleti paylaşmaz.** Dört başlık biçimi sırayla
-dağıtılmıştır (`bas-yan`, `bas-satir`, `bas-sag`, `bas-orta`). Yeni bölüm
-eklerken komşularına bakın.
+İki komşu bölüm aynı iskeleti paylaşmaz.
 
-Panelden içerik girişi: [`docs/YONETICI-PANELI.md`](docs/YONETICI-PANELI.md).
+## Yönetim paneli
+
+Panel: https://btmedya.com.tr/admin/
+
+Panel üzerinden haber, medya, video ve gelen mesajlar yönetilir. Medya
+R2'ye gider, kayıtları D1'de tutulur. Panelde yapılması gereken bir işlem için
+doğrudan R2 nesnelerini veya D1 tablolarını elle değiştirmek tercih edilmez.
+
+Ayrıntı: docs/YONETICI-PANELI.md.

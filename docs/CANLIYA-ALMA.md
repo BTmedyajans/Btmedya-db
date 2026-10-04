@@ -1,172 +1,114 @@
-# BTMEDYA — Canlıya Alma Kılavuzu
+# BTMEDYA | Canlıya Alma ve Yayın Kontrolü
 
-**R2, D1 ve veritabanı tabloları hesabınızda ZATEN OLUŞTURULDU.**
-Geriye sadece 2 iş kaldı: deploy ve şifreler. Yaklaşık 5 dakika.
+Bu depo BTMEDYA'nın üretim kaynağıdır. `main` dalı Cloudflare Workers Builds üzerinden `btmedya-db` Worker'ına production olarak deploy edilir; `.github/workflows/deploy.yml` kaynak ve canlı doğrulama kapısıdır.
 
----
 
-## Sizin adınıza yapılanlar
+> **Kimlik doğrulama notu:** Production runtime accepts the current *_SECRET names and the older ADMIN_PASSWORD / ADMIN_SESSION_SECRET names for compatibility. Prefer ADMIN_PASSWORD_SECRET and ADMIN_SESSION_SECRET_SECRET in new deployments.
+## Mevcut üretim mimarisi
 
-| İş | Durum |
+| Bileşen | Durum |
 |---|---|
-| R2 medya deposu `btmedya-media` | Oluşturuldu (ENAM) |
-| D1 veritabanı `btmedya-media` | Oluşturuldu (Batı Avrupa) |
-| `news` tablosu + indeks | Oluşturuldu |
-| `media` tablosu + 4 indeks | Oluşturuldu |
-| Migration kaydı | İşlendi |
-| `wrangler.toml` içine veritabanı ID'si | Yazıldı |
+| Worker | `btmedya-db` |
+| Ana alan adı | `btmedya.com.tr` |
+| WWW | `www.btmedya.com.tr` |
+| D1 | `btmedya-media` |
+| R2 | `btmedya-media` |
+| Worker giriş noktası | `src/worker.js` |
+| Statik site | `public/` |
+| Yönetim paneli | `/admin/` |
+| Medya API | `/api/media`, `/api/public/media` |
+| Haber API | `/api/news`, `/api/admin/news` |
 
-Veritabanı ID'niz: `94a980cd-62c5-4c29-b7fc-40f96ab665e4`
+`wrangler.toml` içinde iki alan adı da custom domain olarak tanımlıdır. `www` istekleri Worker tarafından ana domaine 301 yönlendirilir.
 
-**Migration komutu çalıştırmanıza gerek yok** — tablolar hazır.
+## Yayın için gerekli Cloudflare Secret'ları
 
----
+Aşağıdaki secret'lar GitHub'a veya `wrangler.toml` dosyasına yazılmaz. Cloudflare Worker Secret olarak tanımlanmalıdır:
 
-## Kalan 2 iş
+- `ADMIN_PASSWORD_SECRET`
+- `ADMIN_SESSION_SECRET_SECRET`
+- `MEDIA_SIGNING_SECRET`
 
-Deploy ve şifre tanımlama, hesabınıza kod yükleme yetkisi gerektirir. Bende bu
-yetki yok. Aşağıdakileri kendi bilgisayarınızda çalıştırın.
+İsteğe bağlı:
 
-### Hazırlık
+- `AI_READ_TOKEN`
+- `RESEND_API_KEY`
+- `RESEND_TO`
+- `RESEND_FROM`
 
-Node.js kurulu olmalı:
+## Yayın kontrolü
 
-```bash
-node -v
-```
+GitHub Actions her `main` push'unda kaynak doğrulaması yapar ve canlı uç noktaları kontrol eder.
 
-Sürüm görünmüyorsa https://nodejs.org adresinden kurun.
+Beklenenler:
 
-Bu paketin klasörüne girin (içinde `wrangler.toml` olan klasör):
+- `/api/health` → `ok:true`, `cms:true`, `r2:true`, `admin:true`
+- `/api/news?limit=1` → başarılı cevap
+- `/api/admin/news` → kimlik doğrulama olmadan `401`
+- `https://btmedya.com.tr/` → başarılı cevap
+- `https://www.btmedya.com.tr/` → `301`
+- `/wrangler.toml` → herkese açık olmamalı
 
-```bash
-cd /BU-PAKETIN/KLASORU
-npm install -D wrangler@latest
-npx wrangler login
-npx wrangler whoami
-```
+## Canlı içerik
 
-`login` tarayıcı açar, **Allow** deyin. `whoami` çıktısında **busetuncuy74**
-hesabını görmelisiniz. Başka hesap çıkarsa `npx wrangler logout` yapıp tekrar girin.
+Haberler D1 üzerinden, medya dosyaları R2 üzerinden yönetilir. Ana sayfadaki gerçek portföy içerikleri `/api/public/media` üzerinden yayınlanabilir.
 
----
+AI üretimleri ayrı `AI LAB` alanında açıkça etiketlenmelidir. Gerçek saha fotoğrafı, video ve haber içerikleri AI üretimi gibi gösterilmemelidir.
 
-### İş 1 — Deploy
+## Yayın sonrası son kontrol
 
-```bash
-npx wrangler deploy
-```
+1. `https://btmedya.com.tr/`
+2. `https://btmedya.com.tr/haberler/`
+3. `https://btmedya.com.tr/admin/`
+4. `https://btmedya.com.tr/api/health`
+5. `https://btmedya.com.tr/api/public/media`
+6. `https://www.btmedya.com.tr/`
 
-Siteyi `btmedya.com.tr` adresine yükler.
+Secret'lar Cloudflare'da tanımlı değilse admin ve imzalı medya bağlantıları üretim için hazır kabul edilmez.
 
-> Worker'daki mevcut dosyaların üzerine yazar. Alan adı/DNS ayarlarına dokunmaz —
-> `wrangler.toml` içindeki routes bloğu bilerek kapalı bırakıldı.
 
----
+## Cloudflare API token yetkileri
 
-### İş 2 — Şifreler
+Control-plane'ın `apply` modu için mevcut tokenın aşağıdaki yetkilere sahip olması gerekir:
 
-Her komut şifreyi gizli sorar; yazıp Enter'a basın. Her biri otomatik yeni bir
-deploy tetikler, bu normaldir.
-
-```bash
-npx wrangler secret put ADMIN_PASSWORD
-npx wrangler secret put ADMIN_SESSION_SECRET
-npx wrangler secret put MEDIA_SIGNING_SECRET
-```
-
-| Secret | Ne olmalı |
-|---|---|
-| `ADMIN_PASSWORD` | `/admin/` paneline gireceğiniz şifre. Aklınızda kalsın ama güçlü olsun. |
-| `ADMIN_SESSION_SECRET` | Rastgele uzun dizi. Hatırlamanız gerekmez. |
-| `MEDIA_SIGNING_SECRET` | Rastgele uzun dizi. Hatırlamanız gerekmez. |
-
-Rastgele değer üretmek — macOS/Linux:
-
-```bash
-openssl rand -base64 32
-```
-
-Windows PowerShell:
-
-```powershell
-[Convert]::ToBase64String((1..32|%{Get-Random -Max 256}))
-```
-
-Opsiyonel, başka bir AI aracına salt-okunur arşiv erişimi için:
-
-```bash
-npx wrangler secret put AI_READ_TOKEN
-```
-
----
-
-## Kontrol listesi
-
-Deploy sonrası sırayla açın:
-
-- [ ] `https://btmedya.com.tr` — giriş videosu ve hero açılıyor mu?
-- [ ] `https://btmedya.com.tr/haberler/` — 27 haber listeleniyor mu?
-- [ ] Bir habere tıklayın — yazı açılıyor mu?
-- [ ] `https://btmedya.com.tr/api/health` — şunu döndürmeli:
-      `{"ok":true,"service":"btmedya","cms":true,"r2":true}`
-      `cms` veya `r2` **false** ise bağlantılar oturmamış, haber verin.
-- [ ] `https://btmedya.com.tr/admin/` — şifrenizle giriş yapabiliyor musunuz?
-- [ ] `https://btmedya.com.tr/wrangler.toml` — **404 vermeli.**
-      İçerik görünüyorsa `.assetsignore` çalışmamış demektir; **hemen haber verin**,
-      bu backend kodunuzun herkese açık olması anlamına gelir.
-
----
-
-## Sorun giderme
-
-**`/admin/` "Yetkisiz" diyor**
-`ADMIN_PASSWORD` tanımlanmamış. İş 2'yi yapın.
-
-**`/api/health` içinde `cms: false` veya `r2: false`**
-`wrangler.toml` içindeki `database_id` satırının
-`94a980cd-62c5-4c29-b7fc-40f96ab665e4` olduğunu doğrulayın.
-
-**Deploy "worker not found" diyor**
-Yanlış Cloudflare hesabındasınız. `npx wrangler whoami` ile kontrol edin.
-
----
-
-## Hesabınızdaki bir durum
-
-Eski denemelerden kalma **iki boş D1 veritabanı** var:
-
-- `btmedya-d` (3 Eylül, 0 tablo)
-- `btmedya-db` (2 Eylül, 0 tablo)
-
-İkisi de tamamen boş ve kullanılmıyor. Silmedim — veri kaybı riski olan işlemleri
-onayınız olmadan yapmam. Panelden silebilirsiniz (Storage & Databases > D1) ya da
-bana söyleyin sileyim. Boş oldukları için ücret yaratmıyorlar.
-
----
-
-## Ücretsiz plan sınırları
-
-| Kaynak | Sınır | Sizin için ne demek |
+| Kapsam | Yetki | Kullanım |
 |---|---|---|
-| Worker istek | 100.000/gün | Normal trafik için fazlasıyla yeterli |
-| R2 depolama | 10 GB | Video yüklerken en önce buraya takılırsınız |
-| R2 dış trafik | Ücretsiz | Video izlenmesi ek ücret getirmez |
-| D1 satır yazma | 100.000/gün | 1 Eylül 2026'dan beri **katı sınır** |
-| D1 depolama | 5 GB | Sadece metin/metadata, bol bol yeter |
-| Tek dosya yükleme | 100 MB | Panel 10 MB parçalara böldüğü için sorun olmaz |
+| Zone: `btmedya.com.tr` | DNS Write | SPF ve legacy MX değişiklikleri |
+| Zone: `btmedya.com.tr` | Zone Settings Write | Email Routing'i etkinleştirme |
+| Zone: `btmedya.com.tr` | Email Routing Rules Write | `info@`, `admin@` ve catch-all kuralları |
+| Account | Email Routing Addresses Write | Doğrulama hedef adresini oluşturma |
 
-Sınırlara yaklaşırsanız Workers Paid ($5/ay) günlük istek sınırını kaldırır.
+Mevcut Actions kaydında DNS yazma işlemi başarıyla çalıştı; eksik kalan ilk yetki `Account → Email Routing Addresses Write` oldu. Tekrar tekrar yetki döngüsüne girmemek için aynı API tokena tabloya giren üç Email Routing yetkisini birlikte eklemek gerekir.
 
----
+## Cloudflare / Email control-plane
 
-## Sonraki adım: arşivi doldurma
+Repository now includes `control-plane/cloudflare-control-plane.sh` and the GitHub Actions workflow `.github/workflows/cloudflare-control-plane.yml`.
 
-Deploy bitince `/admin/` panelinden:
+### Otomatik yapılan işler
 
-1. Ham videoları (`btmedya-ham-video-arsivi.zip`) yükleyin.
-2. Kategori atayın (Haber, Siyah Oda, AI LAB, Portre, Sosyal).
-3. Sitede görünmesini istediklerinize **"Siteye ekle"** deyin.
+- `btmedya.com.tr/*` biçimindeki eski Page Rule bulunursa apply modunda silinir.
+- Kök SPF tek kayıt olacak şekilde Cloudflare Email Routing include'ı mevcut include'larla birleştirilir.
+- `busetuncay74@gmail.com` Cloudflare Email Routing destination olarak yoksa oluşturulur.
+- Hedef adres Cloudflare tarafından doğrulanmışsa Email Routing etkinleştirilir ve `info@`, `admin@` ve catch-all yönlendirmeleri aynı hedefe bağlanır.
+- Eski kök MX `btmedyajans.com` yalnızca Email Routing başarıyla etkinleştikten sonra silinir.
 
-Yayınladıklarınız `/api/public/media` üzerinden süreli ve imzalı bağlantılarla
-sunulur; R2 klasörünüz herkese açık olmaz.
+### Bilerek otomatik silinmeyen kayıt
+
+`send.btmedya.com.tr` MX kaydı varsayılan olarak korunur. Proje kodu Resend kullanıyor ve Resend'in 2026 dokümantasyonu `send` alt alanındaki Amazon SES MX/SPF kayıtlarını Resend domain return-path yapılandırmasının parçası olarak gösteriyor. Bu nedenle bunu sırf ekrandaki eski yönerge nedeniyle körlemesine silmek güvenli değildir.
+
+### İnsan müdahalesi gereken tek adım
+
+Cloudflare destination address ilk kez oluşturulursa Cloudflare, `busetuncay74@gmail.com` adresine doğrulama e-postası gönderir. Bu e-postadaki doğrulama bağlantısı insan tarafından bir kez onaylanmalıdır. Cloudflare, doğrulanmamış hedefe routing rule oluşturulmasına izin vermez.
+
+### Çalıştırma
+
+GitHub Actions → **BTMEDYA Cloudflare Control Plane** → **Run workflow**.
+
+- `audit`: yalnızca okur ve raporlar.
+- `apply`: DNS / Email Routing değişikliklerini uygular.
+- `apply_dmarc=false`: mevcut DMARC'ı korur.
+- `remove_resend_records=false`: `send.*` Resend/Amazon SES kayıtlarını korur.
+
+> Production deploy yolu DNS'i doğrudan değiştirmez. Cloudflare değişiklikleri ayrı bir control-plane iş akışında tutulur.
+
+> Control-plane audit tetikleyici commit'i GitHub Actions'ın otomatik audit yolunu başlatmak için eklendi.

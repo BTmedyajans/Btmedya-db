@@ -1,0 +1,87 @@
+name: BTMEDYA PR Validation
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btmedya-pr-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Validate source and production contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s src/worker.js
+          test -s wrangler.toml
+          test -s public/index.html
+          test -s public/robots.txt
+          test -s public/sitemap.xml
+
+          node --check src/worker.js
+          node --check src/metricool-scheduler.js
+          node --check src/sosyal-otomasyon.js
+          node tools/sosyal-otomasyon-testi.mjs
+          node --check src/sabah-masasi.js
+          node tools/sabah-masasi-testi.mjs
+          node --check src/ai-gorunurluk.js
+          node tools/ai-gorunurluk-testi.mjs
+          node --check src/sales-router.js
+          node tools/teklif-testi.mjs
+          node tools/temas-testi.mjs
+          node tools/marka-kiti-testi.mjs
+          node tools/haber-portali-testi.mjs
+          node --check public/home.js
+          python3 tools/validate-assets.py
+          node tools/a11y-denetimi.mjs
+          node tools/gerileme-denetimi.mjs
+          node tools/link-denetimi.mjs
+          # Yeni kapak/medya dosyasi eklenip liste yeniden uretilmezse vitrin
+          # yeni kareleri gostermiyor (29 Eylul: 8 trend kapagi listede yoktu).
+          node tools/medya-listesi.mjs --kontrol
+          node tools/css-denetimi.mjs
+          node tools/mobile-regression-gate.mjs
+          # Sitemap'e girip run_worker_first'e girmeyen sayfa, www adresinde de
+          # 200 doner (yinelenen icerik). 4 Ekim: /marka-kiti/, /ai-lab/,
+          # /reklam-ve-sponsorluk/ ve /en/ tam bu durumdaydi. Ayni bosluk bir
+          # daha acilirsa burada kirmiziya duser.
+          node tools/alan-adi-denetimi.mjs
+
+          # node --check her sozdizimi hatasini yakalamiyor: 115a50e'deki
+          # /^static\\/.../ regex'i node'dan gecti ama Workers Builds'in
+          # esbuild'i reddetti ve 6 commit canliya cikmadi. Ayni paketleyiciyle
+          # kuru derleme yapilir; hicbir sey yuklenmez.
+          npx --yes wrangler@4.142.0 deploy --dry-run --outdir "$RUNNER_TEMP/kuru-derleme"
+
+          grep -q 'mobile-fixes.css' public/index.html
+          grep -q 'prefers-reduced-motion' public/mobile-fixes.css
+          grep -q 'Control Center' public/admin/index.html
+          grep -q '/api/admin/control-center' public/admin/index.html
+          grep -q '/kaynak-masasi' wrangler.toml
+
+          test ! -e .github/workflows/media-smoke.yml
+          test ! -e .github/workflows/storage-audit.yml
+
+          # Production'a yalniz Cloudflare Workers Builds dagitir (673c29f).
+          # Hicbir GitHub is akisi "wrangler deploy" calistirmamali; ikinci
+          # bir dagitici canliyi main'den farkli bir surume cekebilir.
+          # (Onceki kontrol "BTMEDYA Production Deploy" adini ariyordu; o is
+          # akisi "Production Verify" olunca her PR kirmiziya dusuyordu.)
+          ! grep -RIlE --exclude=pr-validation.yml 'wrangler(@[^ ]*)? deploy' .github/workflows

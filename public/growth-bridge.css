@@ -1,0 +1,24 @@
+/* BTMEDYA · International Growth Bridge
+ * Real-media-first service and distribution layer.
+ */
+.growth-bridge{padding:clamp(56px,8vw,120px) clamp(18px,5vw,72px);background:#070809;border-top:1px solid rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.1)}
+.growth-bridge-inner{max-width:1400px;margin:0 auto}
+.growth-bridge-head{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:42px;align-items:end;margin-bottom:34px}
+.growth-bridge-head h2{margin:0;max-width:850px}
+.growth-bridge-head h2 span{color:#8fe9ff}
+.growth-bridge-lead{color:#b5bcc2;max-width:580px;line-height:1.7;margin:0}
+.growth-bridge-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.growth-card{display:flex;flex-direction:column;min-height:235px;padding:24px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(145deg,#0b0d0f,#090a0b);text-decoration:none;color:inherit;transition:transform .25s ease,border-color .25s ease,background .25s ease}
+.growth-card:hover,.growth-card:focus-visible{transform:translateY(-4px);border-color:rgba(143,233,255,.55);background:#0d1113}
+.growth-card-index{font:600 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:#7e8990}
+.growth-card h3{font-size:24px;line-height:1.08;margin:34px 0 12px}
+.growth-card p{margin:0;color:#aeb7bd;line-height:1.6;font-size:14px}
+.growth-card-meta{margin-top:auto;padding-top:20px;font:600 11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em;color:#8fe9ff}
+.growth-bridge-foot{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-top:22px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08)}
+.growth-bridge-foot small{color:#78838a;line-height:1.5}
+.growth-bridge-actions{display:flex;gap:10px;flex-wrap:wrap}
+.growth-bridge-actions a{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 16px;border:1px solid rgba(255,255,255,.16);color:#eef2f4;text-decoration:none;font-size:13px}
+.growth-bridge-actions a.primary{border-color:#8fe9ff;color:#050505;background:#8fe9ff}
+@media (max-width:900px){.growth-bridge-head{grid-template-columns:1fr;gap:18px}.growth-bridge-grid{grid-template-columns:1fr 1fr}.growth-card{min-height:210px}}
+@media (max-width:640px){.growth-bridge{padding:48px 16px}.growth-bridge-grid{grid-template-columns:1fr}.growth-card{min-height:190px;padding:20px}.growth-card h3{margin-top:26px;font-size:21px}.growth-bridge-foot{align-items:flex-start;flex-direction:column}.growth-bridge-actions{width:100%}.growth-bridge-actions a{flex:1}}
+@media (prefers-reduced-motion:reduce){.growth-card{transition:none}.growth-card:hover,.growth-card:focus-visible{transform:none}}

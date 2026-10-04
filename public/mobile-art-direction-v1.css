@@ -1,0 +1,32 @@
+/* BTMEDYA Mobile Art Direction v1: hierarchy, editorial rhythm, reduced card fatigue. */
+:root{--bt-lime:#d8ff3e;--bt-cyan:#68e7ff}
+.editorial-compass-card,.service-grid article,.growth-grid article,.revenue-grid article,.proof-grid article,.program-card,.social-profile-card,.social-feed-fallback-card{box-shadow:none!important}
+.editorial-compass-card,.service-grid article,.growth-grid article,.revenue-grid article,.proof-grid article{background:transparent!important;border-color:rgba(255,255,255,.10)!important}
+.cinematic-hero .cinematic-copy{max-width:760px}
+.cinematic-hero .cinematic-title{letter-spacing:-.055em;text-wrap:balance}
+.cinematic-hero .cinematic-title span{color:var(--bt-lime)}
+.cinematic-hero .cinematic-kicker{color:var(--bt-lime);font-weight:800;letter-spacing:.16em}
+#news,.newsroom,.section[id="news"]{background:linear-gradient(180deg,rgba(255,255,255,.018),transparent 35%)}
+.sahadan-sehir img,.field-story img,.sahadan-sehir-section img{border-radius:0!important}
+.programs,.program-section,#programlar{border-top:1px solid rgba(255,255,255,.16);border-bottom:1px solid rgba(255,255,255,.10)}
+.programs .program-card,.program-section .program-card{border-radius:0!important;background:transparent!important}
+.programs .program-card:first-child,.program-section .program-card:first-child{background:linear-gradient(120deg,rgba(216,255,62,.08),transparent 60%)!important}
+#ai-lab,.ai-lab,.ai-lab-section{background:radial-gradient(circle at 85% 15%,rgba(104,231,255,.10),transparent 35%),linear-gradient(180deg,rgba(104,231,255,.025),transparent 55%)}
+#ai-lab .kicker,.ai-lab .kicker,.ai-lab-section .kicker{color:var(--bt-cyan)}
+#ai-lab .display span,.ai-lab .display span,.ai-lab-section .display span{color:var(--bt-cyan)}
+#portfoy .portfolio-card,.portfolio-grid article,.case-grid article{border-radius:4px!important;background:transparent!important;border:0!important;overflow:hidden}
+#portfoy .portfolio-card img,.portfolio-grid img,.case-grid img{transition:transform .45s ease;display:block}
+#portfoy .portfolio-card:hover img,.portfolio-grid article:hover img,.case-grid article:hover img{transform:scale(1.025)}
+.button.button-dark,.button.primary,.btn.primary{background:var(--bt-lime)!important;color:#050505!important;border-color:var(--bt-lime)!important;font-weight:850}
+@media (max-width:720px){
+.topbar{min-height:60px}.topbar .top-cta{display:none}
+.cinematic-hero{min-height:88svh!important}.cinematic-hero .cinematic-copy{padding-inline:18px;bottom:9vh}.cinematic-hero .cinematic-title{font-size:clamp(42px,12.8vw,66px);line-height:.91}.cinematic-hero .cinematic-lead{font-size:14px;line-height:1.55}.cinematic-hero .cinematic-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cinematic-hero .cinematic-actions .cinematic-contact-link{grid-column:1/-1;padding:8px 0}
+.vitrine-status-inner{gap:10px}.vitrine-status-links{width:100%;overflow:auto;white-space:nowrap;padding-bottom:2px}
+.bt-world,.manifesto,.editorial-compass,.section{padding-inline:16px}.bt-world-head,.editorial-compass-head,.section-head{gap:18px}.bt-world-head .display,.editorial-compass-head .display,.section-head .display{font-size:clamp(31px,9vw,44px);line-height:.96}.bt-world-visual{min-height:58svh}
+.manifesto{padding-block:72px}.manifesto .display{font-size:clamp(38px,10.5vw,54px);line-height:.94}.editorial-compass{padding-block:68px}.editorial-compass-grid{grid-template-columns:1fr!important;gap:0!important}.editorial-compass-card{padding:24px 0!important;border-left:0!important;border-right:0!important;border-radius:0!important}.editorial-compass-card.is-lead{padding-top:10px!important}
+.service-grid,.growth-grid,.revenue-grid,.proof-grid{gap:0!important}.service-grid article,.growth-grid article,.revenue-grid article,.proof-grid article{padding:26px 0!important;border-left:0!important;border-right:0!important;border-radius:0!important}.programs .program-card,.program-section .program-card{padding:24px 0!important}
+#portfoy .portfolio-grid,.portfolio-grid,.case-grid{grid-template-columns:1fr!important}#portfoy .portfolio-card,.portfolio-grid article,.case-grid article{margin-bottom:10px}
+#ai-lab,.ai-lab,.ai-lab-section{padding-block:76px!important}
+}
+@media (max-width:380px){.cinematic-hero .cinematic-actions{grid-template-columns:1fr}.cinematic-hero .cinematic-actions .cinematic-contact-link{grid-column:auto}}
+@media (prefers-reduced-motion:reduce){#portfoy .portfolio-card img,.portfolio-grid img,.case-grid img{transition:none}}

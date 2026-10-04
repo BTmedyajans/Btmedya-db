@@ -1,0 +1,63 @@
+name: BTMEDYA Metricool Secret Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/sync-metricool.yml"
+  schedule:
+    - cron: "47 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Sync Metricool Worker secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
+          METRICOOL_USER_ID: ${{ secrets.BTMEDYA_METRICOOL_USER_ID }}
+          METRICOOL_BRAND_ID: ${{ secrets.BTMEDYA_METRICOOL_BRAND_ID }}
+        run: |
+          set -euo pipefail
+
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Cloudflare deploy token eksik"; exit 1; }
+          test -n "$METRICOOL_USER_TOKEN" || { echo "::error::BTMEDYA_METRICOOL_USER_TOKEN GitHub secret eksik"; exit 1; }
+          test -n "$METRICOOL_USER_ID" || { echo "::error::BTMEDYA_METRICOOL_USER_ID GitHub secret eksik"; exit 1; }
+          test -n "$METRICOOL_BRAND_ID" || { echo "::error::BTMEDYA_METRICOOL_BRAND_ID GitHub secret eksik"; exit 1; }
+
+          npm install --no-save --no-package-lock wrangler@4.142.0
+
+          printf '%s' "$METRICOOL_USER_TOKEN" | npx wrangler secret put METRICOOL_USER_TOKEN --name btmedya-db --config wrangler.toml
+          printf '%s' "$METRICOOL_USER_ID" | npx wrangler secret put METRICOOL_USER_ID --name btmedya-db --config wrangler.toml
+          printf '%s' "$METRICOOL_BRAND_ID" | npx wrangler secret put METRICOOL_BRAND_ID --name btmedya-db --config wrangler.toml
+
+      - name: Verify Metricool Brand access
+        env:
+          METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
+          METRICOOL_USER_ID: ${{ secrets.BTMEDYA_METRICOOL_USER_ID }}
+          METRICOOL_BRAND_ID: ${{ secrets.BTMEDYA_METRICOOL_BRAND_ID }}
+        run: |
+          set -euo pipefail
+          body="$(curl -fsS -H "X-Mc-Auth: $METRICOOL_USER_TOKEN" \
+            "https://app.metricool.com/api/admin/simpleProfiles?userId=$METRICOOL_USER_ID")"
+
+          python - "$METRICOOL_BRAND_ID" "$body" <<'PY'
+          import json,sys
+          wanted=str(sys.argv[1])
+          data=json.loads(sys.argv[2])
+          items=data if isinstance(data,list) else data.get("data",data.get("profiles",[]))
+          if not isinstance(items,list):
+              raise SystemExit("Metricool profil yanıtı liste değil")
+          ids={str(x.get("blogId",x.get("id",""))) for x in items if isinstance(x,dict)}
+          if wanted not in ids:
+              raise SystemExit("Metricool Brand erişimi doğrulanamadı")
+          print("METRICOOL_OK: Brand erişimi doğrulandı")
+          PY

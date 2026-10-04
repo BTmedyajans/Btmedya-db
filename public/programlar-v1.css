@@ -1,0 +1,17 @@
+/* BTMEDYA program vitrini: haber akışından ayrı iki formatı görünür kılar. */
+.programlar{padding:7vw 5vw;border-top:1px solid #ffffff18;border-bottom:1px solid #ffffff18;background:#050608}
+.programlar-head{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:24px}
+.programlar-head h2{font:900 clamp(2.5rem,6vw,6rem)/.86 "Bricolage Grotesque","Space Grotesk",sans-serif;letter-spacing:-.06em;margin:6px 0}
+.programlar-head p{max-width:560px;color:#98a2ad;line-height:1.65}
+.programlar-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+.program-kart{min-height:370px;border:1px solid #ffffff18;border-radius:16px;overflow:hidden;text-decoration:none;color:#eef2f4;background:#0b0e12;position:relative;display:flex;align-items:end}
+.program-kart:before{content:"";position:absolute;inset:0;background:var(--program-bg) center/cover no-repeat;opacity:.42;transition:transform .5s ease,opacity .5s ease}
+.program-kart:hover:before,.program-kart:focus-visible:before{transform:scale(1.03);opacity:.58}
+.program-kart:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#0506081c,#050608ed)}
+.program-kopy{position:relative;z-index:2;padding:26px}
+.program-kopy small{display:block;color:#d8ff4b;font-size:10px;letter-spacing:.16em;font-weight:900}
+.program-kopy h3{font:900 clamp(2rem,4vw,4rem)/.9 "Bricolage Grotesque","Space Grotesk",sans-serif;letter-spacing:-.05em;margin:12px 0}
+.program-kopy p{color:#a5afb9;max-width:600px;margin:0}
+.program-kart b{position:absolute;right:18px;top:18px;z-index:3;font-size:10px;letter-spacing:.1em;border:1px solid #ffffff24;border-radius:999px;padding:6px 9px}
+@media(max-width:850px){.programlar-head,.programlar-grid{grid-template-columns:1fr;display:grid}.program-kart{min-height:310px}}
+@media(prefers-reduced-motion:reduce){.program-kart:before{transition:none}}

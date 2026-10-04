@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>BTMEDYA • Ajans Süpervizör</title>
+<link rel="stylesheet" href="./agency-os.css">
+<link rel="stylesheet" href="./agency-social-v1.css?v=20261002-1">
+<link rel="stylesheet" href="./agency-hamburger-v3.css?v=20261002-1">
+</head>
+<body>
+<header class="top">
+  <div class="brand">BT<span>MEDYA</span> / AGENCY OS</div>
+  <button class="menu-toggle" id="adminMenuToggle" type="button" aria-expanded="false" aria-controls="adminMenu"><span>☰</span><b>MENÜ</b></button>
+  <nav class="admin-menu" id="adminMenu" aria-label="Ajans yönetim kategorileri" aria-hidden="true">
+    <div class="admin-menu-top"><span>BTMEDYA / CONTROL INDEX</span><button id="adminMenuClose" type="button">KAPAT ×</button></div>
+    <div class="admin-menu-grid">
+      <section><small>01</small><a href="/admin/editor/">HABER</a><span>Haber editörü · kaynak · önizleme</span></section>
+      <section><small>02</small><a href="/admin/editor/">AI</a><span>AI taslak · metin · SEO · AEO</span></section>
+      <section><small>03</small><a href="/admin/yayin/">SOSYAL MEDYA</a><span>Instagram · Facebook · YouTube · TikTok</span></section>
+      <section><small>04</small><a href="/admin/autopilot/">OTOMASYON</a><span>Haber radar · trend · rakip · yayın</span></section>
+      <section><small>05</small><a href="/admin/editor/#seo">SEO</a><span>Teknik SEO · sitemap · içerik sinyali</span></section>
+      <section><small>06</small><a href="/admin/client-hub/">MÜŞTERİLER</a><span>Müşteri ekle · sosyal hesap · marka stratejisi</span></section>
+      <section><small>07</small><a href="/admin/app.html">MEDYA VAULT</a><span>Fotoğraf · video · gerçek iş arşivi</span></section>
+      <section><small>08</small><a href="/reklam-ve-sponsorluk/">REKLAM / SATIŞ</a><span>Reklam alanı · sponsorluk · kampanya · teklif</span></section>
+      <section><small>09</small><a href="/siyah-oda/">SİYAH ODA</a><span>Uzman programı · stüdyo · bölüm arşivi</span></section><section><small>10</small><a href="/admin/merak-radari/">HALKIN MERAK RADARI</a><span>Google · arama · rakip · özel haber fırsatı</span></section>
+      <section><small>11</small><a href="/portfoy/">BELGESEL / KISA FİLM</a><span>Portföy · vaka · sinematik işler</span></section>
+      <section><small>12</small><a href="/">CANLI SİTE</a><span>Yayınlanmış web önizlemesi</span></section>
+      <section><small>13</small><a href="/admin/agency-os/">SÜPER VİZÖR</a><span>Alarm · aksiyon · ölçüm</span></section>
+    </div>
+  </nav>
+</header>
+
+<main class="shell">
+  <section class="hero">
+    <div>
+      <div class="eyebrow">SÜPER VİZÖR · İÇERİK · PAZARLAMA · OTOMASYON</div>
+      <h1>BTMEDYA'yı tek ekrandan yönet.</h1>
+      <p>Haber, medya arşivi, müşteri işleri, sosyal yayın ve AI üretimini ayrı kutulara dağıtmak yerine önce durumunu gör, sonra tek aksiyona geç.</p>
+    </div>
+    <div class="hero-actions">
+      <button id="run" class="btn primary">Şimdi denetle</button>
+      <button id="refresh" class="btn">Yenile</button>
+    </div>
+    <div id="heartbeat" class="status">Sistem bağlantısı hazırlanıyor…</div>
+  </section>
+
+  <section class="quick-actions" aria-label="Hızlı işlemler">
+    <a class="quick-action" href="/admin/editor/"><small>01 · HABER</small><b>AI Editör ↗</b></a>
+    <a class="quick-action" href="/admin/autopilot/"><small>02 · AKIŞ</small><b>Haber Merkezi ↗</b></a>
+    <a class="quick-action" href="/admin/yayin/"><small>03 · SOSYAL</small><b>Social Studio ↗</b></a>
+    <a class="quick-action" href="/admin/client-hub/"><small>04 · MÜŞTERİ</small><b>Müşteri Merkezi ↗</b></a>
+    <a class="quick-action" href="/admin/app.html"><small>05 · MEDYA</small><b>Media Vault ↗</b></a><a class="quick-action" href="/admin/merak-radari/"><small>06 · ARAŞTIRMA</small><b>Halkın Merak Radarı ↗</b></a>
+    <a class="quick-action" href="/"><small>06 · ÖNİZLEME</small><b>Canlı Site ↗</b></a>
+  </section>
+
+  <section class="panel social-command" aria-labelledby="socialCommandTitle">
+    <div class="panel-head"><div><div class="eyebrow">01 · SOSYAL BAĞLANTI</div><h2 id="socialCommandTitle">Instagram · Facebook · YouTube · TikTok</h2></div><span class="pill">METRICOOL</span></div>
+    <div id="socialCommand"><div class="stack"><div class="rec"><b>Bağlantı durumu okunuyor…</b></div></div></div>
+  </section>
+
+  <section class="panel" id="btCorePanel" aria-labelledby="btCoreTitle">
+  <div class="panel-head"><div><div class="eyebrow">CORE · CLOUDFLARE NATIVE</div><h2 id="btCoreTitle">BTMEDYA işletim çekirdeği</h2></div><span id="btCoreStatus" class="pill">KONTROL</span></div>
+  <div id="btCoreGrid" class="grid"></div>
+  <div class="hero-actions"><button id="btCoreBootstrap" class="btn" type="button">BTMEDYA Core'u başlat</button></div>
+</section>
+<section class="metrics" id="metrics">
+    <article><span>Aktif müşteri</span><b id="mClients">0</b><small id="mClientHint">çalışma alanı</small></article>
+    <article><span>Bekleyen onay</span><b id="mApproval">0</b><small>müşteri / ekip</small></article>
+    <article><span>Sosyal kuyruk</span><b id="mSocial">0</b><small id="mSocialHint">planlı paylaşım</small></article>
+    <article><span>Açık satış</span><b id="mSales">0</b><small id="mSalesHint">takip gerektirenler</small></article>
+    <article><span>BTMEDYA yayın</span><b id="mNews">0</b><small>son 7 gün</small></article>
+    <article><span>Referans</span><b id="mRefs">0</b><small>yayındaki vaka</small></article>
+  </section>
+
+  <section class="panel category-panel" aria-labelledby="categoryFeedTitle">
+    <div class="panel-head"><div><div class="eyebrow">07 · CANLI KATEGORİ AKIŞI</div><h2 id="categoryFeedTitle">Web sitesi kategorileri</h2></div><button id="categoryRefresh" class="btn" type="button">Yenile</button></div>
+    <p class="mut">Public site ile aynı yayın kaynağından güncel haberleri ve kategori yoğunluğunu gösterir.</p>
+    <div id="categoryFeed" class="category-feed"><div class="rec"><b>Akış okunuyor…</b></div></div>
+  </section>
+
+  <section class="grid">
+    <div class="panel">
+      <div class="panel-head"><div><div class="eyebrow">02 · ALARMLAR</div><h2>Bugün neye bakmalıyız?</h2></div><span id="alertCount" class="pill">0</span></div>
+      <div id="alerts" class="stack"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><div><div class="eyebrow">03 · AKSİYON</div><h2>Süpervizör notları</h2></div></div>
+      <div id="recommendations" class="stack"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><div><div class="eyebrow">04 · MÜŞTERİ AĞI</div><h2>İçerik ritmi ve çalışma alanları</h2></div><input id="search" class="search" placeholder="Firma ara…"></div>
+    <div id="clients" class="clients"></div>
+  </section>
+
+  <section class="grid">
+    <div class="panel">
+      <div class="eyebrow">05 · MALİYET FRENİ</div>
+      <h2>Üretimi değil, ihtiyacı otomatikleştir</h2>
+      <div class="rule"><b>Ücretsiz/az maliyetli çekirdek</b><span>D1 + R2 + KV + Cron</span></div>
+      <div class="rule"><b>AI çağrısı</b><span>Yalnız içerik üretimi ve medya gerektiğinde</span></div>
+      <div class="rule"><b>Gerçek medya</b><span>Önce BTMEDYA arşivi, AI medya ayrı etiketli</span></div>
+      <div class="rule"><b>Yayın güvenliği</b><span>Hassas veya müşteriye ait işler onay akışında</span></div>
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">06 · OPERASYON HARİTASI</div>
+      <h2>Tek döngü</h2>
+      <div class="flow"><span>Radar</span><i>→</i><span>Plan</span><i>→</i><span>Üret</span><i>→</i><span>Önizle</span><i>→</i><span>Onay</span><i>→</i><span>Yayın</span><i>→</i><span>Ölç</span></div>
+      <p class="mut">Eksik olan halka alarm olarak çıkar. Her içerik önce önizlenir, sonra yayınlanır.</p>
+    </div>
+  </section>
+
+  <footer class="foot">BTMEDYA Agency Supervisor · otomatik denetim periyodu: 15 dakika · panel güncellemesi: 60 saniye</footer>
+</main>
+<script src="./agency-os.js" defer></script>
+<script src="./agency-social-v1.js?v=20261002-1" defer></script>
+<script src="./agency-hamburger-v3.js?v=20261002-1" defer></script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+name: BTMEDYA R2 archive sync
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "public/assets/**"
+      - "public/media/**"
+      - "public/data/medya-listesi.json"
+      - ".github/workflows/r2-sync.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Cloudflare credential preflight
+        id: preflight
+        shell: bash
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
+        run: |
+          set -euo pipefail
+          if [ -n "$CF_API_TOKEN" ] && [ -n "$CF_ACCOUNT_ID" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare credentials are configured; R2 sync will run."
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "WARNING: Cloudflare credentials are not configured; R2 sync is skipped."
+          fi
+
+      - name: Setup Wrangler
+        if: steps.preflight.outputs.configured == 'true'
+        shell: bash
+        run: npm install --global wrangler@4.142.0
+
+      - name: Sync static media
+        id: sync
+        if: steps.preflight.outputs.configured == 'true'
+        continue-on-error: true
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
+        run: |
+          set -euo pipefail
+          while IFS= read -r key; do
+            [ -z "$key" ] && continue
+            file="public/$key"
+            [ -f "$file" ] || file="public/assets/$key"
+            [ -f "$file" ] || file="public/media/$key"
+            if [ -f "$file" ]; then
+              echo "SYNC $key"
+              wrangler r2 object put "btmedya-media/$key" --file "$file" --remote
+            else
+              echo "SKIP $key"
+            fi
+          done < <(node -e 'for (const x of require("./public/data/medya-listesi.json")) console.log(x.path)')
+
+      - name: Report R2 sync status
+        if: always() && steps.preflight.outputs.configured == 'true'
+        shell: bash
+        run: |
+          if [ "$SYNC_OUTCOME" = "success" ]; then
+            echo "R2 sync completed."
+          else
+            echo "::warning::R2 archive sync was not completed. Production static assets remain canonical via Cloudflare Workers Assets. Check the Cloudflare token for the required Workers R2 write scope."
+            {
+              echo "## R2 archive sync"
+              echo ""
+              echo "⚠️ R2 sync was not completed."
+              echo ""
+              echo "The production site remains deployable because public static assets are served through Workers Assets."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+        env:
+          SYNC_OUTCOME: ${{ steps.sync.outcome }}

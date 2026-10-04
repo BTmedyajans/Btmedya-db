@@ -1,0 +1,18 @@
+.editorial-compass{max-width:var(--bt-max,1400px);margin:0 auto;padding:clamp(72px,9vw,140px) 24px;background:linear-gradient(180deg,#07090c,#0b0e12);position:relative}
+.editorial-compass-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,.9fr);gap:clamp(28px,6vw,90px);align-items:end;margin-bottom:34px}
+.editorial-compass-intro{max-width:620px;color:var(--bt-muted,#a6adb7);font-size:15px;line-height:1.8}
+.editorial-compass-intro strong{color:#fff}
+.editorial-compass-rule{display:block;margin-top:18px;font-size:10px;letter-spacing:.16em;color:#d8ff3e}
+.editorial-compass-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.1)}
+.editorial-compass-card{min-height:220px;padding:28px;background:#0a0d11;color:#fff;text-decoration:none;display:flex;flex-direction:column;justify-content:space-between;transition:transform .25s ease,background .25s ease}
+.editorial-compass-card:hover,.editorial-compass-card:focus-visible{background:#10151b;transform:translateY(-3px);outline:none}
+.editorial-compass-card.is-lead{grid-column:span 2;min-height:250px}
+.editorial-compass-card.is-ai{background:linear-gradient(145deg,#11150d,#0a0d11)}
+.editorial-compass-card.is-ai .compass-index,.editorial-compass-card.is-ai .compass-link{color:#d8ff3e}
+.compass-index{font-size:10px;letter-spacing:.16em;color:#8f98a5}
+.editorial-compass-card strong{font-family:var(--font-display,inherit);font-size:clamp(22px,2.5vw,38px);letter-spacing:-.03em}
+.editorial-compass-card p{margin:12px 0 24px;color:#aeb5bf;line-height:1.65;max-width:52ch}
+.compass-link{font-size:11px;letter-spacing:.12em;color:#fff}
+@media(max-width:900px){.editorial-compass-head{grid-template-columns:1fr}.editorial-compass-grid{grid-template-columns:1fr}.editorial-compass-card.is-lead{grid-column:auto}}
+@media(max-width:600px){.editorial-compass{padding:64px 16px}.editorial-compass-card{min-height:190px;padding:22px}.editorial-compass-card.is-lead{min-height:220px}.editorial-compass-intro{font-size:14px}.editorial-compass-rule{line-height:1.6}}
+@media(prefers-reduced-motion:reduce){.editorial-compass-card{transition:none}.editorial-compass-card:hover,.editorial-compass-card:focus-visible{transform:none}}

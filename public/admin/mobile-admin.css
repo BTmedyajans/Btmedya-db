@@ -1,0 +1,24 @@
+/* Mobile admin polish */
+@media(max-width:760px){
+ body{font-size:15px;padding-bottom:env(safe-area-inset-bottom)}
+ header{position:sticky;top:0;padding:10px 12px;background:rgba(9,9,9,.96);backdrop-filter:blur(12px);border-bottom:1px solid #252525}
+ .wrap{padding:12px}
+ .panel{padding:14px;border-radius:16px;margin-bottom:12px}
+ .tabs{gap:6px;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:4px}
+ .tab{min-height:42px;padding:9px 13px;scroll-snap-align:start;flex:0 0 auto}
+ .btn{min-height:42px;padding:10px 13px}
+ input,select,textarea{min-height:44px;font-size:16px}
+ .form-2col{grid-template-columns:1fr}
+ .grid{grid-template-columns:1fr 1fr;gap:8px}
+ .card .meta{padding:9px}
+ .news-row{align-items:flex-start;padding:10px;gap:9px;flex-wrap:wrap}
+ .news-row-info{min-width:calc(100% - 75px)}
+ .news-row>.row{width:100%;justify-content:stretch}
+ .news-row>.row .btn{flex:1}
+ .drop{padding:22px 12px;min-height:110px;display:flex;align-items:center;justify-content:center}
+ .cover-preview{max-height:220px}
+ #controlSummary,#controlNext{line-height:1.6}
+}
+@media(min-width:761px){.mobile-install{display:none!important}}
+.mobile-install{display:block;margin:0 0 12px;padding:12px 14px;border:1px solid #3a3324;background:linear-gradient(135deg,#12100b,#0e0e0e);border-radius:14px;color:#e8c06a}
+.mobile-install b{display:block;color:#fff;margin-bottom:3px}

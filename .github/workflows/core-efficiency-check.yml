@@ -1,0 +1,24 @@
+name: BTMEDYA Core Efficiency Check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/worker.js"
+      - "src/btmedya-core.js"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: |
+          node --check src/worker.js
+          node --check src/btmedya-core.js
+          if grep -q 'const coreInit=ensureBtmedyaCore(env)' src/worker.js; then echo "Core schema must not run on every scheduled tick"; exit 1; fi

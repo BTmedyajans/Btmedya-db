@@ -1,0 +1,5 @@
+const CACHE="btmedya-admin-v2";
+const CORE=["/admin/","/admin/index.html","/admin/app.html","/admin/admin-overrides.css","/admin/mobile-admin.css","/admin/mobile-upload.css","/admin/manifest.webmanifest"];
+self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()))});
+self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
+self.addEventListener("fetch",e=>{const u=new URL(e.request.url);if(u.origin!==location.origin||!u.pathname.startsWith("/admin/"))return;if(e.request.method!=="GET")return;e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy)).catch(()=>{});return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match("/admin/"))))});

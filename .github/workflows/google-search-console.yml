@@ -1,0 +1,85 @@
+name: BTMEDYA Google Search Console
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "public/**"
+      - "src/news-page.js"
+      - "src/worker.js"
+      - "tools/google-search-console.py"
+      - ".github/workflows/google-search-console.yml"
+  schedule:
+    - cron: "17 5 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  google:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Validate live indexing endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          for url in \
+            https://btmedya.com.tr/robots.txt \
+            https://btmedya.com.tr/sitemap.xml \
+            https://btmedya.com.tr/news-sitemap.xml; do
+            code="$(curl -LfsS -o /dev/null -w '%{http_code}' "$url")"
+            test "$code" = "200"
+            echo "OK $code $url"
+          done
+          echo "## Live indexing endpoints" >> "$GITHUB_STEP_SUMMARY"
+          echo "- robots.txt: 200" >> "$GITHUB_STEP_SUMMARY"
+          echo "- sitemap.xml: 200" >> "$GITHUB_STEP_SUMMARY"
+          echo "- news-sitemap.xml: 200" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Check Google credentials
+        id: auth
+        shell: bash
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICE_ACCOUNT_JSON" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "Google Search Console automation credentials are configured."
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Google Search Console API çalıştırılmadı: GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON secret'ı eksik."
+          fi
+
+      - name: Setup Python
+        if: steps.auth.outputs.configured == 'true'
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install Google API client
+        if: steps.auth.outputs.configured == 'true'
+        run: python -m pip install --disable-pip-version-check google-api-python-client google-auth
+
+      - name: Submit sitemaps and inspect URLs
+        if: steps.auth.outputs.configured == 'true'
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_PROPERTY: "https://btmedya.com.tr/"
+        run: python tools/google-search-console.py
+
+      - name: Pending authorization summary
+        if: steps.auth.outputs.configured != 'true'
+        shell: bash
+        run: |
+          {
+            echo "## Google Search Console"
+            echo ""
+            echo "⚠️ Live robots ve sitemap uçları doğrulandı; Google API otomasyonu henüz yetkilendirilmedi."
+            echo ""
+            echo "Required: verify btmedya.com.tr in Search Console, add the automation service account as a permitted user/owner, then store its JSON credential in the GitHub Actions secret GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON."
+            echo "After that, this workflow submits both sitemaps and runs URL Inspection automatically."
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,172 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-09-29T22:00:00+03:00",
+  "brand": "BTMEDYA",
+  "metricoolBrandId": "6858384",
+  "timezone": "Europe/Istanbul",
+  "verifiedProfiles": [
+    {
+      "network": "tiktok",
+      "handle": "btmedya1010",
+      "status": "connected",
+      "autoPublish": true
+    },
+    {
+      "network": "youtube",
+      "channelId": "UCGyRifwCyrKJQAbmo4uoO9g",
+      "status": "connected",
+      "autoPublish": true
+    }
+  ],
+  "pendingConnections": [
+    {
+      "network": "instagram",
+      "handle": "btmedyajans",
+      "status": "not_verified_in_metricool_brand"
+    },
+    {
+      "network": "facebook",
+      "status": "not_verified_in_metricool_brand"
+    }
+  ],
+  "rules": {
+    "realMediaFirst": true,
+    "aiOnlyInAiLab": true,
+    "newsSourceVisible": true,
+    "doNotDuplicateScheduledPosts": true,
+    "youtubeRequiresVideo": true,
+    "tiktokRequiresImageOrVideo": true
+  },
+  "cadence": {
+    "tiktok": "1-2/day depending on breaking-news volume; existing queue remains authoritative",
+    "youtube": "3/week, Shorts from real video archive; 1 longer portfolio/editorial video when source video is ready",
+    "instagram": "prepare derivatives now; publish after Metricool connection is verified",
+    "facebook": "prepare derivatives now; publish after Metricool connection is verified"
+  },
+  "slots": [
+    {
+      "day": "Salı",
+      "tiktok": "18:00-20:00",
+      "youtube": "16:00-18:00"
+    },
+    {
+      "day": "Çarşamba",
+      "tiktok": "18:00-20:00",
+      "youtube": "16:00-17:00"
+    },
+    {
+      "day": "Perşembe",
+      "tiktok": "10:00-12:00",
+      "youtube": "16:00-17:00"
+    },
+    {
+      "day": "Cuma",
+      "tiktok": "10:00-12:00",
+      "youtube": "13:00-16:00"
+    },
+    {
+      "day": "Cumartesi",
+      "tiktok": "10:00-12:00",
+      "youtube": "16:00-18:00"
+    },
+    {
+      "day": "Pazar",
+      "tiktok": "10:00-12:00",
+      "youtube": "16:00-18:00"
+    },
+    {
+      "day": "Pazartesi",
+      "tiktok": "10:00-12:00",
+      "youtube": "16:00-17:00"
+    }
+  ],
+  "contentPillars": [
+    {
+      "id": "balikesir",
+      "name": "Balıkesir Gündem",
+      "formats": [
+        "9:16 reel/short",
+        "saha foto",
+        "haber kartı"
+      ],
+      "source": "gerçek saha/arşiv"
+    },
+    {
+      "id": "turkiye",
+      "name": "Türkiye Gündem",
+      "formats": [
+        "haber short",
+        "grafik destekli video"
+      ],
+      "source": "doğrulanmış kaynak"
+    },
+    {
+      "id": "ai-lab",
+      "name": "AI LAB",
+      "formats": [
+        "demo",
+        "before/after",
+        "workflow"
+      ],
+      "source": "AI üretimi, açık AI etiketi"
+    },
+    {
+      "id": "production",
+      "name": "Prodüksiyon Portföyü",
+      "formats": [
+        "kamera arkası",
+        "önce/sonra",
+        "20-45 sn reel"
+      ],
+      "source": "BTMEDYA gerçek arşiv"
+    },
+    {
+      "id": "service-sales",
+      "name": "Hizmet ve Vaka",
+      "formats": [
+        "müşteri problemi",
+        "çözüm",
+        "teslim"
+      ],
+      "source": "gerçek proje/izinli medya"
+    }
+  ],
+  "weeklySeries": [
+    {
+      "series": "Sabah Balıkesir",
+      "format": "20-35 sn short",
+      "goal": "günün yerel gündemini tek videoda özetlemek"
+    },
+    {
+      "series": "Günün Haberi 30\"",
+      "format": "9:16",
+      "goal": "tek haber + 3 doğrulanabilir bilgi + site CTA"
+    },
+    {
+      "series": "BTMEDYA Sahadan",
+      "format": "20-45 sn",
+      "goal": "gerçek çekim ve haber üretim sürecini göstermek"
+    },
+    {
+      "series": "AI LAB 60\"",
+      "format": "20-60 sn",
+      "goal": "AI aracını gerçek üretim problemi üzerinde göstermek"
+    },
+    {
+      "series": "Arşivden Bir İş",
+      "format": "15-45 sn",
+      "goal": "eski prodüksiyon işlerini yeniden paketlemek"
+    }
+  ],
+  "productionChecklist": [
+    "Önce gerçek fotoğraf/video",
+    "9:16 güvenli alan ve altyazı",
+    "İlk 1.5 saniyede başlık/hook",
+    "Kaynak ve tarih görünür",
+    "Haber bağlantısı varsa site URL'si",
+    "AI üretimi ise AI LAB etiketi ve platform AI bildirimi",
+    "YouTube Shorts için gerçek video dosyası",
+    "Aynı içeriği platforma göre yeniden kurgula, birebir kopyalama"
+  ],
+  "queuePolicy": "Mevcut Metricool kuyruğundaki PENDING gönderiler silinmeden veya üstüne bindirilmeden yeni plan ayrı tutulur."
+}
