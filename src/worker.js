@@ -2009,6 +2009,104 @@ export default { async scheduled(controller, env, ctx){
     if (ag) return ag;
   }
 
+  /* Temiz kategori rotaları:
+     Google ve kullanıcılar için /haberler/?kategori=... yerine kalıcı
+     /haberler/<kategori>/ adresleri. Kategori sayfası HTML'i sunucuda
+     D1'den hazırlanır; JS ayrıca zenginleştirme yapar. */
+  const HABER_KATEGORILERI = {
+    balikesir:{label:'Balıkesir',desc:'Balıkesir merkez ve ilçelerinden haberler, belediye hizmetleri, ulaşım ve kent yaşamı.'},
+    gundem:{label:'Gündem',desc:'Güvenlik, afet, yangın, kamu hizmetleri ve Balıkesir gündemindeki gelişmeler.'},
+    ekonomi:{label:'Ekonomi',desc:'Balıkesir ekonomisi, esnaf, tarım, fiyatlar, emlak, istihdam ve iş dünyası.'},
+    kultur:{label:'Kültür Sanat',desc:'Balıkesir kültür sanat gündemi, tiyatro, sinema, gastronomi, etkinlik ve kent hafızası.'},
+    egitim:{label:'Eğitim',desc:'Okullar, üniversiteler, sınavlar ve öğrencilerin gündemindeki gelişmeler.'},
+    saglik:{label:'Sağlık',desc:'Sağlık hizmetleri, uzman görüşleri ve günlük yaşamı ilgilendiren sağlık gelişmeleri.'},
+    spor:{label:'Spor',desc:'Balıkesir ve Türkiye sporundan sonuçlar, takımlar, sporcular ve etkinlikler.'},
+    teknoloji:{label:'Teknoloji',desc:'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetler.'}
+  };
+  function htmlKac(s){
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function haberKategoriAnahtari(n){
+    const metin=String((n?.category||'')+' '+(n?.title||'')+' '+(n?.excerpt||'')).toLocaleLowerCase('tr-TR')
+      .normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/ı/g,'i');
+    const rules=[
+      ['teknoloji',/(yapay zeka|teknoloji|yazilim|dijital|\\bai\\b|teknofest|uygulama|platform)/],
+      ['egitim',/(egitim|universite|okul|sinav|ogrenci|kampus|\\byok\\b)/],
+      ['saglik',/(saglik|beslenme|hastane|doktor|tedavi|epilasyon|obezite|kalp)/],
+      ['spor',/(spor|futbol|basketbol|turnuva|atletizm|pehlivan|muay thai|sporcu)/],
+      ['kultur',/(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik|tiyatro|sinema|festival)/],
+      ['ekonomi',/(ekonomi|emlak|esnaf|tarim|ticaret|fiyat|piyasa|maas|istihdam|satis|konut)/],
+      ['gundem',/(gundem|asayis|yangin|afet|guvenlik|trafik|itfaiye|emniyet|polis|kaza|kamu)/],
+      ['balikesir',/(balikesir|yerel|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|pazar|altyapi|ulasim|belediye)/]
+    ];
+    for(const [key,re] of rules) if(re.test(metin)) return key;
+    return 'gundem';
+  }
+  async function temizKategoriSayfasi(request, env, url, key){
+    const bilgi=HABER_KATEGORILERI[key];
+    if(!bilgi) return null;
+    let base=await env.ASSETS.fetch(new Request(new URL('/haberler/index.html',url.origin),{headers:{accept:'text/html'}}));
+    if(!base.ok) return new Response('Kategori sayfası hazırlanamadı',503);
+    let html=await base.text();
+
+    let items=[];
+    if(env.DB){
+      const rows=(await env.DB.prepare(
+        "SELECT slug,title,excerpt,category,cover_url,published_at,updated_at FROM news WHERE status='published' AND slug<>'' ORDER BY published_at DESC LIMIT 500"
+      ).all().catch(()=>({results:[]}))).results||[];
+      items=rows.filter(n=>haberKategoriAnahtari(n)===key).slice(0,30);
+    }
+
+    let coverMap={};
+    try{
+      const cr=await env.ASSETS.fetch(new Request(new URL('/data/haber-kapak-kaynagi.json',url.origin)));
+      if(cr.ok) coverMap=await cr.json();
+    }catch{}
+
+    const cards=items.map(n=>{
+      const img=n.cover_url || ('/assets/haber-kapak/'+encodeURIComponent(n.slug)+'.webp');
+      const provenance=coverMap[n.slug];
+      const provenanceLabel=provenance==='gercek'?'Gerçek çekim':provenance==='arsiv'?'Arşiv fotoğrafı':provenance==='grafik'?'BTMEDYA grafik':provenance==='harita'?'Harita':'Temsili görsel';
+      const date=n.published_at?new Date(n.published_at).toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'}):'';
+      return '<article class="hm-kat-sunucu-kart">'+
+        '<a class="hm-kart" href="/haberler/'+encodeURIComponent(n.slug)+'">'+
+        '<figure><img src="'+htmlKac(img)+'" alt="'+htmlKac(n.title)+'" loading="lazy" decoding="async" width="600" height="450"><span class="hm-kaynak">'+htmlKac(provenanceLabel)+'</span></figure>'+
+        '<span class="hm-ust-bilgi"><span class="hm-kat">'+htmlKac(bilgi.label)+'</span><span class="hm-format">KAYNAKLI GÜNDEM</span><time class="hm-zaman" datetime="'+htmlKac(n.published_at||'')+'">'+htmlKac(date)+'</time></span>'+
+        '<h3>'+htmlKac(n.title)+'</h3><p class="hm-kat-spot">'+htmlKac(n.excerpt||'')+'</p></a></article>';
+    }).join('');
+
+    const title=bilgi.label+' Haberleri | BTMEDYA Haber Merkezi';
+    const canonical=url.origin+'/haberler/'+key+'/';
+    const block='<section class="hm-katsayfa" data-hm-katsayfa data-kat="'+key+'" aria-labelledby="hm-kategori-h1">'+
+      '<div class="hm-kat-bas"><h2 id="hm-kategori-h1" aria-label="'+htmlKac(bilgi.label)+'">'+htmlKac(bilgi.label)+'<span class="hm-golge" aria-hidden="true">'+htmlKac(bilgi.label)+'</span></h2>'+
+      '<p>'+htmlKac(bilgi.desc)+'</p><small>'+items.length+' güncel haber · en yeniden eskiye</small></div>'+
+      (cards?'<div class="hm-izgara hm-kat-sunucu-izgara">'+cards+'</div>':'<p class="hm-bos">Bu kategoride henüz yayımlanmış haber yok.</p>')+
+      '<section class="hm-ilkeler hm-kat-kaynak" aria-label="Kategori yayın ilkeleri"><div><b>Kaynak</b><span>Haber kaynağı ve yayın tarihi kartlarda korunur.</span></div><div><b>Görsel</b><span>Gerçek çekim, arşiv, grafik veya temsili görsel açıkça etiketlenir.</span></div><div><b>Güncellik</b><span>Liste D1 yayın akışından hazırlanır ve yeni yayınlarla güncellenir.</span></div></section>'+
+      '</section>';
+
+    html=html.replace('<html lang="tr">','<html lang="tr" data-bt-haber-kategori="'+key+'">');
+    html=html.replace('<main class="hm" id="icerik">','<main class="hm kategori-modu" id="icerik">');
+    html=html.replace(/<title>[^<]*<\\/title>/i,'<title>'+htmlKac(title)+'</title>');
+    html=html.replace(/<meta name="description" content="[^"]*">/i,'<meta name="description" content="'+htmlKac(bilgi.desc)+'">');
+    html=html.replace(/<link rel="canonical" href="[^"]*">/i,'<link rel="canonical" href="'+canonical+'">');
+    html=html.replace(/<meta property="og:url" content="[^"]*">/i,'<meta property="og:url" content="'+canonical+'">');
+    html=html.replace(/<meta property="og:title" content="[^"]*">/i,'<meta property="og:title" content="'+htmlKac(title)+'">');
+    html=html.replace(/<meta property="og:description" content="[^"]*">/i,'<meta property="og:description" content="'+htmlKac(bilgi.desc)+'">');
+    html=html.replace(/<meta name="twitter:title" content="[^"]*">/i,'<meta name="twitter:title" content="'+htmlKac(title)+'">');
+    html=html.replace(/<meta name="twitter:description" content="[^"]*">/i,'<meta name="twitter:description" content="'+htmlKac(bilgi.desc)+'">');
+    html=html.replace(/<section class="hm-katsayfa" data-hm-katsayfa aria-live="polite"><\\/section>/i,block);
+    return new Response(html,{status:200,headers:{...guvenlikBasliklari(url.pathname),'content-type':'text/html; charset=utf-8','x-robots-tag':robotsBasligi(url.pathname),'cache-control':'public, max-age=60, s-maxage=60, must-revalidate','cache-tag':'btmedya-html'}});
+  }
+
+  // Eski sorgu tabanlı kategori adresleri kalıcı temiz rotaya gider.
+  if(url.pathname==='/haberler/' && url.searchParams.has('kategori')){
+    const key=String(url.searchParams.get('kategori')||'').toLowerCase();
+    if(HABER_KATEGORILERI[key]) return Response.redirect(new URL('/haberler/'+key+'/',url.origin).toString(),301);
+  }
+
+  const temizKatMatch=url.pathname.match(/^\\/haberler\\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji)\\/$/);
+  if(temizKatMatch) return await temizKategoriSayfasi(request,env,url,temizKatMatch[1]);
+
   /* HABER SAYFASI — once statik dosya, yoksa D1'den uretim.
      Depodaki 27 haber oldugu gibi kalir; panelden girilen yeni haberler
      dosya olusturmadan kendi adresinde yayina girer. */
