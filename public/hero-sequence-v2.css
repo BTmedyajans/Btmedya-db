@@ -1,0 +1,17 @@
+/* Hero sequence: the interface stays quiet until the full intro has ended. */
+.bt-hero-intro-lock{overflow:hidden}
+.cinematic-hero.bt-hero-intro-active .cinematic-choice-nav,.cinematic-hero.bt-hero-intro-active .mobile-quick-nav{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+.cinematic-hero.bt-hero-intro-active .cinematic-copy{opacity:.12;filter:blur(2px);transition:opacity .55s ease,filter .55s ease}
+.cinematic-hero.bt-hero-intro-complete .cinematic-copy{transition:opacity .55s ease,filter .55s ease}
+.bt-hero-intro{position:absolute;inset:0;z-index:40;display:grid;place-items:center;background:linear-gradient(135deg,rgba(3,5,7,.22),rgba(3,5,7,.7));opacity:1;transition:opacity .55s cubic-bezier(.16,1,.3,1),visibility 0s linear .55s;pointer-events:auto}
+.bt-hero-intro[aria-hidden="true"]{opacity:0;visibility:hidden;pointer-events:none}
+.bt-hero-intro-card{width:min(420px,calc(100% - 36px));padding:30px;border:1px solid rgba(255,255,255,.22);background:rgba(4,7,9,.56);backdrop-filter:blur(22px);box-shadow:0 30px 100px rgba(0,0,0,.45);transform:translateY(0);transition:transform .55s cubic-bezier(.16,1,.3,1)}
+.bt-hero-intro[aria-hidden="true"] .bt-hero-intro-card{transform:translateY(-18px)}
+.bt-hero-intro-kicker{display:block;color:#35d6ff;font:700 10px/1 ui-monospace,monospace;letter-spacing:.17em}
+.bt-hero-intro-card strong{display:block;margin:18px 0 14px;font:800 clamp(42px,7vw,80px)/.8 "Space Grotesk",system-ui,sans-serif;letter-spacing:-.08em}.bt-hero-intro-card strong em{font-style:normal;color:#d9ff3f}.bt-hero-intro-card p{max-width:32ch;color:rgba(255,255,255,.72);font-size:13px;line-height:1.55}.bt-hero-start{margin-top:16px;min-height:48px;padding:0 17px;border:1px solid #d9ff3f;background:#d9ff3f;color:#071000;font-weight:800;cursor:pointer;transition:transform .18s ease,filter .18s ease}.bt-hero-start:hover{transform:translateY(-2px);filter:brightness(1.08)}.bt-hero-start:active{transform:scale(.97)}.bt-hero-intro-note{display:block;margin-top:12px;color:rgba(255,255,255,.5);font-size:10px;line-height:1.4}
+/* Different scene signatures after intro: color temperature, cursor and ambient grid shift. */
+body[data-hero-scene="haber"] .cinematic-grid{filter:hue-rotate(130deg);opacity:.72}body[data-hero-scene="produksiyon"] .cinematic-grid{filter:hue-rotate(35deg);transform:scale(1.04)}body[data-hero-scene="medya"] .cinematic-grid{filter:hue-rotate(240deg);opacity:.9}body[data-hero-scene="ai"] .cinematic-grid{filter:hue-rotate(300deg);opacity:1}
+body[data-hero-scene="haber"] .cinematic-copy{--scene-accent:#64e4ff}body[data-hero-scene="produksiyon"] .cinematic-copy{--scene-accent:#65e6a4}body[data-hero-scene="medya"] .cinematic-copy{--scene-accent:#a78bfa}body[data-hero-scene="ai"] .cinematic-copy{--scene-accent:#ff5662}
+body[data-hero-scene] .cinematic-kicker:before{background:var(--scene-accent,var(--award-lime));box-shadow:0 0 16px color-mix(in srgb,var(--scene-accent,var(--award-lime)) 55%,transparent)}
+@media(max-width:720px){.bt-hero-intro-card{align-self:end;margin-bottom:calc(100px + env(safe-area-inset-bottom));padding:22px}.bt-hero-intro-card strong{font-size:48px}.bt-hero-intro{align-items:end}.bt-hero-intro-note{font-size:9px}.cinematic-hero.bt-hero-intro-complete .mfilm-metin{filter:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){.bt-hero-intro,.bt-hero-intro-card,.cinematic-hero.bt-hero-intro-active .cinematic-copy{transition:none}.bt-hero-start:hover{transform:none}}
