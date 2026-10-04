@@ -269,3 +269,39 @@ button,a{touch-action:manipulation}
   .menu-open .mobile-quick-nav{display:none!important}
   .menu-open{overflow:hidden;overscroll-behavior:none}
 }
+
+
+/* Google mobile performance guard — 04 Ekim 2026
+   Below-the-fold sections remain in the DOM for crawlers/accessibility, while
+   the browser can defer expensive layout/paint work until the section nears
+   the viewport. The first viewport and newsroom content are intentionally
+   excluded so mobile LCP and news discovery remain immediate. */
+@media (max-width:720px){
+  .story-lab,
+  .portfolio-section,
+  .social-feed-section,
+  .archive-section,
+  .nextgen-proof-section,
+  .ai-section,
+  .source-section,
+  .founder-section,
+  .revenue-section,
+  .editorial-hub-section,
+  .contact-section{
+    content-visibility:auto;
+    contain-intrinsic-size:800px;
+  }
+
+  /* Avoid GPU-heavy backdrop effects on small screens where they provide
+     little functional value. */
+  .mobile-quick-nav{
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  .mobile-quick-nav{
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+}
