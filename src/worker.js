@@ -930,7 +930,7 @@ async function controlCenterApi(request, env, url){
       {key:'instagram-brand',label:'BTMEDYA Instagram @btmedyajans',url:'https://www.instagram.com/btmedyajans/',note:'BTMEDYA marka profili'},
       {key:'tiktok',label:'TikTok @btmedya1010',url:'https://www.tiktok.com/@btmedya1010',note:'Kısa video kanalı; yayın API’si ayrıca yetkilendirilmeli'},
       {key:'youtube',label:'YouTube @BTmedyaAjans',url:'https://www.youtube.com/@BTmedyaAjans',note:'Video arşivi ve Shorts hedefi'},
-      {key:'facebook',label:'Facebook bağlantısı',url:'https://www.facebook.com/share/1HhRrPuq4u/',note:'Kullanıcı tarafından sağlanan bağlantı; kanonik Page kimliği Metricool bağlantısında doğrulanmalı'},
+      {key:'facebook',label:'Facebook Page · BTmedya',url:'https://www.facebook.com/575215109000565',note:'Meta’da doğrulanan BTmedya sayfası; yayın için META_PAGE_ID gerekir'},
       {key:'whatsapp',label:'WhatsApp teklif hattı',url:'https://wa.me/905416401029',note:'İletişim ve proje talebi'}
     ],
     integrations:{
