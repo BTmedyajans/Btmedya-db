@@ -98,7 +98,7 @@
 .hm-kart figure .hm-kaynak{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.72)}
 .hm-kart h3{margin:0;font:800 17px/1.3 Manrope,Inter,Arial,sans-serif;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .hm-kart:hover h3{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px;text-decoration-color:var(--kat,var(--hm-sari))}
-.hm-ust-bilgi{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hm-ust-bilgi{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 8px;min-width:0}
 
 /* Kategori blokları: bir büyük haber + kompakt satırlar. */
 .hm-bloklar{display:grid;gap:38px}
