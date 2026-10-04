@@ -31,7 +31,7 @@
   if(reduced||narrow)return;
   let raf=0;
   const updatePointer=e=>{
-    if(raf)return;raf=requestAnimationFrame(()=>{raf=0;const x=e.clientX/innerWidth-.5,y=e.clientY/innerHeight-.5;document.body.style.setProperty('--bt-mx',x.toFixed(3));document.body.style.setProperty('--bt-my',y.toFixed(3));});
+    if(raf)return;raf=requestAnimationFrame(()=>{raf=0;const x=e.clientX/innerWidth-.5,y=e.clientY/innerHeight-.5;document.body.style.setProperty('--bt-mx',x.toFixed(3));document.body.style.setProperty('--bt-my',y.toFixed(3));document.body.style.setProperty('--bt-tilt-x',`${(y*-12).toFixed(2)}deg`);document.body.style.setProperty('--bt-tilt-y',`${(x*16).toFixed(2)}deg`);document.body.style.setProperty('--bt-tilt-z',`${(x*y*7).toFixed(2)}deg`);});
   };
   window.addEventListener('pointermove',updatePointer,{passive:true});
   const onScroll=()=>{document.body.style.setProperty('--bt-scroll',Math.min(1,scrollY/Math.max(1,innerHeight*2)).toFixed(3));};

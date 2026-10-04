@@ -37,7 +37,8 @@
   if(reduced){intro.querySelector('p').textContent='Düşük hareket tercihiniz nedeniyle statik giriş kullanılıyor.';setTimeout(unlock,100);}
   const sceneMap={haber:'haber',produksiyon:'produksiyon',medya:'medya',ai:'ai'};
   const observer=new MutationObserver(()=>{
-    document.querySelectorAll('.cinematic-choice').forEach(btn=>{if(btn.dataset.btBound)return;btn.dataset.btBound='1';btn.addEventListener('mouseenter',()=>{if(!unlocked)return;document.body.dataset.heroScene=sceneMap[btn.dataset.choice]||'haber';});btn.addEventListener('focus',()=>{if(!unlocked)return;document.body.dataset.heroScene=sceneMap[btn.dataset.choice]||'haber';});});
+    document.querySelectorAll('.cinematic-choice').forEach(btn=>{if(btn.dataset.btBound)return;btn.dataset.btBound='1';const setScene=()=>{if(!unlocked)return;document.body.dataset.heroScene=sceneMap[btn.dataset.choice]||'haber';};btn.addEventListener('mouseenter',setScene);btn.addEventListener('focus',setScene);btn.addEventListener('click',setScene);});
+    document.querySelectorAll('.mobile-quick-nav a[data-mobile-nav]').forEach(btn=>{if(btn.dataset.btBound)return;btn.dataset.btBound='1';btn.addEventListener('click',()=>{if(!unlocked)return;const key=btn.dataset.mobileNav;document.body.dataset.heroScene=key==='news'?'haber':key==='portfolio'||key==='media'?'medya':key==='ai'?'ai':'haber';});});
   });
   observer.observe(root,{childList:true,subtree:true});
 })();
