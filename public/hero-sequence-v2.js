@@ -13,12 +13,15 @@
   root.appendChild(intro);
   const start=intro.querySelector('.bt-hero-start');
   let unlocked=false,started=false;
+  const categoryVideos=()=>[...root.querySelectorAll('.cinematic-video video')].filter(v=>v!==film);
+  const silenceCategories=()=>categoryVideos().forEach(v=>{v.pause();v.muted=true;v.defaultMuted=true;});
   const unlock=()=>{
-    if(unlocked)return; unlocked=true; document.body.classList.remove('bt-hero-intro-lock');root.classList.remove('bt-hero-intro-active');root.classList.add('bt-hero-intro-complete');intro.setAttribute('aria-hidden','true');
+    if(unlocked)return; unlocked=true; silenceCategories(); document.body.classList.remove('bt-hero-intro-lock');root.classList.remove('bt-hero-intro-active');root.classList.add('bt-hero-intro-complete');intro.setAttribute('aria-hidden','true');
     document.querySelectorAll('.mobile-quick-nav a').forEach((a,i)=>a.style.setProperty('--bt-nav-delay',`${i*35}ms`));
   };
   const play=withSound=>{
     if(!film)return;
+    silenceCategories();
     started=true; film.loop=false; film.preload='auto'; film.playsInline=true; film.defaultMuted=!withSound; film.muted=!withSound?true:false;
     const source=film.currentSrc||film.src||film.dataset.src;
     if(!film.src&&film.dataset.src){film.src=film.dataset.src;film.load();}

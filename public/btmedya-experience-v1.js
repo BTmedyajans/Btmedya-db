@@ -38,7 +38,7 @@
     const source=root.querySelector('[data-cinematic-kaynak]');
     const lead=root.querySelector('[data-cinematic-lead]');
     let activeKey='haber';
-    let timer=0;
+    let timer=0, transitionToken=0;
     const visualFor=key=>key==='ai'?root.querySelector('.cinematic-ai-visual'):root.querySelector(`.cinematic-video[data-video="${key}"]`);
     const setSource=choice=>{
       const video=visualFor(choice.key)?.querySelector('video');
@@ -55,17 +55,24 @@
       const cta=copy.querySelector('.button-dark');if(cta)cta.href=choice.link;
       setSource(choice);
     };
-    const loadVideo=el=>{const v=el?.querySelector('video');if(!v)return;if(!v.src&&v.dataset.src){v.src=v.dataset.src;v.load();}if(!reduced)v.play?.().catch(()=>{});};
+    const prepareVideo=v=>{if(!v)return null;v.muted=true;v.defaultMuted=true;v.playsInline=true;v.loop=true;v.preload='auto';return v;};
+    const loadVideo=el=>{const v=prepareVideo(el?.querySelector('video'));if(!v)return Promise.resolve(null);if(!v.src&&v.dataset.src){v.src=v.dataset.src;v.load();}if(v.readyState>=3)return Promise.resolve(v);return new Promise(resolve=>{let done=false;const finish=()=>{if(done)return;done=true;v.removeEventListener('canplay',finish);v.removeEventListener('loadeddata',finish);resolve(v);};v.addEventListener('canplay',finish,{once:true});v.addEventListener('loadeddata',finish,{once:true});window.setTimeout(finish,1800);});};
     const activate=choice=>{
       if(!choice||choice.key===activeKey)return;
       const current=visualFor(activeKey),next=visualFor(choice.key);if(!next)return;
+      const token=++transitionToken;
       nav.querySelectorAll('.cinematic-choice').forEach(x=>{const on=x.dataset.choice===choice.key;x.classList.toggle('is-active',on);x.setAttribute('aria-pressed',String(on));});
       root.classList.add('choice-moving');root.dataset.choice=choice.key;root.dataset.choiceDirection=choice.direction<0?'left':choice.key==='ai'?'up':'right';
-      current?.classList.add('is-choice-current');next.classList.add('is-choice-next');current?.querySelector('video')?.pause?.();
-      setSource(choice);loadVideo(next);
-      root.querySelectorAll('.cinematic-video,.cinematic-ai-visual').forEach(x=>x.classList.remove('is-active'));next.classList.add('is-active');
-      setCopy(choice);activeKey=choice.key;
-      window.clearTimeout(timer);timer=window.setTimeout(()=>{root.querySelectorAll('.is-choice-current,.is-choice-next').forEach(x=>x.classList.remove('is-choice-current','is-choice-next'));root.classList.remove('choice-moving');},reduced?80:560);
+      current?.classList.add('is-choice-current');current?.querySelector('video')?.pause?.();
+      setSource(choice);
+      loadVideo(next).then(()=>{
+        if(token!==transitionToken)return;
+        next.classList.add('is-choice-next');
+        root.querySelectorAll('.cinematic-video,.cinematic-ai-visual').forEach(x=>x.classList.remove('is-active'));next.classList.add('is-active');
+        setCopy(choice);activeKey=choice.key;
+        next.querySelector('video')?.play?.().catch(()=>{});
+        window.clearTimeout(timer);timer=window.setTimeout(()=>{root.querySelectorAll('.is-choice-current,.is-choice-next').forEach(x=>x.classList.remove('is-choice-current','is-choice-next'));root.classList.remove('choice-moving');},reduced?80:560);
+      });
     };
     nav.addEventListener('click',e=>{const btn=e.target.closest('.cinematic-choice');if(btn)activate(choices.find(x=>x.key===btn.dataset.choice));});
     if(!reduced&&matchMedia('(hover:hover)').matches){
