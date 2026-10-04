@@ -19,7 +19,7 @@
   const oynatDugme=kutu.querySelector('[data-mfilm-oynat]');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const filmler=[
-    {source:'AI ÜRETİMİ · GİRİŞ FİLMİ',video:'/assets/media/web/hero-story.mp4'}
+    {source:'AI ÜRETİMİ · GİRİŞ FİLMİ',video:'/assets/media/web/hero-story-mobile.mp4'}
   ];
   root.classList.add('bt-mobile-film');
   root.style.removeProperty('height');
@@ -56,10 +56,18 @@
   }
   document.addEventListener('visibilitychange',()=>{if(document.hidden)video.pause();else if(!reduced)oynat();});
 
-  /* Panelden atanmış giriş filmi varsa onu oynat; yoksa varsayılan film. */
-  const varsayilan=video.dataset.src||filmler[0].video;
+  /* Panelin farklı yaratıcı atamasına dokunma. Yalnız aynı varsayılan master
+     atanmışsa mobilde eş dosyayı seç: seçim/etiket aynı kalır, veri azalır. */
+  const masaustuVarsayilan=video.dataset.src;
+  const varsayilan=video.dataset.mobileSrc||filmler[0].video;
   Promise.resolve(window.btYuvalar).then(y=>{
     const a=y&&y['hero-video'];
-    if(a&&a.tur==='video'&&a.url)kaynakKoy(String(a.url),a.gercek===true);else kaynakKoy(varsayilan,false);
+    if(a&&a.tur==='video'&&a.url){
+      let url=String(a.url);
+      try{
+        if(video.dataset.mobileSrc&&masaustuVarsayilan&&new URL(url,location.origin).pathname===new URL(masaustuVarsayilan,location.origin).pathname)url=video.dataset.mobileSrc;
+      }catch{}
+      kaynakKoy(url,a.gercek===true);
+    }else kaynakKoy(varsayilan,false);
   }).catch(()=>kaynakKoy(varsayilan,false));
 })();

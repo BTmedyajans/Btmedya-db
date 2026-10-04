@@ -73,12 +73,13 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
 
   const portfoyKarti = (x) => {
     const b = esc(x.baslik || '');
+    const sure = esc(x.sure || '');
     return '<article class="portfoy-kart" data-kategori="' + esc(x.kategori || '') + '">' +
       '<button class="portfoy-oynat" type="button" data-video="' + esc(x.id || '') + '"' +
-      ' aria-label="' + b + ' — önizlemeyi oynat">' +
+      ' aria-label="' + b + ' — önizlemeyi oynat' + (sure ? ' · ' + sure : '') + '">' +
       '<img class="portfoy-kapak" loading="lazy" decoding="async" src="' + esc(x.kapak || '') + '" alt="' + b + '">' +
       '<span class="portfoy-rozet" aria-hidden="true"></span>' +
-      '<span class="portfoy-sure">' + esc(x.sure || '') + '</span></button>' +
+      '<span class="portfoy-sure">' + sure + '</span></button>' +
       '<div class="portfoy-metin"><h3>' + b + '</h3>' +
       '<p>' + sayi(x.izlenme) + ' izlenme · ' + esc(String(x.tarih || '').slice(0, 4)) + '</p>' +
       '<a href="https://www.youtube.com/watch?v=' + encodeURIComponent(x.id || '') + '"' +
@@ -348,7 +349,6 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     const dt = dateText(latest);
     link.textContent = [cat, latest.title, dt].filter(Boolean).join(' · ');
     link.href = '/haberler/' + encodeURIComponent(latest.slug);
-    link.setAttribute('aria-label', 'Son haber: ' + latest.title);
   };
 
   /* Mobil hero, haber akışından kopuk sabit bir slogan gibi kalmasın.
