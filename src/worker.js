@@ -2095,6 +2095,12 @@ export default { async scheduled(controller, env, ctx){
     html=html.replace(/<meta name="twitter:title" content="[^"]*">/i,'<meta name="twitter:title" content="'+htmlKac(title)+'">');
     html=html.replace(/<meta name="twitter:description" content="[^"]*">/i,'<meta name="twitter:description" content="'+htmlKac(bilgi.desc)+'">');
     html=html.replace(/<section class="hm-katsayfa" data-hm-katsayfa aria-live="polite"><\/section>/i,block);
+    // Kategori sayfası arşiv ile aynı içeriği tekrar etmez. Arşiv kartlarını
+    // DOM'dan da çıkarıyoruz; böylece Google aynı 27 eski haberi sekiz
+    // kategori sayfasında tekrar tekrar görmez.
+    const arsivAt=html.indexOf('<section class="hm-arsiv"');
+    const mainEnd=arsivAt>=0 ? html.indexOf('</main>',arsivAt) : -1;
+    if(arsivAt>=0 && mainEnd>arsivAt) html=html.slice(0,arsivAt)+html.slice(mainEnd);
     return new Response(html,{status:200,headers:{...guvenlikBasliklari(url.pathname),'content-type':'text/html; charset=utf-8','x-robots-tag':robotsBasligi(url.pathname),'cache-control':'public, max-age=60, s-maxage=60, must-revalidate','cache-tag':'btmedya-html'}});
   }
 
