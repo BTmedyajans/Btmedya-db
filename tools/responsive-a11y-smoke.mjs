@@ -27,14 +27,11 @@ for (const vp of viewports) {
   page.on('pageerror', e => failures.push(vp.name+' '+(page.url()||'page')+' pageerror: '+e.message));
   for (const item of pages) {
     const url=BASE+item.path;
-    /* /admin/ giriş kabuğu bilinçli olarak 401 döndürür. Playwright page.goto
-       bazı CI ağlarında 401 yanıtı için response nesnesi vermeyebildiğinden
-       bunu görsel rota smoke testinden ayırıyoruz. Production Verify zaten
-       admin API ve korumalı alt yolların 401/302 davranışını test ediyor. */
     if(item.path==='/admin/'){
       const adminResponse=await page.request.get(url,{timeout:30000,failOnStatusCode:false}).catch(()=>null);
       const adminStatus=adminResponse?.status()||0;
-      if(adminStatus && adminStatus!==401 && adminStatus!==200) failures.push(vp.name+' /admin/ HTTP '+adminStatus+' (expected 401/200)');
+      if(!adminResponse) failures.push(vp.name+' /admin/ HTTP NO_RESPONSE');
+      else if(adminStatus!==401 && adminStatus!==200) failures.push(vp.name+' /admin/ HTTP '+adminStatus+' (expected 401/200)');
       continue;
     }
     const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000}).catch(e=>null);
@@ -47,13 +44,7 @@ for (const vp of viewports) {
       const imgs=[...document.images];
       const unnamedButtons=[...document.querySelectorAll('button')].filter(b=>!((b.textContent||'').trim()||b.getAttribute('aria-label')||b.getAttribute('title')));
       const unnamedLinks=[...document.querySelectorAll('a')].filter(a=>!((a.textContent||'').trim()||a.getAttribute('aria-label')||a.getAttribute('title')) && !a.querySelector('img[alt]'));
-      return {
-        width:innerWidth,
-        scrollWidth:Math.max(html.scrollWidth,body?.scrollWidth||0),
-        imageWithoutAlt:imgs.filter(i=>!i.hasAttribute('alt')).length,
-        unnamedButtons:unnamedButtons.length,
-        unnamedLinks:unnamedLinks.length
-      };
+      return {width:innerWidth,scrollWidth:Math.max(html.scrollWidth,body?.scrollWidth||0),imageWithoutAlt:imgs.filter(i=>!i.hasAttribute('alt')).length,unnamedButtons:unnamedButtons.length,unnamedLinks:unnamedLinks.length};
     });
     if(result.scrollWidth > result.width + 2) failures.push(vp.name+' '+item.path+' horizontal-overflow '+result.scrollWidth+'>'+result.width);
     if(result.imageWithoutAlt) failures.push(vp.name+' '+item.path+' images-without-alt '+result.imageWithoutAlt);
