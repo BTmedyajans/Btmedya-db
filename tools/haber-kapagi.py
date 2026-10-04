@@ -471,7 +471,9 @@ def bilgi_karti_foto(h, cikti):
 # Duzen: tam kadraj fotograf, altta koyu gecis, kategori seridi ve iri
 # baslik sol altta, haberin rakami sag ustte kategori renginde kutuda,
 # en altta kirmizi kunye bandi.
-LISANS_ADI = {"by": "CC BY", "by-sa": "CC BY-SA", "cc0": "CC0", "pdm": "Kamu malı"}
+LISANS_ADI = {"by": "CC BY", "by-sa": "CC BY-SA", "cc0": "CC0", "pdm": "Kamu malı",
+              # Commons {{Attribution}}: yalniz atif sarti olan ozgur lisans.
+              "atif": "Serbest lisans (atıf)"}
 
 
 def lisans_metni(t):
@@ -707,9 +709,26 @@ def golgeli_yazi(im, xy, metin, font, dolgu=INK, kontur=4):
 def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
     """h: plan kaydi. temsili_yolu: lisansli temsili/arsiv fotografi (tam
     zemin). portre: (yol, ust) muhabirin kendi gercek karesi (sag serit)."""
-    if temsili_yolu:
+    kaynak_im = Image.open(temsili_yolu).convert("RGB") if temsili_yolu else None
+    if kaynak_im and W > H and kaynak_im.height > kaynak_im.width * 1.05:
+        # Haberdeki kisinin dikey portresi (resmi portre, basin fotografi).
+        # Tam zemine yayilinca yuz ortada kalip basligin altinda eziliyordu;
+        # ulusal kanallarin kartindaki gibi kisi sagda, baslik solda durur.
         t = h["temsili"]
-        im = kapla(Image.open(temsili_yolu).convert("RGB"), W, H, t.get("odak", 0.45))
+        im = manset_zemini()
+        pw = int(W * 0.42)
+        p = kapla(kaynak_im, pw, H, t.get("odak", 0.20))
+        m = Image.new("L", (pw, H), 255)
+        dm = ImageDraw.Draw(m)
+        for x in range(200):
+            dm.line([(x, 0), (x, H)], fill=int(255 * (x / 200) ** 1.4))
+        im.paste(p, (W - pw, 0), m)
+        im = alt_gecis(im, 0.62, 200)
+        metin_gen = W - pw - KEN + 60
+        kaynak = kunye_satiri(t)
+    elif temsili_yolu:
+        t = h["temsili"]
+        im = kapla(kaynak_im, W, H, t.get("odak", 0.45))
         im = ImageEnhance.Contrast(im).enhance(1.08)
         # Soldan ve alttan karartma: beyaz baslik her fotografta okunsun.
         maske = Image.new("L", (W, H), 0)
