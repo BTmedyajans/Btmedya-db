@@ -1231,15 +1231,15 @@
   },
   "temsili": {
    "dosya": "tools/temsili-kaynak/abd-cin-e-yapay-zeka-icin-acil-durum-hatti-onerdi.jpg",
-   "baslik": "SD co-hosts U.S. – China diplomatic and security dialog 170621-D-SV709-015 (35280476772)",
-   "yazar": "Jim Mattis",
+   "baslik": "Official portrait of Treasury Secretary Scott Bessent",
+   "yazar": "ABD Hazine Bakanlığı",
    "kaynak": "Wikimedia Commons",
-   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=60298423",
-   "lisans": "by",
-   "lisans_surum": "2.0",
-   "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
-   "odak": 0.45,
-   "rozet": "temsili"
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=161642723",
+   "lisans": "pdm",
+   "lisans_surum": "",
+   "lisans_url": "",
+   "odak": 0.18,
+   "rozet": "arsiv"
   }
  },
  {
@@ -1327,14 +1327,14 @@
   },
   "temsili": {
    "dosya": "tools/temsili-kaynak/ingiltere-disisleri-bakani-miliband-bm-guvenlik-konseyi-ne-yapay-zeka-cagrisi-yapti.jpg",
-   "baslik": "United Nations Headquarters - Security Council chamber, angled view (cropped)",
-   "yazar": "Jdforrester",
+   "baslik": "Official portrait of Rt Hon Edward Miliband MP crop 2",
+   "yazar": "Richard Townshend",
    "kaynak": "Wikimedia Commons",
-   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=176463761",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=86672741",
    "lisans": "by",
-   "lisans_surum": "4.0",
-   "lisans_url": "https://creativecommons.org/licenses/by/4.0/",
-   "odak": 0.45,
+   "lisans_surum": "3.0",
+   "lisans_url": "https://creativecommons.org/licenses/by/3.0/",
+   "odak": 0.18,
    "rozet": "arsiv"
   }
  },
@@ -1660,7 +1660,19 @@
    "yer": "Balıkesir"
   },
   "altbilgi": "BTMEDYA · 29 Eylül 2026",
-  "imza": "BTMEDYA HABER MERKEZİ"
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "temsili": {
+   "dosya": "tools/temsili-kaynak/balikesir-universitesi-greenmetric-2026-da-dunya-401-incisi-oldu.jpg",
+   "baslik": "Balikesir Universitesi 1",
+   "yazar": "Citrat (tr.wikipedia)",
+   "kaynak": "Wikimedia Commons",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=2868244",
+   "lisans": "by-sa",
+   "lisans_surum": "3.0",
+   "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+   "odak": 0.5,
+   "rozet": "arsiv"
+  }
  },
  {
   "slug": "milli-yapay-zeka-platformu-evren-8-bin-kullaniciyi-asti",
@@ -1780,6 +1792,18 @@
    "deger": "Balogun",
    "etiket": "ocak dönemi hedefi · kaynak: Hürriyet",
    "yer": "Fenerbahçe"
+  },
+  "temsili": {
+   "dosya": "tools/temsili-kaynak/fenerbahce-lukaku-performans-duserse-50-milyon-euroluk-balogun-transferi-hedefliyor.jpg",
+   "baslik": "Folarin Balogun Australia v USA 19 June 2026-64",
+   "yazar": "Bryan Berlin",
+   "kaynak": "Wikimedia Commons",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=194849059",
+   "lisans": "by-sa",
+   "lisans_surum": "4.0",
+   "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+   "odak": 0.18,
+   "rozet": "arsiv"
   }
  },
  {
@@ -1804,6 +1828,18 @@
    "deger": "İptal",
    "etiket": "süresiz yoksulluk nafakası Anayasa'ya aykırı bulundu",
    "yer": "Ankara"
+  },
+  "temsili": {
+   "dosya": "tools/temsili-kaynak/nafaka-karari-iptal-edildi.jpg",
+   "baslik": "Constitutional Court of Turkey",
+   "yazar": "Murat Karabulut (VOA)",
+   "kaynak": "Wikimedia Commons",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=95252347",
+   "lisans": "pdm",
+   "lisans_surum": "",
+   "lisans_url": "",
+   "odak": 0.5,
+   "rozet": "arsiv"
   }
  },
  {
@@ -1840,6 +1876,18 @@
    "deger": "16,8 yıl",
    "etiket": "muhtemel eğitim süresi · TÜİK, 2025",
    "yer": "Türkiye"
+  },
+  "temsili": {
+   "dosya": "tools/temsili-kaynak/egitim-suresi-16-8-yil.jpg",
+   "baslik": "Türkiye İstatistik Kurumu, Ankara 2023",
+   "yazar": "Modern primat",
+   "kaynak": "Wikimedia Commons",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=136013538",
+   "lisans": "by-sa",
+   "lisans_surum": "4.0",
+   "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+   "odak": 0.35,
+   "rozet": "arsiv"
   }
  },
  {
@@ -1864,6 +1912,18 @@
    "deger": "9 sezon",
    "etiket": "mali kural ihlali suçlamaları",
    "yer": "İngiltere"
+  },
+  "temsili": {
+   "dosya": "tools/temsili-kaynak/manchester-city.jpg",
+   "baslik": "Etihad Stadium, Manchester City Football Club (Ank Kumar, Infosys) 16",
+   "yazar": "Ank kumar",
+   "kaynak": "Wikimedia Commons",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=99457992",
+   "lisans": "by-sa",
+   "lisans_surum": "4.0",
+   "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+   "odak": 0.55,
+   "rozet": "arsiv"
   }
  },
  {
@@ -1912,6 +1972,18 @@
    "deger": "Açılış",
    "etiket": "TEKNOFEST Güneydoğu · GAP Havalimanı",
    "yer": "Şanlıurfa"
+  },
+  "temsili": {
+   "dosya": "tools/temsili-kaynak/turk-yildizlari-teknofest-guneydogu-nun-acilisinda-binlerce-izleyiciye-akrobasi-gosterisi.jpg",
+   "baslik": "Turkish Stars in Konya, 2025",
+   "yazar": "Jim van de Burgt",
+   "kaynak": "Wikimedia Commons",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=194016583",
+   "lisans": "cc0",
+   "lisans_surum": "",
+   "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "odak": 0.5,
+   "rozet": "arsiv"
   }
  },
  {
@@ -1924,6 +1996,18 @@
    "deger": "Eylül",
    "etiket": "doğum yardımı ödemeleri hesaplarda",
    "yer": "Türkiye"
+  },
+  "temsili": {
+   "dosya": "tools/temsili-kaynak/eylul-ayi-dogum-yardimi-odemeleri-annelerin-hesaplarina-yatirildi.jpg",
+   "baslik": "Mahinur Özdemir Göktaş - 2023 (cropped)",
+   "yazar": "Necati Savaş / Avrupa Birliği",
+   "kaynak": "Wikimedia Commons",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=138562653",
+   "lisans": "by",
+   "lisans_surum": "4.0",
+   "lisans_url": "https://creativecommons.org/licenses/by/4.0/",
+   "odak": 0.18,
+   "rozet": "arsiv"
   }
  },
  {
@@ -2152,6 +2236,18 @@
    "deger": "60 yıl",
    "etiket": "şarkılar CSO Ada Ankara sahnesinde",
    "yer": "Ankara"
+  },
+  "temsili": {
+   "dosya": "tools/temsili-kaynak/selami-sahin-cso-ada-ankara-nin-yeni-sezon-acilis-konserinde-60-yillik-sarkilarini-seslend.jpg",
+   "baslik": "Selami Şahin",
+   "yazar": "Sakhalinio",
+   "kaynak": "Wikimedia Commons",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=52849642",
+   "lisans": "by-sa",
+   "lisans_surum": "4.0",
+   "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+   "odak": 0.18,
+   "rozet": "arsiv"
   }
  },
  {
