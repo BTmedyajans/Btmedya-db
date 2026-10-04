@@ -241,3 +241,13 @@
    veriyor (gren katmanının üstünde dursunlar diye); çekmece body'ye
    taşındığı için bunu açıkça ezer. */
 body>.hm-cekmece{position:fixed!important;inset:0;z-index:2147483000!important}
+
+/* Server-rendered clean category pages: focus the reader on the selected desk. */
+.hm.kategori-modu .hm-arsiv,.hm.kategori-modu>.hm-akan{display:none}
+.hm-kat-sunucu-izgara{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 18px}
+.hm-kat-sunucu-kart{min-width:0}
+.hm-kat-sunucu-kart .hm-kart{height:100%}
+.hm-kat-spot{margin:0;color:var(--hm-soluk);font:500 13px/1.5 Manrope,Inter,Arial,sans-serif;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.hm-kat-kaynak{margin-top:36px}
+@media(max-width:900px){.hm-kat-sunucu-izgara{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.hm-kat-sunucu-izgara{grid-template-columns:1fr;gap:24px}.hm-kat-kaynak{display:grid!important;grid-template-columns:1fr!important;gap:14px!important}}
