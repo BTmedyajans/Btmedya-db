@@ -1,4 +1,4 @@
-/* BTMEDYA Haber Merkezi V14 · 2026-10-04
+/* BTMEDYA Haber Merkezi V15 · 2026-10-04
    Neden yeniden: V13 mobilde 13.900 px'ti; aynı haber iki üç bölümde
    tekrar ediyor, kapağın üstüne ikinci bir HTML başlık biniyor, güncel
    haberlerde "ARŞİVDEN BUGÜNE" yazıyor, kategori seçimi yalnız alttaki iki
@@ -78,6 +78,7 @@
 
 /* Ortak etiketler. */
 .hm-kat{display:inline-flex;align-items:center;gap:6px;color:var(--kat,var(--hm-sari));font:800 11px/1 Manrope,Inter,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.hm-format{display:inline-flex;align-items:center;min-height:20px;padding:3px 6px;border:1px solid currentColor;border-radius:999px;color:var(--hm-soluk);font:800 8px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;opacity:.78}
 .hm-kat::before{content:'';width:12px;height:3px;background:currentColor}
 .hm-zaman{color:var(--hm-soluk);font:600 12px/1.2 'JetBrains Mono',ui-monospace,monospace;white-space:nowrap}
 .hm-kaynak{display:inline-block;padding:3px 6px;border-radius:4px;background:rgba(255,255,255,.08);color:#c9d2da;font:700 10px/1.2 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.05em;text-transform:uppercase}
