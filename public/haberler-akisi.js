@@ -1,4 +1,4 @@
-/* /haberler/ BTMEDYA Haber Merkezi V15 · 2026-10-04
+/* /haberler/ BTMEDYA Haber Merkezi V16 · 2026-10-04
    Ulusal kanalların sırası: son haber şeridi → numaralı manşet → sürmanşet →
    kategori blokları. ?kategori=<anahtar> aynı sayfada kategori sayfasına
    döner; adres geçmişe yazılır, geri tuşu çalışır.
@@ -180,6 +180,16 @@
   }
 
   /* ---- Kategori sayfası ---- */
+  function aktifKategori() {
+    var server = document.documentElement.getAttribute('data-bt-haber-kategori') || '';
+    if (server && AD[server]) return server;
+    var m = location.pathname.match(/^\\/haberler\\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji)\\/\\$/);
+    if (m && AD[m[1]]) return m[1];
+    return new URLSearchParams(location.search).get('kategori') || '';
+  }
+  function kategoriYolu(anahtar) {
+    return anahtar && AD[anahtar] ? '/haberler/' + encodeURIComponent(anahtar) + '/' : '/haberler/';
+  }
   var tumHaberler = [];
   function kategoriGoster(anahtar, gecmis) {
     var gecerli = AD[anahtar] ? anahtar : '';
@@ -196,7 +206,7 @@
       gozle(yer);
     } else if (bas) bas.textContent = 'BTMEDYA Haber Merkezi | Balıkesir ve Türkiye Gündemi';
     if (gecmis) {
-      history.pushState({ kategori: gecerli }, '', gecerli ? '/haberler/?kategori=' + gecerli : '/haberler/');
+      history.pushState({ kategori: gecerli }, '', kategoriYolu(gecerli));
       window.scrollTo({ top: 0, behavior: azHareket ? 'auto' : 'smooth' });
     }
   }
@@ -253,7 +263,7 @@
   if (acDugme) acDugme.addEventListener('click', cekmeceAc);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') cekmeceKapat(); });
 
-  window.addEventListener('popstate', function () { kategoriGoster(new URLSearchParams(location.search).get('kategori') || '', false); });
+  window.addEventListener('popstate', function () { kategoriGoster(aktifKategori(), false); });
 
   /* ---- Hareket: görünür olunca belirme ---- */
   var gozcu = null;
@@ -319,9 +329,9 @@
     var yedek = kok.querySelector('[data-hm-yedek]'); if (yedek) yedek.remove();
     if (!azHareket) document.documentElement.classList.add('hm-hareket');
     gozle();
-    kategoriGoster(new URLSearchParams(location.search).get('kategori') || '', false);
+    kategoriGoster(aktifKategori(), false);
   }
-  rayIsaretle(new URLSearchParams(location.search).get('kategori') || 'tumu');
+  rayIsaretle(aktifKategori() || 'tumu');
   yukle().catch(function (e) { console.warn('Haber akışı yüklenemedi', e); });
 
   /* ---- Arşiv araması ---- */
