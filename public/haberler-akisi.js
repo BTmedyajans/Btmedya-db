@@ -1,4 +1,4 @@
-/* /haberler/ BTMEDYA Haber Merkezi V14 · 2026-10-04
+/* /haberler/ BTMEDYA Haber Merkezi V15 · 2026-10-04
    Ulusal kanalların sırası: son haber şeridi → numaralı manşet → sürmanşet →
    kategori blokları. ?kategori=<anahtar> aynı sayfada kategori sayfasına
    döner; adres geçmişe yazılır, geri tuşu çalışır.
@@ -11,23 +11,45 @@
   'use strict';
 
   var KATEGORILER = [
-    ['balikesir', 'Balıkesir', /\b(yerel|balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|pazar|altyapi)\b/],
-    ['gundem', 'Gündem', /\b(gundem|asayis|yangin|afet|guvenlik|trafik)\b/],
-    ['ekonomi', 'Ekonomi', /\b(ekonomi|emlak|esnaf|tarim|ticaret|fiyat)\b/],
-    ['kultur', 'Kültür Sanat', /\b(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik)\b/],
-    ['egitim', 'Eğitim', /\b(egitim|universite|okul|sinav)\b/],
-    ['saglik', 'Sağlık', /\b(saglik|beslenme|bakim|hastane)\b/],
-    ['spor', 'Spor', /\b(spor|futbol|basketbol|turnuva)\b/],
-    ['teknoloji', 'Teknoloji', /\b(yapay zeka|teknoloji|yazilim|dijital|ai)\b/]
+    ['balikesir', 'Balıkesir', /\b(balikesir|yerel|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|pazar|altyapi|ulasim|belediye|sehir)\b/],
+    ['gundem', 'Gündem', /\b(gundem|asayis|yangin|afet|guvenlik|trafik|itfaiye|emniyet|polis|kaza|kamu)\b/],
+    ['ekonomi', 'Ekonomi', /\b(ekonomi|emlak|esnaf|tarim|ticaret|fiyat|piyasa|maas|istihdam|satis|konut)\b/],
+    ['kultur', 'Kültür Sanat', /\b(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik|tiyatro|sinema|festival)\b/],
+    ['egitim', 'Eğitim', /\b(egitim|universite|okul|sinav|ogrenci|kampus|yok)\b/],
+    ['saglik', 'Sağlık', /\b(saglik|beslenme|bakim|hastane|doktor|tedavi|epilasyon|obezite|kalp)\b/],
+    ['spor', 'Spor', /\b(spor|futbol|basketbol|turnuva|atletizm|pehlivan|muay thai|sporcu)\b/],
+    ['teknoloji', 'Teknoloji', /\b(yapay zeka|teknoloji|yazilim|dijital|ai|teknofest|uygulama|platform)\b/]
   ];
   var AD = {}; KATEGORILER.forEach(function (k) { AD[k[0]] = k[1]; });
+  var KATEGORI_ACIKLAMA = {
+    balikesir: 'Balıkesir merkez, ilçeler, belediye hizmetleri, ulaşım ve kent yaşamı.',
+    gundem: 'Güvenlik, afet, yangın, kamu hizmetleri ve günlük gelişmeler.',
+    ekonomi: 'Esnaf, tarım, fiyatlar, emlak, istihdam ve yerel iş dünyası.',
+    kultur: 'Sanat, tiyatro, sinema, gastronomi, etkinlik ve kent hafızası.',
+    egitim: 'Okullar, üniversiteler, sınavlar ve öğrenci yaşamından gelişmeler.',
+    saglik: 'Sağlık hizmetleri, uzman görüşleri ve günlük yaşamı ilgilendiren gelişmeler.',
+    spor: 'Balıkesir ve Türkiye sporundan sonuçlar, oyuncular ve etkinlikler.',
+    teknoloji: 'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetler.'
+  };
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[x]; }); }
   function norm(s) { return String(s || '').toLocaleLowerCase('tr-TR').replace(/ı/g, 'i').normalize('NFD').replace(/[̀-ͯ]/g, ''); }
   function bul(t) { var k = KATEGORILER.find(function (x) { return x[2].test(t); }); return k ? k[0] : null; }
   function kategori(n) {
     var c = String(n.category || '');
-    return bul(norm(c.split('·')[0])) || bul(norm(c)) || bul(norm(n.title + ' ' + (n.excerpt || ''))) || 'gundem';
+    var metin = norm(c + ' ' + (n.title || '') + ' ' + (n.excerpt || '') + ' ' + (Array.isArray(n.body) ? n.body.slice(0, 2).join(' ') : ''));
+    var aliased = [
+      ['teknoloji', /(yapay zeka|teknoloji|yazilim|dijital|\bai\b|teknofest|uygulama|platform)/],
+      ['egitim', /(egitim|universite|okul|sinav|ogrenci|kampus|\byok\b)/],
+      ['saglik', /(saglik|beslenme|hastane|doktor|tedavi|epilasyon|obezite|kalp)/],
+      ['spor', /(spor|futbol|basketbol|turnuva|atletizm|pehlivan|muay thai|sporcu)/],
+      ['kultur', /(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik|tiyatro|sinema|festival)/],
+      ['ekonomi', /(ekonomi|emlak|esnaf|tarim|ticaret|fiyat|piyasa|maas|istihdam|satis|konut)/],
+      ['gundem', /(gundem|asayis|yangin|afet|guvenlik|trafik|itfaiye|emniyet|polis|kaza|kamu)/],
+      ['balikesir', /(balikesir|yerel|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|pazar|altyapi|ulasim|belediye)/]
+    ];
+    for (var i = 0; i < aliased.length; i++) if (aliased[i][1].test(metin)) return aliased[i][0];
+    return bul(norm(c.split('·')[0])) || bul(norm(c)) || bul(metin) || 'gundem';
   }
   function kapak(n) { return n.cover_url || ''; }
   // Kartlarda metinsiz/sade kare; manşette başlığı basılı tam kapak.
@@ -49,6 +71,17 @@
     var k = gorselTuru[n.slug];
     return k === 'gercek' ? 'Gerçek çekim' : k === 'arsiv' ? 'Arşiv fotoğrafı' : k === 'grafik' ? 'BTMEDYA grafik' : k === 'harita' ? 'Harita' : 'Temsili görsel';
   }
+  function formatEtiketi(n) {
+    var k = gorselTuru[n.slug];
+    if (n.video_url) return 'VIDEO HABER';
+    if (k === 'gercek') return 'SAHA';
+    if (k === 'arsiv') return 'ARŞİV';
+    if (k === 'grafik') return 'VERİ / GRAFİK';
+    if (k === 'harita') return 'HARİTA / VERİ';
+    var m = norm((n.category || '') + ' ' + (n.title || '') + ' ' + (n.excerpt || ''));
+    if (/roportaj|saha|dosya/.test(m)) return 'ÖZEL DOSYA';
+    return 'KAYNAKLI GÜNDEM';
+  }
 
   // Yardımcılar yukarıda: test, kategori eşlemesini sayfa olmadan çalıştırır.
   var kok = document.querySelector('.hm');
@@ -59,13 +92,13 @@
   function kart(n, s, sinif) {
     var k = n._kat;
     return '<a class="hm-kart hm-gor ' + (sinif || '') + '" style="--s:' + (s || 0) + '" data-kat="' + k + '" href="' + adres(n) + '">' +
-      '<figure><img src="' + esc(kare(n)) + '" alt="" loading="lazy" decoding="async" width="600" height="450"><span class="hm-kaynak">' + esc(kaynakEtiketi(n)) + '</span></figure>' +
-      '<span class="hm-ust-bilgi"><span class="hm-kat">' + esc(AD[k]) + '</span><time class="hm-zaman" datetime="' + tamTarih(n) + '">' + esc(onceYaz(n)) + '</time></span>' +
+      '<figure><img src="' + esc(kare(n)) + '" alt="' + esc(n.title) + '" loading="lazy" decoding="async" width="600" height="450"><span class="hm-kaynak">' + esc(kaynakEtiketi(n)) + '</span></figure>' +
+      '<span class="hm-ust-bilgi"><span class="hm-kat">' + esc(AD[k]) + '</span><span class="hm-format">' + esc(formatEtiketi(n)) + '</span><time class="hm-zaman" datetime="' + tamTarih(n) + '">' + esc(onceYaz(n)) + '</time></span>' +
       '<h3>' + esc(n.title) + '</h3></a>';
   }
   function satir(n, s) {
     return '<a class="hm-satir hm-gor" style="--s:' + (s || 0) + '" data-kat="' + n._kat + '" href="' + adres(n) + '">' +
-      '<img src="' + esc(kare(n)) + '" alt="" loading="lazy" decoding="async" width="96" height="72">' +
+      '<img src="' + esc(kare(n)) + '" alt="' + esc(n.title) + '" loading="lazy" decoding="async" width="96" height="72">' +
       '<span><h3>' + esc(n.title) + '</h3><time class="hm-zaman" datetime="' + tamTarih(n) + '">' + esc(onceYaz(n)) + '</time></span></a>';
   }
 
@@ -157,7 +190,7 @@
       var l = tumHaberler.filter(function (n) { return n._kat === gecerli; });
       var yer = kok.querySelector('[data-hm-katsayfa]');
       yer.setAttribute('data-kat', gecerli);
-      yer.innerHTML = '<div class="hm-kat-bas"><h2 aria-label="' + esc(AD[gecerli]) + '">' + esc(AD[gecerli]) + '<span class="hm-golge" aria-hidden="true">' + esc(AD[gecerli]) + '</span></h2><p>' + l.length + ' haber · en yeniden eskiye</p></div>' +
+      yer.innerHTML = '<div class="hm-kat-bas"><h2 aria-label="' + esc(AD[gecerli]) + '">' + esc(AD[gecerli]) + '<span class="hm-golge" aria-hidden="true">' + esc(AD[gecerli]) + '</span></h2><p>' + esc(KATEGORI_ACIKLAMA[gecerli] || 'BTMEDYA Haber Merkezi tarafından kaynak, tarih ve görsel türü kontrol edilerek derlenir.') + '</p><small>' + l.length + ' haber · en yeniden eskiye</small></div>' +
         (l.length ? '<div class="hm-izgara">' + l.map(function (n, i) { return kart(n, i % 3); }).join('') + '</div>' : '<p class="hm-bos">Bu kategoride henüz yayımlanmış haber yok.</p>');
       if (bas) bas.textContent = AD[gecerli] + ' Haberleri | BTMEDYA Haber Merkezi';
       gozle(yer);
