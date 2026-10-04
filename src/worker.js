@@ -396,6 +396,11 @@ async function newsApi(request, env, url, ctx){
      fallback olarak kullanılır. Böylece canlı site boş kalmaz. */
   if(url.pathname==='/api/news' && request.method==='GET'){
     const limit=Math.min(Number(url.searchParams.get('limit'))||100,100);
+    /* ozet=1: liste sayfalari (haber portali) haber metnini kullanmaz; 100
+       haberin govdesi mobilde ~230 KB ek indirme demekti. Govde yalniz bu
+       parametreyle dusulur, diger cagiranlar ayni yaniti alir. */
+    const ozet=url.searchParams.get('ozet')==='1';
+    const listeJson=(veri,...a)=>json(ozet?{...veri,items:veri.items.map(({body,...n})=>n)}:veri,...a);
     let d1Items=[];
     if(env.DB){
       const rows=await env.DB.prepare("SELECT id,slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news WHERE status='published' ORDER BY published_at DESC LIMIT 200").all();
@@ -404,7 +409,7 @@ async function newsApi(request, env, url, ctx){
     try{
       const req=new Request(new URL('/data/haberler.json',url.origin));
       const asset=await env.ASSETS.fetch(req);
-      if(!asset.ok) return json({ok:true,source:d1Items.length?'d1':'static',items:d1Items.slice(0,limit)});
+      if(!asset.ok) return listeJson({ok:true,source:d1Items.length?'d1':'static',items:d1Items.slice(0,limit)});
       const archive=await asset.json();
       const staticItems=archive.map((n,i)=>({
         id:n.id||i+1,
@@ -430,10 +435,10 @@ async function newsApi(request, env, url, ctx){
         const bd=Date.parse(b.published_at||b.original_date||'')||0;
         return bd-ad;
       }).slice(0,limit);
-      return json({ok:true,source:d1Items.length?'d1+static-archive':'static-archive',items});
+      return listeJson({ok:true,source:d1Items.length?'d1+static-archive':'static-archive',items});
     }catch(e){
       console.error('[news] static archive fallback failed:',e);
-      return json({ok:true,source:'d1',items:d1Items.slice(0,limit)});
+      return listeJson({ok:true,source:'d1',items:d1Items.slice(0,limit)});
     }
   }
 
