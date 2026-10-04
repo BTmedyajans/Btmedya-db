@@ -2028,10 +2028,10 @@ export default { async scheduled(controller, env, ctx){
   }
   function haberKategoriAnahtari(n){
     const metin=String((n?.category||'')+' '+(n?.title||'')+' '+(n?.excerpt||'')).toLocaleLowerCase('tr-TR')
-      .normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/ı/g,'i');
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
     const rules=[
-      ['teknoloji',/(yapay zeka|teknoloji|yazilim|dijital|\\bai\\b|teknofest|uygulama|platform)/],
-      ['egitim',/(egitim|universite|okul|sinav|ogrenci|kampus|\\byok\\b)/],
+      ['teknoloji',/(yapay zeka|teknoloji|yazilim|dijital|\bai\b|teknofest|uygulama|platform)/],
+      ['egitim',/(egitim|universite|okul|sinav|ogrenci|kampus|\byok\b)/],
       ['saglik',/(saglik|beslenme|hastane|doktor|tedavi|epilasyon|obezite|kalp)/],
       ['spor',/(spor|futbol|basketbol|turnuva|atletizm|pehlivan|muay thai|sporcu)/],
       ['kultur',/(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik|tiyatro|sinema|festival)/],
@@ -2086,7 +2086,7 @@ export default { async scheduled(controller, env, ctx){
 
     html=html.replace('<html lang="tr">','<html lang="tr" data-bt-haber-kategori="'+key+'">');
     html=html.replace('<main class="hm" id="icerik">','<main class="hm kategori-modu" id="icerik">');
-    html=html.replace(/<title>[^<]*<\\/title>/i,'<title>'+htmlKac(title)+'</title>');
+    html=html.replace(/<title>[^<]*<\/title>/i,'<title>'+htmlKac(title)+'</title>');
     html=html.replace(/<meta name="description" content="[^"]*">/i,'<meta name="description" content="'+htmlKac(bilgi.desc)+'">');
     html=html.replace(/<link rel="canonical" href="[^"]*">/i,'<link rel="canonical" href="'+canonical+'">');
     html=html.replace(/<meta property="og:url" content="[^"]*">/i,'<meta property="og:url" content="'+canonical+'">');
@@ -2094,7 +2094,7 @@ export default { async scheduled(controller, env, ctx){
     html=html.replace(/<meta property="og:description" content="[^"]*">/i,'<meta property="og:description" content="'+htmlKac(bilgi.desc)+'">');
     html=html.replace(/<meta name="twitter:title" content="[^"]*">/i,'<meta name="twitter:title" content="'+htmlKac(title)+'">');
     html=html.replace(/<meta name="twitter:description" content="[^"]*">/i,'<meta name="twitter:description" content="'+htmlKac(bilgi.desc)+'">');
-    html=html.replace(/<section class="hm-katsayfa" data-hm-katsayfa aria-live="polite"><\\/section>/i,block);
+    html=html.replace(/<section class="hm-katsayfa" data-hm-katsayfa aria-live="polite"><\/section>/i,block);
     return new Response(html,{status:200,headers:{...guvenlikBasliklari(url.pathname),'content-type':'text/html; charset=utf-8','x-robots-tag':robotsBasligi(url.pathname),'cache-control':'public, max-age=60, s-maxage=60, must-revalidate','cache-tag':'btmedya-html'}});
   }
 
@@ -2104,7 +2104,7 @@ export default { async scheduled(controller, env, ctx){
     if(HABER_KATEGORILERI[key]) return Response.redirect(new URL('/haberler/'+key+'/',url.origin).toString(),301);
   }
 
-  const temizKatMatch=url.pathname.match(/^\\/haberler\\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji)\\/$/);
+  const temizKatMatch=url.pathname.match(/^\/haberler\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji)\/$/);
   if(temizKatMatch) return await temizKategoriSayfasi(request,env,url,temizKatMatch[1]);
 
   /* HABER SAYFASI — once statik dosya, yoksa D1'den uretim.
