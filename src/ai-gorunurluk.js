@@ -58,7 +58,8 @@ export async function aiGorunurluk(request, env, url) {
     const m = url.pathname.match(HABER_YUZEYI);
     if (m) {
       const slug = decodeURIComponent(m[1]);
-      const n = await env.DB.prepare(`SELECT ${ALANLAR} FROM news WHERE slug=? AND status='published'`).bind(slug).first();
+      const n = await env.DB.prepare(`SELECT ${ALANLAR} FROM news WHERE slug=? AND status='published'`).bind(slug).first()
+        || await statikHaber(env, kok, slug);
       if (!n) return null;
       const k = kayit(n, kok);
       return m[2] === 'md'
@@ -79,6 +80,27 @@ export async function aiGorunurluk(request, env, url) {
 }
 
 const ALANLAR = 'slug,title,excerpt,body,category,author,cover_url,published_at,updated_at,source_url,original_date,archive_note';
+
+/* Depodaki public/data/haberler.json'da olup D1'de bulunmayan haberler.
+   HTML sayfaları bu dosyadan çizilir (worker.js); .md ve .jsonld de aynı
+   kaynağa düşmezse sayfadaki alternatif bağlantılar 404 veriyordu. */
+async function statikHaber(env, kok, slug) {
+  if (!env.ASSETS) return null;
+  try {
+    const r = await env.ASSETS.fetch(new Request(new URL('/data/haberler.json', kok)));
+    if (!r.ok) return null;
+    const n = (await r.json()).find(x => x && x.slug === slug);
+    if (!n) return null;
+    return {
+      slug: n.slug, title: n.title, excerpt: n.excerpt || '',
+      body: Array.isArray(n.body) ? n.body.join('\n\n') : String(n.body || ''),
+      category: n.category || 'Haber', author: n.author || 'BTMEDYA Haber Merkezi',
+      cover_url: n.cover_url || `/assets/haber-kapak/${encodeURIComponent(n.slug)}.webp`,
+      published_at: n.published_at || null, updated_at: n.updated_at || null,
+      source_url: n.source_url || null, original_date: n.original_date || null, archive_note: n.archive_note || null
+    };
+  } catch (e) { return null; }
+}
 
 async function sonHaberler(env, limit) {
   const r = await env.DB.prepare(

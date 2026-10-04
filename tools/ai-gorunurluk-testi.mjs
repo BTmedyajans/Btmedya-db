@@ -13,7 +13,13 @@ const DB = { prepare: sql => ({ bind: (...a) => ({
   first: async () => haberler.find(h => h.slug === a[0]) || null,
   all: async () => ({ results: haberler.slice(0, a[0]) })
 }) }) };
-const ASSETS = { fetch: async req => new URL(req.url).pathname === '/llms.txt' ? new Response('# BTMEDYA\n\n> Statik giriş.') : new Response('yok', { status: 404 }) };
+const statikler = [{ slug: 'yalniz-depoda', title: 'Yalnız depoda duran haber', excerpt: 'Özet.', body: ['İlk paragraf.', 'İkinci paragraf.'], category: 'Yerel', published_at: '2026-09-24T00:00:00+03:00', source_url: 'https://balikesir.bel.tr/x' }];
+const ASSETS = { fetch: async req => {
+  const yol = new URL(req.url).pathname;
+  if (yol === '/llms.txt') return new Response('# BTMEDYA\n\n> Statik giriş.');
+  if (yol === '/data/haberler.json') return new Response(JSON.stringify(statikler));
+  return new Response('yok', { status: 404 });
+} };
 const env = { DB, ASSETS };
 const iste = async (yol, method = 'GET') => A.aiGorunurluk(new Request('https://btmedya.com.tr' + yol, { method }), env, new URL('https://btmedya.com.tr' + yol));
 
@@ -21,6 +27,18 @@ const iste = async (yol, method = 'GET') => A.aiGorunurluk(new Request('https://
 assert.equal(await iste('/haberler/toki-46-ilde-383-arsa'), null);
 assert.equal(await iste('/'), null);
 assert.equal(await iste('/haberler/olmayan.md'), null, 'yayında olmayan haber statik/404 yoluna düşmeli');
+
+// D1'de olmayıp depodaki haberler.json'da duran haberin .md ve .jsonld'si de
+// verilir (HTML sayfası bu dosyadan çizildiği için bağlantı 404 olmamalı).
+{
+  const md = await iste('/haberler/yalniz-depoda.md');
+  assert.ok(md, 'statik haberin Markdown hâli dönmeli');
+  const mt = await md.text();
+  assert.ok(mt.startsWith('# Yalnız depoda duran haber'));
+  assert.ok(mt.includes('İkinci paragraf.'));
+  const ld = await iste('/haberler/yalniz-depoda.jsonld');
+  assert.equal(JSON.parse(await ld.text()).headline, 'Yalnız depoda duran haber');
+}
 
 // llms.txt: statik giriş korunur, haberler .md bağlantısıyla listelenir.
 let r = await iste('/llms.txt');
