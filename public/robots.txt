@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
+# Dahili üretim aracı, yayın sayfası değil. Sitemap'te yok; indekslenirse
+# markanın arama sonuçlarında içerik sayfası gibi görünür.
+Disallow: /social-studio/
 Sitemap: https://btmedya.com.tr/sitemap.xml

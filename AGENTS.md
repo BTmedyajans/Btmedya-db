@@ -42,7 +42,18 @@ Test paketi yok. Doğrulama, sayfayı gerçekten sürerek yapılır:
 ```bash
 python3 -m http.server 8788 --directory public   # ya da eşdeğeri
 node --check src/worker.js public/anasayfa.js    # sözdizimi
+node tools/dogrula.mjs                           # yapılandırma kontrolleri
 ```
+
+`tools/dogrula.mjs`, aşağıdaki "sessizce bozan tuzaklar" bölümünde yazılı
+hataların makineyle yakalanabilen kısmını denetler: kanonik adres tutarlılığı,
+`run_worker_first` kapsamı, nonce'suz satır içi script, migration numaraları,
+`routes` kapalılığı ve host yönlendirme tablosu. Aynı kontroller her pull
+request'te `.github/workflows/dogrulama.yml` ile çalışır.
+
+Betik görsel hiçbir şey denetlemez. Kontrast, perde ve video oynatma hâlâ gözle
+kontrol edilir; "doğrulama temiz" çıktısı sayfanın doğru göründüğü anlamına
+gelmez.
 
 Görsel ve davranış kontrolü için headless Chrome (CDP) kullanılır:
 `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`. Bu Chromium'da **H.264

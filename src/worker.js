@@ -28,6 +28,30 @@ function safeKey(name){ return name.normalize('NFKD').replace(/[^\w.\-]+/g,'-').
 function extFromMime(mime){ const map={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/webm':'webm','audio/mpeg':'mp3','audio/wav':'wav','audio/mp4':'m4a','application/pdf':'pdf'}; return map[mime]||'bin'; }
 const ALLOWED_MIME = new Set(['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','audio/mpeg','audio/wav','audio/mp4','application/pdf']);
 
+/* ---------- kanonik alan adı ---------- */
+/* Marka iki alan adı taşıyor: btmedya.com.tr yayında, btmedyaajans.com ikincil.
+   Aynı içerik iki adreste 200 dönerse arama motoru hangisini göstereceğini
+   kendi seçer ve iki adres birbirinin sinyalini böler. Bu yüzden tek kanonik
+   adres var, geri kalan her host ona 301'lenir.
+   Bu kod yalnızca Worker çalıştığında devreye girer; Worker'ın hangi adreslerde
+   çalıştığı wrangler.toml içindeki run_worker_first listesine bağlıdır. Alan adı
+   genelinde kesin çözüm, ikincil zone üzerindeki Redirect Rule'dur (hiç Worker
+   çağrısı üretmez). Buradaki kod o kural yokken ya da ikincil alan adı Custom
+   Domain olarak bu Worker'a bağlandığında yedek görevi görür.
+   Ayrıntı: docs/ALAN-ADI-YAPILANDIRMA.md */
+const KANONIK_HOST = 'btmedya.com.tr';
+const IKINCIL_HOSTLAR = new Set(['btmedyaajans.com']);
+
+/* Host kanonik değilse 301 hedefini, kanonikse null döner.
+   workers.dev önizleme adresi kasıtla listede yok: oraya yönlendirme konursa
+   deploy öncesi test adresi canlı siteye kaçar ve test edilemez hale gelir. */
+function kanonikHedef(host){
+  const h = host.toLowerCase();
+  const wwwsuz = h.startsWith('www.') ? h.slice(4) : h;
+  if (IKINCIL_HOSTLAR.has(wwwsuz)) return KANONIK_HOST;
+  return wwwsuz === h ? null : wwwsuz;   // yalnızca "www." kırpıldıysa yönlendir
+}
+
 /* ---------- E-posta bildirimi (Resend) ---------- */
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 async function sendContactEmail(env, msg){
@@ -405,8 +429,17 @@ function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
 export default { async fetch(request, env, ctx){
   const url = new URL(request.url);
 
-  if(url.hostname.startsWith('www.')){
-    url.hostname = url.hostname.slice(4);
+  /* Tek adımda kanonik adrese: www eki ve ikincil alan adı aynı yerde çözülür.
+     Yol ve sorgu korunur, böylece ikincil alan adına verilmiş eski bağlantılar
+     anasayfaya değil kendi sayfasına düşer. Zincirleme yönlendirme olmaması
+     için hedef doğrudan kanonik host; www.btmedyaajans.com tek 301 ile biter.
+     hedef === mevcut host karşılaştırması, IKINCIL_HOSTLAR'a yanlışlıkla
+     kanonik host yazılırsa oluşacak sonsuz döngüyü keser. */
+  const hedef = kanonikHedef(url.hostname);
+  if(hedef && hedef !== url.hostname.toLowerCase()){
+    url.hostname = hedef;
+    url.protocol = 'https:';
+    url.port = '';
     return Response.redirect(url.toString(), 301);
   }
 

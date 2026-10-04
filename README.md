@@ -17,8 +17,13 @@ public/              Yayınlanan her şey (assets binding bu klasörü servis ed
   admin/             Media Vault yönetim paneli (/admin/)
   social-studio/     İçerik → sosyal video üretim sayfası
   robots.txt, sitemap.xml, rss.xml, site.webmanifest
-docs/                Yayına alma ve Media Vault kılavuzları
+tools/dogrula.mjs    Yapılandırma doğrulaması (kanonik adres, CSP, migration)
+docs/                Yayına alma, alan adı ve Media Vault kılavuzları
 ```
+
+Her pull request'te `.github/workflows/dogrulama.yml` çalışır: JavaScript
+sözdizimi, `tools/dogrula.mjs` kontrolleri ve `public/` altına backend dosyası
+sızmadığı denetimi. Yerelde tek komut: `node tools/dogrula.mjs`.
 
 Backend dosyaları `public/` dışında tutulur; bu yüzden `wrangler.toml`, `src/` ve
 `migrations/` hiçbir koşulda herkese açık servis edilmez.
@@ -47,9 +52,26 @@ Cloudflare Workers Builds, `wrangler.toml` içindeki `name` alanını yok sayar 
 daima bağlı olduğu servise (`btmedya-db`) deploy eder. `main` dalına push
 yapıldığında site otomatik güncellenir.
 
+### Alan adları
+
+| Alan adı | Durum (4 Ekim 2026 ölçümü) |
+|---|---|
+| `btmedya.com.tr` | **Canlı** — `btmedya-db` Worker'ına bağlı, 200 dönüyor |
+| `www.btmedya.com.tr` | 301 → `btmedya.com.tr` |
+| `btmedyaajans.com` | **Tescilli değil** — satın alınmayı bekliyor |
+
+`btmedyaajans.com` ikincil alan adı: ayrı bir site değil, `btmedya.com.tr`'ye
+301 yönlendirme olarak planlandı (aynı içeriği iki adreste yayınlamak yinelenen
+içeriktir). Yönlendirme tablosu `src/worker.js` içinde (`KANONIK_HOST`,
+`IKINCIL_HOSTLAR`) hazır; alan adı alındığı anda devreye girer. Alan adı
+genelinde kesin çözüm, ikincil zone üzerindeki Redirect Rule'dur.
+
+Adım adım kurulum, ölçüm komutları ve geriye kalan işler:
+[`docs/ALAN-ADI-YAPILANDIRMA.md`](docs/ALAN-ADI-YAPILANDIRMA.md)
+
 ### Alan adı bağlama
 
-`btmedya.com.tr` alan adı şu an `btmedya-db` Worker'ına bağlı ve canlı.
+`btmedya.com.tr` alan adı `btmedya-db` Worker'ına Custom Domain olarak bağlı.
 
 `www.btmedya.com.tr` ile gelen istekler Worker tarafından `btmedya.com.tr`
 adresine 301 yönlendirilir. Bu yönlendirme yalnızca Worker çalıştığında devreye

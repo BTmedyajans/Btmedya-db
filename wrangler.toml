@@ -44,6 +44,21 @@ run_worker_first = ["/", "/haberler/*", "/hakkimizda*", "/iletisim*"]
 #
 # Custom Domain eklemek için:
 # Workers & Pages > btmedya-db > Settings > Domains & Routes > Add > Custom Domain
+#
+# İKİNCİL ALAN ADI (btmedyaajans.com) BURAYA BAĞLANMAZ.
+# Marka ikinci bir alan adı taşıyor ama ikinci bir site yok: ikincil adres
+# btmedya.com.tr'ye 301 döner. Bunun doğru yeri Worker değil, ikincil zone
+# üzerindeki Redirect Rule'dur. Gerekçe:
+#   - Redirect Rule Worker'dan ÖNCE çalışır, yani her yolu kapsar. Worker'daki
+#     yönlendirme yalnızca yukarıdaki run_worker_first desenlerinde devreye
+#     girer; /styles.css gibi dosyalar ikincil adreste 200 dönmeye devam eder.
+#   - Redirect Rule hiç Worker çağrısı üretmez, yani ücretsizdir. Alan adını
+#     Custom Domain olarak bağlamak, sadece yönlendirme için her isteği ücretli
+#     Worker çağrısına çevirir.
+# src/worker.js içindeki KANONIK_HOST / IKINCIL_HOSTLAR tablosu bu kuralın
+# yedeğidir; kural kurulmadan önce ya da ikincil adres bir gün bu Worker'a
+# bağlanırsa devreye girer.
+# Adım adım: docs/ALAN-ADI-YAPILANDIRMA.md
 
 [[r2_buckets]]
 binding = "MEDIA"
