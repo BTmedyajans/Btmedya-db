@@ -1,9 +1,6 @@
 /* Anasayfa arayüz katmanları. Metricool ölçümü buradan /olcum.js'e taşındı:
    o dosya her kamuya açık sayfada yüklenir ve bot ziyaretlerini ayıklar. */
 (function () {
-  // CSS katmanlarını sırayla yükle. Dinamik <link> etiketleri paralel yüklenirse
-  // ağ gecikmesine göre eski bir katman sonradan uygulanıp responsive hiyerarşiyi
-  // bozabiliyordu. Mobil katman önce, desktop katmanı en son gelir.
   function loadStyle(href) {
     return new Promise(function (resolve, reject) {
       var link = document.createElement('link');
@@ -23,23 +20,25 @@
     return script;
   }
 
+  /* Resilience katmanı artık ilk sırada yüklenir. Böylece canlı public
+     endpoint kısa süreli 4xx/5xx verse bile Social Desk ve Media Vault
+     kullanıcıya hata kutusu bırakmadan doğrulanmış repository snapshotına
+     dönebilir. Cache bust sürümü 2026-10-04. */
+  loadScript('/btmedya-resilience-v1.js?v=20261004-1');
+
   (async function () {
     try {
       await loadStyle('/btmedya-experience-v1.css?v=20261002-2');
       await loadStyle('/content-growth-v1.css?v=20261002-3');
-      await loadStyle('/mobile-polish-v4.css?v=20261003-2');
+      await loadStyle('/mobile-polish-v4.css?v=20261004-1');
       await loadStyle('/desktop-ux-v1.css?v=20261003-2');
 
       loadScript('/btmedya-experience-v1.js?v=20261002-2');
       loadScript('/content-growth-v1.js?v=20261002-3');
-      // Dynamic APIs remain primary; this layer only prevents visible dead ends
-      // when a public snapshot/media endpoint is temporarily unavailable.
-      loadScript('/btmedya-resilience-v1.js?v=20261003-1');
     } catch (error) {
       console.warn('[BTMEDYA UX] Katman yükleme uyarısı:', error);
       loadScript('/btmedya-experience-v1.js?v=20261002-2');
       loadScript('/content-growth-v1.js?v=20261002-3');
-      loadScript('/btmedya-resilience-v1.js?v=20261003-1');
     }
   })();
 })();
