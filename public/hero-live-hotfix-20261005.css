@@ -1,0 +1,40 @@
+/* BTMEDYA HERO LIVE HOTFIX · 2026-10-05
+   Film ve seçim sahnesi aynı yüzeyde birbirine binmez.
+   Mobil: seçim sahnesi filmin hemen altında bağımsız akış bloğudur.
+   Masaüstü: seçim açıldığında video/kopya gizlenir, seçim sahnesi tek yüzey olur. */
+@media (max-width:720px){
+  .mfilm .secim-sahnesi{
+    position:relative!important;
+    inset:auto!important;
+    width:100%!important;
+    min-height:clamp(520px,72svh,760px)!important;
+    height:auto!important;
+    border-radius:0 0 22px 22px;
+    z-index:7;
+  }
+  .mfilm.secim-acik .mfilm-kare{
+    margin-bottom:0!important;
+  }
+  .mfilm.secim-acik .secim-sahnesi{
+    opacity:1!important;
+  }
+}
+@media (min-width:721px){
+  .cinematic-hero.secim-acik .cinematic-video,
+  .cinematic-hero.secim-acik .cinematic-ai-visual,
+  .cinematic-hero.secim-acik .cinematic-copy,
+  .cinematic-hero.secim-acik .cinematic-grid,
+  .cinematic-hero.secim-acik .cinematic-vignette,
+  .cinematic-hero.secim-acik .cinematic-label,
+  .cinematic-hero.secim-acik .cinematic-progress,
+  .cinematic-hero.secim-acik .cinematic-index{
+    opacity:0!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+  }
+  .cinematic-hero.secim-acik .cinematic-sticky>.secim-sahnesi{
+    opacity:1!important;
+    visibility:visible!important;
+    z-index:20!important;
+  }
+}

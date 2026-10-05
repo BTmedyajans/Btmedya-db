@@ -16,7 +16,7 @@
   if(!root)return;
   const mobil=matchMedia('(max-width:720px)').matches;
   const film=mobil?root.querySelector('.mfilm-video'):root.querySelector('.cinematic-video-1 video');
-  const yuva=mobil?root.querySelector('.mfilm-kare'):root.querySelector('.cinematic-sticky');
+  const yuva=mobil?root.querySelector('[data-mfilm]'):root.querySelector('.cinematic-sticky');
   if(!film||!yuva)return;
   const azHareket=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const KARAKTERLI_FILMLER=/\/hero-story(-mobile)?\.mp4$/;
@@ -44,7 +44,13 @@
       SECENEKLER.map((s,i)=>'<a class="secim-secenek" href="'+s.yol+'" data-secim="'+s.anahtar+'" data-yon="'+s.yon+'" style="--x:'+s.x+'%;--y:'+s.y+'%;--sira:'+i+'"><b>'+s.ad+'</b><small>'+s.alt+'</small></a>').join('')+
     '</nav>'+
     '<div class="secim-alt"><span class="secim-etiket" title="Karakter AI ÜRETİMİ giriş filminden">AI ÜRETİMİ · KARAKTER</span><button type="button" class="secim-tekrar" aria-label="Filmi yeniden izle">↺ Yeniden izle</button></div>';
-  yuva.appendChild(sahne);
+  if(mobil){
+    const kareEl=root.querySelector('.mfilm-kare');
+    if(kareEl?.parentElement) kareEl.parentElement.insertBefore(sahne,kareEl.nextSibling);
+    else yuva.appendChild(sahne);
+  }else{
+    yuva.appendChild(sahne);
+  }
 
   const kutu=mobil?root.querySelector('[data-mfilm]'):root;
   const karakter=sahne.querySelector('.secim-karakter');
