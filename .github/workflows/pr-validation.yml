@@ -80,3 +80,9 @@ jobs:
           # (Onceki kontrol "BTMEDYA Production Deploy" adini ariyordu; o is
           # akisi "Production Verify" olunca her PR kirmiziya dusuyordu.)
           ! grep -RIlE --exclude=pr-validation.yml 'wrangler(@[^ ]*)? deploy' .github/workflows
+
+      - name: Diagnostic live responsive offenders
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+          node tools/diagnose-live-overflow.mjs || true

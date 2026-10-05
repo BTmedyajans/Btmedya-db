@@ -1,0 +1,21 @@
+name: BTMedya Diagnostic Overflow
+
+on:
+  push:
+    branches: [diagnose-overflow-20261005]
+
+permissions:
+  contents: read
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm install --no-save --no-package-lock playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+      - name: Diagnose
+        run: node tools/responsive-a11y-smoke.mjs
