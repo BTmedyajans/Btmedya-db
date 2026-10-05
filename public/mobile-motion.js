@@ -41,7 +41,9 @@
   soundBtn&&soundBtn.addEventListener('click',()=>{video.muted=!video.muted;sound();if(!video.paused)start()});
   video.addEventListener('play',()=>{if(playBtn)playBtn.hidden=true;box.classList.add('mfilm-oynuyor')});
   video.addEventListener('pause',()=>box.classList.remove('mfilm-oynuyor'));
-  video.addEventListener('ended',()=>{if(playBtn){playBtn.hidden=false;playBtn.textContent='↺ Yeniden izle'}});
+  // Biten film ekrana geri gelince kendiliğinden baştan başlamasın: sonunda
+  // seçim sahnesi (secim-sahnesi.js) açık kalır. "Yeniden izle" stopped'u sıfırlar.
+  video.addEventListener('ended',()=>{stopped=true;if(playBtn){playBtn.hidden=false;playBtn.textContent='↺ Yeniden izle'}});
   if('IntersectionObserver' in window)new IntersectionObserver(es=>es.forEach(e=>{visible=e.isIntersecting;if(visible&&!reduced)start();else if(!visible)video.pause()}),{threshold:.15}).observe(video);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)video.pause();else if(!reduced)start()});
   if(label)label.textContent='GERÇEK ÇEKİM · BTMEDYA ARŞİVİ'; sound();
