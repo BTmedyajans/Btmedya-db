@@ -44,7 +44,7 @@ async function hmac(secret, message){ const key=await crypto.subtle.importKey('r
 function oturumAnahtari(env){
   const oturum=env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET || '';
   if(!oturum) return '';
-  return env.MEDIA_SIGNING_SECRET ? oturum+'\\u0000'+env.MEDIA_SIGNING_SECRET : oturum;
+  return env.MEDIA_SIGNING_SECRET ? oturum+'\u0000'+env.MEDIA_SIGNING_SECRET : oturum;
 }
 async function medyaListesi(env, origin){
   if(!env || !env.ASSETS) return [];
