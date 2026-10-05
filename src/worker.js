@@ -1840,8 +1840,11 @@ export default { async scheduled(controller, env, ctx){
           if(once) return null;
           await env.KV.put(anahtar,'1',{expirationTtl:7500}).catch(()=>{});
         }
-        return sabahMasasi(env,{maxHaber:2})
-          .then(x=>console.log('[btmedya] haber autopilot',JSON.stringify({published:x.yayinlanan,draft:x.taslak,errors:x.hatalar?.length||0})))
+        const bucket=Math.floor(Date.now()/7200000);
+        const start=(bucket*2)%KATEGORILER.length;
+        const kategoriler=[KATEGORILER[start],KATEGORILER[(start+1)%KATEGORILER.length]].map(x=>x.anahtar);
+        return sabahMasasi(env,{maxHaber:2,kategoriler})
+          .then(x=>console.log('[btmedya] haber autopilot',JSON.stringify({categories:kategoriler,published:x.yayinlanan,draft:x.taslak,errors:x.hatalar?.length||0})))
           .catch(e=>console.error('[btmedya] haber autopilot:',e?.message||e));
       })()
     : Promise.resolve(null);
