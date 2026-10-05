@@ -400,6 +400,26 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   if (!readFileSync('src/news-page.js', 'utf8').includes('/mobil-tipografi.css')) bulgular.push('src/news-page.js haber şablonu mobil tipografi katmanını yüklemiyor.');
 }
 
+/* 15) Betikle basılan GERÇEK ÇEKİM rozeti de katalogla eşleşmeli. 5 Ekim'de
+       mobile-motion.js, üzerinde "AI ÜRETİMİ GÖRSEL" yazan üç grafik kartı
+       (assets/sosyal/*-dikey.mp4) GERÇEK ÇEKİM diye bir video rayına koyup
+       VideoObject olarak bildiriyordu. Kural: public/ altındaki bir .js
+       dosyasında GERÇEK ÇEKİM yazısıyla aynı satırda geçen her /assets/
+       medya yolu medya-ozel.json gercek listesinde olmalı (sahne kayıtları
+       ve kart şablonları tek satırda yazılıyor). */
+{
+  const ozel = existsSync('public/data/medya-ozel.json') ? JSON.parse(readFileSync('public/data/medya-ozel.json', 'utf8')) : {};
+  const gercek = new Set((ozel.gercek || []).map(x => String(x).replace(/^\/?assets\//, '')));
+  for (const ad of readdirSync('public').filter(f => f.endsWith('.js'))) {
+    const kod = readFileSync(join('public', ad), 'utf8');
+    for (const pencere of kod.split('\n').filter(satir => satir.includes('GERÇEK ÇEKİM'))) {
+      for (const y of pencere.matchAll(/\/assets\/([^'"`\s)]+\.(?:mp4|webm|webp|jpe?g|png))/g)) {
+        if (!gercek.has(y[1])) bulgular.push(`public/${ad} "${y[1]}" dosyasının yanına GERÇEK ÇEKİM basıyor ama dosya medya-ozel.json gercek listesinde değil (AGENTS.md: varsayılan AI ÜRETİMİ).`);
+      }
+    }
+  }
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));

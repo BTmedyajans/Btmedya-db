@@ -9,8 +9,11 @@
     if(!copy || root.querySelector('.cinematic-choice-nav'))return;
     const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const choices=[
-      {key:'haber',label:'HABER',title:'Saha Haberleri',desc:'Kaynaklı haber, röportaj ve özel dosya',direction:-1,link:'/haberler/',source:'GERÇEK ÇEKİM · SAHA',video:'/assets/sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4'},
-      {key:'produksiyon',label:'PRODÜKSİYON',title:'Kamera Açık',desc:'Fikirden çekime, kurgudan yayına',direction:1,link:'/video-produksiyon/',source:'GERÇEK ÇEKİM · BTMEDYA PRODÜKSİYON',video:'/assets/media/web/showreel-action.mp4'},
+      /* Rozet, oynayan dosyanın katalog kaydına uymalı (gerileme kuralı 15).
+         5 Ekim: HABER'de AI grafik kartı ve PRODÜKSİYON'da AI showreel
+         GERÇEK ÇEKİM yazıyordu. */
+      {key:'haber',label:'HABER',title:'Saha Haberleri',desc:'Kaynaklı haber, röportaj ve özel dosya',direction:-1,link:'/haberler/',source:'GERÇEK ÇEKİM · BTMEDYA ARŞİVİ',video:'/assets/media/web/giris-filmi-genis.mp4'},
+      {key:'produksiyon',label:'PRODÜKSİYON',title:'Kamera Açık',desc:'Fikirden çekime, kurgudan yayına',direction:1,link:'/video-produksiyon/',source:'AI ÜRETİMİ · SHOWREEL',video:'/assets/media/web/showreel-action.mp4'},
       {key:'medya',label:'MEDYA',title:'İçeriği Harekete Geçir',desc:'Fotoğraf, kısa video ve sosyal içerik',direction:1,link:'/portfoy/',source:'GERÇEK ÇEKİM · BTMEDYA ARŞİVİ',video:'/assets/media/portfoy/btmedya-saha-showreel.mp4'},
       {key:'ai',label:'AI LAB',title:'Yeni Nesil Üretim',desc:'AI video, görsel, otomasyon ve web',direction:1,link:'/ai-lab/',source:'AI ÜRETİMİ · AÇIKÇA ETİKETLİ',video:null}
     ];
