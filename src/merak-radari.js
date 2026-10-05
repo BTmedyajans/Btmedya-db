@@ -140,13 +140,13 @@ export async function merakRadariCalistir(env,{limit=12}={}){
   try{ trends=rss(await al(TRENDS_URL)).slice(0,20); }catch(e){ result.errors.push("Google Trends: "+String(e&&e.message||e).slice(0,160)); }
   var ilceRadar=await ilceResmiSinyalleri();
   result.districts={expected:BALIKESIR_ILCELERI.length,discovered:ilceRadar.sources.length,items:ilceRadar.items.length,errors:ilceRadar.errors};
+  var candidates=[];
   ilceRadar.items.forEach(function(item){
     var topic=item.ilce+" | "+item.title;
     candidates.push({konu:topic,soru:"son durum",kategori:"Balıkesir",kaynak_url:item.link||item.source,google:0,search:4,social:0,btm:0,competitor:0,puan:48,gerekce:"P1 resmî ilçe kaynağı · "+item.ilce});
   });
   var trendKel=new Map();
   trends.forEach(function(x){ anahtarlar(x.title).forEach(function(k){ trendKel.set(k,(trendKel.get(k)||0)+1); }); });
-  var candidates=[];
   for(var ti=0;ti<trends.length;ti++){
     var t=trends[ti], topic=t.title.trim(); if(!topic) continue;
     var related=await autocomplete(topic);
