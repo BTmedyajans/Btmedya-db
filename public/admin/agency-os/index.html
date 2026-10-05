@@ -3,8 +3,15 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#090909">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/admin/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>BTMEDYA • Ajans Süpervizör</title>
 <link rel="stylesheet" href="./agency-os.css">
+<link rel="stylesheet" href="../mobile-admin.css">
 <link rel="stylesheet" href="./agency-social-v1.css?v=20261002-1">
 <link rel="stylesheet" href="./agency-hamburger-v3.css?v=20261002-1">
 </head>
@@ -43,6 +50,12 @@
       <button id="refresh" class="btn">Yenile</button>
     </div>
     <div id="heartbeat" class="status">Sistem bağlantısı hazırlanıyor…</div>
+  </section>
+
+  <section class="mobile-install" id="pwaInstall" hidden aria-label="Mobil uygulama kurulumu">
+    <b>BTMEDYA’yı telefona kur</b>
+    <span>Bu yönetim merkezini uygulama gibi açmak için ana ekrana ekleyin.</span>
+    <button class="btn" id="pwaInstallButton" type="button">Uygulamayı kur</button>
   </section>
 
   <section class="quick-actions" aria-label="Hızlı işlemler">
@@ -119,5 +132,6 @@
 <script src="./agency-os.js" defer></script>
 <script src="./agency-social-v1.js?v=20261002-1" defer></script>
 <script src="./agency-hamburger-v3.js?v=20261002-1" defer></script>
+<script src="../pwa-install.js" defer></script>
 </body>
 </html>
