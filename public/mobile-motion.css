@@ -124,3 +124,18 @@
 @media (max-width:720px) and (prefers-reduced-motion:reduce){
   .mfilm *{transition:none!important;animation:none!important}
 }
+
+/* Anasayfa mobil denetimi (5 Ekim): fotoğraf künyesi etiketleri 8–9,5 px'e
+   inmişti; "ARŞİV FOTOĞRAFI / TEMSİLİ FOTOĞRAF" görselin kaynağını söyler,
+   okunmalı. 104 px küçük karede iki satıra kırılır, öne çıkan habere tek
+   satır sığar. Dokunma hedefleri 44 px'e tamamlanır: haber kartındaki
+   "KAYNAK ↗" (32 px), dil seçici TR/EN (34 px) ve son dakika şeridindeki
+   haber bağlantısı (17 px; şerit yüksekliği değişmesin diye negatif kenar
+   boşluğuyla büyütülür). */
+@media (max-width:720px){
+  #news .news-card:not(.featured) .news-kaynak{font-size:12px!important;letter-spacing:0!important;line-height:1.15!important;padding:4px 3px!important}
+  #news .news-kaynak{font-size:12px!important}
+  #news .news-card:not(.featured) .news-open+.news-open{min-height:44px!important}
+  .topbar .language-switch a{min-width:44px!important;justify-content:center}
+  .bt-breaking-inner>a{padding:13.5px 0;margin:-13.5px 0}
+}
