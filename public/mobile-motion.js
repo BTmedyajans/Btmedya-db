@@ -1,18 +1,12 @@
-/* BTMEDYA Mobil Giriş Filmi V8 · 2026-10-05
-   Neden: V5 mobil girişi kaydırmayla sahne değiştiren, kırpılıp büyütüldüğü
-   için bulanık görünen bir yapıydı; V6-V7 filmi kendi en-boy oranında,
-   okur başlatınca oynayan bloğa çevirdi. V8: film BTMEDYA arşivinden gerçek
-   çekimle yeniden kuruldu (tools/giris-filmi.py, 28,6 sn, kare 720x720).
-   Okur başlatınca SESLİ oynar; tarayıcılar sesi yalnız dokunuşla açtığı
-   için ses kendiliğinden açılmaz. Ses düğmesi, bölüm düğmeleri ve ilerleme
-   çubuğu eklendi. Film döngüye girmez: bitince "Yeniden izle" çıkar ve
-   giriş katmanı (hero-sequence-v2.js) 'ended' olayıyla açılır.
+/* BTMEDYA Mobil Giriş Filmi V9 · 2026-10-05
+   V8: gerçek BTMEDYA arşivinden giriş filmi.
+   V9: mobilde film bloğu yeniden görünür ve varsayılan olarak sessiz
+   oynatılır; kullanıcı dokunduğunda ses açılabilir. Reduced-motion ve
+   görünürlük kapıları korunur. Panelde atanmış hero-video kaydı önceliklidir.
 
    Kaynak: panelde hero-video yuvası atanmışsa o oynar, etiketi kaydın
-   gercek alanından gelir (AGENTS.md: varsayılan AI ÜRETİMİ). Atama yoksa
-   varsayılan film oynar; o dosya medya-ozel.json gercek listesindedir.
-   Panel geniş (16:9) giriş filmini atamışsa mobilde aynı filmin kare
-   kesimi oynar: dikey ekranda 16:9 film küçük kalıyordu. */
+   gercek alanından gelir. Atama yoksa varsayılan gerçek BTMEDYA arşiv filmi.
+   Geniş 16:9 film atanmışsa mobilde aynı filmin kare kesimi kullanılır. */
 (()=>{
   const root=document.querySelector('.cinematic-hero');
   if(!root || window.innerWidth>720)return;
@@ -27,8 +21,6 @@
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const VARSAYILAN={source:'GERÇEK ÇEKİM · BTMEDYA ARŞİVİ',video:'/assets/media/web/giris-filmi.mp4'};
   const KARE_KESIMI={'/assets/media/web/giris-filmi-genis.mp4':VARSAYILAN.video};
-  /* Varsayılan film kare; panel başka oranda film atarsa kutu metaveri
-     gelince o orana döner (oranUygula). */
   root.classList.add('bt-mobile-film');
   root.style.removeProperty('height');
 
@@ -49,13 +41,10 @@
     if(!kullaniciBaslatti||kullaniciDurdurdu||!gorunur||document.hidden)return;
     const p=video.play();
     if(p&&p.catch)p.then(()=>{oynatDugme&&(oynatDugme.hidden=true);}).catch(()=>{
-      /* Sesli oynatma reddedilirse (iOS Düşük Güç Modu vb.) sessiz dene;
-         o da reddedilirse düğme görünür kalır. */
       if(!video.muted){video.muted=true;sesGoster();oynat();return;}
       dugmeYaz('▶ Filmi oynat');
     });
   };
-  /* Kare kesimi varsa onu, H.264 çözülemiyorsa aynı filmin WebM sürümünü seç. */
   const mobilKaynak=url=>{
     const yol=String(url).split('?')[0];
     const kare=KARE_KESIMI[yol]||yol;
@@ -66,12 +55,8 @@
     if(!url)return;
     if(etiket)etiket.textContent=etiketMetni;
     bekleyenUrl=mobilKaynak(url);
-    // Arşiv kurgusu kaynak etiketini kendi karesinde taşır; oynarken sayfa
-    // etiketi aynı köşede üst üste binmesin diye gizlenir (bkz. CSS).
     kutu.classList.toggle('mfilm-damgali',/\/giris-filmi\.(mp4|webm)$/.test(bekleyenUrl));
-    // Giriş katmanı filmi data-src'den başlatır; aynı kaynağı görmeli.
     video.dataset.src=bekleyenUrl;
-    // Giriş kartı görünürken düğme CSS ile gizlenir (hero-sequence-v2.css).
     dugmeYaz('▶ Filmi oynat');
   };
   const yukle=()=>{
@@ -80,7 +65,6 @@
       video.src=bekleyenUrl;video.load();
     }
   };
-  /* Okurun dokunuşu sesi açmaya izin verir; film bu yüzden sesli başlar. */
   const baslat=(sesli=true)=>{
     kullaniciBaslatti=true;kullaniciDurdurdu=false;gorunur=true;
     if(sesli){video.muted=false;video.defaultMuted=false;sesGoster();}
@@ -93,7 +77,6 @@
   video.addEventListener('pause',()=>kutu.classList.remove('mfilm-oynuyor'));
   video.addEventListener('ended',()=>{kutu.classList.remove('mfilm-oynuyor');dugmeYaz('↺ Yeniden izle');});
 
-  /* İlerleme ve etkin bölüm: zaman güncellemesi saniyede ~4 kez gelir. */
   video.addEventListener('timeupdate',()=>{
     const s=video.duration||0, t=video.currentTime;
     if(dolu&&s)dolu.style.transform='scaleX('+Math.min(1,t/s).toFixed(4)+')';
@@ -109,7 +92,6 @@
   sesDugme&&sesDugme.addEventListener('click',()=>{
     const acilacak=video.muted;
     video.muted=!acilacak;video.defaultMuted=!acilacak;
-    // Okur sesi kapattıysa sonraki "oynat" da sessiz kalır.
     if(acilacak)delete kutu.dataset.sessizSecildi;else kutu.dataset.sessizSecildi='1';
     sesGoster();
     if(acilacak&&video.paused&&!video.ended)baslat(true);
@@ -131,10 +113,27 @@
   document.addEventListener('visibilitychange',()=>{if(document.hidden)video.pause();else if(!reduced)oynat();});
   sesGoster();
 
-  /* Panelden atanmış giriş filmi varsa onu oynat; yoksa varsayılan film. */
   Promise.resolve(window.btYuvalar).then(y=>{
     const a=y&&y['hero-video'];
     if(a&&a.tur==='video'&&a.url)kaynakKoy(String(a.url),a.gercek===true?'GERÇEK ÇEKİM · BTMEDYA':'AI ÜRETİMİ · GİRİŞ FİLMİ');
     else kaynakKoy(VARSAYILAN.video,VARSAYILAN.source);
-  }).catch(()=>kaynakKoy(VARSAYILAN.video,VARSAYILAN.source));
+    if(!reduced){
+      setTimeout(()=>{
+        if(document.hidden||!gorunur||kullaniciDurdurdu)return;
+        kullaniciBaslatti=true;
+        video.muted=true;
+        video.defaultMuted=true;
+        sesGoster();
+        yukle();
+        if(video.readyState>=2)oynat();
+        else video.addEventListener('canplay',oynat,{once:true});
+      },120);
+    }
+  }).catch(()=>{
+    kaynakKoy(VARSAYILAN.video,VARSAYILAN.source);
+    if(!reduced){
+      kullaniciBaslatti=true;video.muted=true;video.defaultMuted=true;sesGoster();yukle();
+      if(video.readyState>=2)oynat();else video.addEventListener('canplay',oynat,{once:true});
+    }
+  });
 })();
