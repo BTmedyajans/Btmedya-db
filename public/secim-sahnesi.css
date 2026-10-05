@@ -44,9 +44,15 @@
 .secim-etiket[hidden]{display:none}
 .secim-tekrar{margin-left:auto;min-height:44px;padding:0 14px;border:1px solid rgba(255,255,255,.3);border-radius:999px;background:rgba(0,0,0,.66);color:#fff;font:700 13px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer}
 .secim-tekrar:focus-visible{outline:3px solid #fff;outline-offset:2px}
-/* Karaktersiz sürüm (gerçek çekim filmden sonra): üç kart ortada yan yana. */
-.secim-sahnesi.karaktersiz .secim-secenek{top:34%}
+/* Karaktersiz sürüm (gerçek çekim filmden sonra): zemin o filmin kendi
+   posteri, kartlar ortada alt alta; AI karakterinin bulanık izi görünmez. */
+.secim-sahnesi.karaktersiz .secim-zemin{background-image:url('/assets/media/web/giris-filmi-poster.jpg');filter:blur(10px) brightness(.55)}
+.secim-sahnesi.karaktersiz .secim-secenek{left:50%;right:auto;--tx:-50%;width:72%;max-width:320px;transform-origin:center}
+.secim-sahnesi.karaktersiz .secim-secenek[data-secim=haber]{top:24%}
+.secim-sahnesi.karaktersiz .secim-secenek[data-secim=ai]{top:46%}
+.secim-sahnesi.karaktersiz .secim-secenek[data-secim=medya]{top:68%}
 .secim-sahnesi.karaktersiz .secim-isik{display:none}
+.secim-sahnesi.karaktersiz .secim-soru{display:block;top:22px;bottom:auto;left:14px;right:auto;font:700 12px/1.2 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.1em;color:#d9ff3f}
 /* Film bitince mobil oynatıcının kendi "Yeniden izle" düğmesi sahnenin altında kalmasın. */
 .secim-acik .mfilm-oynat,.secim-acik .mfilm-ses{display:none!important}
 @keyframes secimAkis{to{stroke-dashoffset:-30}}

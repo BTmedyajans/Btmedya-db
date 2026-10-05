@@ -66,7 +66,7 @@
 
   let hedef=0, dongu=0, sonEtkilesim=0, kare=0, acik=false, karakterli=false;
   const isinCiz=i=>{
-    const s=SECENEKLER[i], k=karakterli?kaynakNoktasi(s.kaynak):{x:50,y:96};
+    const s=SECENEKLER[i], k=karakterli?kaynakNoktasi(s.kaynak):{x:6,y:96};
     // Hedef, kartın gerçek konumundan: kenara yaslı kartların merkezi s.x değil.
     const r=sahne.getBoundingClientRect(), c=secenekler[i].getBoundingClientRect();
     const tx=r.width?((c.left+c.width/2-r.left)/r.width*100):s.x, ty=r.height?((c.bottom-r.top)/r.height*100):s.y+6;

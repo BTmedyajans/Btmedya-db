@@ -32,11 +32,11 @@
       await loadStyle('/mobile-polish-v4.css?v=20261003-2');
       await loadStyle('/desktop-ux-v1.css?v=20261003-2');
 
-      loadScript('/btmedya-experience-v1.js?v=20261002-2');
+      loadScript('/btmedya-experience-v1.js?v=20261005-1');
       loadScript('/content-growth-v1.js?v=20261002-3');
     } catch (error) {
       console.warn('[BTMEDYA UX] Katman yükleme uyarısı:', error);
-      loadScript('/btmedya-experience-v1.js?v=20261002-2');
+      loadScript('/btmedya-experience-v1.js?v=20261005-1');
       loadScript('/content-growth-v1.js?v=20261002-3');
     }
   })();
