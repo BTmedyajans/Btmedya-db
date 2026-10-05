@@ -158,3 +158,65 @@
 @media (prefers-reduced-motion:reduce){
   #news .news-media img{transition:none!important}
 }
+
+
+/* Cinematic text field / black-gray motion · 2026-10-06 */
+@media (max-width:720px){
+  .mfilm-metin{
+    position:relative;
+    isolation:isolate;
+    overflow:hidden;
+    background:
+      linear-gradient(135deg,rgba(255,255,255,.045),transparent 34%),
+      linear-gradient(180deg,#07090c 0%,#11151a 48%,#080a0d 100%);
+    border-top:1px solid rgba(255,255,255,.12);
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .mfilm-metin::before{
+    content:"";
+    position:absolute;
+    z-index:-2;
+    width:135%;
+    height:170%;
+    left:-22%;
+    top:-38%;
+    pointer-events:none;
+    background:
+      radial-gradient(ellipse at 18% 22%,rgba(255,255,255,.17) 0,rgba(255,255,255,.055) 17%,transparent 43%),
+      radial-gradient(ellipse at 84% 72%,rgba(112,124,137,.19) 0,rgba(112,124,137,.055) 20%,transparent 48%);
+    filter:blur(22px);
+    opacity:.58;
+    transform:translate3d(-4%,-2%,0) rotate(-4deg) scale(1.04);
+    animation:btTextAtmosphere 14s cubic-bezier(.45,0,.25,1) infinite alternate;
+  }
+  .mfilm-metin::after{
+    content:"";
+    position:absolute;
+    z-index:-1;
+    inset:0;
+    pointer-events:none;
+    opacity:.18;
+    background:
+      linear-gradient(115deg,transparent 0 36%,rgba(255,255,255,.12) 46%,transparent 58%),
+      repeating-linear-gradient(0deg,rgba(255,255,255,.045) 0 1px,transparent 1px 7px);
+    mix-blend-mode:screen;
+    transform:translateX(-18%);
+    animation:btTextScan 11s ease-in-out infinite alternate;
+  }
+  .mfilm-metin>*{position:relative;z-index:1}
+  .mfilm-baslik{text-shadow:0 2px 0 rgba(0,0,0,.65),0 0 24px rgba(255,255,255,.045)}
+  .mfilm-spot{color:#c4ccd3;text-shadow:0 1px 8px rgba(0,0,0,.55)}
+}
+@keyframes btTextAtmosphere{
+  0%{transform:translate3d(-4%,-2%,0) rotate(-4deg) scale(1.04);opacity:.42}
+  50%{transform:translate3d(7%,3%,0) rotate(2deg) scale(1.11);opacity:.68}
+  100%{transform:translate3d(-1%,8%,0) rotate(6deg) scale(1.06);opacity:.5}
+}
+@keyframes btTextScan{
+  0%{transform:translateX(-18%);opacity:.08}
+  55%{transform:translateX(8%);opacity:.22}
+  100%{transform:translateX(20%);opacity:.12}
+}
+@media (prefers-reduced-motion:reduce){
+  .mfilm-metin::before,.mfilm-metin::after{animation:none!important;transform:none!important}
+}
