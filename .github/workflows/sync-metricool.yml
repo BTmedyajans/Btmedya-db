@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/sync-metricool.yml"
+      - "wrangler.toml"
+      - "src/metricool-scheduler.js"
+      - "src/sosyal-otomasyon.js"
   schedule:
     - cron: "47 */3 * * *"
   workflow_dispatch:
