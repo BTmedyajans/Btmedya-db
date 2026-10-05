@@ -21,7 +21,7 @@ function temiz(s){
 function rss(xml){
   return Array.from(String(xml||"").matchAll(/<(?:item|entry)\b[\s\S]*?<\/(?:item|entry)>/gi)).map(function(m){
     var b=m[0];
-    var pick=function(t){ var x=b.match(new RegExp("<"+t+"(?:\\s[^>]*)?>([\\s\\S]*?)<\\/"+t+">","i")); return x?temiz(x[1]):""; };
+    var pick=function(t){ var x=b.match(new RegExp("<"+t+"(?:\\s[^>]*)?>([\s\S]*?)<\\/"+t+">","i")); return x?temiz(x[1]):""; };
     var link=pick("link");
     if(!link){ var x=b.match(/<link[^>]+href=["']([^"']+)["']/i); link=x?x[1]:""; }
     return {title:pick("title"),description:pick("description")||pick("summary")||pick("content"),link:link,date:pick("pubDate")||pick("published")||pick("updated")};
@@ -42,7 +42,7 @@ function anahtarlar(metin){ return Array.from(new Set(duzelt(metin).split(/[^a-z
 const BALIKESIR_ILCELERI = ["Altıeylül","Ayvalık","Balya","Bandırma","Bigadiç","Burhaniye","Dursunbey","Edremit","Erdek","Gömeç","Gönen","Havran","İvrindi","Karesi","Kepsut","Manyas","Marmara","Savaştepe","Sındırgı","Susurluk"];
 function resmiIlceLinkleri(html){
   var out=[], seen=new Set();
-  var re=/<a\\b[^>]*href=["']([^"']+)["'][^>]*>([\\s\\S]*?)<\\/a>/gi, m;
+  var re=/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, m;
   while((m=re.exec(String(html||"")))){
     var ad=temiz(m[2]), href=m[1];
     var ilce=BALIKESIR_ILCELERI.find(function(x){return duzelt(ad).indexOf(duzelt(x))>=0;});
@@ -68,7 +68,7 @@ async function ilceResmiSinyalleri(){
       var h=await al(src.url);
       var items=rss(h);
       if(!items.length){
-        var links=[]; var re=/<a\\b[^>]*href=["']([^"']+)["'][^>]*>([\\s\\S]*?)<\\/a>/gi,m;
+        var links=[]; var re=/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi,m;
         while((m=re.exec(h)) && links.length<8){
           var title=temiz(m[2]);
           if(title && title.length>18 && !/menü|iletişim|anasayfa|devamı|kaymakam/i.test(title)) links.push({title:title,link:new URL(m[1],src.url).href,date:""});
@@ -225,7 +225,7 @@ export async function ozelHaberPaketiUret(env,{id}={}){
     const prompt=["BTMEDYA Özel Haber Üretim Masası.","Aşağıdaki fırsatı yayınlanmış bir gerçek gibi kabul etme.","Yalnız araştırma paketi oluştur. Bilinmeyen hiçbir şeyi tamamlamadan VERIFY yaz.","Kaynak URL'lerini koru. Üçüncü taraf metinleri kopyalama.","JSON alanları: baslik_alternatifleri, spot_taslagi, arastirma_sorulari, veri_ve_belge_kontrolu, konuk_ve_saha_plani, sosyal_metni, video_script_60s, gorsel_plani, risk_notu.","Fırsat: "+JSON.stringify(temel)].join("\n");
     const ai=await env.AI.run("@cf/openai/gpt-oss-120b",{messages:[{role:"system",content:"Kaynaklı gazetecilik araştırma yardımcısısın. Uydurma bilgi verme. Eksik bilgiye VERIFY yaz. Kısa ve uygulanabilir Türkçe JSON üret."},{role:"user",content:prompt}],max_tokens:1800,temperature:0.1});
     var raw=String(ai&&ai.response||ai&&ai.output_text||"").trim();
-    var m=raw.match(/\\{[\\s\\S]*\\}/);
+    var m=raw.match(/\\{[\s\S]*\\}/);
     if(m) return {ok:true,source:"workers-ai",id:Number(row.id),paket:JSON.parse(m[0]),temel:temel};
   }catch(e){ return {ok:false,error:String(e&&e.message||e).slice(0,400),temel:temel}; }
   return {ok:true,source:"şablon",paket:temel};
