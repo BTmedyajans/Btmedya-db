@@ -39,6 +39,13 @@ function kanonikHedef(host){
 function b64url(bytes){ return btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function unb64url(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4)s+='='; return Uint8Array.from(atob(s),c=>c.charCodeAt(0)); }
 async function hmac(secret, message){ const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']); return b64url(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(message))); }
+// Admin oturum anahtari, iki ayri Cloudflare Secret'tan turetilir.
+// MEDIA_SIGNING_SECRET yoksa gecici geriye uyumluluk icin yalnizca oturum secret'i kullanilir.
+function oturumAnahtari(env){
+  const oturum=env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET || '';
+  if(!oturum) return '';
+  return env.MEDIA_SIGNING_SECRET ? oturum+'\\u0000'+env.MEDIA_SIGNING_SECRET : oturum;
+}
 async function medyaListesi(env, origin){
   if(!env || !env.ASSETS) return [];
   try{
@@ -189,7 +196,7 @@ async function sendContactEmail(env, msg){
 /* ---------- Cloudflare Workflow API ---------- */
 async function workflowApi(request, env, url) {
   if (!url.pathname.startsWith('/api/workflow/')) return null;
-  if (!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) {
+  if (!(await validSession(request, oturumAnahtari(env)))) {
     return json({ok:false,error:'Yetkisiz'},401);
   }
   if (!env.BTMEDYA_WORKFLOW) {
@@ -260,7 +267,7 @@ function indexNowBildir(ctx, origin, slug){
 
 async function merakRadariApi(request, env, url){
   if(!url.pathname.startsWith('/api/admin/merak-radari')) return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   if(url.pathname==='/api/admin/merak-radari' && request.method==='POST'){
     return json(await merakRadariCalistir(env,{limit:16}));
   }
@@ -288,7 +295,7 @@ async function newsApi(request, env, url, ctx){
   const merakApi=await merakRadariApi(request,env,url); if(merakApi) return merakApi;
 
   if(url.pathname==='/api/admin/news-intelligence' && (request.method==='GET'||request.method==='POST')){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     if(request.method==='POST') return json(await runNewsIntelligence(env,{limit:16}));
     return json(await newsIntelligenceStatus(env));
   }
@@ -310,7 +317,7 @@ async function newsApi(request, env, url, ctx){
 
   const alertMatch=url.pathname.match(/^\/api\/admin\/news-intelligence\/alerts\/(\d+)$/);
   if(alertMatch && request.method==='PATCH'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const b=await request.json().catch(()=>({}));
     const status=String(b.status||'acknowledged');
@@ -453,7 +460,7 @@ async function newsApi(request, env, url, ctx){
 
   /* Admin: haber listesi */
   if(url.pathname==='/api/admin/news' && request.method==='GET'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const status=url.searchParams.get('status');
     let sql='SELECT id,slug,title,excerpt,category,author,cover_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news';
@@ -466,7 +473,7 @@ async function newsApi(request, env, url, ctx){
 
   /* Admin: haber ekle / güncelle (slug ile upsert) */
   if(url.pathname==='/api/admin/news' && request.method==='POST'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const b=await request.json().catch(()=>null);
     if(!b || typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
@@ -495,7 +502,7 @@ async function newsApi(request, env, url, ctx){
   /* Admin: haber güncelle / sil (ID ile) */
   const newsById=url.pathname.match(/^\/api\/admin\/news\/(\d+)$/);
   if(newsById){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const id=Number(newsById[1]);
     if(request.method==='GET'){
@@ -585,7 +592,7 @@ async function scanNewsSources(env,feedIds){
 }
 async function newsFinderApi(request,env,url){
   if(!url.pathname.startsWith('/api/admin/news-finder')) return null;
-  if(!(await validSession(request,(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
   if(request.method==='GET') return json({ok:true,feeds:NEWS_FEEDS.map(x=>({id:x.id,name:x.name,category:x.category})),openai:!!env.OPENAI_API_KEY});
   if(request.method!=='POST') return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,POST'});
@@ -595,7 +602,7 @@ async function newsFinderApi(request,env,url){
 }
 async function aiDraftApi(request,env,url){
   if(url.pathname!=='/api/admin/ai-draft') return null;
-  if(!(await validSession(request,(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   if(request.method!=='POST') return json({ok:false,error:'Method not allowed'},405);
   if(!env.OPENAI_API_KEY) return json({ok:false,error:'OPENAI_API_KEY secret eksik'},503);
   const b=await request.json().catch(()=>({})); const title=String(b.title||'').trim().slice(0,500); const source=String(b.source||'').trim().slice(0,2000); const textIn=String(b.text||'').trim().slice(0,12000);
@@ -609,7 +616,7 @@ async function aiDraftApi(request,env,url){
 /* ---------- Statik arşiv -> R2 eşitleme ---------- */
 async function mediaSyncApi(request, env, url){
   if(url.pathname!=='/api/admin/media-sync' || request.method!=='POST') return null;
-  if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   if(!env.MEDIA) return json({ok:false,error:'Üretim R2 bağlı değil'},503);
   if(!env.ASSETS) return json({ok:false,error:'Statik ASSETS bağlı değil'},503);
   const body=await request.json().catch(()=>({}));
@@ -659,7 +666,7 @@ function publicPathFromInput(value){
 
 async function adminPageInspectApi(request, env, url){
   if(url.pathname!=='/api/admin/inspect' || request.method!=='GET') return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   const path=publicPathFromInput(url.searchParams.get('path')||'/');
   if(!path) return json({ok:false,error:'Yalnızca btmedya.com.tr üzerindeki public yollar denetlenebilir.'},400);
   const target=new URL(path,'https://btmedya.com.tr');
@@ -732,7 +739,7 @@ function inspectHtml(html){
 
 async function adminAiCommandApi(request, env, url){
   if(url.pathname!=='/api/admin/ai-command' || request.method!=='POST') return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   const body=await request.json().catch(()=>null);
   const prompt=String(body?.prompt||'').trim().slice(0,800);
   if(!prompt) return json({ok:false,error:'Komut boş olamaz'},400);
@@ -783,7 +790,7 @@ async function adminAiCommandApi(request, env, url){
 
 async function adminCommandApi(request, env, url){
   if(url.pathname!=='/api/admin/command' || request.method!=='POST') return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   const body=await request.json().catch(()=>null);
   const command=String(body?.command||'').trim();
   if(!SAFE_ADMIN_COMMANDS.has(command)) return json({ok:false,error:'İzin verilmeyen komut'},400);
@@ -838,7 +845,7 @@ async function recordAdminAudit(env, request, response){
 }
 async function adminAuditApi(request, env, url){
   if(url.pathname!=='/api/admin/audit' || request.method!=='GET') return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   if(!env.DB) return json({ok:true,items:[]});
   try{
     await ensureAdminAuditTable(env);
@@ -858,7 +865,7 @@ async function adminAuditApi(request, env, url){
 /* ---------- BTMEDYA Autopilot API ---------- */
 async function autopilotApi(request, env, url){
   if(!url.pathname.startsWith('/api/admin/autopilot')) return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
 
   if(url.pathname==='/api/admin/autopilot' && request.method==='GET'){
     return json(await autopilotStatus(env));
@@ -911,7 +918,7 @@ async function autopilotApi(request, env, url){
 /* ---------- BTMEDYA Control Center ---------- */
 async function controlCenterApi(request, env, url){
   if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   let automation={configured:true,cron:'*/5 * * * *',lastHeartbeat:null};
   if(env.KV){
     const raw=await env.KV.get('automation:heartbeat').catch(()=>null);
@@ -1001,18 +1008,18 @@ async function contactApi(request, env, url, ctx){
     return json({ok:true,message:'Mesajınız alındı, teşekkürler!'});
   }
   if(url.pathname==='/api/admin/contact' && request.method==='GET'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     const rows=await env.DB.prepare('SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 200').all();
     return json({ok:true,items:rows.results});
   }
   const contactById=url.pathname.match(/^\/api\/admin\/contact\/(\d+)$/);
   if(contactById && request.method==='PATCH'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     await env.DB.prepare('UPDATE contact_messages SET read=1 WHERE id=?').bind(Number(contactById[1])).run();
     return json({ok:true});
   }
   if(contactById && request.method==='DELETE'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     await env.DB.prepare('DELETE FROM contact_messages WHERE id=?').bind(Number(contactById[1])).run();
     return json({ok:true});
   }
@@ -1041,7 +1048,7 @@ function socialPlatformCheck(env,platforms){
 
 async function socialApi(request, env, url, ctx){
   if(!url.pathname.startsWith('/api/admin/social')) return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
 
   if(url.pathname==='/api/admin/social/providers' && request.method==='GET'){
@@ -1229,7 +1236,7 @@ async function mediaApi(request, env){
   const u=new URL(request.url); const path=u.pathname;
   if(request.method==='OPTIONS') return new Response(null,{status:204,headers:{'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,PATCH,DELETE,PUT,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'}});
 
-  const sess=env.ADMIN_SESSION_SECRET_SECRET;
+  const sess=oturumAnahtari(env);
   const mediaSec=env.MEDIA_SIGNING_SECRET;
 
   if(path==='/api/login' && request.method==='POST'){
@@ -1323,7 +1330,7 @@ async function mediaApi(request, env){
   const aiToken=env.AI_READ_TOKEN;
   const bearer=(request.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
   const aiRead=(aiToken && bearer===aiToken);
-  const auth=aiRead || await validSession(request,env.ADMIN_SESSION_SECRET_SECRET);
+  const auth=aiRead || await validSession(request,oturumAnahtari(env));
   if(!auth) return json({error:'Yetkisiz'},401);
 
   /* DEPO PLANI — her dosyanin teknik ozelligi, onerilen hedefler, secilen
@@ -1881,7 +1888,7 @@ export default { async scheduled(controller, env, ctx){
   // (/admin/) açık kalır; gerçek yönetim alt yolları imzalı oturum olmadan
   // giriş ekranına döner. API'ler ayrıca kendi session kontrollerini uygular.
   if(url.pathname.startsWith('/admin/') && url.pathname !== '/admin/'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))){
+    if(!(await validSession(request, oturumAnahtari(env)))){
       return Response.redirect(new URL('/admin/', url.origin), 302);
     }
   }
@@ -1900,7 +1907,7 @@ export default { async scheduled(controller, env, ctx){
      başarı sayfası gibi görünmez. CSS/JS/manifest gibi alt kaynaklar
      normal statik varlık olarak kalır; başarılı giriş mevcut kabuğu açar. */
   if(url.pathname === '/admin/' && request.method === 'GET'){
-    const authenticated = await validSession(request, env.ADMIN_SESSION_SECRET_SECRET);
+    const authenticated = await validSession(request, oturumAnahtari(env));
     const adminRes = await env.ASSETS.fetch(request);
     if(!adminRes.ok) return adminRes;
     const adminHeaders = new Headers(adminRes.headers);
@@ -1945,7 +1952,7 @@ export default { async scheduled(controller, env, ctx){
   }
 
   if(url.pathname==='/api/admin/sabah-masasi'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     if(request.method==='GET') return json({ok:true,ayarlar:await sabahAyarlari(env),rapor:await sabahRaporu(env),ai:Boolean(env.AI),kategoriler:KATEGORILER.map(k=>({anahtar:k.anahtar,kategori:k.kategori}))});
     if(request.method==='PUT'){
       const b=await request.json().catch(()=>null);
