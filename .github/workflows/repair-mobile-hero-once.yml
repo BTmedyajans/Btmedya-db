@@ -1,0 +1,39 @@
+name: repair-mobile-hero-once
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Repair mobile video gate
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('public/script.js')
+          s=p.read_text(encoding='utf-8')
+          old="""  const HEAVY_MEDIA_GATES=[\n    '(max-width: 720px)',\n    '(orientation: portrait) and (max-width: 1024px)',\n    '(orientation: portrait) and (pointer: coarse)',\n    '(orientation: portrait) and (pointer: coarse)',\n    '(orientation: landscape) and (pointer: coarse) and (max-height: 560px)',\n    '(prefers-reduced-motion: reduce)'\n  ];"""
+          old2="""  const HEAVY_MEDIA_GATES=[\n    '(max-width: 720px)',\n    '(orientation: portrait) and (max-width: 1024px)',\n    '(orientation: portrait) and (pointer: coarse)',\n    '(orientation: landscape) and (pointer: coarse) and (max-height: 560px)',\n    '(prefers-reduced-motion: reduce)'\n  ];"""
+          new="""  const HEAVY_MEDIA_GATES=[\n    '(prefers-reduced-motion: reduce)'\n  ];"""
+          if old2 in s:
+              s=s.replace(old2,new,1)
+          elif old not in s:
+              print('gate already repaired')
+          else:
+              s=s.replace(old,new,1)
+          s=s.replace("v.dataset.srcMobile","v.dataset.mobile",1)
+          p.write_text(s,encoding='utf-8')
+          PY
+          node --check public/script.js
+      - name: Commit and remove bootstrap
+        run: |
+          git config user.name 'BTMEDYA Automation'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/repair-mobile-hero-once.yml
+          git add public/script.js
+          git diff --cached --quiet && exit 0
+          git commit -m 'chore: repair mobile hero video gate'
+          git push
