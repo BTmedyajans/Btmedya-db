@@ -14,18 +14,30 @@ const { default: worker } = await import('../src/worker.js');
 
 // 1) /api/news?ozet=1 haber gövdesini düşürür; parametresiz çağrı aynı kalır.
 const satirlar = [
-  { id: 1, slug: 'yeni-haber', title: 'Yeni', excerpt: 'Ö', body: 'uzun gövde '.repeat(200), category: 'Spor', status: 'published', published_at: '2026-10-04T05:00:00Z', cover_url: '/assets/haber-kapak/yeni-haber.webp' }
+  { id: 1, slug: 'yeni-haber', title: 'Yeni', excerpt: 'Ö', body: 'uzun gövde '.repeat(200), category: 'Spor', status: 'published', published_at: '2026-10-04T05:00:00Z', cover_url: '/assets/haber-kapak/yeni-haber.webp' },
+  // Sabah Masası plakası + üretilmiş kapak var: kapak gösterilmeli.
+  { id: 2, slug: 'plakali', title: 'Plakalı', excerpt: '', body: 'x', category: 'Spor', status: 'published', published_at: '2026-10-04T04:00:00Z', cover_url: '/assets/kategori-kapak/spor.webp' },
+  // Panelden seçilmiş otomasyon karesi: kapak olsa bile dokunulmaz.
+  { id: 3, slug: 'panel-secimi', title: 'Panel', excerpt: '', body: 'x', category: 'Spor', status: 'published', published_at: '2026-10-04T03:00:00Z', cover_url: '/gorsel/otomasyon/kare.webp' },
+  // Plaka ama üretilmiş kapak yok: plaka kalır.
+  { id: 4, slug: 'kapaksiz', title: 'Kapaksız', excerpt: '', body: 'x', category: 'Spor', status: 'published', published_at: '2026-10-04T02:00:00Z', cover_url: '/assets/paylasim/haberler.webp' }
 ];
 const env = {
   DB: { prepare: () => ({ all: async () => ({ results: satirlar }), bind() { return this; } }) },
-  ASSETS: { fetch: async () => new Response(JSON.stringify([{ slug: 'arsiv-haber', title: 'Arşiv', body: ['eski gövde'], published_at: '2024-05-02T10:00:00Z' }]), { headers: { 'content-type': 'application/json' } }) }
+  ASSETS: { fetch: async (r) => new Response(JSON.stringify(new URL(r.url).pathname === '/data/haber-kapak-kaynagi.json'
+    ? { plakali: 'temsili', 'panel-secimi': 'temsili' }
+    : [{ slug: 'arsiv-haber', title: 'Arşiv', body: ['eski gövde'], published_at: '2024-05-02T10:00:00Z' }]), { headers: { 'content-type': 'application/json' } }) }
 };
 const al = async q => (await (await worker.fetch(new Request('https://btmedya.com.tr/api/news' + q), env, { waitUntil() {} })).json());
 const tam = await al('?limit=10');
-assert.equal(tam.items.length, 2);
+assert.equal(tam.items.length, 5);
 assert.ok(tam.items.every(n => 'body' in n), 'parametresiz yanıt gövdeyi taşımalı');
 const ozet = await al('?limit=10&ozet=1');
-assert.equal(ozet.items.length, 2);
+assert.equal(ozet.items.length, 5);
+const kapak = slug => ozet.items.find(n => n.slug === slug).cover_url;
+assert.equal(kapak('plakali'), '/assets/haber-kapak/plakali.webp', 'üretilmiş kapak plakanın önüne geçmeli');
+assert.equal(kapak('panel-secimi'), '/gorsel/otomasyon/kare.webp', 'panel seçimi değişmemeli');
+assert.equal(kapak('kapaksiz'), '/assets/paylasim/haberler.webp', 'kapağı olmayan plaka kalmalı');
 assert.ok(ozet.items.every(n => !('body' in n)), 'ozet=1 gövdeyi düşürmeli');
 assert.equal(ozet.items[0].title, 'Yeni');
 

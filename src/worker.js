@@ -404,7 +404,8 @@ async function newsApi(request, env, url, ctx){
     let d1Items=[];
     if(env.DB){
       const rows=await env.DB.prepare("SELECT id,slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news WHERE status='published' ORDER BY published_at DESC LIMIT 200").all();
-      d1Items=rows.results||[];
+      const kapaklar=await uretilmisKapaklar(env);
+      d1Items=(rows.results||[]).map(n=>({...n,cover_url:kapakSec(n,kapaklar)}));
     }
     try{
       const req=new Request(new URL('/data/haberler.json',url.origin));
@@ -675,6 +676,7 @@ async function adminPageInspectApi(request, env, url){
         const yid=vid?(vid[1]||vid[2]):'';
         if(env.DB && yid)vlib=await env.DB.prepare('SELECT * FROM video_library WHERE youtube_id=?').bind(yid).first();
         if(env.DB && !vlib)vlib=await env.DB.prepare('SELECT * FROM video_library WHERE news_slug=?').bind(slug).first();
+        n={...n,cover_url:kapakSec(n,await uretilmisKapaklar(env))};
         const related=await ilgiliHaberler(env,n); html=renderNewsPage(n,target.origin,vlib,related);
         mode='dynamic-news';
         return json({ok:true,path,status,contentType:'text/html; charset=utf-8',html:true,mode,seo:inspectHtml(html)});
@@ -1595,6 +1597,29 @@ function uzantiMime(yol){
     webp:'image/webp',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png'}[e]||'application/octet-stream';
 }
 
+/* Uretilmis kapak onceligi. Sabah Masasi yeni haberi kategori plakasiyla
+   yayinlar; haberin kendi kapagi (tools/haber-kapagi.py) sonradan uretilip
+   haber-kapak-kaynagi.json'a girer. D1'deki cover_url elle guncellenene kadar
+   site plakayi gosteriyordu (5 Ekim: 16 haber). Kayit yalniz bos ya da plaka
+   ise ve uretilmis kapak varsa degisir; panelden secilmis baska bir gorsel
+   (R2, otomasyon karesi) oldugu gibi kalir. Veri degismez, yalniz gosterim. */
+let kapakOnbellek={t:0,v:null};
+async function uretilmisKapaklar(env){
+  if(kapakOnbellek.v && Date.now()-kapakOnbellek.t<300000) return kapakOnbellek.v;
+  let v=new Set();
+  try{
+    const r=env.ASSETS && await env.ASSETS.fetch(new Request('https://btmedya.internal/data/haber-kapak-kaynagi.json'));
+    if(r && r.ok) v=new Set(Object.keys(await r.json()));
+  }catch{}
+  kapakOnbellek={t:Date.now(),v};
+  return v;
+}
+const PLAKA_KAPAK=/^\/assets\/(?:kategori-kapak|paylasim)\/[^/]+$/;
+function kapakSec(n,kapaklar){
+  const c=String(n.cover_url||'');
+  return (!c || PLAKA_KAPAK.test(c)) && kapaklar.has(n.slug) ? '/assets/haber-kapak/'+encodeURIComponent(n.slug)+'.webp' : n.cover_url;
+}
+
 /* Panelden atanmis yuvalar. Anasayfa her acilista soruyor; D1'e her
    ziyaretci icin gitmemek icin isolate icinde 60 sn tutulur. Atama
    yapilinca ayni isolate'te hemen sifirlanir. */
@@ -2054,7 +2079,8 @@ export default { async scheduled(controller, env, ctx){
       const rows=(await env.DB.prepare(
         "SELECT slug,title,excerpt,category,cover_url,published_at,updated_at FROM news WHERE status='published' AND slug<>'' ORDER BY published_at DESC LIMIT 500"
       ).all().catch(()=>({results:[]}))).results||[];
-      items=rows.filter(n=>haberKategoriAnahtari(n)===key).slice(0,30);
+      const kapaklar=await uretilmisKapaklar(env);
+      items=rows.filter(n=>haberKategoriAnahtari(n)===key).slice(0,30).map(n=>({...n,cover_url:kapakSec(n,kapaklar)}));
     }
 
     let coverMap={};
@@ -2161,6 +2187,7 @@ export default { async scheduled(controller, env, ctx){
             if(yid) vlib=await env.DB.prepare('SELECT * FROM video_library WHERE youtube_id=?').bind(yid).first();
           }
           if(!vlib) vlib=await env.DB.prepare('SELECT * FROM video_library WHERE news_slug=?').bind(slug).first();
+          n={...n,cover_url:kapakSec(n,await uretilmisKapaklar(env))};
           const related=await ilgiliHaberler(env,n);
           return new Response(renderNewsPage(n, url.origin, vlib, related), {
             headers:{...guvenlikBasliklari(url.pathname),
