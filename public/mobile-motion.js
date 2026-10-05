@@ -1,7 +1,8 @@
 /* BTMEDYA Mobil Motion V10.1 · approved repair 2026-10-05
    Real-field video rail + mobile intro reliability + hero source bridge. */
 (()=>{
-  if(innerWidth>720)return;
+  if(window.innerWidth>720)return;
+  const MOBIL_HERO_SAHNELERI=[{source:'GERÇEK ÇEKİM · BTMEDYA ARŞİVİ',video:'/assets/media/web/giris-filmi.mp4'}];
   const heroStory=document.getElementById('heroStoryVideo');
   if(heroStory&&!heroStory.dataset.srcMobile&&heroStory.dataset.mobile) heroStory.dataset.srcMobile=heroStory.dataset.mobile;
 
@@ -31,7 +32,7 @@
   const label=box.querySelector('[data-mfilm-etiket]'), playBtn=box.querySelector('[data-mfilm-oynat]'), soundBtn=box.querySelector('[data-mfilm-ses]');
   const introKicker=root.querySelector('.bt-hero-intro-kicker');
   if(introKicker) introKicker.textContent='BTMEDYA / GİRİŞ FİLMİ · GERÇEK ÇEKİM';
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches, DEFAULT='/assets/media/web/giris-filmi.mp4';
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches, DEFAULT=MOBIL_HERO_SAHNELERI[0].video;
   let visible=true, stopped=false, source=DEFAULT;
   const sound=()=>{if(!soundBtn)return;soundBtn.setAttribute('aria-pressed',String(!video.muted));soundBtn.setAttribute('aria-label',video.muted?'Sesi aç':'Sesi kapat');soundBtn.textContent=video.muted?'🔇 Sesi aç':'🔊 Sesi kapat'};
   const load=()=>{if(video.src)return;video.preload='auto';video.muted=true;video.playsInline=true;video.src=source;video.load()};
