@@ -37,5 +37,5 @@
   if('IntersectionObserver' in window)new IntersectionObserver(es=>es.forEach(e=>{visible=e.isIntersecting;if(visible&&!reduced)start();else if(!visible)video.pause()}),{threshold:.15}).observe(video);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)video.pause();else if(!reduced)start()});
   if(label)label.textContent=FILM.source; sound();
-  setTimeout(()=>{if(!reduced&&!document.hidden){video.muted=true;start()}},100);
+  const boot=async()=>{\n    if(reduced||document.hidden)return;\n    try{\n      const y=await Promise.resolve(window.btYuvalar||{});\n      const a=y&&y['hero-video'];\n      if(a&&a.tur==='video'&&a.url) source=String(a.url);\n    }catch{}\n    video.muted=true;\n    start();\n  };\n  setTimeout(boot,100);
 })();
