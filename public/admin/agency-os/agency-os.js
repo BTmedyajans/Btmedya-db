@@ -39,11 +39,15 @@ async function loadSystemSnapshot(){
 async function loadSocialSnapshot(){
  const el=$('#socialCommand'); if(!el)return;
  try{
-  const d=await api('/api/admin/social/providers');
-  const rows=Object.values(d.providers||{}).map(p=>'<div class="rule"><b>'+esc(p.label)+'</b><span>'+esc(p.configured?'YAYIN AKTİF':p.connected?'BAĞLANTI VAR / SECRET BEKLENİYOR':'BAĞLI DEĞİL')+'</span></div>').join('');
-  el.innerHTML=rows ? '<div class="stack">'+rows+'</div>' : '<div class="rec"><b>Sosyal bağlantı verisi bulunamadı.</b></div>';
+  const [p,q]=await Promise.all([api('/api/admin/social/providers'),api('/api/admin/social/queue-summary')]);
+  const rows=Object.values(p.providers||{}).map(x=>'<div class="rule"><b>'+esc(x.label)+'</b><span>'+esc(x.configured?'YAYIN AKTİF':x.connected?'BAĞLANTI VAR / SECRET BEKLENİYOR':'BAĞLI DEĞİL')+'</span></div>').join('');
+  const c=q.counts||{}, d=q.delivery||{}, settings=q.settings||{};
+  const queue='<div class="rule"><b>KUYRUK</b><span>'+num(c.onayda)+' onayda · '+num(c.planlandi)+' planlı · '+num(c.yayinlandi)+' yayımlandı · '+num(c.geciken)+' geciken</span></div>';
+  const delivery='<div class="rule"><b>TESLİMAT</b><span>'+num(d.failed||0)+' hata'+(d.lastFailure?.hata?' · '+esc(String(d.lastFailure.hata).slice(0,140)):'')+'</span></div>';
+  const config='<div class="rule"><b>AYAR</b><span>'+(settings.otomatikPlanla?'Otomatik planlama açık':'Manuel/onay akışı')+' · '+esc((settings.aglar||[]).join(', ')||'ağ yok')+'</span></div>';
+  el.innerHTML='<div class="stack">'+rows+queue+delivery+config+'</div>';
  }catch(e){
-  el.innerHTML='<div class="rec"><b>Sosyal bağlantı durumu okunamadı.</b><span class="meta">'+esc(e.message)+'</span></div>';
+  el.innerHTML='<div class="rec"><b>Sosyal/Metricool durumu okunamadı.</b><span class="meta">'+esc(e.message)+'</span></div>';
  }
 }
 async function run(){const b=$('#run');b.disabled=true;b.textContent='Denetleniyor…';try{state=await api('/api/admin/agency-supervisor/run',{method:'POST'});render()}catch(e){alert(e.message)}finally{b.disabled=false;b.textContent='Şimdi denetle'}}
