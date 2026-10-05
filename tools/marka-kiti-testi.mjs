@@ -52,9 +52,10 @@ for (const r of kit.renkler) assert.ok(sayfa.includes(r.hex), `sayfada ${r.hex} 
 // Paylaşım görseli: anasayfa yeni marka kartını gösteriyor ve dosya var.
 const ana = oku('public/index.html');
 const og = (ana.match(/<meta property="og:image" content="https:\/\/btmedya\.com\.tr(\/[^"]+)"/) || [])[1];
-assert.equal(og, '/assets/paylasim/btmedya-og.jpg');
+// v2: gerçek çekim kareli paylaşım kartı; yeni dosya adı sosyal ağ önizleme önbelleğini yeniler.
+assert.equal(og, '/assets/paylasim/btmedya-og-v2.jpg');
 assert.deepEqual(jpegBoyut('public' + og), [1200, 630]);
-assert.match(worker, /'og-image':\s*'paylasim\/btmedya-og\.jpg'/);
+assert.match(worker, /'og-image':\s*'paylasim\/btmedya-og-v2\.jpg'/);
 
 // Haber kapakları kişi fotoğrafı kullanmaz: foto havuzundaki portreler
 // BTMEDYA ekibine ait, haberle ilgisi yok (yayın kararı, 2026-10-03).
