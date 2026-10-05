@@ -54,11 +54,13 @@ for (const vp of viewports) {
       const toggle=page.locator('#menuToggle');
       if(await toggle.count()){
         await toggle.click();
-        const state=await page.locator('#siteMenu').getAttribute('aria-hidden');
-        if(state!=='false') failures.push('mobile / menu did not open');
+        await page.waitForTimeout(120);
+        const state=await page.locator('#btKategoriMenu').evaluate(el=>({hidden:el.hidden,open:el.classList.contains('is-acik')}));
+        if(state.hidden || !state.open) failures.push('mobile / category menu did not open');
         await page.keyboard.press('Escape');
-        const closed=await page.locator('#siteMenu').getAttribute('aria-hidden');
-        if(closed!=='true') failures.push('mobile / menu did not close');
+        await page.waitForTimeout(320);
+        const closed=await page.locator('#btKategoriMenu').evaluate(el=>el.hidden);
+        if(!closed) failures.push('mobile / category menu did not close');
       }
     }
   }
