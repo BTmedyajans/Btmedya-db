@@ -34,19 +34,4 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install --with-deps chromium
       - name: Test live responsive and accessibility basics
-        id: smoke
-        continue-on-error: true
-        run: node tools/responsive-a11y-smoke.mjs 2>&1 | tee smoke-output.txt
-      - name: Publish smoke diagnostics
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          if grep -q 'RESPONSIVE_A11Y_SMOKE_FAILED' smoke-output.txt; then
-            gh issue create --repo "$GITHUB_REPOSITORY" --title "CI smoke failure $GITHUB_SHA" --body-file smoke-output.txt --label "bug" || true
-          fi
-          cat smoke-output.txt
-      - name: Fail when smoke fails
-        if: steps.smoke.outcome == 'failure'
-        run: exit 1
+        run: node tools/responsive-a11y-smoke.mjs
