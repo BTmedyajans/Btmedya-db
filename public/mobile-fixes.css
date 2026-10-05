@@ -1,6 +1,7 @@
 /* BTMEDYA V12 responsive media layer
    Real site assets remain the source of truth. */
 html,body{width:100%;max-width:100%;overflow-x:clip}
+main#icerik{max-width:100%;min-width:0;overflow-x:clip}
 img,video,svg,canvas,iframe{max-width:100%}
 button,a{touch-action:manipulation}
 
