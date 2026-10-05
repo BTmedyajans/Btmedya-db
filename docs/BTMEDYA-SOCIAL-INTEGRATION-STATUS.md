@@ -1,6 +1,10 @@
 # BTMEDYA Social Integration Status
 
-Tarih: 29 Eylül 2026
+Tarih: 6 Ekim 2026
+
+## 6 Ekim bağlantı kararı
+
+Instagram ve Metricool Manus bağlantıları etkinleştirildi. Production uygulamasının yayın mimarisi değişmedi: Facebook ve Instagram, Worker içine ayrı Meta tokenları alınarak değil, Metricool Brand içindeki doğrulanmış bağlantılar üzerinden yönetilir. Admin > Yayın Merkezi > Hesaplar ekranında bu ayrım ve eksik yetki adımları artık görünür.
 
 ## TikTok yayın zinciri
 

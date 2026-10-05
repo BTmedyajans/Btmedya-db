@@ -941,6 +941,15 @@ async function controlCenterApi(request, env, url){
     metricool,
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db',surum:surumBilgisi(env)},
     storage:{d1:!!env.DB,r2:!!env.MEDIA},
+    google:{
+      property:'https://btmedya.com.tr/',
+      technicalEndpoints:true,
+      robots:'https://btmedya.com.tr/robots.txt',
+      sitemap:'https://btmedya.com.tr/sitemap.xml',
+      newsSitemap:'https://btmedya.com.tr/news-sitemap.xml',
+      apiAutomation:'github-actions-secret-required',
+      note:'Teknik Google uyumluluğu canlı uçlarla doğrulanır; kesin indeksleme ve URL Inspection sonucu Search Console yetkisi gerektirir.'
+    },
     admin:{configured:!!(env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD) && !!(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET),mediaSigning:!!env.MEDIA_SIGNING_SECRET},
     readiness:{
       ai:{openai:!!env.OPENAI_API_KEY},
