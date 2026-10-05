@@ -378,6 +378,28 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   if (!/navigator\.webdriver/.test(olcum)) bulgular.push('public/olcum.js otomatik tarayıcıları ayıklamıyor; kendi testlerimiz okur sayısını şişirir.');
 }
 
+/* 14) Dizinlenen her sayfa mobil paylaşım önizlemesi ve okunaklılık için
+       og:image, twitter:card, viewport ve mobil tipografi katmanını taşımalı.
+       5 Ekim denetiminde 8 sayfada og:image/twitter:card yoktu (WhatsApp
+       önizlemesi görselsiz); anasayfada 291 metin öğesi 12 px altındaydı. */
+{
+  const haric = /^public\/(admin|client|social-studio)\/|^public\/google[^/]*\.html$|^public\/404\.html$/;
+  const tara = (dizin) => readdirSync(dizin, { withFileTypes: true }).flatMap(g => {
+    const yol = join(dizin, g.name);
+    if (g.isDirectory()) return /^(assets|gorsel|data|media)$/.test(g.name) ? [] : tara(yol);
+    return g.name.endsWith('.html') ? [yol] : [];
+  });
+  for (const f of tara('public')) {
+    if (haric.test(f)) continue;
+    const html = readFileSync(f, 'utf8');
+    if (!html.includes('</head>') || /<meta name="robots" content="[^"]*noindex/.test(html)) continue;
+    for (const [ad, desen] of [['og:image', /property="og:image"/], ['twitter:card', /name="twitter:card"/], ['viewport', /name="viewport"/]])
+      if (!desen.test(html)) bulgular.push(`${f} ${ad} etiketi taşımıyor; mobil paylaşım/görünüm eksik kalır.`);
+    if (/site-motion-v2\.css/.test(html) && !/mobil-tipografi\.css/.test(html)) bulgular.push(`${f} mobil tipografi katmanını (mobil-tipografi.css) yüklemiyor; 12 px altı metin geri gelir.`);
+  }
+  if (!readFileSync('src/news-page.js', 'utf8').includes('/mobil-tipografi.css')) bulgular.push('src/news-page.js haber şablonu mobil tipografi katmanını yüklemiyor.');
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));

@@ -198,6 +198,7 @@ ${ldYaz(breadcrumbLd)}
 ${videoLd?`<script type="application/ld+json">
 ${ldYaz(videoLd)}
 </script>`:''}
+<link rel="stylesheet" href="/mobil-tipografi.css?v=20261005-1">
 </head>
 <body>
 <a class="skip-link" href="#main">İçeriğe geç</a>
