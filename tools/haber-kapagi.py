@@ -605,16 +605,20 @@ def kanal_karti_foto(h, foto_yolu, cikti):
     d = ImageDraw.Draw(im)
     vurgu = h.get("vurgu") or {}
     if vurgu.get("deger"):
-        vf = sigdir(d, vurgu["deger"], f_sg, 520, 96, 44)
+        # Rakam Haber sesiyle (Big Shoulders 900) yazilir. Kutu, yazi tipi
+        # boyutundan degil glifin gercek sinirindan olculur; bu fontta harf
+        # govdesi asagi oturdugu icin boyuta gore kutu ustte bos kaliyordu.
+        vf = sigdir(d, vurgu["deger"], f_baslik, 520, 124, 52)
         ef = f_mr(30)
         etiket = sar(d, vurgu.get("etiket", ""), ef, 560)[:2]
-        gen = max(d.textlength(vurgu["deger"], font=vf), *(d.textlength(s, font=ef) for s in etiket or [""])) + 48
-        yuk = int(vf.size * 1.08) + 28 + len(etiket) * 38
+        db = d.textbbox((0, 0), vurgu["deger"], font=vf)
+        gen = max(db[2], *(d.textlength(s, font=ef) for s in etiket or [""])) + 48
+        yuk = 22 + (db[3] - db[1]) + (14 + len(etiket) * 38 if etiket else 0) + 18
         y = 740 - yuk
         d.rectangle([60, y, 60 + gen, y + yuk], fill=renk)
-        d.text((84, y + 12), vurgu["deger"], font=vf, fill=yazi_rengi(renk))
+        d.text((84, y + 22 - db[1]), vurgu["deger"], font=vf, fill=yazi_rengi(renk))
         for j, s in enumerate(etiket):
-            d.text((84, y + 18 + int(vf.size * 1.08) + j * 38), s, font=ef, fill=yazi_rengi(renk))
+            d.text((84, y + 22 + (db[3] - db[1]) + 10 + j * 38), s, font=ef, fill=yazi_rengi(renk))
         kunye_y = max(752, y + yuk + 12)
     else:
         kunye_y = 752
