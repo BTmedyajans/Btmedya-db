@@ -1,3 +1,18 @@
 .category-panel{margin:12px 0}.category-feed{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.category-card{display:grid;gap:7px;border:1px solid #242b28;border-radius:12px;background:#0b100e;padding:11px;min-width:0}.category-card strong{font-size:13px;line-height:1.35}.category-card a{color:var(--blue);font-size:11px;text-decoration:none}.category-top{display:flex;justify-content:space-between;gap:8px;align-items:center}.category-top b{color:var(--lime)}@media(max-width:1050px){.category-feed{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:700px){.category-feed{grid-template-columns:1fr}}
 
 .system-snapshot{display:grid;gap:7px;margin-top:10px}.system-snapshot .rule{display:flex;justify-content:space-between;gap:12px;border:1px solid #242b28;border-radius:10px;padding:9px;background:#0b100e}.system-snapshot .rule b{font-size:10px;letter-spacing:.08em;color:var(--lime)}.system-snapshot .rule span{font-size:12px;color:#b7c0bb;text-align:right}@media(max-width:700px){.system-snapshot .rule{display:grid}.system-snapshot .rule span{text-align:left}}
+
+.admin-session-tools{display:flex;align-items:center;gap:8px;margin-left:auto;margin-right:12px}
+.admin-session-status{font-size:11px;letter-spacing:.08em;opacity:.72;border:1px solid rgba(255,255,255,.16);padding:7px 9px;border-radius:999px}
+.admin-priority-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.09)}
+.admin-priority-strip span{font-size:10px;letter-spacing:.12em;opacity:.55;margin-right:3px}
+.admin-priority-strip a{font-size:12px;text-decoration:none;color:inherit;border:1px solid rgba(255,255,255,.12);padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.025)}
+.admin-priority-strip a:hover{background:rgba(255,255,255,.08)}
+@media (max-width:720px){
+ .admin-session-tools{margin-right:6px}
+ .admin-session-status{display:none}
+ .admin-session-tools .btn{padding:7px 9px;font-size:11px}
+ .admin-priority-strip{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+ .admin-priority-strip::-webkit-scrollbar{display:none}
+ .admin-priority-strip a{white-space:nowrap}
+}
