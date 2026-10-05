@@ -29,7 +29,7 @@ AI LAB
 - https://btmedya.com.tr/ai-lab/ : AI LAB, explicitly labeled AI-generated work
 
 Sources and archive
-- https://btmedya.com.tr/kaynak-masasi/ : editorial source and provenance desk
+- https://btmedya.com.tr/kaynaklar/ : editorial source and provenance desk
 - https://btmedya.com.tr/arsiv/ : archive centre
 
 Corporate
