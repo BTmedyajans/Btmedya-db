@@ -11,12 +11,25 @@
   main#icerik>.vitrine-status:first-child{display:none!important}
 
   .mfilm{display:block;color:#eef3f7;background:#05080c}
-  .mfilm-kare{position:relative;width:100%;aspect-ratio:var(--mfilm-oran,16 / 9);max-height:72svh;background:#000 url('/assets/media/web/hero-story-poster.jpg') center/cover no-repeat;overflow:hidden}
+  .mfilm-kare{position:relative;width:100%;aspect-ratio:var(--mfilm-oran,1 / 1);max-height:72svh;background:#000 url('/assets/media/web/giris-filmi-poster.jpg') center/cover no-repeat;overflow:hidden}
   .mfilm-dikey .mfilm-kare{margin:0 auto;width:auto;height:72svh}
   .mfilm-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;display:block;filter:none!important}
   .mfilm-etiket{position:absolute;left:12px;top:12px;padding:6px 9px;border-radius:4px;background:rgba(0,0,0,.72);color:#fff;font:700 11px/1.2 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.08em;pointer-events:none}
   .mfilm-oynat{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-height:48px;padding:0 22px;border:0;border-radius:999px;background:#fff;color:#05080c;font:800 15px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer}
   .mfilm-oynat[hidden]{display:none}
+  /* V8 denetimleri: ses, ilerleme, bölümler. Dokunma hedefleri ≥44 px. */
+  .mfilm-ses{position:absolute;right:10px;top:8px;z-index:3;min-height:44px;padding:0 14px;border:1px solid rgba(255,255,255,.3);border-radius:999px;background:rgba(0,0,0,.66);color:#fff;font:700 13px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer}
+  /* Film başlamadan ses düğmesi gösterilmez: başlatma düğmesi zaten sesli. */
+  .mfilm:not(.mfilm-basladi) .mfilm-ses{display:none}
+  .mfilm-damgali.mfilm-oynuyor .mfilm-etiket{opacity:0}
+  .mfilm-ses[aria-pressed="true"]{background:#d9ff3f;border-color:#d9ff3f;color:#071000}
+  .mfilm-ilerleme{position:absolute;left:0;right:0;bottom:0;z-index:2;height:4px;background:rgba(255,255,255,.18);pointer-events:none}
+  .mfilm-ilerleme i{display:block;height:100%;background:#d9ff3f;transform:scaleX(0);transform-origin:left center}
+  .mfilm-bolumler{display:flex;gap:8px;overflow-x:auto;padding:10px 16px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .mfilm-bolumler::-webkit-scrollbar{display:none}
+  .mfilm-bolumler button{flex:0 0 auto;min-height:44px;padding:0 14px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:transparent;color:#d7e1e8;font:700 13px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer}
+  .mfilm-bolumler button[aria-current]{background:#fff;border-color:#fff;color:#05080c}
+  .mfilm-ses:focus-visible,.mfilm-bolumler button:focus-visible{outline:3px solid #fff;outline-offset:2px}
   .mfilm-metin{padding:22px 16px 28px}
   .mfilm-ust{margin:0 0 10px;color:#7fdcff;font:700 12px/1.2 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.14em}
   .mfilm-baslik{margin:0;font:800 clamp(34px,10.5vw,46px)/.98 'Bricolage Grotesque','Space Grotesk',Inter,Arial,sans-serif;letter-spacing:-.035em;color:#fff}

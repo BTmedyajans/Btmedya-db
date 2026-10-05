@@ -174,7 +174,7 @@
     yer.innerHTML = KATEGORILER.filter(function (k) { return gruplar[k[0]].length; }).map(function (k) {
       var l = gruplar[k[0]], ilk = l[0], gerisi = l.slice(1, 5);
       return '<section class="hm-blok" data-kat="' + k[0] + '" aria-labelledby="hm-b-' + k[0] + '">' +
-        '<div class="hm-bolum-bas"><div><span class="hm-no" aria-hidden="true">' + ('0' + (++sira)).slice(-2) + '</span><h2 id="hm-b-' + k[0] + '">' + esc(k[1]) + '</h2></div><a href="/haberler/?kategori=' + k[0] + '" data-hm-kategori="' + k[0] + '">Tümü →</a></div>' +
+        '<div class="hm-bolum-bas"><div><span class="hm-no" aria-hidden="true">' + ('0' + (++sira)).slice(-2) + '</span><h2 id="hm-b-' + k[0] + '">' + esc(k[1]) + '</h2></div><a href="' + kategoriYolu(k[0]) + '" data-hm-kategori="' + k[0] + '">Tümü →</a></div>' +
         '<div class="hm-blok-ic">' + kart(ilk, 0, 'hm-buyuk') + (gerisi.length ? '<div class="hm-satirlar">' + gerisi.map(function (n, i) { return satir(n, i + 1); }).join('') + '</div>' : '') + '</div></section>';
     }).join('');
   }
@@ -183,7 +183,7 @@
   function aktifKategori() {
     var server = document.documentElement.getAttribute('data-bt-haber-kategori') || '';
     if (server && AD[server]) return server;
-    var m = location.pathname.match(/^\/haberler\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji)\/\$/);
+    var m = location.pathname.match(/^\/haberler\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji)\/$/);
     if (m && AD[m[1]]) return m[1];
     return new URLSearchParams(location.search).get('kategori') || '';
   }

@@ -1572,8 +1572,8 @@ const SITE_SLOTS=[
    tools/gerileme-denetimi.mjs bunu denetler. Kaynak (gercek/AI) burada
    yazmaz, medya-listesi.json'daki gercek alanindan turer. */
 const SITE_SLOT_VARSAYILAN={
-  'hero-video':     'media/web/hero-story.mp4',
-  'hero-poster':    'media/web/hero-story-poster.jpg',
+  'hero-video':     'media/web/giris-filmi-genis.mp4',
+  'hero-poster':    'media/web/giris-filmi-genis-poster.jpg',
   'kategori-haber': 'media/web/state-haber.mp4',
   'kategori-medya': 'media/web/state-medya.mp4',
   'kategori-prod':  'media/web/state-produksiyon.mp4',

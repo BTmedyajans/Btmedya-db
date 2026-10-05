@@ -35,15 +35,23 @@ assert.match(sayfa, /href="\/haberler\/portal\.css\?v=[^"]+"/);
 assert.match(sayfa, /<script src="\/haberler-akisi\.js\?v=[^"]+" defer><\/script>/);
 assert.match(sayfa, /<script src="\/olcum\.js\?v=[^"]+" defer><\/script>/);
 assert.ok(!/<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>/.test(sayfa), 'satır içi betik var');
-// Sekiz kategori rayda, anasayfadaki anahtarlarla aynı.
+// Sekiz kategori rayda, anasayfadaki anahtarlarla aynı. 4 Ekim'den beri
+// kategoriler sunucuda işlenen temiz adreslerde (/haberler/spor/);
+// ?kategori= biçimi 301 ile oraya yönlenir.
 for (const k of ['balikesir', 'gundem', 'ekonomi', 'kultur', 'egitim', 'saglik', 'spor', 'teknoloji'])
-  assert.match(sayfa, new RegExp(`href="/haberler/\\?kategori=${k}" data-hm-kategori="${k}"`));
+  assert.match(sayfa, new RegExp(`href="/haberler/${k}/" data-hm-kategori="${k}"`));
 
 // 3) Akış kuralları (kaynak kodda): özet isteği, 3 saat kuralı, kapak üstüne başlık yok.
 const betik = readFileSync('public/haberler-akisi.js', 'utf8');
 assert.match(betik, /\/api\/news\?limit=100&ozet=1/);
 assert.match(betik, /3 \* 3600 \* 1000[\s\S]{0,600}'SON DAKİKA' : 'SON HABERLER'/);
 assert.ok(!/ARŞİVDEN BUGÜNE/.test(betik), 'güncel habere arşiv etiketi basılmamalı');
+// Temiz kategori adresi istemcide de tanınmalı: 4 Ekim'de regex sonuna
+// kaçışlı '\\$' yazılmış, '/haberler/spor/' hiç eşleşmiyordu.
+const yolKalibi = betik.match(/location\.pathname\.match\((\/.*\/)\);/);
+assert.ok(yolKalibi, 'kategori yol kalıbı bulunamadı');
+assert.ok(eval(yolKalibi[1]).test('/haberler/spor/'), 'temiz kategori adresi eşleşmiyor');
+assert.ok(!/href="\/haberler\/\?kategori=' \+/.test(betik), 'blok bağlantısı eski ?kategori= biçiminde');
 
 // 4) Kategori eşlemesi: betiğin kendi işleviyle, gerçek kategori yazımlarıyla.
 const kum = { document: { querySelector: () => null }, matchMedia: () => ({ matches: false }) };

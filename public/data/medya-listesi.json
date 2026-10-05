@@ -827,102 +827,132 @@
   "category": "portfoy"
  },
  {
-  "path": "media/web/hero-story-mobile.mp4",
+  "path": "media/web/giris-filmi-genis-poster.jpg",
   "id": "static-159",
-  "category": "video"
+  "category": "video",
+  "gercek": true
  },
  {
-  "path": "media/web/hero-story.mp4",
+  "path": "media/web/giris-filmi-genis.mp4",
   "id": "static-160",
-  "category": "video"
+  "category": "video",
+  "gercek": true
  },
  {
-  "path": "media/web/showreel-07.mp4",
+  "path": "media/web/giris-filmi-poster.jpg",
   "id": "static-161",
-  "category": "video"
+  "category": "video",
+  "gercek": true
  },
  {
-  "path": "media/web/showreel-07.webm",
+  "path": "media/web/giris-filmi.mp4",
   "id": "static-162",
-  "category": "video"
+  "category": "video",
+  "gercek": true
  },
  {
-  "path": "media/web/showreel-action.mp4",
+  "path": "media/web/giris-filmi.webm",
   "id": "static-163",
-  "category": "video"
+  "category": "video",
+  "gercek": true
  },
  {
-  "path": "media/web/showreel-action.webm",
+  "path": "media/web/hero-story-mobile.mp4",
   "id": "static-164",
   "category": "video"
  },
  {
-  "path": "media/web/showreel-fantasy.mp4",
+  "path": "media/web/hero-story.mp4",
   "id": "static-165",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-07.mp4",
+  "id": "static-166",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-07.webm",
+  "id": "static-167",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-action.mp4",
+  "id": "static-168",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-action.webm",
+  "id": "static-169",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-fantasy.mp4",
+  "id": "static-170",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/showreel-fantasy.webm",
-  "id": "static-166",
+  "id": "static-171",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/showreel-flying-reporter.mp4",
-  "id": "static-167",
+  "id": "static-172",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/showreel-flying-reporter.webm",
-  "id": "static-168",
+  "id": "static-173",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/state-haber.mp4",
-  "id": "static-169",
+  "id": "static-174",
   "category": "video"
  },
  {
   "path": "media/web/state-medya.mp4",
-  "id": "static-170",
+  "id": "static-175",
   "category": "video"
  },
  {
   "path": "media/web/state-produksiyon.mp4",
-  "id": "static-171",
+  "id": "static-176",
   "category": "video"
  },
  {
   "path": "sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4",
-  "id": "static-172",
+  "id": "static-177",
   "category": "sosyal"
  },
  {
   "path": "sosyal/balikesir-pazarinda-canli-helva-sovu-dikey.mp4",
-  "id": "static-173",
+  "id": "static-178",
   "category": "sosyal"
  },
  {
   "path": "sosyal/el-emegi-yorganlar-artik-isitmiyor-dikey.mp4",
-  "id": "static-174",
+  "id": "static-179",
   "category": "sosyal"
  },
  {
   "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-1.jpg",
-  "id": "static-175",
+  "id": "static-180",
   "category": "sosyal"
  },
  {
   "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-2.jpg",
-  "id": "static-176",
+  "id": "static-181",
   "category": "sosyal"
  },
  {
   "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-3.jpg",
-  "id": "static-177",
+  "id": "static-182",
   "category": "sosyal"
  }
 ]

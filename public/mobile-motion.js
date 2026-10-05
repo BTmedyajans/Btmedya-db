@@ -1,15 +1,18 @@
-/* BTMEDYA Mobil Giriş Filmi V7 · 2026-10-04
-   Neden: V5 mobil girişi 5,2 ekran boyunda sabitlenmiş, kaydırmayla sahne
-   değiştiren bir yapıydı. Film ancak okur kaydırdıkça ilerliyor, 1152x648
-   yatay kaynak dikey ekrana kırpılıp ~2,5 kat büyütüldüğü için bulanık
-   görüyor. V7: film poster ile görünür; kullanıcı açıkça başlatmadan video
-   oynar; kendi en-boy oranında gösterilir, kırpılmaz, bulanıklık yok.
-   kaynağı yüklenmez ve oynatılmaz. Kullanıcı başlatırsa ekran dışına çıkınca
-   durur ve geri gelince devam eder.
+/* BTMEDYA Mobil Giriş Filmi V8 · 2026-10-05
+   Neden: V5 mobil girişi kaydırmayla sahne değiştiren, kırpılıp büyütüldüğü
+   için bulanık görünen bir yapıydı; V6-V7 filmi kendi en-boy oranında,
+   okur başlatınca oynayan bloğa çevirdi. V8: film BTMEDYA arşivinden gerçek
+   çekimle yeniden kuruldu (tools/giris-filmi.py, 28,6 sn, kare 720x720).
+   Okur başlatınca SESLİ oynar; tarayıcılar sesi yalnız dokunuşla açtığı
+   için ses kendiliğinden açılmaz. Ses düğmesi, bölüm düğmeleri ve ilerleme
+   çubuğu eklendi. Film döngüye girmez: bitince "Yeniden izle" çıkar ve
+   giriş katmanı (hero-sequence-v2.js) 'ended' olayıyla açılır.
 
-   Etiket: giriş filmi AI üretimidir (zırha dönüşen kişi, robotlar, patlama).
-   Panel yuvası gercek:true derse GERÇEK ÇEKİM yazar; varsayılan AI ÜRETİMİ
-   (AGENTS.md). Mobil kalite kapısı aşağıdaki listeyi katalogla karşılaştırır. */
+   Kaynak: panelde hero-video yuvası atanmışsa o oynar, etiketi kaydın
+   gercek alanından gelir (AGENTS.md: varsayılan AI ÜRETİMİ). Atama yoksa
+   varsayılan film oynar; o dosya medya-ozel.json gercek listesindedir.
+   Panel geniş (16:9) giriş filmini atamışsa mobilde aynı filmin kare
+   kesimi oynar: dikey ekranda 16:9 film küçük kalıyordu. */
 (()=>{
   const root=document.querySelector('.cinematic-hero');
   if(!root || window.innerWidth>720)return;
@@ -18,10 +21,14 @@
   if(!video)return;
   const etiket=kutu.querySelector('[data-mfilm-etiket]');
   const oynatDugme=kutu.querySelector('[data-mfilm-oynat]');
+  const sesDugme=kutu.querySelector('[data-mfilm-ses]');
+  const dolu=kutu.querySelector('[data-mfilm-dolu]');
+  const bolumler=[...kutu.querySelectorAll('[data-mfilm-bolumler] [data-t]')];
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const filmler=[
-    {source:'AI ÜRETİMİ · GİRİŞ FİLMİ',video:'/assets/media/web/hero-story.mp4'}
-  ];
+  const VARSAYILAN={source:'GERÇEK ÇEKİM · BTMEDYA ARŞİVİ',video:'/assets/media/web/giris-filmi.mp4'};
+  const KARE_KESIMI={'/assets/media/web/giris-filmi-genis.mp4':VARSAYILAN.video};
+  /* Varsayılan film kare; panel başka oranda film atarsa kutu metaveri
+     gelince o orana döner (oranUygula). */
   root.classList.add('bt-mobile-film');
   root.style.removeProperty('height');
 
@@ -30,43 +37,104 @@
     if(video.videoWidth&&video.videoHeight) kutu.style.setProperty('--mfilm-oran',video.videoWidth+' / '+video.videoHeight);
     kutu.classList.toggle('mfilm-dikey',video.videoHeight>video.videoWidth);
   };
+  const dugmeYaz=metin=>{if(oynatDugme){oynatDugme.hidden=false;oynatDugme.textContent=metin;}};
+  const sesGoster=()=>{
+    if(!sesDugme)return;
+    const acik=!video.muted;
+    sesDugme.setAttribute('aria-pressed',String(acik));
+    sesDugme.setAttribute('aria-label',acik?'Sesi kapat':'Sesi aç');
+    sesDugme.innerHTML=acik?'<span aria-hidden="true">🔊</span> Sesi kapat':'<span aria-hidden="true">🔇</span> Sesi aç';
+  };
   const oynat=()=>{
     if(!kullaniciBaslatti||kullaniciDurdurdu||!gorunur||document.hidden)return;
     const p=video.play();
     if(p&&p.catch)p.then(()=>{oynatDugme&&(oynatDugme.hidden=true);}).catch(()=>{
-      /* iPhone Düşük Güç Modu ve bazı tarayıcılar otomatik oynatmayı engeller. */
-      oynatDugme&&(oynatDugme.hidden=false);
+      /* Sesli oynatma reddedilirse (iOS Düşük Güç Modu vb.) sessiz dene;
+         o da reddedilirse düğme görünür kalır. */
+      if(!video.muted){video.muted=true;sesGoster();oynat();return;}
+      dugmeYaz('▶ Filmi oynat');
     });
   };
-  const kaynakKoy=(url,gercek)=>{
-    if(!url)return;
-    if(etiket)etiket.textContent=gercek?'GERÇEK ÇEKİM · BTMEDYA':filmler[0].source;
-    if(video.dataset.yuklu===url)return;
-    bekleyenUrl=url;
-    if(oynatDugme){oynatDugme.hidden=false;oynatDugme.textContent='▶ Filmi oynat';}
+  /* Kare kesimi varsa onu, H.264 çözülemiyorsa aynı filmin WebM sürümünü seç. */
+  const mobilKaynak=url=>{
+    const yol=String(url).split('?')[0];
+    const kare=KARE_KESIMI[yol]||yol;
+    if(kare===VARSAYILAN.video && video.dataset.webm && !video.canPlayType('video/mp4; codecs="avc1.42E01E"')) return video.dataset.webm;
+    return kare;
   };
-  const yukleVeOynat=()=>{
-    kullaniciBaslatti=true;
-    if(!video.src&&bekleyenUrl){
-      video.preload='auto';video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;
+  const kaynakKoy=(url,etiketMetni)=>{
+    if(!url)return;
+    if(etiket)etiket.textContent=etiketMetni;
+    bekleyenUrl=mobilKaynak(url);
+    // Arşiv kurgusu kaynak etiketini kendi karesinde taşır; oynarken sayfa
+    // etiketi aynı köşede üst üste binmesin diye gizlenir (bkz. CSS).
+    kutu.classList.toggle('mfilm-damgali',/\/giris-filmi\.(mp4|webm)$/.test(bekleyenUrl));
+    // Giriş katmanı filmi data-src'den başlatır; aynı kaynağı görmeli.
+    video.dataset.src=bekleyenUrl;
+    // Giriş kartı görünürken düğme CSS ile gizlenir (hero-sequence-v2.css).
+    dugmeYaz('▶ Filmi oynat');
+  };
+  const yukle=()=>{
+    if(!video.getAttribute('src')&&bekleyenUrl){
+      video.preload='auto';video.loop=false;video.playsInline=true;
       video.src=bekleyenUrl;video.load();
-      video.addEventListener('canplay',oynat,{once:true});
-    }else oynat();
+    }
+  };
+  /* Okurun dokunuşu sesi açmaya izin verir; film bu yüzden sesli başlar. */
+  const baslat=(sesli=true)=>{
+    kullaniciBaslatti=true;kullaniciDurdurdu=false;gorunur=true;
+    if(sesli){video.muted=false;video.defaultMuted=false;sesGoster();}
+    yukle();
+    if(video.readyState>=2)oynat();else video.addEventListener('canplay',oynat,{once:true});
   };
   video.addEventListener('loadedmetadata',oranUygula);
+  video.addEventListener('volumechange',sesGoster);
+  video.addEventListener('play',()=>{kullaniciBaslatti=true;sesGoster();oynatDugme&&(oynatDugme.hidden=true);kutu.classList.add('mfilm-oynuyor','mfilm-basladi');});
+  video.addEventListener('pause',()=>kutu.classList.remove('mfilm-oynuyor'));
+  video.addEventListener('ended',()=>{kutu.classList.remove('mfilm-oynuyor');dugmeYaz('↺ Yeniden izle');});
 
-  oynatDugme&&oynatDugme.addEventListener('click',()=>{kullaniciDurdurdu=false;gorunur=true;yukleVeOynat();});
-  video.addEventListener('click',()=>{if(video.paused){kullaniciDurdurdu=false;yukleVeOynat();}else{kullaniciDurdurdu=true;video.pause();if(oynatDugme){oynatDugme.hidden=false;oynatDugme.textContent='▶ Filmi sürdür';}}});
+  /* İlerleme ve etkin bölüm: zaman güncellemesi saniyede ~4 kez gelir. */
+  video.addEventListener('timeupdate',()=>{
+    const s=video.duration||0, t=video.currentTime;
+    if(dolu&&s)dolu.style.transform='scaleX('+Math.min(1,t/s).toFixed(4)+')';
+    let etkin=null;
+    for(const b of bolumler) if(t+0.05>=Number(b.dataset.t)) etkin=b;
+    for(const b of bolumler) b.toggleAttribute('aria-current',b===etkin);
+  });
+
+  oynatDugme&&oynatDugme.addEventListener('click',()=>{
+    if(video.ended)video.currentTime=0;
+    baslat(!kutu.dataset.sessizSecildi);
+  });
+  sesDugme&&sesDugme.addEventListener('click',()=>{
+    const acilacak=video.muted;
+    video.muted=!acilacak;video.defaultMuted=!acilacak;
+    // Okur sesi kapattıysa sonraki "oynat" da sessiz kalır.
+    if(acilacak)delete kutu.dataset.sessizSecildi;else kutu.dataset.sessizSecildi='1';
+    sesGoster();
+    if(acilacak&&video.paused&&!video.ended)baslat(true);
+  });
+  bolumler.forEach(b=>b.addEventListener('click',()=>{
+    const t=Number(b.dataset.t)||0;
+    const git=()=>{video.currentTime=t;};
+    baslat(!kutu.dataset.sessizSecildi);
+    if(video.readyState>=1)git();else video.addEventListener('loadedmetadata',git,{once:true});
+  }));
+  video.addEventListener('click',()=>{
+    if(video.paused){baslat(!kutu.dataset.sessizSecildi);}
+    else{kullaniciDurdurdu=true;video.pause();dugmeYaz('▶ Filmi sürdür');}
+  });
 
   if('IntersectionObserver' in window){
-    new IntersectionObserver(es=>es.forEach(e=>{gorunur=e.isIntersecting;if(gorunur){if(!reduced)oynat();}else video.pause();}),{threshold:.15}).observe(video);
+    new IntersectionObserver(es=>es.forEach(e=>{gorunur=e.isIntersecting;if(gorunur){if(!reduced)oynat();}else if(!video.paused){video.pause();}}),{threshold:.15}).observe(video);
   }
   document.addEventListener('visibilitychange',()=>{if(document.hidden)video.pause();else if(!reduced)oynat();});
+  sesGoster();
 
   /* Panelden atanmış giriş filmi varsa onu oynat; yoksa varsayılan film. */
-  const varsayilan=video.dataset.src||filmler[0].video;
   Promise.resolve(window.btYuvalar).then(y=>{
     const a=y&&y['hero-video'];
-    if(a&&a.tur==='video'&&a.url)kaynakKoy(String(a.url),a.gercek===true);else kaynakKoy(varsayilan,false);
-  }).catch(()=>kaynakKoy(varsayilan,false));
+    if(a&&a.tur==='video'&&a.url)kaynakKoy(String(a.url),a.gercek===true?'GERÇEK ÇEKİM · BTMEDYA':'AI ÜRETİMİ · GİRİŞ FİLMİ');
+    else kaynakKoy(VARSAYILAN.video,VARSAYILAN.source);
+  }).catch(()=>kaynakKoy(VARSAYILAN.video,VARSAYILAN.source));
 })();
