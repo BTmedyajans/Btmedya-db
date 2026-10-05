@@ -233,9 +233,17 @@ async function kapakDenetimi() {
 async function dagitimDenetimi() {
   const yas = commitYasiDk();
   const farkli = [];
+  const ana = await getir('/');
+  const anaHtml = await ana.text();
   for (const f of ['home.css', 'home.js', 'styles.css']) {
     if (!existsSync(`public/${f}`)) continue;
-    const r = await getir(`/${f}`);
+    // Public assets are cache-busted in HTML (e.g. /home.js?v=...).
+    // Comparing the unversioned fallback URL can report a false CDN lag
+    // even while the exact asset used by the live page is current.
+    const escaped = f.replace('.', '\\.')
+    const match = anaHtml.match(new RegExp(`(?:src|href)=["'](/${escaped}(?:\\?[^"' >]*)?)["']`, 'i'));
+    const livePath = match?.[1] || `/${f}`;
+    const r = await getir(livePath);
     const canli = ozet(await r.arrayBuffer());
     if (canli !== ozet(readFileSync(`public/${f}`))) farkli.push(f);
   }
