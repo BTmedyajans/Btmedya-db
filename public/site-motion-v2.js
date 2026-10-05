@@ -20,6 +20,9 @@
     let u;try{u=new URL(a.href,location.href)}catch{return;}
     if(u.origin!==location.origin||u.pathname===location.pathname&&u.hash)return;
     if(a.getAttribute('href').startsWith('#'))return;
+    // Sayfa içinde kendi geçişini yapan bağlantılar (haber merkezi kategori
+    // rayı) tam sayfa yüklemesine çevrilmez; yoksa 380 ms sonra sayfa yenilenir.
+    if(a.closest('[data-hm-kategori],[data-bt-gecissiz]'))return;
     e.preventDefault();leaving=true;
     title.innerHTML=`${pathLabel(u.href)}<br><span style="color:var(--bt-motion-lime)">AKIŞI.</span>`;
     index.textContent=String((document.querySelectorAll('a[href^="/"]').length%9)+1).padStart(2,'0');

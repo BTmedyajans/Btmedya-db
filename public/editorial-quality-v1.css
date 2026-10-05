@@ -67,7 +67,9 @@ body{background:var(--bt-ink)}
 .news-body h3{max-width:780px;text-wrap:balance}
 .news-card.featured .news-body h3{font-size:clamp(25px,3vw,42px);line-height:.98;letter-spacing:-.035em}
 .story-lab{background:#0a0b0d;border-block:1px solid var(--bt-line)}
-.story-card{border:1px solid rgba(255,255,255,.1);background:#101114}
+/* Zemin koyulaşınca home.css'teki açık-zemin yazı renkleri (#081018) kalmıştı:
+   başlık siyah üstüne siyah okunmuyordu. Yazı renkleri zeminle birlikte gelir. */
+.story-card{border:1px solid rgba(255,255,255,.1);background:#101114;color:#eef3f7}.story-card-copy h3,.story-card-copy h2,.story-card-copy strong{color:#fff}.story-card-copy p{color:#b6c4cf}.story-card-copy small{color:#9fb0bd}.story-card-copy a{color:#d9ff3f}
 .story-card img{filter:saturate(.92) contrast(1.04)}
 .service-grid article,.offer-card,.nextgen-proof-grid article,.source-grid a{
   border-color:rgba(255,255,255,.11)!important;

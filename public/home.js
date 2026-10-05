@@ -841,6 +841,13 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       if(el.dataset.loaded){ el.src=a.url; el.load(); if(i===active && i>0) el.play().catch(()=>{}); }
       if(i===active && kaynakEl) kaynakEl.textContent=s.kaynak;
     });
+    // Atama yoksa sayfanin varsayilan arsiv filmi oynar; o dosya
+    // medya-ozel.json gercek listesinde oldugu icin rozeti gercek cekimdir.
+    const hv0=videos[0] && videos[0].querySelector('video');
+    if(!y['hero-video'] && hv0 && /\/giris-filmi-genis\.mp4$/.test(hv0.dataset.src||'')){
+      scenes[0].kaynak='GERÇEK ÇEKİM · BTMEDYA ARŞİVİ';
+      if(active===0 && kaynakEl) kaynakEl.textContent=scenes[0].kaynak;
+    }
     const poster=y['hero-poster'], hv=videos[0] && videos[0].querySelector('video');
     if(poster && poster.tur==='image' && hv) hv.setAttribute('poster',poster.url);
   });
@@ -909,7 +916,13 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     Promise.resolve(window.btYuvalar||{}).then(y=>{
       const yabanci=scenes.some(sc=>{ const a=sc.yuva && y[sc.yuva];
         return a && a.tur==='video' && !KARE_KAYNAKLARI.includes(String(a.url||'').split('?')[0]); });
-      if(yabanci){ kareKapat(); return; }
+      // Panel atamasi yoksa sayfanin varsayilan giris filmi oynar (5 Ekim'den
+      // beri gercek cekim arsiv kurgusu). Kareler eski AI filminden uretildigi
+      // icin varsayilan film o degilse dizi devreye girmez; yoksa okur AI
+      // karesini gercek film yerine gorur.
+      const heroEl=videos[0] && videos[0].querySelector('video');
+      const heroKaynak=String((y['hero-video'] && y['hero-video'].url) || (heroEl && heroEl.dataset.src) || '').split('?')[0];
+      if(yabanci || !KARE_KAYNAKLARI.includes(heroKaynak)){ kareKapat(); return; }
       const sira=[0]; for(let i=8;i<KARE_SAYISI;i+=8) sira.push(i);
       for(let i=1;i<KARE_SAYISI;i++) if(!sira.includes(i)) sira.push(i);
       kareYukle(sira);
