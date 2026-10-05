@@ -83,5 +83,6 @@ jobs:
 
       - name: Diagnostic live responsive offenders
         run: |
-          node -e "const fs=require('fs'); let p=fs.readFileSync('tools/responsive-a11y-smoke.mjs','utf8'); p=p.replace(/if\(result\.scrollWidth > result\.width \+ 2\)\{[^}]*\}/, 'if(result.scrollWidth > result.width + 2){ console.error(\\\"OVERFLOW\\\", vp.name, item.path, result); }'); fs.writeFileSync('/tmp/diag.mjs',p)"
-          node /tmp/diag.mjs || true
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+          node tools/diagnose-live-overflow.mjs || true
