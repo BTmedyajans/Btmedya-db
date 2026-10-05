@@ -1,0 +1,35 @@
+name: BTMEDYA Responsive Overflow Diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "public/**/*.html"
+      - "public/**/*.css"
+      - "public/**/*.js"
+      - "src/**"
+      - "wrangler.toml"
+      - "tools/responsive-overflow-diagnose.mjs"
+      - ".github/workflows/responsive-overflow-diagnose.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    name: Diagnose responsive overflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Diagnose live responsive layout
+        run: node tools/responsive-overflow-diagnose.mjs
