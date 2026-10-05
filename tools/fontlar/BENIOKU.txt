@@ -12,3 +12,11 @@ anton-regular.ttf: Anton (Vernon Adams), SIL Open Font License 1.1.
 Kaynak: Google Fonts (fonts.gstatic.com, tam TTF; Turkce glifler dahil).
 Manset kapaklarinin dar ve kalin basligi icin (tools/haber-kapagi.py,
 manset_karti). Site bu dosyayi yuklemez.
+
+big-shoulders-900.ttf: Big Shoulders Display (The Big Shoulders Project
+Authors), SIL Open Font License 1.1. Kaynak: Google Fonts degisken TTF,
+fontTools.varLib.instancer ile wght=900 sabit ornegi (Turkce glifler dahil).
+Gorsel Kimlik 2.0 Haber sesi: haber kapagi ve sosyal kart basligi
+(tools/haber-kapagi.py, BASLIK_FONT). Site bu dosyayi yuklemez; sitedeki
+karsiligi public/assets/fonts/marka2/big-shoulders-900.woff2.
+anton-regular.ttf artik yalniz giris filmi (tools/giris-filmi.py) icindir.
