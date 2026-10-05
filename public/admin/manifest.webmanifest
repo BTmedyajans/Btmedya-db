@@ -1,9 +1,11 @@
 {
   "name": "BTMEDYA Yönetim",
   "short_name": "BTMEDYA Admin",
-  "start_url": "/admin/",
+  "id": "/admin/agency-os/",
+  "start_url": "/admin/agency-os/",
   "scope": "/admin/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#090909",
   "theme_color": "#090909",
   "description": "BTMEDYA içerik, medya, haber ve sosyal yayın yönetim paneli.",
