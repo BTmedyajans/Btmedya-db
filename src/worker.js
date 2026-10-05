@@ -1828,6 +1828,23 @@ export default { async scheduled(controller, env, ctx){
     if(ctx?.waitUntil){ ctx.waitUntil(masa); ctx.waitUntil(ozet); } else await Promise.allSettled([masa,ozet]);
     return;
   }
+  /* Haber autopilotu: her 2 saatte bir, en fazla 2 yeni haber.
+     KV kilidi aynı saat içinde tekrar üretimi engeller. Kaynak/doğrulama
+     kapıları sabahMasasi içinde aynen korunur. */
+  const haberAutopilot=(controller && controller.cron==='*/15 * * * *')
+    ? (async()=>{
+        const saat=Math.floor(Date.now()/7200000);
+        const anahtar='autopilot:news:'+saat;
+        if(env.KV){
+          const once=await env.KV.get(anahtar).catch(()=>null);
+          if(once) return null;
+          await env.KV.put(anahtar,'1',{expirationTtl:7500}).catch(()=>{});
+        }
+        return sabahMasasi(env,{maxHaber:2})
+          .then(x=>console.log('[btmedya] haber autopilot',JSON.stringify({published:x.yayinlanan,draft:x.taslak,errors:x.hatalar?.length||0})))
+          .catch(e=>console.error('[btmedya] haber autopilot:',e?.message||e));
+      })()
+    : Promise.resolve(null);
   const autopilot=(controller && controller.cron==='*/15 * * * *')
     ? runAutopilot(env,{force:false,limit:3}).then(x=>console.log('[btmedya] autopilot',JSON.stringify({scanned:x.scanned,candidates:x.candidates,news:x.created_news,published:x.published_news,social:x.social_created,blocked:x.blocked}))).catch(e=>console.error('[btmedya] autopilot:',e?.message||e))
     : Promise.resolve(null);
