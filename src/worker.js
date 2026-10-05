@@ -716,9 +716,12 @@ async function ilgiliHaberler(env,n){
   try{
     const category=String(n.category||'').trim();
     const result=await env.DB.prepare(
-      "SELECT slug,title,category FROM news WHERE status='published' AND slug<>? ORDER BY CASE WHEN category=? THEN 0 ELSE 1 END, published_at DESC LIMIT 3"
+      "SELECT slug,title,category,cover_url FROM news WHERE status='published' AND slug<>? ORDER BY CASE WHEN category=? THEN 0 ELSE 1 END, published_at DESC LIMIT 3"
     ).bind(n.slug,category).all();
-    return Array.isArray(result?.results)?result.results:[];
+    const rows=Array.isArray(result?.results)?result.results:[];
+    // Kartlar haber sayfasindaki kapak kuraliyla ayni gorseli gostersin.
+    const kapaklar=await uretilmisKapaklar(env);
+    return rows.map(x=>({...x,cover_url:kapakSec(x,kapaklar),kapak_turu:kapaklar.get(x.slug)||''}));
   }catch(e){
     console.error('[news-related] query failed:',e);
     return [];
@@ -1625,10 +1628,12 @@ function uzantiMime(yol){
 let kapakOnbellek={t:0,v:null};
 async function uretilmisKapaklar(env){
   if(kapakOnbellek.v && Date.now()-kapakOnbellek.t<300000) return kapakOnbellek.v;
-  let v=new Set();
+  // Map: slug -> kapak karesinin turu (gercek/arsiv/temsili...). kapakSec
+  // yalniz .has kullanir; ilgili haber kartlari turu etiket olarak basar.
+  let v=new Map();
   try{
     const r=env.ASSETS && await env.ASSETS.fetch(new Request('https://btmedya.internal/data/haber-kapak-kaynagi.json'));
-    if(r && r.ok) v=new Set(Object.keys(await r.json()));
+    if(r && r.ok) v=new Map(Object.entries(await r.json()));
   }catch{}
   kapakOnbellek={t:Date.now(),v};
   return v;

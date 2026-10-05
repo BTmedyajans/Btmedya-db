@@ -78,4 +78,16 @@ assert.equal(k('Gündem · Asayiş'), 'gundem');
 assert.equal(k('Sağlık · Beslenme'), 'saglik');
 assert.equal(k('Spor'), 'spor');
 assert.equal(k('Eğitim'), 'egitim');
+// İlgili haberler kartı görselli: kapak varsa metinsiz "-foto" kare ve kaynak
+// etiketi basılır; kapaksız haber kırık <img> değil yazılı kart olur.
+const { renderNewsPage } = await import('../src/news-page.js');
+const ilgili = renderNewsPage({ slug: 'ana', title: 'Ana haber', body: 'g' }, 'https://btmedya.com.tr', null, [
+  { slug: 'a', title: 'A', category: 'Spor', cover_url: '/assets/haber-kapak/a.webp', kapak_turu: 'arsiv' },
+  { slug: 'b', title: 'B', category: 'Spor', cover_url: '/assets/kategori-kapak/spor.webp', kapak_turu: '' },
+  { slug: 'c', title: 'C', category: 'Spor', cover_url: null },
+]).match(/<section class="related-news"[\s\S]*?<\/section>/)[0];
+assert.match(ilgili, /src="\/assets\/haber-kapak\/a-foto\.webp"[^>]*loading="lazy"/);
+assert.match(ilgili, /Arşiv fotoğrafı/);
+assert.match(ilgili, /src="\/assets\/kategori-kapak\/spor\.webp"[\s\S]*?BTMEDYA grafik/);
+assert.equal((ilgili.match(/<img/g) || []).length, 2, 'kapaksız ilgili habere görsel basılmamalı');
 console.log('HABER PORTALI TESTI GECTI');
