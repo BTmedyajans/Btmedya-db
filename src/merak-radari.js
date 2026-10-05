@@ -7,6 +7,7 @@ import { metricoolConnectedNetworks } from "./social-platforms.js";
  * Yayın kararı için kaynak, tarih, belge ve editör kontrolü korunur.
  */
 const TRENDS_URL = "https://trends.google.com/trending/rss?geo=TR";
+const BALIKESIR_VALILIGI_URL = "https://www.balikesir.gov.tr/";
 const SUGGEST_URL = "https://suggestqueries.google.com/complete/search?client=firefox&hl=tr&q=";
 const SORU_EKLERI = ["neden","niçin","ne oldu","son durum","fiyatı ne","ne zaman","nasıl","kim etkileniyor","değişti mi","hangi ilçelerde"];
 const SORU_SINYALI = /(neden|niçin|ne oldu|son durum|fiyat|ne zaman|nasıl|kim|hangi|değişti|başvuru|zam|kaldırıldı|yasaklandı)/i;
@@ -37,6 +38,50 @@ async function jsonAl(url){
   return r.json();
 }
 function anahtarlar(metin){ return Array.from(new Set(duzelt(metin).split(/[^a-z0-9]+/).filter(function(x){return x.length>3;}))); }
+
+const BALIKESIR_ILCELERI = ["Altıeylül","Ayvalık","Balya","Bandırma","Bigadiç","Burhaniye","Dursunbey","Edremit","Erdek","Gömeç","Gönen","Havran","İvrindi","Karesi","Kepsut","Manyas","Marmara","Savaştepe","Sındırgı","Susurluk"];
+function resmiIlceLinkleri(html){
+  var out=[], seen=new Set();
+  var re=/<a\\b[^>]*href=["']([^"']+)["'][^>]*>([\\s\\S]*?)<\\/a>/gi, m;
+  while((m=re.exec(String(html||"")))){
+    var ad=temiz(m[2]), href=m[1];
+    var ilce=BALIKESIR_ILCELERI.find(function(x){return duzelt(ad).indexOf(duzelt(x))>=0;});
+    if(!ilce || !/kaymakam/i.test(ad)) continue;
+    try{
+      var u=new URL(href,BALIKESIR_VALILIGI_URL);
+      if(!/gov\.tr$/i.test(u.hostname)) continue;
+      var key=ilce+"|"+u.origin+"/";
+      if(seen.has(key)) continue;
+      seen.add(key); out.push({ilce:ilce,url:u.origin+"/"});
+    }catch{}
+  }
+  return out;
+}
+async function ilceResmiSinyalleri(){
+  var out={sources:[],items:[],errors:[]};
+  try{
+    var html=await al(BALIKESIR_VALILIGI_URL);
+    out.sources=resmiIlceLinkleri(html);
+  }catch(e){ out.errors.push("Valilik kaynak dizini: "+String(e&&e.message||e).slice(0,160)); return out; }
+  var jobs=out.sources.map(async function(src){
+    try{
+      var h=await al(src.url);
+      var items=rss(h);
+      if(!items.length){
+        var links=[]; var re=/<a\\b[^>]*href=["']([^"']+)["'][^>]*>([\\s\\S]*?)<\\/a>/gi,m;
+        while((m=re.exec(h)) && links.length<8){
+          var title=temiz(m[2]);
+          if(title && title.length>18 && !/menü|iletişim|anasayfa|devamı|kaymakam/i.test(title)) links.push({title:title,link:new URL(m[1],src.url).href,date:""});
+        }
+        items=links;
+      }
+      return items.slice(0,8).map(function(x){return {ilce:src.ilce,title:x.title,link:x.link,date:x.date,source:src.url,sourceTier:"P1"};});
+    }catch(e){ out.errors.push(src.ilce+": "+String(e&&e.message||e).slice(0,120)); return []; }
+  });
+  var all=await Promise.all(jobs);
+  out.items=all.flat();
+  return out;
+}
 function kategori(t){
   var s=duzelt(t);
   if(/balikesir|edremit|bandirma|ayvalik|karesi|altieylul|gonen|burhaniye|susurluk|sindirgi|bigadic|erdek|havran/.test(s)) return "Balıkesir";
@@ -93,6 +138,12 @@ export async function merakRadariCalistir(env,{limit=12}={}){
   var own=await kendiYayinlari(env);
   var trends=[];
   try{ trends=rss(await al(TRENDS_URL)).slice(0,20); }catch(e){ result.errors.push("Google Trends: "+String(e&&e.message||e).slice(0,160)); }
+  var ilceRadar=await ilceResmiSinyalleri();
+  result.districts={expected:BALIKESIR_ILCELERI.length,discovered:ilceRadar.sources.length,items:ilceRadar.items.length,errors:ilceRadar.errors};
+  ilceRadar.items.forEach(function(item){
+    var topic=item.ilce+" | "+item.title;
+    candidates.push({konu:topic,soru:"son durum",kategori:"Balıkesir",kaynak_url:item.link||item.source,google:0,search:4,social:0,btm:0,competitor:0,puan:48,gerekce:"P1 resmî ilçe kaynağı · "+item.ilce});
+  });
   var trendKel=new Map();
   trends.forEach(function(x){ anahtarlar(x.title).forEach(function(k){ trendKel.set(k,(trendKel.get(k)||0)+1); }); });
   var candidates=[];
