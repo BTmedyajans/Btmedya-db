@@ -396,8 +396,17 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
     for (const [ad, desen] of [['og:image', /property="og:image"/], ['twitter:card', /name="twitter:card"/], ['viewport', /name="viewport"/]])
       if (!desen.test(html)) bulgular.push(`${f} ${ad} etiketi taşımıyor; mobil paylaşım/görünüm eksik kalır.`);
     if (/site-motion-v2\.css/.test(html) && !/mobil-tipografi\.css/.test(html)) bulgular.push(`${f} mobil tipografi katmanını (mobil-tipografi.css) yüklemiyor; 12 px altı metin geri gelir.`);
+    if (/site-motion-v2\.css/.test(html) && !/kategori-menu\.js/.test(html)) bulgular.push(`${f} hamburger kategori menüsünü (kategori-menu.js) yüklemiyor; okur bu sayfadan diğer bölümlere menüyle geçemez.`);
   }
   if (!readFileSync('src/news-page.js', 'utf8').includes('/mobil-tipografi.css')) bulgular.push('src/news-page.js haber şablonu mobil tipografi katmanını yüklemiyor.');
+  if (!readFileSync('src/news-page.js', 'utf8').includes('/kategori-menu.js')) bulgular.push('src/news-page.js haber şablonu hamburger kategori menüsünü yüklemiyor.');
+  // Menüdeki her bağlantının karşılığı olmalı: statik sayfa ya da Worker'ın
+  // ürettiği temiz haber kategorisi adresi.
+  const menu = readFileSync('public/kategori-menu.js', 'utf8');
+  for (const [, yol] of menu.matchAll(/\['[^']+','(\/[^']*)'\]/g)) {
+    if (/^\/haberler\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji)\/$/.test(yol)) continue;
+    if (!existsSync(join('public', yol, 'index.html'))) bulgular.push(`public/kategori-menu.js menü bağlantısı ${yol} için sayfa yok (public${yol}index.html).`);
+  }
 }
 
 /* 15) Betikle basılan GERÇEK ÇEKİM rozeti de katalogla eşleşmeli. 5 Ekim'de
