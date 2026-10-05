@@ -4,6 +4,7 @@
 const stages=['new','contacted','qualified','proposal','meeting','won','lost'];
 const priorities=['low','normal','high'];
 const j=(d,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
+const oturumAnahtari=env=>{const x=env?.ADMIN_SESSION_SECRET_SECRET||env?.ADMIN_SESSION_SECRET||'';return x?(env?.MEDIA_SIGNING_SECRET?x+'\u0000'+env.MEDIA_SIGNING_SECRET:x):''};
 const session=async(request,secret)=>{
   if(!secret)return false;
   const c=request.headers.get('cookie')||''; const m=c.match(/bt_admin=([^;]+)/); if(!m)return false;
@@ -59,7 +60,7 @@ async function clientHubApi(request,env,url){
     const q=await env.DB.prepare(`SELECT r.id,r.title,r.slug,r.summary,r.cover_key,r.featured,c.name client_name,c.sector FROM client_references r JOIN client_workspaces c ON c.id=r.client_id WHERE r.visibility='public' AND c.status='active' ORDER BY r.featured DESC,r.updated_at DESC LIMIT 60`).all();
     return j({ok:true,items:q.results||[]});
   }
-  if(!(await session(request,env.ADMIN_SESSION_SECRET_SECRET)))return j({ok:false,error:'Yetkisiz'},401);
+  if(!(await session(request,oturumAnahtari(env))))return j({ok:false,error:'Yetkisiz'},401);
   if(url.pathname==='/api/client-hub/workspaces' && request.method==='GET'){
     const q=await env.DB.prepare('SELECT * FROM client_workspaces ORDER BY updated_at DESC').all();
     return j({ok:true,items:(q.results||[]).map(x=>({...x,services:jsonArray(x.services_json)}))});
@@ -388,7 +389,7 @@ export async function salesApi(request,env,url,ctx){
     await temasKaydet(env,kanal,temasSayfasi(b?.sayfa),request.headers.get('cf-connecting-ip'));
     return new Response(null,{status:204});
   }
-  if(!(await session(request,env.ADMIN_SESSION_SECRET_SECRET))) return j({ok:false,error:'Yetkisiz'},401);
+  if(!(await session(request,oturumAnahtari(env)))) return j({ok:false,error:'Yetkisiz'},401);
   if(url.pathname==='/api/sales/temas' && request.method==='GET'){
     const gun=Math.min(Math.max(Number(url.searchParams.get('gun'))||30,1),365);
     return j({ok:true,gun,items:await temasOzeti(env,gun)});
