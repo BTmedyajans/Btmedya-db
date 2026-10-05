@@ -101,6 +101,10 @@ async function listR2Media(bucket, source, {q='',cat=''}={}){
       if(cat && category!==cat) continue;
       if(q && !key.toLowerCase().includes(q.toLowerCase())) continue;
       const isVideo=/\.(mp4|webm|mov|m4v)$/i.test(key) || /^video\//i.test(mime);
+      /* 5 Ekim 2026 R2 denetiminde 348 B'lık MP4 test nesneleri görüldü.
+         Geçerli prodüksiyon videoları bu boyutun çok üzerinde; bozuk/test
+         videoların public arşivde kart olarak görünmesini engelle. */
+      if(isVideo && Number(x.size||0) < 10 * 1024) continue;
       out.push({
         id:(source==='r2-legacy'?'legacy-':'r2-')+b64url(new TextEncoder().encode(key)).slice(0,24),
         key,
