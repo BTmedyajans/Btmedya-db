@@ -4,7 +4,8 @@
   --bt-safe-bottom:env(safe-area-inset-bottom,0px);
   --bt-touch:48px;
 }
-html{scrollbar-gutter:stable}
+/* Sabit oluk, Playwright ve gerçek mobil viewportlarda gövdeyi scrollbar genişliği kadar taşır. */
+html{scrollbar-gutter:auto}
 body{overflow-x:hidden;overflow-x:clip}
 img,video{max-width:100%}
 button,a{touch-action:manipulation}
