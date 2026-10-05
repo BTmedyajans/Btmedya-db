@@ -26,6 +26,14 @@ import { ayarlariOku, ayarlariYaz, platformSluglari, sonrakiYuva, altyazi, varli
 
 const json = (data, status=200, headers={}) => new Response(JSON.stringify(data), {status, headers:{'content-type':'application/json; charset=utf-8', 'cache-control':'no-store', ...headers}});
 const text = (data, status=200, headers={}) => new Response(data, {status, headers:{'content-type':'text/plain; charset=utf-8', ...headers}});
+const KANONIK_HOST = "btmedya.com.tr";
+const IKINCIL_HOSTLAR = new Set(["btmedyaajans.com"]);
+function kanonikHedef(host){
+  const h=String(host||"").toLowerCase();
+  if(h===KANONIK_HOST) return null;
+  if(h==="www."+KANONIK_HOST || IKINCIL_HOSTLAR.has(h) || IKINCIL_HOSTLAR.has(h.replace(/^www\./,''))) return KANONIK_HOST;
+  return null;
+}
 
 /* ---------- yardımcılar (medya kasası) ---------- */
 function b64url(bytes){ return btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
@@ -1879,8 +1887,9 @@ export default { async scheduled(controller, env, ctx){
   }
   const coreApi=await btmedyaCoreApi(request,env,url,validSession); if(coreApi) return coreApi;
 
-  if(url.hostname.startsWith('www.')){
-    url.hostname = url.hostname.slice(4);
+  const hedefHost = kanonikHedef(url.hostname);
+  if(hedefHost){
+    url.hostname = hedefHost;
     return Response.redirect(url.toString(), 301);
   }
 
