@@ -1,6 +1,6 @@
 # BTMEDYA Canonical Resource Map
 
-Tarih: 29 Eylül 2026
+Tarih: 5 Ekim 2026
 
 ## Production source of truth
 
@@ -21,7 +21,7 @@ GitHub -> Cloudflare Worker -> D1/R2 -> btmedya.com.tr is the canonical producti
 - Cloudflare Workers Builds remains the canonical production deploy engine.
 - GitHub Actions production verification is a gate and smoke-test layer, not a replacement deploy engine.
 - The deployment watchdog compares `/api/health` -> `surum.yuklendi` with the main commit timestamp and opens an issue if production falls behind.
-- Metricool Brand `6858384` is authenticated through the connected Metricool account. The verified networks exposed by Metricool are currently TikTok and YouTube. Instagram/Facebook are not treated as connected by the Worker until Metricool itself confirms them.
+- Metricool Brand `6858384` is authenticated through the connected Metricool account. Live Metricool verification on 5 Ekim 2026 returned timezone `Europe/Istanbul`, TikTok `btmedya1010` and YouTube channel `UCGyRifwCyrKJQAbmo4uoO9g`; the verified publishing networks are TikTok and YouTube. Instagram/Facebook are not treated as connected by the Worker until Metricool itself confirms them. There are currently no scheduled posts on this Brand.
 - No credential, one-time login code, access token, or secret is stored in this document or committed to the repository.
 
 ## Archive and media policy
