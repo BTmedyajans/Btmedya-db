@@ -24,6 +24,8 @@
   // Etkin kategori: sayfanın yolu kategorinin bir bağlantısıyla en uzun eşleşen.
   let etkin=-1,enUzun=0;
   KATEGORILER.forEach((k,i)=>k.alt.forEach(([,y])=>{ if(yolu.startsWith(y)&&y.length>enUzun&&y!=='/'){enUzun=y.length;etkin=i;} }));
+  // Haber detay sayfaları (/haber/<slug>/) Haber kategorisindedir.
+  if(etkin<0&&yolu.startsWith('/haber/')) etkin=0;
   const kac=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
   const kok=document.createElement('div');
@@ -87,6 +89,11 @@
     kok.hidden?ac(t):kapat();
   },true);
   document.querySelectorAll(TETIKLER).forEach(d=>{d.setAttribute('aria-controls','btKategoriMenu');d.setAttribute('aria-haspopup','dialog');});
+  /* Eski menü panelleri artık hiç açılmıyor ama ekran dışında duran
+     bağlantıları (anasayfada 64 tane) Tab ile hâlâ odaklanabiliyordu.
+     inert onları odak sırasından ve erişilebilirlik ağacından çıkarır;
+     bağlantılar HTML'de kalır. */
+  document.querySelectorAll('#siteMenu,#anaMenu,.site-menu,.menu-panel').forEach(e=>{ if(!kok.contains(e)) e.inert=true; });
 
   // Hamburger düğmesi olmayan sayfaya başlığın sonuna düğme eklenir.
   if(!document.querySelector(TETIKLER)){

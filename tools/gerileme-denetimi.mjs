@@ -429,6 +429,25 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   }
 }
 
+/* 16) Yönetim paneli tek kategori menüsünden gezilir. Modüllerin kendi
+       gezinmesi farklıydı; Satış, Yayın ve Merak Radarı'ndan diğer
+       modüllere geçiş yoktu. Kural: yönlendirme sayfası olmayan her
+       panel modülü admin-menu.js yükler ve menüdeki her /admin/ yolu
+       gerçek bir dosyaya çıkar. */
+{
+  const moduller = ['agency-os/index.html', 'app.html', 'autopilot/index.html', 'editor/index.html', 'merak-radari/index.html', 'sales/index.html', 'yayin/index.html', 'client-hub/index.html'];
+  for (const m of moduller) {
+    const yol = join('public/admin', m);
+    if (!existsSync(yol)) { bulgular.push(`${yol} yok; yönetim menüsü bu modüle bağlantı veriyor.`); continue; }
+    if (!readFileSync(yol, 'utf8').includes('/admin/admin-menu.js')) bulgular.push(`${yol} yönetim kategori menüsünü (admin-menu.js) yüklemiyor.`);
+  }
+  const menu = readFileSync('public/admin/admin-menu.js', 'utf8');
+  for (const [, y] of menu.matchAll(/'(\/admin\/[^'#]*)(?:#[^']*)?'/g)) {
+    const dosya = y.endsWith('/') ? join('public', y, 'index.html') : join('public', y);
+    if (!existsSync(dosya)) bulgular.push(`public/admin/admin-menu.js menü bağlantısı ${y} için dosya yok (${dosya}).`);
+  }
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
