@@ -38,7 +38,8 @@ jobs:
       - name: Test live responsive and accessibility basics
         run: |
           set -euo pipefail
-          echo "Testing current checkout: $(git rev-parse HEAD)"
+          echo "Testing current checkout: ${GITHUB_SHA}"
+          echo "Workspace HEAD: $(git rev-parse HEAD)"
           for attempt in 1 2 3; do
             echo "Live smoke attempt $attempt/3"
             if node tools/responsive-a11y-smoke.mjs; then
