@@ -139,3 +139,22 @@
   .topbar .language-switch a{min-width:44px!important;justify-content:center}
   .bt-breaking-inner>a{padding:13.5px 0;margin:-13.5px 0}
 }
+
+/* SAHADAN HABERLER / Mobile editorial hierarchy · 2026-10-06 */
+@media (max-width:720px){
+  #news.section{padding-top:38px!important;padding-bottom:42px!important;background:linear-gradient(180deg,rgba(100,228,255,.055),transparent 34%)!important}
+  #news .section-head{gap:12px!important;margin-bottom:14px!important}
+  #news .section-head h2{font-size:clamp(40px,13vw,58px)!important;line-height:.9!important;letter-spacing:-.05em!important}
+  #news .section-side{font-size:12px!important;line-height:1.55!important;max-width:38ch}
+  #news .mobile-category-rail{margin:2px 0 10px!important;padding:3px 0 5px!important}
+  #news .mobile-category-rail a{min-height:40px!important;padding:9px 12px!important;font-size:10px!important;letter-spacing:.06em!important}
+  #news .news-card.featured{min-height:0!important;height:auto!important}
+  #news .news-card.featured .news-media{height:190px!important;aspect-ratio:16/9!important}
+  #news .news-card.featured .news-body{padding:14px!important;gap:8px!important}
+  #news .news-card.featured .news-body h3{font-size:clamp(23px,7vw,30px)!important;line-height:1.02!important;margin:0!important}
+  #news .news-card.featured .news-body p{font-size:12px!important;line-height:1.45!important;margin:0!important}
+  #news .news-card.featured .news-open{min-height:42px!important;margin-top:2px!important}
+}
+@media (prefers-reduced-motion:reduce){
+  #news .news-media img{transition:none!important}
+}
