@@ -13,7 +13,7 @@
   const setSource=()=>{if(!film.getAttribute('src')&&source){film.setAttribute('src',source);film.load();}};
   const hideGate=()=>{if(intro){intro.setAttribute('aria-hidden','true');intro.inert=true}root.classList.add('bt-hero-ux-ready')};
   const revealGate=()=>{if(intro){intro.removeAttribute('aria-hidden');intro.inert=false}};
-  const autoplay=async()=>{if(reduced)return;setSource();film.muted=true;film.defaultMuted=true;film.playsInline=true;film.loop=false;try{await film.play();hideGate()}catch{revealGate()}};
+  const autoplay=async()=>{\n    if(reduced)return;\n    try{\n      const y=await Promise.resolve(window.btYuvalar||{});\n      const a=y&&y['hero-video'];\n      if(a&&a.tur==='video'&&a.url) film.dataset.src=String(a.url);\n    }catch{}\n    setSource();\n    film.muted=true;film.defaultMuted=true;film.playsInline=true;film.loop=false;\n    try{await film.play();hideGate()}catch{revealGate()}\n  };
   const toggleSound=async()=>{setSource();film.muted=!film.muted;film.defaultMuted=film.muted;try{await film.play()}catch{};if(soundBtn){soundBtn.setAttribute('aria-pressed',String(!film.muted));soundBtn.setAttribute('aria-label',film.muted?'Sesi aç':'Sesi kapat');const span=soundBtn.querySelector('span');if(span)span.textContent=film.muted?'SESİ AÇ':'SESİ KAPAT'}};
   if(soundBtn&&soundBtn.dataset.btUxBound!=='1'){soundBtn.dataset.btUxBound='1';soundBtn.addEventListener('click',toggleSound);soundBtn.hidden=false}
   const startButton=root.querySelector('.bt-hero-start');
