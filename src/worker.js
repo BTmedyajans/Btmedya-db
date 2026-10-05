@@ -1596,7 +1596,7 @@ const SITE_SLOT_VARSAYILAN={
   'kategori-prod':  'media/web/state-produksiyon.mp4',
   'saha-buse':      'media/portfoy/buse-tuncay-saha-roportaj.webp',
   'portre-buse':    'media/portfoy/buse-tuncay-portre-01.webp',
-  'og-image':       'paylasim/btmedya-og.jpg',
+  'og-image':       'paylasim/btmedya-og-v2.jpg',
 };
 
 /* Kasa kaydinin sitede nereden servis edildigi. static/ onekli kayitlar
