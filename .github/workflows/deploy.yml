@@ -239,7 +239,7 @@ jobs:
           check_http "legacy-client-hub" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/musteri-merkezi/" "302"
           check_http "client-review" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/client/review/" "200"
           check_http "haberler" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/haberler/" "200"
-          check_http "kaynak-masasi" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/kaynak-masasi/" "200"
+          check_http "kaynak-masasi" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/kaynak-masasi/" "301"
           check_http "robots" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/robots.txt" "200"
           check_http "sitemap" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/sitemap.xml" "200"
           check_http "news-sitemap" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/news-sitemap.xml" "200"
