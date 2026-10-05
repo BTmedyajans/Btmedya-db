@@ -1,0 +1,115 @@
+name: BTMEDYA approved repair
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/btmedya-approved-repair.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply approved repair
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          index = Path('public/index.html')
+          script = Path('public/script.js')
+          text = index.read_text(encoding='utf-8')
+          script_text = script.read_text(encoding='utf-8')
+
+          old = "const src=(small&&v.dataset.srcMobile)?v.dataset.srcMobile:v.dataset.src;"
+          new = "const mobileSrc=v.dataset.srcMobile||v.dataset.mobile; const src=(small&&mobileSrc)?mobileSrc:v.dataset.src;"
+          if old in script_text and 'BTMEDYA_APPROVED_HERO_SOURCE_2026_10_05' not in script_text:
+              script_text = script_text.replace(old, new + " // BTMEDYA_APPROVED_HERO_SOURCE_2026_10_05", 1)
+              script.write_text(script_text, encoding='utf-8')
+
+          marker = '<div class="story-cards" id="storyCards">'
+          if marker in text and 'BTMEDYA_APPROVED_SAHADAN_VIDEO_RAIL_2026_10_05' not in text:
+              rail = r'''
+<div class="sahadan-video-rail" id="sahadan-video-haberler" aria-labelledby="sahadan-video-title">
+  <div class="sahadan-video-head">
+    <div><p class="kicker">02.1 / SAHA VİDEO</p><h3 id="sahadan-video-title">SAHADAN <span>HABERLER.</span></h3></div>
+    <p>BTMEDYA arşivindeki gerçek saha görüntüleri, ilgili haber başlığı ve kaynak bağlantısıyla birlikte gösterilir. Temsili görsel kullanılmaz.</p>
+  </div>
+  <div class="sahadan-video-grid">
+    <article class="sahadan-video-card">
+      <a href="/haberler/balikesir-in-en-kalabalik-pazari/" aria-label="Balıkesir'in En Kalabalık Pazarı haberini aç">
+        <div class="sahadan-video-media"><video controls playsinline preload="metadata" poster="/assets/haber-kapak/balikesir-in-en-kalabalik-pazari.webp"><source src="/assets/sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4" type="video/mp4"></video><span>GERÇEK ÇEKİM</span></div>
+        <div class="sahadan-video-copy"><small>YEREL · PAZAR · 04 EKİM 2024</small><h4>Balıkesir'in En Kalabalık Pazarı</h4><p>Cuma Pazarı'ndan gerçek saha görüntüsü.</p><b>Haberi aç ↗</b></div>
+      </a>
+    </article>
+    <article class="sahadan-video-card">
+      <a href="/haberler/balikesir-pazarinda-canli-helva-sovu/" aria-label="Balıkesir Pazarında Canlı Helva Şovu haberini aç">
+        <div class="sahadan-video-media"><video controls playsinline preload="metadata" poster="/assets/haber-kapak/balikesir-pazarinda-canli-helva-sovu.webp"><source src="/assets/sosyal/balikesir-pazarinda-canli-helva-sovu-dikey.mp4" type="video/mp4"></video><span>GERÇEK ÇEKİM</span></div>
+        <div class="sahadan-video-copy"><small>GASTRONOMİ · VİDEO · 02 MAYIS 2024</small><h4>Balıkesir Pazarında Canlı Helva Şovu</h4><p>Mustafa Aybacı ile pazarda gerçek görüntülü haber.</p><b>Haberi aç ↗</b></div>
+      </a>
+    </article>
+    <article class="sahadan-video-card">
+      <a href="/haberler/el-emegi-yorganlar-artik-isitmiyor/" aria-label="El Emeği Yorganlar Artık Isıtmıyor haberini aç">
+        <div class="sahadan-video-media"><video controls playsinline preload="metadata" poster="/assets/haber-kapak/el-emegi-yorganlar-artik-isitmiyor.webp"><source src="/assets/sosyal/el-emegi-yorganlar-artik-isitmiyor-dikey.mp4" type="video/mp4"></video><span>GERÇEK ÇEKİM</span></div>
+        <div class="sahadan-video-copy"><small>KÜLTÜR · ZANAAT · 19 AĞUSTOS 2024</small><h4>El Emeği Yorganlar Artık Isıtmıyor</h4><p>Balıkesir Mobilyacılar Çarşısı'ndan saha hikâyesi.</p><b>Haberi aç ↗</b></div>
+      </a>
+    </article>
+  </div>
+</div>
+<!-- BTMEDYA_APPROVED_SAHADAN_VIDEO_RAIL_2026_10_05 -->
+'''
+              text = text.replace(marker, rail + marker, 1)
+
+          style_marker = '</head>'
+          if 'BTMEDYA_APPROVED_SAHADAN_STYLE_2026_10_05' not in text:
+              style = r'''
+<style id="btmedya-approved-sahadan-style">
+.sahadan-video-rail{margin:clamp(30px,5vw,72px) 0;padding:clamp(20px,3vw,34px);border:1px solid rgba(255,255,255,.12);border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));}
+.sahadan-video-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.8fr);gap:24px;align-items:end;margin-bottom:22px}.sahadan-video-head h3{margin:.15em 0 0;font-size:clamp(28px,4vw,54px);letter-spacing:-.05em}.sahadan-video-head h3 span{color:var(--cin-cyan,#64e4ff)}.sahadan-video-head>p{margin:0;color:var(--cin-muted,#9eacbb);line-height:1.6;font-size:13px}.sahadan-video-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.sahadan-video-card{min-width:0;border:1px solid rgba(255,255,255,.1);border-radius:16px;overflow:hidden;background:#080b10}.sahadan-video-card>a{display:block;color:inherit;text-decoration:none}.sahadan-video-media{position:relative;background:#000;aspect-ratio:9/16;overflow:hidden}.sahadan-video-media video{display:block;width:100%;height:100%;object-fit:contain;background:#000}.sahadan-video-media>span{position:absolute;left:10px;top:10px;padding:5px 7px;border-radius:4px;background:rgba(0,0,0,.78);font:700 10px/1.1 ui-monospace,monospace;letter-spacing:.08em}.sahadan-video-copy{padding:15px}.sahadan-video-copy small{display:block;opacity:.62;font-size:9px;letter-spacing:.09em}.sahadan-video-copy h4{margin:7px 0 5px;font-size:18px;line-height:1.12}.sahadan-video-copy p{margin:0 0 11px;color:var(--cin-muted,#9eacbb);font-size:12px;line-height:1.5}.sahadan-video-copy b{font-size:11px;letter-spacing:.04em}
+@media(max-width:760px){.sahadan-video-rail{margin-inline:0;padding:18px;border-radius:18px}.sahadan-video-head{display:block}.sahadan-video-head>p{margin-top:10px}.sahadan-video-grid{grid-template-columns:1fr;gap:14px}.sahadan-video-media{max-height:72svh}.sahadan-video-copy h4{font-size:19px}.sahadan-video-card video{touch-action:manipulation}}
+/* BTMEDYA_APPROVED_SAHADAN_STYLE_2026_10_05 */
+</style>
+'''
+              text = text.replace(style_marker, style + style_marker, 1)
+
+          if 'BTMEDYA_APPROVED_SAHADAN_VIDEO_SCHEMA_2026_10_05' not in text:
+              schema = {
+                "@context":"https://schema.org",
+                "@graph":[
+                  {"@type":"VideoObject","name":"Balıkesir'in En Kalabalık Pazarı","description":"BTMEDYA'nın 4 Ekim 2024 tarihli gerçek saha video haberi.","thumbnailUrl":"https://btmedya.com.tr/assets/haber-kapak/balikesir-in-en-kalabalik-pazari.webp","uploadDate":"2024-10-04T09:00:00+03:00","contentUrl":"https://btmedya.com.tr/assets/sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4","creator":{"@type":"Organization","name":"BTMEDYA","url":"https://btmedya.com.tr/"}},
+                  {"@type":"VideoObject","name":"Balıkesir Pazarında Canlı Helva Şovu","description":"BTMEDYA'nın 2 Mayıs 2024 tarihli gerçek saha video haberi.","thumbnailUrl":"https://btmedya.com.tr/assets/haber-kapak/balikesir-pazarinda-canli-helva-sovu.webp","uploadDate":"2024-05-02T09:00:00+03:00","contentUrl":"https://btmedya.com.tr/assets/sosyal/balikesir-pazarinda-canli-helva-sovu-dikey.mp4","creator":{"@type":"Organization","name":"BTMEDYA","url":"https://btmedya.com.tr/"}},
+                  {"@type":"VideoObject","name":"El Emeği Yorganlar Artık Isıtmıyor","description":"BTMEDYA'nın 19 Ağustos 2024 tarihli gerçek saha video haberi.","thumbnailUrl":"https://btmedya.com.tr/assets/haber-kapak/el-emegi-yorganlar-artik-isitmiyor.webp","uploadDate":"2024-08-19T09:00:00+03:00","contentUrl":"https://btmedya.com.tr/assets/sosyal/el-emegi-yorganlar-artik-isitmiyor-dikey.mp4","creator":{"@type":"Organization","name":"BTMEDYA","url":"https://btmedya.com.tr/"}}
+                ]
+              }
+              text = text.replace(style_marker, '<script type="application/ld+json" id="btmedya-approved-sahadan-video-schema">'+json.dumps(schema, ensure_ascii=False, separators=(',',':'))+'\n<!-- BTMEDYA_APPROVED_SAHADAN_VIDEO_SCHEMA_2026_10_05 -->\n</script>\n'+style_marker, 1)
+
+          index.write_text(text, encoding='utf-8')
+          script.write_text(script_text, encoding='utf-8')
+          PY
+          grep -q 'BTMEDYA_APPROVED_SAHADAN_VIDEO_RAIL_2026_10_05' public/index.html
+          grep -q 'BTMEDYA_APPROVED_SAHADAN_VIDEO_SCHEMA_2026_10_05' public/index.html
+          grep -q 'BTMEDYA_APPROVED_HERO_SOURCE_2026_10_05' public/script.js
+          test -f public/assets/sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4
+          test -f public/assets/sosyal/balikesir-pazarinda-canli-helva-sovu-dikey.mp4
+          test -f public/assets/sosyal/el-emegi-yorganlar-artik-isitmiyor-dikey.mp4
+          node --check public/script.js
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          P().feed(Path('public/index.html').read_text(encoding='utf-8'))
+          print('HTML parser pass')
+          PY
+          git diff --check
+      - name: Commit repair and remove one-shot workflow
+        run: |
+          git config user.name "BTMEDYA Repair Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .github/workflows/btmedya-approved-repair.yml
+          git add public/index.html public/script.js .github/workflows/btmedya-approved-repair.yml
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "fix: connect real Sahadan video rail and hero mobile source"
+          git push origin main
