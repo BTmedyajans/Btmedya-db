@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-29T22:00:00+03:00",
+  "generated_at": "2026-10-05T20:45:00+03:00",
   "source": "Metricool",
   "mode": "verified_connection_snapshot",
-  "note": "29 Eylül 2026 denetimi: Metricool Brand 6858384 üzerinde TikTok ve YouTube bağlantıları doğrulandı. Instagram ve Facebook, Metricool Brand tarafında doğrulanana kadar bağlı kabul edilmez.",
+  "note": "5 Ekim 2026 denetimi: Metricool Brand 6858384 üzerinde TikTok ve YouTube yayınları doğrulandı. Instagram ve Facebook, Metricool Brand tarafında doğrulanana kadar bağlı kabul edilmez.",
   "profiles": [
     {
       "key": "instagram",
@@ -36,42 +36,82 @@
   "items": [
     {
       "platform": "TikTok",
-      "date": "2026-09-29",
-      "title": "Balıkesir Tarım ve Hayvancılık Fuarı dört günde 108 bin ziyaretçiyi ağırladı",
-      "url": "https://www.tiktok.com/@btmedya1010/video/7690849170395057426",
+      "date": "2026-10-03",
+      "title": "🔵 BALIKESİR GÜNDEM · Şanlıurfa GAP Havalimanı'nda TEKNOFEST Güneydoğu",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7692457368419945746",
       "archive_context": "BTMEDYA haber bağlantılı sosyal yayın",
       "note": "Metricool durumu: PUBLISHED."
     },
     {
-      "platform": "TikTok",
-      "date": "2026-09-29",
-      "title": "Balıkesir Büyükşehir Belediyespor sporcuları Avrupa ve Balkanlar'dan dereceyle döndü",
-      "url": "https://www.tiktok.com/@btmedya1010/video/7690879973330128148",
-      "archive_context": "BTMEDYA haber bağlantılı sosyal yayın",
+      "platform": "YouTube",
+      "date": "2026-10-03",
+      "title": "BTMEDYA: Balıkesir'den dünyaya | Haber, Medya, Prodüksiyon ve AI LAB",
+      "url": "https://www.youtube.com/watch?v=UOA5iFzm8YA",
+      "archive_context": "BTMEDYA gerçek çekim odaklı yayın",
       "note": "Metricool durumu: PUBLISHED."
     },
     {
       "platform": "TikTok",
-      "date": "2026-09-29",
-      "title": "Türkiye, İtalya'ya 1-4 yenildi: Milliler Uluslar Ligi'nde iki maçta puansız",
-      "url": "https://www.tiktok.com/@btmedya1010/video/7690910919664176390",
-      "archive_context": "BTMEDYA spor haberi",
+      "date": "2026-10-03",
+      "title": "BTMEDYA: Balıkesir'den dünyaya",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7692333354309537045",
+      "archive_context": "BTMEDYA haber, medya, prodüksiyon ve AI LAB yayını",
       "note": "Metricool durumu: PUBLISHED."
     },
     {
       "platform": "TikTok",
-      "date": "2026-09-29",
-      "title": "Balıkesir 8 yıl sonra yeniden başpehlivan çıkardı: Necip Al başpehlivanlığa yükseldi",
-      "url": "https://www.tiktok.com/@btmedya1010/video/7690942137399004437",
-      "archive_context": "BTMEDYA spor haberi",
+      "date": "2026-10-02",
+      "title": "BTMEDYA AI LAB · Açık etiketli AI üretimi",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7692071306853944582",
+      "archive_context": "AI LAB tanıtım yayını",
       "note": "Metricool durumu: PUBLISHED."
     },
     {
       "platform": "TikTok",
-      "date": "2026-09-29",
-      "title": "DMM, fon ödemeleri için vatandaştan ücret alınacağı iddiasını yalanladı",
-      "url": "https://www.tiktok.com/@btmedya1010/video/7691004002514799878",
-      "archive_context": "BTMEDYA gündem haberi",
+      "date": "2026-10-02",
+      "title": "Balıkesir Üniversitesi, GreenMetric 2026'da dünya 401'incisi oldu",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7692055264626855188",
+      "archive_context": "BTMEDYA eğitim/haber yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "TikTok",
+      "date": "2026-10-02",
+      "title": "YÖK, UI GreenMetric 2026’da 150 Türk üniversitesinin sürdürülebilirlik başarısını açıkladı",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7691962251615489281",
+      "archive_context": "BTMEDYA eğitim/haber yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "TikTok",
+      "date": "2026-10-02",
+      "title": "BTMEDYA REKLAM · Marka hikâyesi",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7692039745743949077",
+      "archive_context": "BTMEDYA reklam ve marka hizmetleri yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "TikTok",
+      "date": "2026-10-02",
+      "title": "BTMEDYA PRODÜKSİYON · Saha ve kamera arkası",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7692009045623835925",
+      "archive_context": "BTMEDYA prodüksiyon ve gerçek üretim arşivi",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "TikTok",
+      "date": "2026-10-02",
+      "title": "BTMEDYA HABER · Balıkesir ve gündem",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7691978113571507474",
+      "archive_context": "BTMEDYA haber merkezi tanıtım yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "TikTok",
+      "date": "2026-10-01",
+      "title": "Şanlıurfa, 30 Eylül-4 Ekim TEKNOFEST Güneydoğu'na ev sahipliği yapıyor",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7691715263221517589",
+      "archive_context": "BTMEDYA teknoloji/haber yayını",
       "note": "Metricool durumu: PUBLISHED."
     }
   ]
