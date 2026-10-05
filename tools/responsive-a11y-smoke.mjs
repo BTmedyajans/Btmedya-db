@@ -44,7 +44,7 @@ for (const vp of viewports) {
       const imgs=[...document.images];
       const unnamedButtons=[...document.querySelectorAll('button')].filter(b=>!((b.textContent||'').trim()||b.getAttribute('aria-label')||b.getAttribute('title')));
       const unnamedLinks=[...document.querySelectorAll('a')].filter(a=>!((a.textContent||'').trim()||a.getAttribute('aria-label')||a.getAttribute('title')) && !a.querySelector('img[alt]'));
-      return {width:innerWidth,scrollWidth:Math.max(html.scrollWidth,body?.scrollWidth||0),imageWithoutAlt:imgs.filter(i=>!i.hasAttribute('alt')).length,unnamedButtons:unnamedButtons.length,unnamedLinks:unnamedLinks.length};
+      const pageRight=Math.max(document.documentElement.clientWidth,document.body?.clientWidth||0); const contentWidth=Math.max(html.scrollWidth,body?.scrollWidth||0); return {width:pageRight,scrollWidth:contentWidth,imageWithoutAlt:imgs.filter(i=>!i.hasAttribute('alt')).length,unnamedButtons:unnamedButtons.length,unnamedLinks:unnamedLinks.length};
     });
     if(result.scrollWidth > result.width + 2) failures.push(vp.name+' '+item.path+' horizontal-overflow '+result.scrollWidth+'>'+result.width);
     if(result.imageWithoutAlt) failures.push(vp.name+' '+item.path+' images-without-alt '+result.imageWithoutAlt);
