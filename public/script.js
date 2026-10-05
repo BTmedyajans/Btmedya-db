@@ -674,9 +674,19 @@ document.addEventListener('DOMContentLoaded',()=>{
       meta.textContent='Kaynak: '+String(data.source||'Metricool')+' · '+count+' doğrulanmış yayın snapshotı · '+String(data.generated_at||'');
       grid.innerHTML=count ? data.items.map(feedCard).join('') : '<div class="social-feed-empty">Doğrulanmış yayın kaydı yok.</div>';
     }catch(err){
-      profiles.innerHTML='';
-      meta.textContent='Sosyal profil bağlantıları korunuyor; son yayın snapshotı şu anda okunamadı.';
-      grid.innerHTML='<div class="social-feed-empty">Sosyal akış geçici olarak kullanılamıyor.</div>';
+      // API geçici olarak erişilemiyorsa doğrulanmış repository snapshotını göster.
+      try{
+        const r=await fetch('/data/social-feed.json',{headers:{accept:'application/json'}});
+        if(!r.ok) throw new Error('snapshot '+r.status);
+        const data=await r.json();
+        profiles.innerHTML=(Array.isArray(data.profiles)?data.profiles:[]).map(profileCard).join('');
+        const count=Array.isArray(data.items)?data.items.length:0;
+        meta.textContent='Kaynak: doğrulanmış Metricool snapshotı · '+count+' yayın · '+String(data.generated_at||'');
+        grid.innerHTML=count ? data.items.map(feedCard).join('') : '<div class="social-feed-empty">Doğrulanmış yayın kaydı yok.</div>';
+        return;
+      }catch(fallbackErr){}
+      meta.textContent='Sosyal bağlantılar aktif; son yayın snapshotı geçici olarak gösterilemiyor.';
+      grid.innerHTML='<div class="social-feed-empty">Güncel yayınlar için Social Studio ve bağlı kanalları açın.</div>';
     }
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadSocialFeed,{once:true});else loadSocialFeed();
