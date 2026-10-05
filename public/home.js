@@ -597,7 +597,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       });
     }catch(err){
       if(!document.querySelector('[data-fallback="media"]')){
-        grid.innerHTML='<div class="archive-live-empty">Son doğrulanmış gerçek arşiv gösteriliyor. Daha fazlası için <a href="/portfoy/">portföy ↗</a></div>';
+        grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv geçici olarak güncellenemedi. Son doğrulanmış içerikler portföyde açık.</div>';
       } else {
         grid.setAttribute('aria-busy','false');
       }
@@ -733,7 +733,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       // snapshot silinmez; kullanıcı boş bir yayın alanıyla karşılaşmaz.
       const fallback=document.querySelector('[data-fallback="social"]');
       profiles.innerHTML=fallback?'':'';
-      meta.textContent=fallback?'Metricool anlık akışı okunamazsa son doğrulanmış snapshot gösteriliyor.':'Son doğrulanmış sosyal snapshot gösteriliyor.';
+      meta.textContent='Son doğrulanmış sosyal snapshot gösteriliyor.';
       if(!fallback) grid.innerHTML='<div class="social-feed-empty">Sosyal akış geçici olarak kullanılamıyor.</div>';
       markReady();
     }
