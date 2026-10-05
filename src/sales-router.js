@@ -53,7 +53,7 @@ async function clientHubApi(request,env,url){
     if(!ref)return j({ok:false,error:'Referans bulunamadı'},404);
     const ids=jsonArray(ref.content_ids_json);
     let contents=[];
-    if(ids.length){const marks=ids.map(()=>'?').join(',');const q=await env.DB.prepare(`SELECT id,title,content_type,engine,body,media_key,preview_json,status,client_approved,published_at FROM client_content WHERE id IN (${marks}) ORDER BY updated_at DESC`).bind(...ids).all();contents=q.results||[];}
+    if(ids.length){const marks=ids.map(()=>'?').join(',');const q=await env.DB.prepare(`SELECT id,title,content_type,engine,body,media_key,preview_json,status,client_approved,published_at FROM client_content WHERE client_id=? AND id IN (${marks}) ORDER BY updated_at DESC`).bind(ref.client_id,...ids).all();contents=q.results||[];}
     return j({ok:true,reference:{...ref,services:jsonArray(ref.services_json),content_ids:ids,contents}});
   }
   if(publicList && request.method==='GET'){
