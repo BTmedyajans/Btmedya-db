@@ -6,6 +6,7 @@
 # Audit trigger: 2026-09-28 production chain revalidation / live smoke retrigger.
 # Live repair: re-trigger Workers Builds so declared Custom Domains are reconciled.
 # Live repair retrigger: 2026-10-01 — rebuild production from canonical main to reconcile apex/www.
+# Production rebuild trigger: 2026-10-05 RLS + Metricool chain revalidation.
 # DNS administration is intentionally kept outside the application deploy path.
 name = "btmedya-db"
 main = "src/worker.js"
