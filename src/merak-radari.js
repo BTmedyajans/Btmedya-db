@@ -102,7 +102,7 @@ export async function merakRadariCalistir(env,{limit=12}={}){
     var questions=Array.from(new Set(related.filter(function(q){return SORU_SINYALI.test(q);}).concat(soruUret(topic,related.find(function(q){return SORU_SINYALI.test(q);})||anahtarMerak(topic))))).slice(0,4);
     var base=anahtarlar(topic);
     var internalHits=own.filter(function(n){ var z=duzelt(n.title+" "+n.excerpt); return base.some(function(k){return z.indexOf(k)>=0;}); }).length;
-    var socialLocalHits=sosyalYayinlari.filter(function(n){var z=duzelt(String(n.title||"")+" "+String(n.body||"")); return base.some(function(k){return z.indexOf(k)>=0;});}).length;
+    var socialLocalHits=0;
     var socialHits=env.KV?await env.KV.get("merak-radari:sosyal:"+duzelt(topic)).then(function(x){return Number(x||0);}).catch(function(){return 0;}):0;
     socialHits=Math.max(socialHits,Math.min(18,socialLocalHits*3));
     var competitorHits=env.KV?await env.KV.get("merak-radari:rakip:"+duzelt(topic)).then(function(x){return Number(x||0);}).catch(function(){return 0;}):0;
