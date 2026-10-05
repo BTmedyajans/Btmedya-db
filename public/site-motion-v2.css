@@ -3,7 +3,9 @@
 html{background:var(--bt-motion-bg)}
 body{--bt-mx:0;--bt-my:0;--bt-scroll:0;--bt-tilt-x:0deg;--bt-tilt-y:0deg;--bt-tilt-z:0deg;perspective:1200px}
 /* Link-to-link editorial transition */
-.bt-page-transition{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;background:#050607;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .42s var(--bt-motion-ease),visibility 0s linear .42s}
+/* overflow:hidden: :before 1.08 ölçekli; body perspective taşıdığı için sabit katman
+   belge genişliğine sayılıyor ve 10 sayfayı yana kaydırıyordu (390 px'de +16 px). */
+.bt-page-transition{position:fixed;inset:0;z-index:10050;overflow:hidden;display:grid;place-items:center;background:#050607;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .42s var(--bt-motion-ease),visibility 0s linear .42s}
 .bt-page-transition.is-active{opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}
 .bt-page-transition:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,rgba(53,214,255,.18),transparent 30%),linear-gradient(115deg,transparent 0 44%,rgba(217,255,63,.08) 44.2% 44.5%,transparent 44.7% 100%);transform:scale(1.08);transition:transform .7s var(--bt-motion-ease)}
 .bt-page-transition.is-active:before{transform:scale(1)}
