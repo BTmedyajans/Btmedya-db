@@ -37,13 +37,13 @@ RENKLER = [
 ]
 
 TIPOGRAFI = [
-    {"ad": "Anton", "kullanim": "Manşet kapağı ve sosyal kart başlığı (BÜYÜK HARF)", "lisans": "SIL OFL 1.1"},
+    {"ad": "Anton", "kullanim": "Yalnız giriş filmi başlığı; haber kapaklarında yerini Big Shoulders aldı", "lisans": "SIL OFL 1.1"},
     {"ad": "Bricolage Grotesque", "kullanim": "Site büyük başlıkları (display)", "lisans": "SIL OFL 1.1"},
     {"ad": "Space Grotesk", "kullanim": "Kart başlığı, alan adı imzası", "lisans": "SIL OFL 1.1"},
     {"ad": "Manrope", "kullanim": "Gövde metni, künye, açıklama", "lisans": "SIL OFL 1.1"},
     {"ad": "JetBrains Mono", "kullanim": "Üst etiket (kicker), kaynak ve durum etiketleri", "lisans": "SIL OFL 1.1"},
     {"ad": "Unbounded 800", "kullanim": "Marka sesi: SAHADAN EKRANA gibi marka cümleleri, paylaşım görseli, kanal kapağı", "lisans": "SIL OFL 1.1"},
-    {"ad": "Big Shoulders Display 900", "kullanim": "Haber sesi: video kapağında TV alt bandı başlığı (BÜYÜK HARF)", "lisans": "SIL OFL 1.1"},
+    {"ad": "Big Shoulders Display 900", "kullanim": "Haber sesi: haber kapağı, sosyal kart ve kategori plakası başlığı; video kapağında TV alt bandı (BÜYÜK HARF)", "lisans": "SIL OFL 1.1"},
     {"ad": "Fraunces 900 İtalik", "kullanim": "Prodüksiyon sesi: film ve klip adı, sinema afişi başlığı", "lisans": "SIL OFL 1.1"},
     {"ad": "Archivo Black", "kullanim": "Reklam sesi: ürün ve marka filmi başlığı", "lisans": "SIL OFL 1.1"},
     {"ad": "Syne 800", "kullanim": "AI LAB sesi: geniş, fütüristik başlık (renk kaymalı)", "lisans": "SIL OFL 1.1"},
@@ -156,8 +156,8 @@ a{{color:var(--a)}}header,main,footer{{width:min(1200px,100%);margin:auto;paddin
 header{{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px;border-bottom:1px solid var(--c)}}
 header>a{{display:inline-flex;align-items:center;min-height:44px}}header img{{height:30px;width:auto;display:block}}header nav a{{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;color:var(--m);text-decoration:none;font-weight:700}}
 .hero{{padding:56px 0 24px}}.ust{{font:700 12px/1.2 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.14em;color:var(--s)}}
-h1{{font:400 clamp(44px,11vw,108px)/.95 Anton,Impact,sans-serif;text-transform:uppercase;margin:12px 0}}h1 span{{color:var(--s)}}
-h2{{font:400 clamp(30px,6vw,52px)/1 Anton,Impact,sans-serif;text-transform:uppercase;margin:0 0 6px}}
+h1{{font:900 clamp(48px,12vw,118px)/.92 'BT Big Shoulders',Anton,Impact,sans-serif;text-transform:uppercase;margin:12px 0}}h1 span{{color:var(--s)}}
+h2{{font:900 clamp(32px,6.4vw,56px)/1 'BT Big Shoulders',Anton,Impact,sans-serif;text-transform:uppercase;margin:0 0 6px}}
 section{{padding:40px 0;border-top:1px solid var(--c)}}section>p{{color:var(--g);max-width:62ch;margin:0 0 20px}}
 ul{{list-style:none;margin:0;padding:0}}.izgara{{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))}}
 .renk,.izgara>li{{background:var(--y);border:1px solid var(--c);border-radius:14px;padding:14px;display:grid;gap:4px}}
