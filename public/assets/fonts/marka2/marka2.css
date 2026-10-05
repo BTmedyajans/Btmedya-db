@@ -1,0 +1,10 @@
+/* BTMEDYA Görsel Kimlik 2.0 · içerik sesleri için yazı tipleri.
+   Tamamı SIL OFL 1.1 (lisans: OFL.txt). Değişken fontlardan tek ağırlıkta
+   statik örnek alındı ve Latin + Türkçe karakterlere indirildi; altısı
+   toplam ~140 KB. Yalnız kullanan sayfalar yükler. */
+@font-face{font-family:'BT Unbounded';src:url(/assets/fonts/marka2/unbounded-800.woff2) format('woff2');font-weight:800;font-display:swap}
+@font-face{font-family:'BT Big Shoulders';src:url(/assets/fonts/marka2/big-shoulders-900.woff2) format('woff2');font-weight:900;font-display:swap}
+@font-face{font-family:'BT Fraunces';src:url(/assets/fonts/marka2/fraunces-900-italik.woff2) format('woff2');font-weight:900;font-style:italic;font-display:swap}
+@font-face{font-family:'BT Syne';src:url(/assets/fonts/marka2/syne-800.woff2) format('woff2');font-weight:800;font-display:swap}
+@font-face{font-family:'BT Archivo Black';src:url(/assets/fonts/marka2/archivo-black.woff2) format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'BT Instrument Serif';src:url(/assets/fonts/marka2/instrument-serif-italik.woff2) format('woff2');font-style:italic;font-display:swap}
