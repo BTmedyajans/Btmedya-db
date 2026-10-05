@@ -1,42 +1,104 @@
-/* BTMEDYA Hamburger Kategori Menüsü · kategori-menu.js ile birlikte.
-   Dar ekranda tam ekran akordeon, geniş ekranda sağdan açılan kategori
-   ızgarası. Dokunma hedefleri ≥44 px; açıkken arka sayfa kaymaz. */
+/* BTMEDYA Hamburger Kategori Menüsü · v3 hareketli kategori sistemi.
+   kategori-menu.js ile birlikte. Hareket dili tek eğriye bağlı (--btkm-egri:
+   hızlı çıkış, yumuşak iniş); süreler 0,24–0,6 sn. Her hareket bir şeyi
+   anlatır: işaretçi "buradasın", yükselen başlık "yeni bölüm", yönlü kayma
+   "ileri/geri gittin". Dokunma hedefleri ≥44 px; hareket azaltma tercihinde
+   tüm geçişler ve kayan yazı durur. */
+.btkm{--btkm-egri:cubic-bezier(.16,1,.3,1);--btkm-zemin:#06090d;--btkm-yesil:#d9ff3f;--btkm-mavi:#35d6ff;--btkm-cizgi:rgba(255,255,255,.12);--btkm-soluk:#9fb0bd}
 html.btkm-acik{overflow:hidden}
 .btkm{position:fixed!important;inset:0;z-index:2147483100!important;color:#eef3f7}
 .btkm[hidden]{display:none}
-.btkm-perde{position:absolute;inset:0;background:rgba(3,5,8,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transition:opacity .25s ease}
-.btkm-panel{position:absolute;top:0;right:0;bottom:0;width:min(920px,100%);display:flex;flex-direction:column;background:#070a0e;border-left:1px solid rgba(255,255,255,.12);
-  transform:translateX(24px);opacity:0;transition:transform .28s cubic-bezier(.16,1,.3,1),opacity .22s ease;overflow-y:auto;overscroll-behavior:contain;padding-bottom:env(safe-area-inset-bottom)}
+.btkm-perde{position:absolute;inset:0;background:rgba(3,5,8,.8);opacity:0;transition:opacity .3s ease}
+.btkm-panel{position:absolute;top:0;right:0;bottom:0;width:min(1080px,100%);display:flex;flex-direction:column;overflow:hidden;
+  background:radial-gradient(120% 60% at 100% 0%,rgba(53,214,255,.10),transparent 60%),radial-gradient(90% 50% at 0% 100%,rgba(217,255,63,.07),transparent 60%),var(--btkm-zemin);
+  border-left:1px solid var(--btkm-cizgi);clip-path:inset(0 0 0 100%);transition:clip-path .28s cubic-bezier(.7,0,.84,0);padding-bottom:env(safe-area-inset-bottom)}
 .btkm.is-acik .btkm-perde{opacity:1}
-.btkm.is-acik .btkm-panel{transform:none;opacity:1}
-.btkm-ust{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:#070a0e;border-bottom:1px solid rgba(255,255,255,.1)}
+/* Panel sağdan perde gibi açılır (clip-path), içerik ardından sırayla gelir. */
+.btkm.is-acik .btkm-panel{clip-path:inset(0 0 0 0);transition:clip-path .6s var(--btkm-egri)}
+.btkm-ust{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--btkm-cizgi)}
 .btkm-marka{color:#fff;text-decoration:none;font:800 18px/1 'Bricolage Grotesque','Space Grotesk',Inter,Arial,sans-serif;letter-spacing:.04em}
-.btkm-kapat{min-height:44px;padding:0 16px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:transparent;color:#fff;font:700 14px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer}
-.btkm-liste{padding:6px 16px 16px}
-.btkm-grup{border-bottom:1px solid rgba(255,255,255,.1)}
-.btkm-grup summary{display:flex;align-items:center;justify-content:space-between;min-height:56px;cursor:pointer;list-style:none;
-  font:800 20px/1.1 'Bricolage Grotesque','Space Grotesk',Inter,Arial,sans-serif;letter-spacing:-.01em;color:#fff}
-.btkm-grup summary::-webkit-details-marker{display:none}
-.btkm-grup summary i{width:12px;height:12px;border-right:2px solid #d9ff3f;border-bottom:2px solid #d9ff3f;transform:rotate(45deg) translateY(-3px);transition:transform .2s ease}
-.btkm-grup[open] summary i{transform:rotate(-135deg) translateY(-2px)}
-.btkm-grup ul{list-style:none;margin:0 0 12px;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:2px 12px}
-.btkm-grup li a{display:flex;align-items:center;min-height:44px;color:#b9c6d0;text-decoration:none;font:600 15px/1.25 Manrope,Inter,Arial,sans-serif}
-.btkm-grup li a:hover,.btkm-grup li a:focus-visible{color:#fff}
-.btkm-grup li a[aria-current="page"]{color:#d9ff3f}
-.btkm-grup li a[aria-current="page"]::before{content:"";width:6px;height:6px;margin-right:8px;border-radius:50%;background:#d9ff3f}
-.btkm-alt{margin-top:auto;display:flex;flex-wrap:wrap;gap:10px;padding:16px;border-top:1px solid rgba(255,255,255,.1)}
-.btkm-alt a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid rgba(255,255,255,.22);border-radius:12px;color:#fff;text-decoration:none;font:700 14px/1 Manrope,Inter,Arial,sans-serif}
-.btkm-alt .btkm-cta{background:#d9ff3f;border-color:#d9ff3f;color:#071000}
-.btkm a:focus-visible,.btkm button:focus-visible,.btkm summary:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.btkm-kapat{min-height:44px;padding:0 16px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:transparent;color:#fff;font:700 14px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer;transition:background .2s,color .2s}
+.btkm-kapat:hover{background:#fff;color:#06090d}
+
+/* Kayan kategori şeridi + süzülen işaretçi. */
+.btkm-serit{position:relative;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:14px 16px 10px;
+  mask-image:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 28px),transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 28px),transparent)}
+.btkm-serit::-webkit-scrollbar{display:none}
+.btkm-serit-ic{position:relative;display:inline-flex}
+.btkm-sekmeler{display:flex;gap:6px;position:relative;z-index:1}
+.btkm-imlec{position:absolute;left:0;top:0;bottom:0;width:var(--w,0);transform:translateX(var(--x,0));border-radius:999px;background:var(--btkm-yesil);
+  box-shadow:0 8px 28px rgba(217,255,63,.28);transition:transform .5s var(--btkm-egri),width .5s var(--btkm-egri)}
+.btkm-cip{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 18px;border:1px solid var(--btkm-cizgi);border-radius:999px;background:rgba(255,255,255,.03);
+  color:#fff;font:700 15px/1 Manrope,Inter,Arial,sans-serif;white-space:nowrap;cursor:pointer;transition:color .3s ease,border-color .3s ease,background .3s ease;
+  opacity:0;transform:translateY(14px)}
+.btkm-cip small{font:700 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.08em;color:var(--btkm-soluk);transition:color .3s ease}
+.btkm-cip[aria-selected="true"]{color:#071000;border-color:transparent;background:transparent}
+.btkm-cip[aria-selected="true"] small{color:#33420a}
+.btkm-cip:hover:not([aria-selected="true"]){border-color:rgba(255,255,255,.4)}
+.btkm.is-acik .btkm-cip{opacity:1;transform:none;transition:color .3s ease,border-color .3s ease,background .3s ease,opacity .45s ease calc(.18s + var(--i)*.05s),transform .55s var(--btkm-egri) calc(.18s + var(--i)*.05s)}
+
+/* Yukarı yuvarlanan yazı (üzerine gelince ve odakta). */
+.btkm-yuvarla{display:inline-grid;overflow:hidden;line-height:1.2;vertical-align:middle}
+.btkm-yuvarla>span{grid-area:1/1;transition:transform .45s var(--btkm-egri)}
+.btkm-yuvarla>span+span{transform:translateY(105%)}
+:is(.btkm-cip,.btkm-baglar a,.btkm-cta):is(:hover,:focus-visible) .btkm-yuvarla>span:first-child{transform:translateY(-105%)}
+:is(.btkm-cip,.btkm-baglar a,.btkm-cta):is(:hover,:focus-visible) .btkm-yuvarla>span+span{transform:none}
+
+/* Kategori sahnesi. */
+.btkm-sahne{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:10px 16px 18px;touch-action:pan-y;--dx:48px}
+.btkm-sahne[data-yon="geri"]{--dx:-48px}
+.btkm-pano[hidden]{display:none}
+.btkm-sayac{margin:4px 0 6px;font:700 11px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.14em;color:var(--btkm-soluk)}
+.btkm-sayac b{color:var(--btkm-yesil)}
+.btkm-baslik{margin:0;font:800 clamp(40px,11vw,96px)/.92 'Bricolage Grotesque','Space Grotesk',Inter,Arial,sans-serif;letter-spacing:-.035em;color:#fff}
+.btkm-maske{display:block;overflow:hidden;padding-bottom:.06em}
+.btkm-maske>span{display:block;animation:btkmYuksel .7s var(--btkm-egri) both}
+.btkm-ozet{margin:12px 0 18px;max-width:46ch;color:var(--btkm-soluk);font:500 15px/1.5 Manrope,Inter,Arial,sans-serif;animation:btkmBelir .6s ease .12s both}
+.btkm-baglar{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;border-top:1px solid var(--btkm-cizgi)}
+.btkm-baglar li{border-bottom:1px solid var(--btkm-cizgi);animation:btkmKay .55s var(--btkm-egri) calc(.06s + var(--j)*.045s) both}
+.btkm-baglar a{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;padding:0 4px;color:#e6edf2;text-decoration:none;
+  font:650 18px/1.2 Manrope,Inter,Arial,sans-serif;overflow:hidden}
+/* Üzerine gelince alttan dolan çizgi ve sağa kayan ok. */
+.btkm-baglar a::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,var(--btkm-yesil),var(--btkm-mavi));transform:scaleX(0);transform-origin:left;transition:transform .5s var(--btkm-egri)}
+.btkm-baglar a:is(:hover,:focus-visible)::after{transform:scaleX(1)}
+.btkm-baglar a i{font-style:normal;color:var(--btkm-soluk);transition:transform .45s var(--btkm-egri),color .3s}
+.btkm-baglar a:is(:hover,:focus-visible) i{transform:translate(4px,-4px);color:var(--btkm-yesil)}
+.btkm-baglar a[aria-current="page"]{color:var(--btkm-yesil)}
+.btkm-baglar a[aria-current="page"] .btkm-yuvarla>span:first-child::before{content:"● ";font-size:.6em;vertical-align:.2em}
+
+/* Kayan kategori yazısı: süs; ekran okuyucudan gizli. */
+.btkm-kayan{overflow:hidden;border-top:1px solid var(--btkm-cizgi);padding:10px 0;color:#6b7a86;font:800 28px/1 'Bricolage Grotesque','Space Grotesk',Inter,Arial,sans-serif;text-transform:uppercase;letter-spacing:-.01em;user-select:none}
+.btkm-kayan-iz{display:flex;gap:22px;width:max-content;animation:btkmSerit 32s linear infinite}
+.btkm-kayan-iz i{font-style:normal;color:#9db033}
+.btkm-panel:hover .btkm-kayan-iz{animation-play-state:paused}
+
+.btkm-alt{display:flex;flex-wrap:wrap;gap:10px;padding:14px 16px;border-top:1px solid var(--btkm-cizgi)}
+.btkm-alt a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid rgba(255,255,255,.22);border-radius:12px;color:#fff;text-decoration:none;font:700 14px/1 Manrope,Inter,Arial,sans-serif;transition:border-color .2s}
+.btkm-alt a:hover{border-color:#fff}
+.btkm-alt .btkm-cta{background:var(--btkm-yesil);border-color:var(--btkm-yesil);color:#071000}
+.btkm a:focus-visible,.btkm button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+
 /* Başlığa eklenen düğme (kendi hamburgeri olmayan sayfalar). */
 .btkm-dugme{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(5,8,12,.6);color:#fff;font:700 14px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer;margin-left:auto}
 .btkm-dugme-sabit{position:fixed;top:12px;right:12px;z-index:2147483000}
-/* Geniş ekran: kategoriler ızgarada yan yana, hepsi açık. */
+
+@keyframes btkmYuksel{from{transform:translateY(105%) skewY(4deg)}to{transform:none}}
+@keyframes btkmBelir{from{opacity:0}to{opacity:1}}
+@keyframes btkmKay{from{opacity:0;transform:translateX(var(--dx))}to{opacity:1;transform:none}}
+@keyframes btkmSerit{to{transform:translateX(calc(-50% - 11px))}}
+
+/* Geniş ekran: başlık solda, bağlantılar sağda iki sütun. */
 @media (min-width:900px){
-  .btkm-liste{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 28px;padding:20px 28px}
-  .btkm-grup{border-bottom:0}
-  .btkm-grup summary{min-height:48px;pointer-events:none;border-bottom:1px solid rgba(255,255,255,.14);margin-bottom:6px}
-  .btkm-grup summary i{display:none}
-  .btkm-grup ul{grid-template-columns:1fr}
+  .btkm-ust,.btkm-alt{padding-left:32px;padding-right:32px}
+  .btkm-serit{padding:18px 32px 12px}
+  .btkm-sahne{padding:22px 32px 26px}
+  .btkm-pano{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:36px;align-items:start}
+  .btkm-pano-bas{position:sticky;top:0}
+  .btkm-baglar{grid-template-columns:1fr 1fr;column-gap:22px}
+  .btkm-kayan{font-size:40px}
 }
-@media (prefers-reduced-motion:reduce){.btkm-perde,.btkm-panel,.btkm-grup summary i{transition:none}}
+@media (prefers-reduced-motion:reduce){
+  .btkm-perde,.btkm-panel,.btkm-imlec,.btkm-cip,.btkm-yuvarla>span,.btkm-baglar a::after,.btkm-baglar a i{transition:none!important}
+  .btkm-maske>span,.btkm-ozet,.btkm-baglar li,.btkm-kayan-iz{animation:none!important}
+  .btkm-cip{opacity:1;transform:none}
+}
