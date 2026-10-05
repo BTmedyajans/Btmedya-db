@@ -1,6 +1,7 @@
 /* BTMEDYA Mobil Motion V10.1 · approved repair 2026-10-05
    Real-field video rail + mobile intro reliability + hero source bridge. */
 (()=>{
+  if(innerWidth>720)return;
   const heroStory=document.getElementById('heroStoryVideo');
   if(heroStory&&!heroStory.dataset.srcMobile&&heroStory.dataset.mobile) heroStory.dataset.srcMobile=heroStory.dataset.mobile;
 
@@ -25,7 +26,7 @@
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',addSahadan,{once:true}); else addSahadan();
 
-  const root=document.querySelector('.cinematic-hero'); if(!root||innerWidth>720)return;
+  const root=document.querySelector('.cinematic-hero'); if(!root)return;
   const box=root.querySelector('[data-mfilm]'), video=box&&box.querySelector('video'); if(!video)return;
   const label=box.querySelector('[data-mfilm-etiket]'), playBtn=box.querySelector('[data-mfilm-oynat]'), soundBtn=box.querySelector('[data-mfilm-ses]');
   const introKicker=root.querySelector('.bt-hero-intro-kicker');
