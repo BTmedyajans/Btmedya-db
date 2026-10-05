@@ -39,7 +39,14 @@ async function loadMedia(){
    io.observe(v);
   });
  }catch(e){
-  el.innerHTML='<div class="loading">Gerçek medya arşivi şu anda okunamadı. <a href="/iletisim/">Arşiv erişimi için iletişim ↗</a></div>';
+  // Media Vault API geçici olarak erişilemiyorsa gerçek repository arşivini göster.
+  const fallback=[
+   ['/assets/media/portfoy/buse-tuncay-saha-roportaj.webp','GERÇEK ÇEKİM · SAHA','Saha röportajı — BTMEDYA mikrofonu'],
+   ['/assets/media/portfoy/buse-tuncay-kamera-arkasi.webp','GERÇEK ÇEKİM · PRODÜKSİYON','Kamera arkası — etkinlik çekimi'],
+   ['/assets/media/portfoy/poster-btmedya-saha-showreel.webp','GERÇEK ÇEKİM · VIDEO','BTMEDYA saha prodüksiyon showreel'],
+   ['/assets/media/portfoy/buse-tuncay-yesil-perde-studyo.webp','GERÇEK ÇEKİM · STÜDYO','Yeşil perde stüdyosu — prodüksiyon']
+  ];
+  el.innerHTML=fallback.map(x=>'<article class="media-card"><img loading="lazy" src="'+esc(x[0])+'" alt="'+esc(x[2])+'"><div class="media-copy"><b>'+esc(x[1])+'</b><strong>'+esc(x[2])+'</strong><span>BTMEDYA gerçek arşivi · Portföy</span></div></article>').join('');
  }
 }
 loadNews();
