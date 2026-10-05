@@ -13,11 +13,13 @@
 
 const AYAR_ANAHTARI = 'social:ayarlar';
 const VARSAYILAN = Object.freeze({
-  // 29 Eylül 2026 Metricool Brand denetimi: TikTok + YouTube yayın bağlantıları doğrulandı; Instagram/Facebook henüz doğrulanmadı.
+  // 5 Ekim 2026 Metricool doğrulaması: Brand 6858384 üzerinde TikTok + YouTube aktif;
+  // Instagram/Facebook bu Brand için doğrulanmış yayın ağı olarak kullanılmıyor.
   aglar: ['tiktok', 'youtube'],
   otomatikPlanla: true,
-  // Metricool'un TikTok verisine gore zirve saatler (Europe/Istanbul).
-  saatler: ['10:00', '12:00', '18:00'],
+  // Metricool güncel saat verisinin iki ağı ortak taşıyan dengeli penceresi:
+  // TikTok'ta 10:00/18:00 güçlü, YouTube'da 14:00-16:00 güçlü.
+  saatler: ['10:00', '16:00', '18:00'],
   // Arsiv haberleri otomatik paylasilmasin: yalniz bu kadar saat icinde
   // yayinlanan haberler otomatik planlanir, eskiler onaya duser.
   tazelikSaat: 72
