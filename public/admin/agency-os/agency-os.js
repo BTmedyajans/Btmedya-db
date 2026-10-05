@@ -37,12 +37,14 @@ async function loadSystemSnapshot(){
 }
 
 async function loadSocialSnapshot(){
- const el=$('#systemSnapshot'); if(!el)return;
+ const el=$('#socialCommand'); if(!el)return;
  try{
   const d=await api('/api/admin/social/providers');
   const rows=Object.values(d.providers||{}).map(p=>'<div class="rule"><b>'+esc(p.label)+'</b><span>'+esc(p.configured?'YAYIN AKTİF':p.connected?'BAĞLANTI VAR / SECRET BEKLENİYOR':'BAĞLI DEĞİL')+'</span></div>').join('');
-  if(rows) el.innerHTML+=rows;
- }catch(_e){}
+  el.innerHTML=rows ? '<div class="stack">'+rows+'</div>' : '<div class="rec"><b>Sosyal bağlantı verisi bulunamadı.</b></div>';
+ }catch(e){
+  el.innerHTML='<div class="rec"><b>Sosyal bağlantı durumu okunamadı.</b><span class="meta">'+esc(e.message)+'</span></div>';
+ }
 }
 async function run(){const b=$('#run');b.disabled=true;b.textContent='Denetleniyor…';try{state=await api('/api/admin/agency-supervisor/run',{method:'POST'});render()}catch(e){alert(e.message)}finally{b.disabled=false;b.textContent='Şimdi denetle'}}
 async function loadCategoryFeed(){
