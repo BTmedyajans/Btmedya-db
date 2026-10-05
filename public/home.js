@@ -396,7 +396,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       const label = active === 'all'
         ? 'Haber arşivi'
         : ((window.BTMEDYA_RELEVANCE?.categories || []).find(x => x.key === active)?.label || active);
-      newsGrid.innerHTML = '<article class="news-card news-empty-category"><div class="news-body"><small>BTMEDYA / KATEGORİ</small><h3>' + esc(label) + ' akışı hazırlanıyor.</h3><p>Bu kategori editoryal yapıda açık. İlk doğrulanmış içerik geldiğinde burada otomatik görünür.</p><a class="news-open" href="/kaynak-masasi/">KAYNAK MASASI ↗</a></div></article>';
+      newsGrid.innerHTML = '<article class="news-card news-empty-category"><div class="news-body"><small>BTMEDYA / KATEGORİ</small><h3>' + esc(label) + ' akışı hazırlanıyor.</h3><p>Bu kategori editoryal yapıda açık. İlk doğrulanmış içerik geldiğinde burada otomatik görünür.</p><a class="news-open" href="/kaynaklar/">KAYNAK MASASI ↗</a></div></article>';
       newsGrid.setAttribute('aria-busy','false');
       return;
     }

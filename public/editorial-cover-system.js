@@ -181,13 +181,13 @@
       </div>
       <div class="bt-editorial-grid">
         <a class="bt-editorial-card bt-editorial-news" href="/haberler/"><small>01 / HABER</small><strong>Bugünün sahasını keşfet</strong><span>Balıkesir ve çevresinden kaynaklı haber, röportaj ve özel dosyalar.</span><b>Haber akışına git ↗</b></a>
-        <a class="bt-editorial-card" href="/kaynak-masasi/"><small>02 / KAYNAK</small><strong>Kaynağı gör, hikâyeyi anla</strong><span>Resmî kaynaklar, açık veri ve saha notlarıyla içerik zincirini takip et.</span><b>Kaynak Masası ↗</b></a>
+        <a class="bt-editorial-card" href="/kaynaklar/"><small>02 / KAYNAK</small><strong>Kaynağı gör, hikâyeyi anla</strong><span>Resmî kaynaklar, açık veri ve saha notlarıyla içerik zincirini takip et.</span><b>Kaynak Masası ↗</b></a>
         <a class="bt-editorial-card" href="/video-produksiyon/"><small>03 / STUDIO</small><strong>Fikirden çekime, çekimden yayına</strong><span>Düğün klibi, tanıtım, röportaj, belgesel, kısa film, reklam ve sosyal içerik.</span><b>Studio'yu keşfet ↗</b></a>
         <a class="bt-editorial-card" href="/sosyal-medya/"><small>04 / SOCIAL</small><strong>İçerik sadece üretilmez, dağıtılır</strong><span>Platforma uygun kısa video, kapak, metin ve yayın akışıyla markanın görünürlüğünü destekle.</span><b>Sosyal medya ↗</b></a>
         <a class="bt-editorial-card" href="/ai-lab/"><small>05 / AI LAB</small><strong>Yapay zekâ, etiketiyle.</strong><span>AI destekli görsel, video, web ve otomasyon deneyleri ana editoryal akıştan ayrı tutulur.</span><b>AI LAB ↗</b></a>
         <a class="bt-editorial-card" href="/vaka-calismalari/"><small>06 / VAKA</small><strong>İşin sonucunu göster</strong><span>Marka hikâyeleri, prodüksiyon süreçleri ve yayın sonrası çıktılar tek yerde.</span><b>Vaka çalışmalarını gör ↗</b></a>
       </div>
-      <div class="bt-editorial-strip"><span>EDITORYAL KURAL</span><strong>GERÇEK SAHA ÖNCE · KAYNAK AÇIK · AI ETİKETLİ · SPONSORLU İÇERİK AYRI</strong><a href="/kaynak-masasi/">Nasıl çalışıyoruz? ↗</a></div>`;
+      <div class="bt-editorial-strip"><span>EDITORYAL KURAL</span><strong>GERÇEK SAHA ÖNCE · KAYNAK AÇIK · AI ETİKETLİ · SPONSORLU İÇERİK AYRI</strong><a href="/kaynaklar/">Nasıl çalışıyoruz? ↗</a></div>`;
     if(hero && hero.parentNode===main) hero.insertAdjacentElement('afterend',section); else main.insertBefore(section,main.firstElementChild?.nextElementSibling||main.firstChild);
   }
 
