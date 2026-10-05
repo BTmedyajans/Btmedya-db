@@ -1,22 +1,32 @@
 {
-  "generated_at": "2026-10-05T20:45:00+03:00",
-  "source": "Metricool",
-  "mode": "verified_connection_snapshot",
-  "note": "5 Ekim 2026 denetimi: Metricool Brand 6858384 üzerinde TikTok ve YouTube yayınları doğrulandı. Instagram ve Facebook, Metricool Brand tarafında doğrulanana kadar bağlı kabul edilmez.",
+  "generated_at": "2026-10-05T18:13:19.454Z",
+  "source": "Metricool MCP",
+  "mode": "verified_planner_snapshot",
+  "plan_note": "Ücretsiz Metricool MCP kullanılır; ücretli API kullanılmaz. Metricool plan limitleri aynen geçerlidir.",
+  "brand": {
+    "id": 6858384,
+    "label": "busetuncayy10",
+    "website": "https://btmedya.com.tr",
+    "timezone": "Europe/Istanbul",
+    "networks": {
+      "tiktok": "btmedya1010",
+      "youtube": "UCGyRifwCyrKJQAbmo4uoO9g"
+    }
+  },
   "profiles": [
     {
       "key": "instagram",
       "label": "Instagram",
       "url": "https://www.instagram.com/btmedyajans/",
       "status": "verification_pending",
-      "note": "Metricool Brand bağlantısı bu denetimde doğrulanmadı."
+      "note": "Metricool Brand bağlantısı bu snapshotta doğrulanmadı."
     },
     {
       "key": "facebook",
       "label": "Facebook",
       "url": null,
       "status": "verification_pending",
-      "note": "Metricool Brand bağlantısı bu denetimde doğrulanmadı."
+      "note": "Metricool Brand bağlantısı bu snapshotta doğrulanmadı."
     },
     {
       "key": "youtube",
@@ -35,83 +45,183 @@
   ],
   "items": [
     {
-      "platform": "TikTok",
+      "platform": "Tiktok",
       "date": "2026-10-03",
-      "title": "🔵 BALIKESİR GÜNDEM · Şanlıurfa GAP Havalimanı'nda TEKNOFEST Güneydoğu",
+      "dateTime": "2026-10-03T18:00:00",
+      "title": "🔵 BALIKESİR GÜNDEM",
       "url": "https://www.tiktok.com/@btmedya1010/video/7692457368419945746",
-      "archive_context": "BTMEDYA haber bağlantılı sosyal yayın",
+      "media": "https://static.metricool.com/planner/202610/6858384-file-124945935224797466.webp",
+      "archive_context": "BTMEDYA haber/gündem yayını",
       "note": "Metricool durumu: PUBLISHED."
     },
     {
-      "platform": "YouTube",
+      "platform": "Youtube",
       "date": "2026-10-03",
+      "dateTime": "2026-10-03T16:00:00",
       "title": "BTMEDYA: Balıkesir'den dünyaya | Haber, Medya, Prodüksiyon ve AI LAB",
       "url": "https://www.youtube.com/watch?v=UOA5iFzm8YA",
-      "archive_context": "BTMEDYA gerçek çekim odaklı yayın",
+      "media": "https://static.metricool.com/planner/202610/6858384-file-16567151232107664632.mp4",
+      "archive_context": "BTMEDYA AI LAB yayını",
       "note": "Metricool durumu: PUBLISHED."
     },
     {
-      "platform": "TikTok",
+      "platform": "Tiktok",
       "date": "2026-10-03",
-      "title": "BTMEDYA: Balıkesir'den dünyaya",
+      "dateTime": "2026-10-03T10:00:00",
+      "title": "Balıkesir'den dünyaya: BTMEDYA artık haber, gerçek çekim, prodüksiyon, sosyal dağıtım ve AI LAB'ı tek yayın akışında buluşturuyor. Gerçek medya ana omurga; AI üretimleri açıkça AI LAB içinde etiketleniyor.",
       "url": "https://www.tiktok.com/@btmedya1010/video/7692333354309537045",
-      "archive_context": "BTMEDYA haber, medya, prodüksiyon ve AI LAB yayını",
+      "media": "https://static.metricool.com/planner/202610/6858384-file-12681349238685368516.mp4",
+      "archive_context": "BTMEDYA AI LAB yayını",
       "note": "Metricool durumu: PUBLISHED."
     },
     {
-      "platform": "TikTok",
+      "platform": "Tiktok",
       "date": "2026-10-02",
-      "title": "BTMEDYA AI LAB · Açık etiketli AI üretimi",
+      "dateTime": "2026-10-02T17:00:00",
+      "title": "BTMEDYA AI LAB | AI video, AI görsel, otomasyon ve web deneyleri. AI kullanılan işler açıkça etiketlenir ve gerçek haber arşivinden ayrı tutulur.",
       "url": "https://www.tiktok.com/@btmedya1010/video/7692071306853944582",
-      "archive_context": "AI LAB tanıtım yayını",
+      "media": "https://static.metricool.com/planner/202610/6858384-file-18073010620457379514.webp",
+      "archive_context": "BTMEDYA AI LAB yayını",
       "note": "Metricool durumu: PUBLISHED."
     },
     {
-      "platform": "TikTok",
+      "platform": "Tiktok",
       "date": "2026-10-02",
+      "dateTime": "2026-10-02T16:00:00",
       "title": "Balıkesir Üniversitesi, GreenMetric 2026'da dünya 401'incisi oldu",
       "url": "https://www.tiktok.com/@btmedya1010/video/7692055264626855188",
-      "archive_context": "BTMEDYA eğitim/haber yayını",
+      "media": "https://static.metricool.com/planner/202609/6858384-file-13310481124565777807.webp",
+      "archive_context": "BTMEDYA haber/gündem yayını",
       "note": "Metricool durumu: PUBLISHED."
     },
     {
-      "platform": "TikTok",
+      "platform": "Tiktok",
       "date": "2026-10-02",
+      "dateTime": "2026-10-02T15:00:00",
+      "title": "BTMEDYA REKLAM | Marka hikâyesi, tanıtım filmi ve sosyal medya kreatifleri için brief → teklif → üretim akışı.",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7692039745743949077",
+      "media": "https://static.metricool.com/planner/202610/6858384-file-12103495181981582003.webp",
+      "archive_context": "BTMEDYA reklam ve marka yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "Tiktok",
+      "date": "2026-10-02",
+      "dateTime": "2026-10-02T13:00:00",
+      "title": "BTMEDYA PRODÜKSİYON | Saha çekimi, röportaj, kamera arkası ve gerçek üretim arşivimiz.",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7692009045623835925",
+      "media": "https://static.metricool.com/planner/202610/6858384-file-9030452547433411664.webp",
+      "archive_context": "BTMEDYA prodüksiyon yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "Tiktok",
+      "date": "2026-10-02",
+      "dateTime": "2026-10-02T11:00:00",
+      "title": "BTMEDYA HABER | Balıkesir ve Türkiye gündemini kaynak, tarih ve haber bağlantısıyla takip edin.",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7691978113571507474",
+      "media": "https://static.metricool.com/planner/202610/6858384-file-3841071198635487203.webp",
+      "archive_context": "BTMEDYA haber/gündem yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "Tiktok",
+      "date": "2026-10-02",
+      "dateTime": "2026-10-02T10:00:00",
       "title": "YÖK, UI GreenMetric 2026’da 150 Türk üniversitesinin sürdürülebilirlik başarısını açıkladı",
       "url": "https://www.tiktok.com/@btmedya1010/video/7691962251615489281",
-      "archive_context": "BTMEDYA eğitim/haber yayını",
+      "media": "https://static.metricool.com/planner/202609/6858384-file-973102732510871850.jpeg",
+      "archive_context": "BTMEDYA haber/gündem yayını",
       "note": "Metricool durumu: PUBLISHED."
     },
     {
-      "platform": "TikTok",
-      "date": "2026-10-02",
-      "title": "BTMEDYA REKLAM · Marka hikâyesi",
-      "url": "https://www.tiktok.com/@btmedya1010/video/7692039745743949077",
-      "archive_context": "BTMEDYA reklam ve marka hizmetleri yayını",
-      "note": "Metricool durumu: PUBLISHED."
-    },
-    {
-      "platform": "TikTok",
-      "date": "2026-10-02",
-      "title": "BTMEDYA PRODÜKSİYON · Saha ve kamera arkası",
-      "url": "https://www.tiktok.com/@btmedya1010/video/7692009045623835925",
-      "archive_context": "BTMEDYA prodüksiyon ve gerçek üretim arşivi",
-      "note": "Metricool durumu: PUBLISHED."
-    },
-    {
-      "platform": "TikTok",
-      "date": "2026-10-02",
-      "title": "BTMEDYA HABER · Balıkesir ve gündem",
-      "url": "https://www.tiktok.com/@btmedya1010/video/7691978113571507474",
-      "archive_context": "BTMEDYA haber merkezi tanıtım yayını",
-      "note": "Metricool durumu: PUBLISHED."
-    },
-    {
-      "platform": "TikTok",
+      "platform": "Tiktok",
       "date": "2026-10-01",
+      "dateTime": "2026-10-01T20:00:00",
+      "title": "Türkiye Sinema Festivali iki günde 777 bin seyirciyle rekor kırdı",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7691746074205113608",
+      "media": "https://static.metricool.com/planner/202609/6858384-file-5068264400973499637.jpeg",
+      "archive_context": "BTMEDYA haber/gündem yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "Tiktok",
+      "date": "2026-10-01",
+      "dateTime": "2026-10-01T18:00:00",
       "title": "Şanlıurfa, 30 Eylül-4 Ekim TEKNOFEST Güneydoğu'na ev sahipliği yapıyor",
       "url": "https://www.tiktok.com/@btmedya1010/video/7691715263221517589",
-      "archive_context": "BTMEDYA teknoloji/haber yayını",
+      "media": "https://static.metricool.com/planner/202609/6858384-file-15963228003503963645.jpeg",
+      "archive_context": "BTMEDYA haber/gündem yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "Tiktok",
+      "date": "2026-10-01",
+      "dateTime": "2026-10-01T16:00:00",
+      "title": "Adrasan batığından 2 bin 100 yıllık sofra takımları çıkarıldı",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7691684220766309653",
+      "media": "https://static.metricool.com/planner/202609/6858384-file-6766793710562471900.jpeg",
+      "archive_context": "BTMEDYA haber/gündem yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "Tiktok",
+      "date": "2026-10-01",
+      "dateTime": "2026-10-01T14:00:00",
+      "title": "Taşınmaz satışlarında Güvenli Ödeme Sistemi 1 Aralık'ta başlıyor",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7691652951332506881",
+      "media": "https://static.metricool.com/planner/202609/6858384-file-4010175470066782298.jpeg",
+      "archive_context": "BTMEDYA haber/gündem yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "Tiktok",
+      "date": "2026-10-01",
+      "dateTime": "2026-10-01T12:00:00",
+      "title": "Güneş Koruyucu Seçiminde Cilt Tipine Özel Tavsiyeler",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7691622310205345045",
+      "media": "https://static.metricool.com/planner/202609/6858384-file-10962667233721799636.jpeg",
+      "archive_context": "BTMEDYA haber/gündem yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "Tiktok",
+      "date": "2026-10-01",
+      "dateTime": "2026-10-01T10:00:00",
+      "title": "Ulusal Ajans Başkanı Astarcı: Erasmus bütçesinde AB katkısı yüzde 8-9'a indi",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7691591028754681089",
+      "media": "https://static.metricool.com/planner/202609/6858384-file-17263947421174431629.jpeg",
+      "archive_context": "BTMEDYA haber/gündem yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "Tiktok",
+      "date": "2026-09-30",
+      "dateTime": "2026-09-30T18:00:00",
+      "title": "Balıkesir Şehir Tiyatrosu ‘Kanlı Nigar’ ile Sezonu Açtı",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7691343961000086785",
+      "media": "https://static.metricool.com/planner/202609/6858384-file-7431433748387001432.jpeg",
+      "archive_context": "BTMEDYA haber/gündem yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "Tiktok",
+      "date": "2026-09-30",
+      "dateTime": "2026-09-30T16:00:00",
+      "title": "Milli yapay zekâ platformu EVREN 8 bin kullanıcıyı aştı",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7691313106189880628",
+      "media": "https://static.metricool.com/planner/202609/6858384-file-6233626025527699096.jpeg",
+      "archive_context": "BTMEDYA haber/gündem yayını",
+      "note": "Metricool durumu: PUBLISHED."
+    },
+    {
+      "platform": "Tiktok",
+      "date": "2026-09-30",
+      "dateTime": "2026-09-30T14:00:00",
+      "title": "Sigara bırakma polikliniklerine 8 ayda 179 bin başvuru: Geçen yılın tamamı aşıldı",
+      "url": "https://www.tiktok.com/@btmedya1010/video/7691282017169870100",
+      "media": "https://static.metricool.com/planner/202609/6858384-file-7070565202152518250.jpeg",
+      "archive_context": "BTMEDYA haber/gündem yayını",
       "note": "Metricool durumu: PUBLISHED."
     }
   ]
