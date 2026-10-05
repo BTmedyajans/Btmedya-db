@@ -1,4 +1,4 @@
-/* BTMEDYA Mobil Motion V10.2 · 2026-10-05
+/* BTMEDYA Mobil Motion V10.3 · 2026-10-06
    Mobil giriş filmi (gerçek çekim arşiv kurgusu) + hero kaynak köprüsü.
    V10.2: yanlış etiketli "Sahadan" rayı kaldırıldı (aşağıda); bitmiş film
    kendiliğinden baştan başlamaz, sonunda seçim sahnesi açık kalır. */
@@ -31,6 +31,7 @@
   soundBtn&&soundBtn.addEventListener('click',()=>{video.muted=!video.muted;sound();if(!video.paused)start()});
   video.addEventListener('play',()=>{if(playBtn)playBtn.hidden=true;box.classList.add('mfilm-oynuyor')});
   video.addEventListener('pause',()=>box.classList.remove('mfilm-oynuyor'));
+  // Film tek sefer oynar; bitince yeniden oynat düğmesi görünür ve otomatik döngü yoktur.
   // Biten film ekrana geri gelince kendiliğinden baştan başlamasın: sonunda
   // seçim sahnesi (secim-sahnesi.js) açık kalır. "Yeniden izle" stopped'u sıfırlar.
   video.addEventListener('ended',()=>{stopped=true;if(playBtn){playBtn.hidden=false;playBtn.textContent='↺ Yeniden izle'}});
