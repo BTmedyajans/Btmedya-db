@@ -1920,6 +1920,12 @@ export default { async scheduled(controller, env, ctx){
     return Response.redirect(url.toString(), 301);
   }
 
+  // Kaynak Masası'nın eski adresini kalıcı olarak yeni kanonik adrese taşı.
+  // Böylece eski bağlantılar korunur, Google iki ayrı içerik URL'si görmez.
+  if(url.pathname === '/kaynak-masasi' || url.pathname === '/kaynak-masasi/'){
+    return Response.redirect(new URL('/kaynaklar/' + url.search, url.origin), 301);
+  }
+
   /* Admin kabuğu: API zaten oturum korumalı olsa da /admin/ HTML'inin
      anonim olarak 200 dönmesi gereksiz keşif yüzeyi oluşturuyordu. Giriş
      ekranı kullanıcıya gösterilir, fakat HTTP durumu 401 olur. Böylece
