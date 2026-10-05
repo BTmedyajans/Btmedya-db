@@ -13,6 +13,10 @@
   --bt-brand-max:1440px;
   --bt-brand-gutter:clamp(16px,4vw,64px);
   --bt-brand-radius:18px;
+  /* Görsel Kimlik 2.0 içerik sesleri (marka-kiti.json kapak_dilleri):
+     AI LAB = Sentez Moru, Prodüksiyon başlığı = Film Kremi. */
+  --bt-ses-ai:#8B5CFF;
+  --bt-ses-film:#F3E9D2;
 }
 body{background:var(--bt-brand-bg);color:var(--bt-brand-ink)}
 .vitrine-status{border-top:1px solid var(--bt-brand-line);border-bottom:1px solid var(--bt-brand-line);background:#090d11}
