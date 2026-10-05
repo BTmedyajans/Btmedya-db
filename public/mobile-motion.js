@@ -28,6 +28,8 @@
   const root=document.querySelector('.cinematic-hero'); if(!root||innerWidth>720)return;
   const box=root.querySelector('[data-mfilm]'), video=box&&box.querySelector('video'); if(!video)return;
   const label=box.querySelector('[data-mfilm-etiket]'), playBtn=box.querySelector('[data-mfilm-oynat]'), soundBtn=box.querySelector('[data-mfilm-ses]');
+  const introKicker=root.querySelector('.bt-hero-intro-kicker');
+  if(introKicker) introKicker.textContent='BTMEDYA / GİRİŞ FİLMİ · GERÇEK ÇEKİM';
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches, DEFAULT='/assets/media/web/giris-filmi.mp4';
   let visible=true, stopped=false, source=DEFAULT;
   const sound=()=>{if(!soundBtn)return;soundBtn.setAttribute('aria-pressed',String(!video.muted));soundBtn.setAttribute('aria-label',video.muted?'Sesi aç':'Sesi kapat');soundBtn.textContent=video.muted?'🔇 Sesi aç':'🔊 Sesi kapat'};
