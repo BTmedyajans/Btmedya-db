@@ -18,6 +18,7 @@
 <body>
 <header class="top">
   <div class="brand">BT<span>MEDYA</span> / AGENCY OS</div>
+  <div class="admin-session-tools"><span id="adminSessionStatus" class="admin-session-status">OTURUM AKTİF</span><button id="adminLogout" class="btn" type="button">Çıkış</button></div>
   <button class="menu-toggle" id="adminMenuToggle" type="button" aria-expanded="false" aria-controls="adminMenu"><span>☰</span><b>MENÜ</b></button>
   <nav class="admin-menu" id="adminMenu" aria-label="Ajans yönetim kategorileri" aria-hidden="true">
     <div class="admin-menu-top"><span>BTMEDYA / CONTROL INDEX</span><button id="adminMenuClose" type="button">KAPAT ×</button></div>
@@ -50,6 +51,7 @@
       <button id="refresh" class="btn">Yenile</button>
     </div>
     <div id="heartbeat" class="status">Sistem bağlantısı hazırlanıyor…</div>
+    <div class="admin-priority-strip" aria-label="Yönetim öncelikleri"><span>ÖNCELİK</span><a href="/admin/editor/">İçerik</a><a href="/admin/yayin/">Yayın</a><a href="/admin/client-hub/">Müşteri</a><a href="/admin/app.html">Medya</a><a href="/admin/autopilot/">Otomasyon</a></div>
   </section>
 
   <section class="mobile-install" id="pwaInstall" hidden aria-label="Mobil uygulama kurulumu">
