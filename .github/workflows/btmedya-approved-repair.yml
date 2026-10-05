@@ -1,0 +1,42 @@
+name: BTMEDYA approved repair
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/btmedya-approved-repair.yml']
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch approved files
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('public/script.js')
+          s=p.read_text()
+          s=s.replace("const src=(small&&v.dataset.srcMobile)?v.dataset.srcMobile:v.dataset.src;", "const mobileSrc=v.dataset.srcMobile||v.dataset.mobile; const src=(small&&mobileSrc)?mobileSrc:v.dataset.src; // BTMEDYA_APPROVED_HERO_SOURCE_2026_10_05")
+          p.write_text(s)
+          p=Path('public/index.html')
+          s=p.read_text()
+          s=s.replace('data-mobile="/assets/media/web/giris-filmi.mp4"','data-src-mobile="/assets/media/web/giris-filmi.mp4"')
+          marker='<div class="story-cards" id="storyCards">'
+          rail='<div id="sahadan-video-haberler" class="sahadan-video-rail"><div class="sahadan-video-head"><div><p class="kicker">02.1 / SAHA VİDEO</p><h3>SAHADAN <span>HABERLER.</span></h3></div><p>BTMEDYA arşivindeki gerçek saha görüntüleri, ilgili haber başlığı ve kaynak bağlantısıyla birlikte gösterilir. Temsili görsel kullanılmaz.</p></div><div class="sahadan-video-grid"><article><a href="/haberler/balikesir-in-en-kalabalik-pazari/"><video controls playsinline preload="metadata" poster="/assets/haber-kapak/balikesir-in-en-kalabalik-pazari.webp"><source src="/assets/sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4" type="video/mp4"></video><small>GERÇEK ÇEKİM · 04 EKİM 2024</small><h4>Balıkesir’in En Kalabalık Pazarı</h4></a></article><article><a href="/haberler/balikesir-pazarinda-canli-helva-sovu/"><video controls playsinline preload="metadata" poster="/assets/haber-kapak/balikesir-pazarinda-canli-helva-sovu.webp"><source src="/assets/sosyal/balikesir-pazarinda-canli-helva-sovu-dikey.mp4" type="video/mp4"></video><small>GERÇEK ÇEKİM · 02 MAYIS 2024</small><h4>Balıkesir Pazarında Canlı Helva Şovu</h4></a></article><article><a href="/haberler/el-emegi-yorganlar-artik-isitmiyor/"><video controls playsinline preload="metadata" poster="/assets/haber-kapak/el-emegi-yorganlar-artik-isitmiyor.webp"><source src="/assets/sosyal/el-emegi-yorganlar-artik-isitmiyor-dikey.mp4" type="video/mp4"></video><small>GERÇEK ÇEKİM · 19 AĞUSTOS 2024</small><h4>El Emeği Yorganlar Artık Isıtmıyor</h4></a></article></div></div><!-- BTMEDYA_APPROVED_SAHADAN_VIDEO_RAIL_2026_10_05 -->'
+          s=s.replace(marker,rail+marker,1)
+          style='<style id="btmedya-approved-sahadan-style">.sahadan-video-rail{margin:40px 0;padding:24px;border:1px solid rgba(255,255,255,.12);border-radius:20px;background:rgba(255,255,255,.025)}.sahadan-video-head{display:grid;grid-template-columns:1fr .8fr;gap:20px;margin-bottom:18px}.sahadan-video-head h3{font-size:clamp(28px,4vw,52px);margin:.1em 0}.sahadan-video-head h3 span{color:var(--cin-cyan,#64e4ff)}.sahadan-video-head p{color:var(--cin-muted,#9eacbb);line-height:1.6}.sahadan-video-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.sahadan-video-grid article{border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;background:#080b10}.sahadan-video-grid a{display:block;color:inherit;text-decoration:none}.sahadan-video-grid video{display:block;width:100%;aspect-ratio:9/16;object-fit:contain;background:#000}.sahadan-video-grid small{display:block;padding:12px 14px 0;opacity:.65;font-size:9px;letter-spacing:.08em}.sahadan-video-grid h4{padding:0 14px 14px;margin:7px 0 0;font-size:17px;line-height:1.2}@media(max-width:760px){.sahadan-video-rail{padding:18px;margin-inline:0}.sahadan-video-head{display:block}.sahadan-video-grid{grid-template-columns:1fr}.sahadan-video-grid video{max-height:72svh}}</style><!-- BTMEDYA_APPROVED_SAHADAN_STYLE_2026_10_05 -->'
+          s=s.replace('</head>',style+'</head>',1)
+          p.write_text(s)
+          PY
+          grep -q 'BTMEDYA_APPROVED_SAHADAN_VIDEO_RAIL_2026_10_05' public/index.html
+          grep -q 'BTMEDYA_APPROVED_HERO_SOURCE_2026_10_05' public/script.js
+          node --check public/script.js
+          git diff --check
+      - name: Commit and remove workflow
+        run: |
+          git config user.name 'BTMEDYA Repair Bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm .github/workflows/btmedya-approved-repair.yml
+          git add public/index.html public/script.js .github/workflows/btmedya-approved-repair.yml
+          git commit -m 'fix: connect real Sahadan video rail and hero mobile source'
+          git push origin main
