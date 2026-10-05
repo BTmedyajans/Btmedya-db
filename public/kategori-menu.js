@@ -17,7 +17,7 @@
     {ad:'Hizmetler',yol:'/hizmetler/',alt:[['Tüm hizmetler','/hizmetler/'],['Video prodüksiyon','/video-produksiyon/'],['Sosyal medya','/sosyal-medya/'],['Reklam ve sponsorluk','/reklam-ve-sponsorluk/'],['Teklif al','/teklif-al/']]},
     {ad:'Programlar & Portföy',yol:'/portfoy/',alt:[['Portföy','/portfoy/'],['Buse Tuncay','/portfoy/buse-tuncay/'],['Siyah Oda','/siyah-oda/'],['Halk Röportajı','/halk-roportaji/'],['Vaka çalışmaları','/vaka-calismalari/'],['Referanslar','/referanslar/']]},
     {ad:'AI Lab',yol:'/ai-lab/',alt:[['AI Lab','/ai-lab/'],['Arama stratejisi','/search-strategy/'],['Programatik SEO','/programmatic-seo/']]},
-    {ad:'Kaynak & Arşiv',yol:'/kaynak-masasi/',alt:[['Kaynak Masası','/kaynak-masasi/'],['Kaynaklar','/kaynaklar/'],['Arşiv Merkezi','/arsiv/'],['Dosyalar','/dosyalar/']]},
+    {ad:'Kaynak & Arşiv',yol:'/kaynaklar/',alt:[['Kaynak Masası','/kaynaklar/'],['Kaynaklar','/kaynaklar/'],['Arşiv Merkezi','/arsiv/'],['Dosyalar','/dosyalar/']]},
     {ad:'Kurumsal',yol:'/hakkimizda/',alt:[['Hakkımızda','/hakkimizda/'],['İletişim','/iletisim/'],['Basın kiti','/basin-kiti/'],['Marka kiti','/marka-kiti/'],['Sosyal profil kiti','/sosyal-medya-kit/'],['WhatsApp katalog','/whatsapp-katalog/'],['Gizlilik','/gizlilik/'],['English','/en/']]}
   ];
   const yolu=location.pathname.replace(/index\.html$/,'').replace(/([^/])$/,'$1/');
