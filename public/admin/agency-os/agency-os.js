@@ -92,3 +92,7 @@ async function bootstrapCore(){
 }
 const coreBoot=$('#btCoreBootstrap');if(coreBoot)coreBoot.addEventListener('click',bootstrapCore);
 loadCore();setInterval(loadCore,60000);
+
+
+async function adminLogout(){const b=$('#adminLogout'),s=$('#adminSessionStatus');if(!b)return;b.disabled=true;b.textContent='Çıkılıyor…';try{await fetch('/api/logout',{method:'POST',credentials:'same-origin'});}catch{}if(s)s.textContent='OTURUM KAPATILDI';window.location.href='/admin/';}
+function bindAdminSession(){const b=$('#adminLogout');if(b)b.addEventListener('click',adminLogout);}bindAdminSession();
