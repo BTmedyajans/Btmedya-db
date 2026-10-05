@@ -23,7 +23,27 @@ function renderClients(items){
  const rows=items.filter(c=>!q||String(c.name||'').toLocaleLowerCase('tr-TR').includes(q)||String(c.sector||'').toLocaleLowerCase('tr-TR').includes(q));
  $('#clients').innerHTML=rows.map(c=>'<article class="client-row"><div class="topline"><b>'+esc(c.name)+'</b><span class="badge">'+esc(c.status)+'</span></div><div class="meta">'+esc(c.sector||'Sektör belirtilmedi')+'</div><div class="bars"><span class="bar">'+num(c.content_count)+' içerik</span><span class="bar '+(num(c.draft_count)?'warn':'ok')+'">'+num(c.draft_count)+' taslak</span><span class="bar">'+(c.last_content_at?'Son: '+new Date(c.last_content_at).toLocaleDateString('tr-TR'):'Henüz içerik yok')+'</span></div></article>').join('')||'<div class="rec"><b>Firma bulunamadı.</b></div>';
 }
-async function load(){try{state=await api('/api/admin/agency-supervisor');render()}catch(e){$('#heartbeat').textContent=e.message}}
+async function load(){try{state=await api('/api/admin/agency-supervisor');render();await loadSystemSnapshot();await loadSocialSnapshot()}catch(e){$('#heartbeat').textContent=e.message}}
+async function loadSystemSnapshot(){
+ const el=$('#systemSnapshot'); if(!el)return;
+ try{
+  const d=await api('/api/admin/control-center');
+  const m=d.metricool||{}; const s=d.storage||{}; const a=d.automation||{}; const site=d.site||{};
+  el.innerHTML='<div class="rule"><b>CANONICAL</b><span>'+esc(site.url||'https://btmedya.com.tr')+' · '+esc(site.worker||'btmedya-db')+'</span></div>'+
+    '<div class="rule"><b>DATA</b><span>D1 '+(s.d1?'✓':'✗')+' · R2 '+(s.r2?'✓':'✗')+' · KV '+(s.kv?'✓':'✗')+'</span></div>'+
+    '<div class="rule"><b>METRICOOL</b><span>'+ (m.yapilandirildi?'✓ Worker bağlantısı hazır':'⚠ Secret/bağlantı bekliyor') +'</span></div>'+
+    '<div class="rule"><b>OTOMASYON</b><span>'+esc(a.cron||'*/5 * * * *')+' · '+esc(a.lastHeartbeat||'bekleniyor')+'</span></div>';
+ }catch(e){el.innerHTML='<div class="rec"><b>Sistem sağlık verisi okunamadı.</b><span class="meta">'+esc(e.message)+'</span></div>'}
+}
+
+async function loadSocialSnapshot(){
+ const el=$('#systemSnapshot'); if(!el)return;
+ try{
+  const d=await api('/api/admin/social/providers');
+  const rows=Object.values(d.providers||{}).map(p=>'<div class="rule"><b>'+esc(p.label)+'</b><span>'+esc(p.configured?'YAYIN AKTİF':p.connected?'BAĞLANTI VAR / SECRET BEKLENİYOR':'BAĞLI DEĞİL')+'</span></div>').join('');
+  if(rows) el.innerHTML+=rows;
+ }catch(_e){}
+}
 async function run(){const b=$('#run');b.disabled=true;b.textContent='Denetleniyor…';try{state=await api('/api/admin/agency-supervisor/run',{method:'POST'});render()}catch(e){alert(e.message)}finally{b.disabled=false;b.textContent='Şimdi denetle'}}
 async function loadCategoryFeed(){
  const box=$('#categoryFeed');if(!box)return;
