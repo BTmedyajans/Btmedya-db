@@ -284,7 +284,7 @@ jobs:
           echo "SMOKE home content-type: $home_type"
           echo "$home_type" | grep -qi "^text/html"
           live_markers=(
-            "btmedya-live-revision" content="2026-10-05-fallback2"
+            "name=\"btmedya-live-revision\" content=\"2026-10-05-fallback2\""
             "GERÇEK ÇEKİM"
             "AI ÜRETİMİ"
             "Kaynak Masası"
