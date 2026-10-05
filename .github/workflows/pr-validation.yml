@@ -58,6 +58,7 @@ jobs:
           node tools/medya-listesi.mjs --kontrol
           node tools/css-denetimi.mjs
           node tools/mobile-regression-gate.mjs
+          node tools/alan-adi-denetimi.mjs
 
           # node --check her sozdizimi hatasini yakalamiyor: 115a50e'deki
           # /^static\\/.../ regex'i node'dan gecti ama Workers Builds'in
