@@ -109,6 +109,8 @@ jobs:
           grep -q 'data-fallback="social"' public/index.html
           grep -q 'data-fallback="media"' public/index.html
           grep -q 'preserve verified fallbacks' public/home.js
+          grep -q "Son doğrulanmış sosyal snapshot gösteriliyor." public/home.js
+          grep -q "Gerçek arşiv geçici olarak güncellenemedi." public/home.js
           grep -q 'prefers-reduced-motion' public/mobile-fixes.css
           grep -q 'Control Center' public/admin/index.html
           grep -q '/api/admin/control-center' public/admin/index.html
