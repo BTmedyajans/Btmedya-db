@@ -613,7 +613,10 @@ export async function sabahMasasi(env, secenek = {}) {
 
   try { rapor.trendler = await trendleriOku(); } catch (e) { rapor.hatalar.push('Trendler okunamadı: ' + e.message); }
   const agirlik = trendAgirliklari(rapor.trendler);
-  const kategoriler = KATEGORILER.filter(k => istenen.has(k.anahtar)).slice(0, ayar.gunlukAzami);
+  const gunlukLimit = Number.isFinite(Number(secenek.maxHaber)) && Number(secenek.maxHaber)>0
+    ? Math.min(Number(secenek.maxHaber), ayar.gunlukAzami)
+    : ayar.gunlukAzami;
+  const kategoriler = KATEGORILER.filter(k => istenen.has(k.anahtar)).slice(0, gunlukLimit);
 
   // Kaynakları paralel oku; biri düşerse diğerleri devam eder.
   const idler = [...new Set(kategoriler.flatMap(k => k.kaynaklar))];
