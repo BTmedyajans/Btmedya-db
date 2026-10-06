@@ -20,7 +20,7 @@
   const SECENEKLER=[
     {anahtar:'haber',no:'01',ad:'HABER',alt:'Kaynaklı gündem · Balıkesir ve Türkiye',yol:'/haberler/'},
     {anahtar:'sosyal',no:'02',ad:'SOSYAL MEDYA',alt:'İçerik · hesap yönetimi · reels',yol:'/sosyal-medya/'},
-    {anahtar:'tanitim',no:'03',ad:'TANITIM',alt:'Düğün klibi · tanıtım filmi · reklam',yol:'/video-produksiyon/'}
+    {anahtar:'tanitim',no:'03',ad:'TANITIM',alt:'Düğün çekimleri · tanıtım filmi · reklam',yol:'/video-produksiyon/'}
   ];
   const kac=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   let sira=0;
