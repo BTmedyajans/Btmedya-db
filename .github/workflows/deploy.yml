@@ -11,6 +11,7 @@ on:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/deploy.yml"
+      - ".github/workflows/sync-worker-secrets.yml"
       - "control-plane/**"
       - "control-plane/reconcile-worker-domains.sh"
   workflow_dispatch:
