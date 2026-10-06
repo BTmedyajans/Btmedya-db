@@ -1,0 +1,74 @@
+/* BTMEDYA Seçim Sahnesi · filmin sonunda karakter üç yolu gösterir.
+   Mobilde kare film kutusunun içinde, masaüstünde yapışkan sahnede açılır.
+   Dokunma hedefleri ≥44 px; kaydırma engellenmez (touch-action: pan-y). */
+.secim-sahnesi{position:absolute;inset:0;z-index:6;overflow:hidden;background:#05080c;color:#fff;
+  --px:0;--py:0;--isik-x:50%;--isik-y:70%;touch-action:pan-y;
+  opacity:0;transition:opacity .42s cubic-bezier(.16,1,.3,1)}
+.secim-sahnesi[hidden]{display:none}
+.secim-sahnesi.is-acik{opacity:1}
+.secim-zemin{position:absolute;inset:-6%;background:url('/assets/media/web/secim-sahne-zemin.jpg') center/cover no-repeat;
+  transform:translate3d(calc(var(--px) * -14px),calc(var(--py) * -10px),0) scale(1.04);transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.secim-zemin:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,8,12,.55),rgba(5,8,12,.15) 45%,rgba(5,8,12,.85))}
+.secim-karakter{position:absolute;left:0;right:0;bottom:0;width:100%;height:auto;max-width:none;transform-origin:50% 100%;
+  transform:perspective(900px) translate3d(calc(var(--px) * 8px),24px,0) rotateY(calc(var(--px) * 9deg)) rotateX(calc(var(--py) * -4deg)) scale(.96);
+  opacity:0;filter:drop-shadow(0 18px 30px rgba(0,0,0,.55));
+  transition:transform .55s cubic-bezier(.16,1,.3,1),opacity .55s ease}
+.secim-sahnesi.is-acik .secim-karakter{opacity:1;transform:perspective(900px) translate3d(calc(var(--px) * 8px),0,0) rotateY(calc(var(--px) * 9deg)) rotateX(calc(var(--py) * -4deg)) scale(1)}
+.secim-sahnesi.karaktersiz .secim-karakter{display:none}
+/* Göğüs/el ışığı: ışının çıktığı nokta nabız gibi atar. */
+.secim-isik{position:absolute;left:var(--isik-x);top:var(--isik-y);width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:50%;
+  background:radial-gradient(circle,rgba(150,225,255,.95),rgba(53,214,255,.35) 40%,transparent 70%);mix-blend-mode:screen;pointer-events:none;
+  transition:left .35s cubic-bezier(.16,1,.3,1),top .35s cubic-bezier(.16,1,.3,1);animation:secimNabiz 1.6s ease-in-out infinite}
+.secim-isin{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.secim-isin path{fill:none;stroke:#9feaff;stroke-width:3.5;stroke-linecap:round;filter:drop-shadow(0 0 6px rgba(53,214,255,.9));
+  stroke-dasharray:10 5;animation:secimAkis .9s linear infinite;opacity:1}
+.secim-isin circle{fill:#fff;filter:drop-shadow(0 0 5px #35d6ff)}
+.secim-soru{position:absolute;left:0;right:0;top:auto;bottom:calc(100% - 30px);margin:0;display:none}
+.secim-liste{position:absolute;inset:0}
+.secim-secenek{--tx:-50%;position:absolute;left:var(--x);top:var(--y);transform:translate(var(--tx),10px) scale(.94);
+  display:flex;flex-direction:column;align-items:center;gap:3px;min-width:44px;min-height:44px;max-width:46%;padding:9px 13px;
+  border:1px solid rgba(255,255,255,.28);border-radius:14px;background:rgba(5,8,12,.62);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:#fff;text-decoration:none;text-align:center;opacity:0;
+  transition:opacity .4s ease calc(.35s + var(--sira) * .45s),transform .45s cubic-bezier(.16,1,.3,1) calc(.35s + var(--sira) * .45s),border-color .25s ease,background .25s ease,box-shadow .25s ease}
+.secim-sahnesi.is-acik .secim-secenek{opacity:1;transform:translate(var(--tx),0)}
+/* Yan kartlar kenara yaslanır; merkezden konumlanınca dar ekranda taşıyordu. */
+.secim-secenek[data-yon=sol]{left:10px;--tx:0;transform-origin:left center}
+.secim-secenek[data-yon=sag]{left:auto;right:10px;--tx:0;transform-origin:right center}
+.secim-secenek b{font:800 15px/1.05 'Bricolage Grotesque','Space Grotesk',Inter,Arial,sans-serif;letter-spacing:.02em;white-space:nowrap}
+.secim-secenek small{font:600 12px/1.25 Manrope,Inter,Arial,sans-serif;color:rgba(255,255,255,.82);white-space:nowrap}
+.secim-secenek.is-hedef{border-color:#d9ff3f;background:rgba(18,24,6,.78);box-shadow:0 0 0 1px #d9ff3f,0 10px 30px rgba(217,255,63,.22)}
+.secim-sahnesi.is-acik .secim-secenek.is-hedef{transform:translate(var(--tx),0) scale(1.05)}
+.secim-secenek:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.secim-alt{position:absolute;left:10px;right:10px;top:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;z-index:2}
+.secim-etiket{padding:6px 9px;border-radius:4px;background:rgba(0,0,0,.72);font:700 12px/1.2 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.06em}
+.secim-etiket[hidden]{display:none}
+.secim-tekrar{margin-left:auto;min-height:44px;padding:0 14px;border:1px solid rgba(255,255,255,.3);border-radius:999px;background:rgba(0,0,0,.66);color:#fff;font:700 13px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer}
+.secim-tekrar:focus-visible{outline:3px solid #fff;outline-offset:2px}
+/* Karaktersiz sürüm (gerçek çekim filmden sonra): zemin o filmin kendi
+   posteri, kartlar ortada alt alta; AI karakterinin bulanık izi görünmez. */
+.secim-sahnesi.karaktersiz .secim-zemin{background-image:url('/assets/media/web/giris-ai-poster.jpg');filter:blur(10px) brightness(.55)}
+.secim-sahnesi.karaktersiz .secim-secenek{left:50%;right:auto;--tx:-50%;width:72%;max-width:320px;transform-origin:center}
+.secim-sahnesi.karaktersiz .secim-secenek[data-secim=haber]{top:24%}
+.secim-sahnesi.karaktersiz .secim-secenek[data-secim=sosyal]{top:46%}
+.secim-sahnesi.karaktersiz .secim-secenek[data-secim=tanitim]{top:68%}
+.secim-sahnesi.karaktersiz .secim-isik{display:none}
+.secim-sahnesi.karaktersiz .secim-soru{display:block;top:22px;bottom:auto;left:14px;right:auto;font:700 12px/1.2 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.1em;color:#d9ff3f}
+/* Film bitince mobil oynatıcının kendi "Yeniden izle" düğmesi sahnenin altında kalmasın. */
+.secim-acik .mfilm-oynat,.secim-acik .mfilm-ses{display:none!important}
+@keyframes secimAkis{to{stroke-dashoffset:-30}}
+@keyframes secimNabiz{0%,100%{transform:scale(.85);opacity:.75}50%{transform:scale(1.15);opacity:1}}
+/* Masaüstü: sahne yapışkan bölümün sağ yarısında, metin solda kalır. */
+@media(min-width:721px){
+  /* Panel metin sütununun (sol ~800 px) sağında kalır; yapışkan sahne
+     sayfa başında başlık şeritleri kadar aşağıda durduğu için karakter
+     alttan %28 yukarıda: eller ilk ekranda görünür. */
+  .cinematic-sticky>.secim-sahnesi{left:auto;width:min(44vw,640px);border-left:1px solid rgba(255,255,255,.12)}
+  .cinematic-sticky>.secim-sahnesi .secim-karakter{bottom:28%}
+  /* Sahne açıkken sağ üstteki 3B marka rozeti panelin üstüne binmesin. */
+  .cinematic-hero.secim-acik .bt-3d-model{opacity:0;pointer-events:none}
+  .secim-secenek b{font-size:18px}.secim-secenek small{font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){
+  .secim-sahnesi,.secim-zemin,.secim-karakter,.secim-secenek,.secim-isik{transition:none!important;animation:none!important}
+  .secim-isin path{animation:none}
+}

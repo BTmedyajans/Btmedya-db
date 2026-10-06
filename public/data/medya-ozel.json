@@ -14,7 +14,12 @@
   "media/portfoy/buse-tuncay-portre-siyah-beyaz.webp",
   "media/portfoy/buse-tuncay-saha-roportaj.webp",
   "media/portfoy/buse-tuncay-studyo-kelebek.webp",
-  "media/portfoy/buse-tuncay-yesil-perde-studyo.webp"
+  "media/portfoy/buse-tuncay-yesil-perde-studyo.webp",
+  "media/web/giris-filmi.mp4",
+  "media/web/giris-filmi.webm",
+  "media/web/giris-filmi-genis.mp4",
+  "media/web/giris-filmi-poster.jpg",
+  "media/web/giris-filmi-genis-poster.jpg"
  ],
  "_baslik": "Kasa kartlarinda gorunen baslik. Yoksa dosya adindan turetilir; turetilen baslik cogu zaman kareyi anlatmaz. Yalnizca kareye bakilarak yazilmis basliklar buraya girer.",
  "baslik": {

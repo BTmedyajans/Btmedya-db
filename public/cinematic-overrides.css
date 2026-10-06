@@ -7,7 +7,7 @@ body{background:var(--cin-bg);color:var(--cin-ink)}
 .cinematic-kicker,.kicker{letter-spacing:.18em}
 .cinematic-kaynak{border-color:rgba(100,228,255,.42);color:#dff9ff;background:rgba(3,13,19,.68);box-shadow:0 0 22px rgba(100,228,255,.08)}
 .cinematic-hero{background:var(--cin-bg)}
-.cinematic-sticky{box-shadow:0 28px 100px rgba(0,0,0,.48)}
+.cinematic-sticky{box-shadow:0 28px 100px rgba(0,0,0,.48);overflow:hidden}
 .cinematic-vignette{background:linear-gradient(90deg,rgba(2,7,13,.94),rgba(2,7,13,.48) 43%,rgba(2,7,13,.10) 75%,rgba(2,7,13,.68)),linear-gradient(0deg,rgba(2,7,13,.82),transparent 52%)}
 .cinematic-grid{opacity:.12;background-size:120px 120px}
 .cinematic-copy{transition:transform .35s var(--cin-ease),opacity .35s ease}

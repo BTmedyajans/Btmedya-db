@@ -85,7 +85,7 @@
       ['YouTube','@BTmedyaAjans',status('youtube').txt,status('youtube').cls,'https://www.youtube.com/@BTmedyaAjans'],
       ['Instagram','@btmedyajans',status('instagram').txt,status('instagram').cls,'https://www.instagram.com/btmedyajans/'],
       ['Facebook','BTMEDYA Page',status('facebook').txt,status('facebook').cls,''],
-      ['Google Search Console','Arama görünürlüğü / indexing','● ChatGPT GSC bağlı','connected','https://search.google.com/search-console'],
+      ['Google Search Console','Arama görünürlüğü / indexing','● robots + sitemap teknik olarak hazır · API yetkisi ayrı doğrulanmalı','warning','https://search.google.com/search-console'],
       ['Bing Webmaster','Bing index / feeds','○ API anahtarı yapılandırılmamış','warning','https://www.bing.com/webmasters/'],
       ['Linear','İş planı / teslim takibi','● connector bağlı','connected','https://linear.app/busetuncaybt/issue/BUS-23/btmedya-control-center-preview-seo-integrations'],
       ['Google Drive','Master arşiv','○ connector yönetici tarafından kapalı','warning','https://drive.google.com/'],

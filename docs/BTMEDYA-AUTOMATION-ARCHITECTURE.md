@@ -126,3 +126,16 @@ No automatic upgrade or paid API activation.
 - Provenance: source URL, publisher, host, category, score and first-seen/update times are stored in D1.
 - Admin API: `/api/admin/news-intelligence` shows the current discovery queue to the authenticated control center.
 - Revenue loop: high-interest commercial topics can be connected to BTMEDYA service CTAs, while news integrity remains separate from advertising claims.
+
+
+## Automatic publishing policy
+
+As of 5 October 2026, BTMEDYA runs a bounded autopilot on the canonical Worker/D1/R2 stack:
+
+- News autopilot: every 2-hour window, maximum 2 new stories per run; categories rotate across the eight editorial areas.
+- The existing source, freshness, duplicate-topic, sensitive-content, promotional-content, numeric, proper-name and language-quality checks remain mandatory before an automatic news publication can occur.
+- The 08:00 Europe/Istanbul Sabah Masası remains as the daily full editorial pass.
+- Social autopilot: newly published news is converted into platform-fit social posts; with Metricool configured, fresh posts can be placed into future queue slots automatically.
+- Metricool delivery runs every 5 minutes/15 minutes as a retrying handoff and is limited to explicitly verified networks. Current verified company networks are TikTok and YouTube.
+- Agency OS exposes provider status, queue counts, overdue items and Metricool delivery failures.
+- No unverified social network receives an automatic fallback publication.

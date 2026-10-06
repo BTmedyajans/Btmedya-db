@@ -6,13 +6,37 @@
 - https://btmedya.com.tr/
 
 ## Main sections
+News
 - https://btmedya.com.tr/haberler/ : BTMEDYA news archive
+- https://btmedya.com.tr/haberler/balikesir/ : Balıkesir local news (also: gundem, ekonomi, kultur, egitim, saglik, spor, teknoloji under /haberler/<category>/)
+
+Services
+- https://btmedya.com.tr/hizmetler/ : services overview
+- https://btmedya.com.tr/video-produksiyon/ : video production
+- https://btmedya.com.tr/sosyal-medya/ : social media management
+- https://btmedya.com.tr/reklam-ve-sponsorluk/ : advertising and sponsorship
+- https://btmedya.com.tr/whatsapp-katalog/ : 12-service catalog in 5 groups (social media, content and design, AI solutions, legal and health communication, brand and web); pricing by written quote
+- https://btmedya.com.tr/teklif-al/ : request a quote
+
+Programs and portfolio
+- https://btmedya.com.tr/portfoy/ : media production portfolio
 - https://btmedya.com.tr/portfoy/buse-tuncay/ : journalist and portfolio profile
-- https://btmedya.com.tr/#portfoy : media production portfolio
-- https://btmedya.com.tr/#ai-lab : AI LAB, explicitly labeled AI-generated work
-- https://btmedya.com.tr/kaynak-masasi/ : editorial source and provenance desk
+- https://btmedya.com.tr/siyah-oda/ : Siyah Oda program
+- https://btmedya.com.tr/halk-roportaji/ : street interview program
+- https://btmedya.com.tr/vaka-calismalari/ : case studies
+
+AI LAB
+- https://btmedya.com.tr/ai-lab/ : AI LAB, explicitly labeled AI-generated work
+
+Sources and archive
+- https://btmedya.com.tr/kaynaklar/ : editorial source and provenance desk
+- https://btmedya.com.tr/arsiv/ : archive centre
+
+Corporate
 - https://btmedya.com.tr/hakkimizda/ : company and editorial background
 - https://btmedya.com.tr/iletisim/ : contact
+- https://btmedya.com.tr/basin-kiti/ : press kit
+- https://btmedya.com.tr/en/ : English overview
 
 ## Editorial and media policy
 - Original BTMEDYA reporting and user-owned/licensed media are presented as real production.

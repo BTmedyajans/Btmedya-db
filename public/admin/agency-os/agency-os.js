@@ -1,6 +1,7 @@
 const $=s=>document.querySelector(s);
 let state={};
 function num(v){return Number(v||0)}
+function ageMinutes(when){if(!when)return null;const n=Date.parse(when);return Number.isFinite(n)?Math.max(0,Math.round((Date.now()-n)/60000)):null}
 function esc(s){return String(s??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
 async function api(u,o){const r=await fetch(u,o);const d=await r.json().catch(()=>({ok:false,error:'JSON okunamadı'}));if(!r.ok||d.ok===false)throw Error(d.error||'İstek başarısız');return d}
 function render(){
@@ -11,7 +12,9 @@ function render(){
  $('#mSales').textContent=num(s.sales?.open);$('#mSalesHint').textContent=num(s.sales?.due)+' takip zamanı geldi';
  $('#mNews').textContent=num(s.ownedNews?.published7d);$('#mRefs').textContent=num(s.references?.public);
  const when=state.latest?.finished_at||state.heartbeat?.finished_at||state.heartbeat?.summary?.heartbeat;
- $('#heartbeat').textContent=when?'Son denetim: '+new Date(when).toLocaleString('tr-TR')+' · 15 dakikalık otomatik döngü aktif':'Henüz denetim kaydı yok';
+ const age=ageMinutes(when);
+ $('#heartbeat').textContent=when?(age!==null&&age>20?'⚠ Son denetim '+age+' dk önce · otomasyon gecikmiş':'✓ Son denetim: '+new Date(when).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'})+' · 15 dakikalık otomatik döngü aktif'):'Henüz denetim kaydı yok';
+ $('#heartbeat').classList.toggle('warning',age!==null&&age>20);
  const alerts=state.alerts||[];$('#alertCount').textContent=alerts.length;
  $('#alerts').innerHTML=alerts.length?alerts.map(a=>'<div class="alert"><i class="dot '+esc(a.severity)+'"></i><div><strong>'+esc(a.title)+'</strong><div class="meta">'+esc(a.client_name||'BTMEDYA')+' · '+esc(a.detail)+'</div></div><span class="badge">'+esc(a.severity)+'</span></div>').join(''):'<div class="rec"><b>Temiz kuyruk ✅</b><span class="meta">Açık süpervizör alarmı bulunmuyor.</span></div>';
  const rec=s.recommendations||[];
@@ -23,7 +26,33 @@ function renderClients(items){
  const rows=items.filter(c=>!q||String(c.name||'').toLocaleLowerCase('tr-TR').includes(q)||String(c.sector||'').toLocaleLowerCase('tr-TR').includes(q));
  $('#clients').innerHTML=rows.map(c=>'<article class="client-row"><div class="topline"><b>'+esc(c.name)+'</b><span class="badge">'+esc(c.status)+'</span></div><div class="meta">'+esc(c.sector||'Sektör belirtilmedi')+'</div><div class="bars"><span class="bar">'+num(c.content_count)+' içerik</span><span class="bar '+(num(c.draft_count)?'warn':'ok')+'">'+num(c.draft_count)+' taslak</span><span class="bar">'+(c.last_content_at?'Son: '+new Date(c.last_content_at).toLocaleDateString('tr-TR'):'Henüz içerik yok')+'</span></div></article>').join('')||'<div class="rec"><b>Firma bulunamadı.</b></div>';
 }
-async function load(){try{state=await api('/api/admin/agency-supervisor');render()}catch(e){$('#heartbeat').textContent=e.message}}
+async function load(){try{state=await api('/api/admin/agency-supervisor');render();await loadSystemSnapshot();await loadSocialSnapshot()}catch(e){$('#heartbeat').textContent=e.message}}
+async function loadSystemSnapshot(){
+ const el=$('#systemSnapshot'); if(!el)return;
+ try{
+  const d=await api('/api/admin/control-center');
+  const m=d.metricool||{}; const s=d.storage||{}; const a=d.automation||{}; const site=d.site||{};
+  el.innerHTML='<div class="rule"><b>CANONICAL</b><span>'+esc(site.url||'https://btmedya.com.tr')+' · '+esc(site.worker||'btmedya-db')+'</span></div>'+
+    '<div class="rule"><b>DATA</b><span>D1 '+(s.d1?'✓':'✗')+' · R2 '+(s.r2?'✓':'✗')+' · KV '+(s.kv?'✓':'✗')+'</span></div>'+
+    '<div class="rule"><b>METRICOOL</b><span>'+ (m.yapilandirildi?'✓ Worker bağlantısı hazır':'⚠ Secret/bağlantı bekliyor') +'</span></div>'+
+    '<div class="rule"><b>OTOMASYON</b><span>'+esc(a.cron||'*/5 * * * *')+' · '+(ageMinutes(a.heartbeatAt)!==null?ageMinutes(a.heartbeatAt)+' dk önce':'heartbeat bekleniyor')+(Number(a.overdue||0)?' · '+Number(a.overdue)+' gecikmiş':' · kuyruk temiz')+'</span></div>';
+ }catch(e){el.innerHTML='<div class="rec"><b>Sistem sağlık verisi okunamadı.</b><span class="meta">'+esc(e.message)+'</span></div>'}
+}
+
+async function loadSocialSnapshot(){
+ const el=$('#socialCommand'); if(!el)return;
+ try{
+  const [p,q]=await Promise.all([api('/api/admin/social/providers'),api('/api/admin/social/queue-summary')]);
+  const rows=Object.values(p.providers||{}).map(x=>'<div class="rule"><b>'+esc(x.label)+'</b><span>'+esc(x.configured?'YAYIN AKTİF':x.connected?'BAĞLANTI VAR / SECRET BEKLENİYOR':'BAĞLI DEĞİL')+'</span></div>').join('');
+  const c=q.counts||{}, d=q.delivery||{}, settings=q.settings||{};
+  const queue='<div class="rule"><b>KUYRUK</b><span>'+num(c.onayda)+' onayda · '+num(c.planlandi)+' planlı · '+num(c.yayinlandi)+' yayımlandı · '+num(c.geciken)+' geciken</span></div>';
+  const delivery='<div class="rule"><b>TESLİMAT</b><span>'+num(d.failed||0)+' hata'+(d.lastFailure?.hata?' · '+esc(String(d.lastFailure.hata).slice(0,140)):'')+'</span></div>';
+  const config='<div class="rule"><b>AYAR</b><span>'+(settings.otomatikPlanla?'Otomatik planlama açık':'Manuel/onay akışı')+' · '+esc((settings.aglar||[]).join(', ')||'ağ yok')+'</span></div>';
+  el.innerHTML='<div class="stack">'+rows+queue+delivery+config+'</div>';
+ }catch(e){
+  el.innerHTML='<div class="rec"><b>Sosyal/Metricool durumu okunamadı.</b><span class="meta">'+esc(e.message)+'</span></div>';
+ }
+}
 async function run(){const b=$('#run');b.disabled=true;b.textContent='Denetleniyor…';try{state=await api('/api/admin/agency-supervisor/run',{method:'POST'});render()}catch(e){alert(e.message)}finally{b.disabled=false;b.textContent='Şimdi denetle'}}
 async function loadCategoryFeed(){
  const box=$('#categoryFeed');if(!box)return;
@@ -66,3 +95,7 @@ async function bootstrapCore(){
 }
 const coreBoot=$('#btCoreBootstrap');if(coreBoot)coreBoot.addEventListener('click',bootstrapCore);
 loadCore();setInterval(loadCore,60000);
+
+
+async function adminLogout(){const b=$('#adminLogout'),s=$('#adminSessionStatus');if(!b)return;b.disabled=true;b.textContent='Çıkılıyor…';try{await fetch('/api/logout',{method:'POST',credentials:'same-origin'});}catch{}if(s)s.textContent='OTURUM KAPATILDI';window.location.href='/admin/';}
+function bindAdminSession(){const b=$('#adminLogout');if(b)b.addEventListener('click',adminLogout);}bindAdminSession();

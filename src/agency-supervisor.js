@@ -5,6 +5,7 @@
  */
 const j=(d,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
 const nowIso=()=>new Date().toISOString();
+const oturumAnahtari=env=>{const x=env?.ADMIN_SESSION_SECRET_SECRET||env?.ADMIN_SESSION_SECRET||'';return x?(env?.MEDIA_SIGNING_SECRET?x+'\u0000'+env.MEDIA_SIGNING_SECRET:x):''};
 
 async function ensureSupervisorTables(env){
   if(!env.DB)return;
@@ -219,10 +220,10 @@ export async function agencySupervisorStatus(env){
 export async function agencySupervisorApi(request,env,url){
   if(!url.pathname.startsWith('/api/admin/agency-supervisor'))return null;
   const ok=await (async()=>{
-    if(!env.ADMIN_SESSION_SECRET_SECRET)return false;
+    if(!oturumAnahtari(env))return false;
     const c=request.headers.get('cookie')||'',m=c.match(/bt_admin=([^;]+)/);if(!m)return false;
     const [p,s]=m[1].split('.');if(!p||!s)return false;
-    const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(env.ADMIN_SESSION_SECRET_SECRET),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+    const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(oturumAnahtari(env)),{name:'HMAC',hash:'SHA-256'},false,['sign']);
     const sig=btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(p))))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
     if(sig!==s)return false;try{return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(p.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(p.length/4)*4,'=')),c=>c.charCodeAt(0)))).exp>Date.now()}catch{return false}
   })();

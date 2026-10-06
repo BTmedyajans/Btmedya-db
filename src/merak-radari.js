@@ -7,6 +7,7 @@ import { metricoolConnectedNetworks } from "./social-platforms.js";
  * Yayın kararı için kaynak, tarih, belge ve editör kontrolü korunur.
  */
 const TRENDS_URL = "https://trends.google.com/trending/rss?geo=TR";
+const BALIKESIR_VALILIGI_URL = "https://www.balikesir.gov.tr/";
 const SUGGEST_URL = "https://suggestqueries.google.com/complete/search?client=firefox&hl=tr&q=";
 const SORU_EKLERI = ["neden","niçin","ne oldu","son durum","fiyatı ne","ne zaman","nasıl","kim etkileniyor","değişti mi","hangi ilçelerde"];
 const SORU_SINYALI = /(neden|niçin|ne oldu|son durum|fiyat|ne zaman|nasıl|kim|hangi|değişti|başvuru|zam|kaldırıldı|yasaklandı)/i;
@@ -20,7 +21,7 @@ function temiz(s){
 function rss(xml){
   return Array.from(String(xml||"").matchAll(/<(?:item|entry)\b[\s\S]*?<\/(?:item|entry)>/gi)).map(function(m){
     var b=m[0];
-    var pick=function(t){ var x=b.match(new RegExp("<"+t+"(?:\\s[^>]*)?>([\\s\\S]*?)<\\/"+t+">","i")); return x?temiz(x[1]):""; };
+    var pick=function(t){ var x=b.match(new RegExp("<"+t+"(?:\\s[^>]*)?>([\s\S]*?)<\\/"+t+">","i")); return x?temiz(x[1]):""; };
     var link=pick("link");
     if(!link){ var x=b.match(/<link[^>]+href=["']([^"']+)["']/i); link=x?x[1]:""; }
     return {title:pick("title"),description:pick("description")||pick("summary")||pick("content"),link:link,date:pick("pubDate")||pick("published")||pick("updated")};
@@ -37,6 +38,50 @@ async function jsonAl(url){
   return r.json();
 }
 function anahtarlar(metin){ return Array.from(new Set(duzelt(metin).split(/[^a-z0-9]+/).filter(function(x){return x.length>3;}))); }
+
+const BALIKESIR_ILCELERI = ["Altıeylül","Ayvalık","Balya","Bandırma","Bigadiç","Burhaniye","Dursunbey","Edremit","Erdek","Gömeç","Gönen","Havran","İvrindi","Karesi","Kepsut","Manyas","Marmara","Savaştepe","Sındırgı","Susurluk"];
+function resmiIlceLinkleri(html){
+  var out=[], seen=new Set();
+  var re=/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, m;
+  while((m=re.exec(String(html||"")))){
+    var ad=temiz(m[2]), href=m[1];
+    var ilce=BALIKESIR_ILCELERI.find(function(x){return duzelt(ad).indexOf(duzelt(x))>=0;});
+    if(!ilce || !/kaymakam/i.test(ad)) continue;
+    try{
+      var u=new URL(href,BALIKESIR_VALILIGI_URL);
+      if(!/gov\.tr$/i.test(u.hostname)) continue;
+      var key=ilce+"|"+u.origin+"/";
+      if(seen.has(key)) continue;
+      seen.add(key); out.push({ilce:ilce,url:u.origin+"/"});
+    }catch{}
+  }
+  return out;
+}
+async function ilceResmiSinyalleri(){
+  var out={sources:[],items:[],errors:[]};
+  try{
+    var html=await al(BALIKESIR_VALILIGI_URL);
+    out.sources=resmiIlceLinkleri(html);
+  }catch(e){ out.errors.push("Valilik kaynak dizini: "+String(e&&e.message||e).slice(0,160)); return out; }
+  var jobs=out.sources.map(async function(src){
+    try{
+      var h=await al(src.url);
+      var items=rss(h);
+      if(!items.length){
+        var links=[]; var re=/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi,m;
+        while((m=re.exec(h)) && links.length<8){
+          var title=temiz(m[2]);
+          if(title && title.length>18 && !/menü|iletişim|anasayfa|devamı|kaymakam/i.test(title)) links.push({title:title,link:new URL(m[1],src.url).href,date:""});
+        }
+        items=links;
+      }
+      return items.slice(0,8).map(function(x){return {ilce:src.ilce,title:x.title,link:x.link,date:x.date,source:src.url,sourceTier:"P1"};});
+    }catch(e){ out.errors.push(src.ilce+": "+String(e&&e.message||e).slice(0,120)); return []; }
+  });
+  var all=await Promise.all(jobs);
+  out.items=all.flat();
+  return out;
+}
 function kategori(t){
   var s=duzelt(t);
   if(/balikesir|edremit|bandirma|ayvalik|karesi|altieylul|gonen|burhaniye|susurluk|sindirgi|bigadic|erdek|havran/.test(s)) return "Balıkesir";
@@ -93,16 +138,22 @@ export async function merakRadariCalistir(env,{limit=12}={}){
   var own=await kendiYayinlari(env);
   var trends=[];
   try{ trends=rss(await al(TRENDS_URL)).slice(0,20); }catch(e){ result.errors.push("Google Trends: "+String(e&&e.message||e).slice(0,160)); }
+  var ilceRadar=await ilceResmiSinyalleri();
+  result.districts={expected:BALIKESIR_ILCELERI.length,discovered:ilceRadar.sources.length,items:ilceRadar.items.length,errors:ilceRadar.errors};
+  var candidates=[];
+  ilceRadar.items.forEach(function(item){
+    var topic=item.ilce+" | "+item.title;
+    candidates.push({konu:topic,soru:"son durum",kategori:"Balıkesir",kaynak_url:item.link||item.source,google:0,search:4,social:0,btm:0,competitor:0,puan:48,gerekce:"P1 resmî ilçe kaynağı · "+item.ilce});
+  });
   var trendKel=new Map();
   trends.forEach(function(x){ anahtarlar(x.title).forEach(function(k){ trendKel.set(k,(trendKel.get(k)||0)+1); }); });
-  var candidates=[];
   for(var ti=0;ti<trends.length;ti++){
     var t=trends[ti], topic=t.title.trim(); if(!topic) continue;
     var related=await autocomplete(topic);
     var questions=Array.from(new Set(related.filter(function(q){return SORU_SINYALI.test(q);}).concat(soruUret(topic,related.find(function(q){return SORU_SINYALI.test(q);})||anahtarMerak(topic))))).slice(0,4);
     var base=anahtarlar(topic);
     var internalHits=own.filter(function(n){ var z=duzelt(n.title+" "+n.excerpt); return base.some(function(k){return z.indexOf(k)>=0;}); }).length;
-    var socialLocalHits=sosyalYayinlari.filter(function(n){var z=duzelt(String(n.title||"")+" "+String(n.body||"")); return base.some(function(k){return z.indexOf(k)>=0;});}).length;
+    var socialLocalHits=0;
     var socialHits=env.KV?await env.KV.get("merak-radari:sosyal:"+duzelt(topic)).then(function(x){return Number(x||0);}).catch(function(){return 0;}):0;
     socialHits=Math.max(socialHits,Math.min(18,socialLocalHits*3));
     var competitorHits=env.KV?await env.KV.get("merak-radari:rakip:"+duzelt(topic)).then(function(x){return Number(x||0);}).catch(function(){return 0;}):0;
@@ -174,7 +225,7 @@ export async function ozelHaberPaketiUret(env,{id}={}){
     const prompt=["BTMEDYA Özel Haber Üretim Masası.","Aşağıdaki fırsatı yayınlanmış bir gerçek gibi kabul etme.","Yalnız araştırma paketi oluştur. Bilinmeyen hiçbir şeyi tamamlamadan VERIFY yaz.","Kaynak URL'lerini koru. Üçüncü taraf metinleri kopyalama.","JSON alanları: baslik_alternatifleri, spot_taslagi, arastirma_sorulari, veri_ve_belge_kontrolu, konuk_ve_saha_plani, sosyal_metni, video_script_60s, gorsel_plani, risk_notu.","Fırsat: "+JSON.stringify(temel)].join("\n");
     const ai=await env.AI.run("@cf/openai/gpt-oss-120b",{messages:[{role:"system",content:"Kaynaklı gazetecilik araştırma yardımcısısın. Uydurma bilgi verme. Eksik bilgiye VERIFY yaz. Kısa ve uygulanabilir Türkçe JSON üret."},{role:"user",content:prompt}],max_tokens:1800,temperature:0.1});
     var raw=String(ai&&ai.response||ai&&ai.output_text||"").trim();
-    var m=raw.match(/\\{[\\s\\S]*\\}/);
+    var m=raw.match(/\\{[\s\S]*\\}/);
     if(m) return {ok:true,source:"workers-ai",id:Number(row.id),paket:JSON.parse(m[0]),temel:temel};
   }catch(e){ return {ok:false,error:String(e&&e.message||e).slice(0,400),temel:temel}; }
   return {ok:true,source:"şablon",paket:temel};

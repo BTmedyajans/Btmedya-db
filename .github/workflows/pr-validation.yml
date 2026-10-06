@@ -48,6 +48,7 @@ jobs:
           node tools/temas-testi.mjs
           node tools/marka-kiti-testi.mjs
           node tools/haber-portali-testi.mjs
+          node tools/admin-giris-testi.mjs
           node --check public/home.js
           python3 tools/validate-assets.py
           node tools/a11y-denetimi.mjs

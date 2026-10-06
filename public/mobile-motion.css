@@ -11,16 +11,32 @@
   main#icerik>.vitrine-status:first-child{display:none!important}
 
   .mfilm{display:block;color:#eef3f7;background:#05080c}
-  .mfilm-kare{position:relative;width:100%;aspect-ratio:var(--mfilm-oran,16 / 9);max-height:72svh;background:#000 url('/assets/media/web/hero-story-poster.jpg') center/cover no-repeat;overflow:hidden}
+  .mfilm-kare{position:relative;width:100%;aspect-ratio:var(--mfilm-oran,1 / 1);max-height:72svh;background:#000 url('/assets/media/web/giris-filmi-poster.jpg') center/cover no-repeat;overflow:hidden}
   .mfilm-dikey .mfilm-kare{margin:0 auto;width:auto;height:72svh}
   .mfilm-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;display:block;filter:none!important}
   .mfilm-etiket{position:absolute;left:12px;top:12px;padding:6px 9px;border-radius:4px;background:rgba(0,0,0,.72);color:#fff;font:700 11px/1.2 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.08em;pointer-events:none}
   .mfilm-oynat{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-height:48px;padding:0 22px;border:0;border-radius:999px;background:#fff;color:#05080c;font:800 15px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer}
   .mfilm-oynat[hidden]{display:none}
+  /* V8 denetimleri: ses, ilerleme, bölümler. Dokunma hedefleri ≥44 px. */
+  .mfilm-ses{position:absolute;right:10px;top:8px;z-index:3;min-height:44px;padding:0 14px;border:1px solid rgba(255,255,255,.3);border-radius:999px;background:rgba(0,0,0,.66);color:#fff;font:700 13px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer}
+  /* Film başlamadan ses düğmesi gösterilmez: başlatma düğmesi zaten sesli. */
+  .mfilm:not(.mfilm-basladi) .mfilm-ses{display:none}
+  .mfilm-damgali.mfilm-oynuyor .mfilm-etiket{opacity:0}
+  .mfilm-ses[aria-pressed="true"]{background:#d9ff3f;border-color:#d9ff3f;color:#071000}
+  .mfilm-ilerleme{position:absolute;left:0;right:0;bottom:0;z-index:2;height:4px;background:rgba(255,255,255,.18);pointer-events:none}
+  .mfilm-ilerleme i{display:block;height:100%;background:#d9ff3f;transform:scaleX(0);transform-origin:left center}
+  .mfilm-bolumler{display:flex;gap:8px;overflow-x:auto;padding:10px 16px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .mfilm-bolumler::-webkit-scrollbar{display:none}
+  .mfilm-bolumler button{flex:0 0 auto;min-height:44px;padding:0 14px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:transparent;color:#d7e1e8;font:700 13px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer}
+  .mfilm-bolumler button[aria-current]{background:#fff;border-color:#fff;color:#05080c}
+  .mfilm-ses:focus-visible,.mfilm-bolumler button:focus-visible{outline:3px solid #fff;outline-offset:2px}
   .mfilm-metin{padding:22px 16px 28px}
   .mfilm-ust{margin:0 0 10px;color:#7fdcff;font:700 12px/1.2 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.14em}
   .mfilm-baslik{margin:0;font:800 clamp(34px,10.5vw,46px)/.98 'Bricolage Grotesque','Space Grotesk',Inter,Arial,sans-serif;letter-spacing:-.035em;color:#fff}
   .mfilm-baslik span{color:#35d6ff}
+  /* Mobilde görünen tek h1 budur (masaüstü sahnesi mobilde gizli); kicker
+     satırı h1'in içinde, konuyu arama motoruna da söyler. */
+  .mfilm-baslik .mfilm-ust{display:block;letter-spacing:.1em}
   .mfilm-spot{margin:14px 0 0;color:#b6c4cf;font:400 16px/1.55 Manrope,Inter,Arial,sans-serif;max-width:34em}
   .mfilm-aksiyon{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
   .mfilm-btn{display:flex;align-items:center;justify-content:center;min-height:52px;padding:0 12px;border:1px solid rgba(255,255,255,.22);border-radius:12px;color:#fff;text-decoration:none;font:800 15px/1.1 Manrope,Inter,Arial,sans-serif;text-align:center}
@@ -68,12 +84,12 @@
   #news .news-card:not(.featured) .bt-cover-ui{display:none!important}
   #news .news-card:not(.featured) .news-kaynak{position:absolute!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;margin:0!important;padding:3px 4px!important;background:rgba(0,0,0,.78)!important;color:#fff!important;font-size:9.5px!important;line-height:1.2!important;letter-spacing:.04em!important;text-align:center;border-radius:0!important}
   #news .news-card:not(.featured) .news-body{padding:0!important;min-height:0!important;gap:6px!important;background:none!important}
-  #news .news-card:not(.featured) .news-body small{font-size:11px!important;letter-spacing:.06em}
+  #news .news-card:not(.featured) .news-body small{font-size:12px!important;letter-spacing:.06em}
   #news .news-card:not(.featured) h3{margin:0!important;font-size:16.5px!important;line-height:1.3!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   #news .news-card:not(.featured) p{display:none!important}
   #news .news-card:not(.featured) .news-meta{font-size:11px!important;margin:0!important;gap:8px!important}
   #news .news-card:not(.featured) .news-meta span+span{display:none}
-  #news .news-card:not(.featured) .news-open{font-size:11px!important;min-height:0!important;padding:0!important}
+  #news .news-card:not(.featured) .news-open{font-size:12px!important;min-height:0!important;padding:0!important}
   #news .news-card:not(.featured) .news-open:first-of-type{position:static!important;color:transparent!important;font-size:0!important;height:0;overflow:hidden}
   #news .news-card:not(.featured) .news-open:first-of-type::after{content:'';position:absolute;inset:0;z-index:1}
   #news .news-card:not(.featured) .news-open+.news-open{position:relative;z-index:2;display:inline-flex;align-items:center;min-height:32px!important}
@@ -107,4 +123,100 @@
 }
 @media (max-width:720px) and (prefers-reduced-motion:reduce){
   .mfilm *{transition:none!important;animation:none!important}
+}
+
+/* Anasayfa mobil denetimi (5 Ekim): fotoğraf künyesi etiketleri 8–9,5 px'e
+   inmişti; "ARŞİV FOTOĞRAFI / TEMSİLİ FOTOĞRAF" görselin kaynağını söyler,
+   okunmalı. 104 px küçük karede iki satıra kırılır, öne çıkan habere tek
+   satır sığar. Dokunma hedefleri 44 px'e tamamlanır: haber kartındaki
+   "KAYNAK ↗" (32 px), dil seçici TR/EN (34 px) ve son dakika şeridindeki
+   haber bağlantısı (17 px; şerit yüksekliği değişmesin diye negatif kenar
+   boşluğuyla büyütülür). */
+@media (max-width:720px){
+  #news .news-card:not(.featured) .news-kaynak{font-size:12px!important;letter-spacing:0!important;line-height:1.15!important;padding:4px 3px!important}
+  #news .news-kaynak{font-size:12px!important}
+  #news .news-card:not(.featured) .news-open+.news-open{min-height:44px!important}
+  .topbar .language-switch a{min-width:44px!important;justify-content:center}
+  .bt-breaking-inner>a{padding:13.5px 0;margin:-13.5px 0}
+}
+
+/* SAHADAN HABERLER / Mobile editorial hierarchy · 2026-10-06 */
+@media (max-width:720px){
+  #news.section{padding-top:38px!important;padding-bottom:42px!important;background:linear-gradient(180deg,rgba(100,228,255,.055),transparent 34%)!important}
+  #news .section-head{gap:12px!important;margin-bottom:14px!important}
+  #news .section-head h2{font-size:clamp(40px,13vw,58px)!important;line-height:.9!important;letter-spacing:-.05em!important}
+  #news .section-side{font-size:12px!important;line-height:1.55!important;max-width:38ch}
+  #news .mobile-category-rail{margin:2px 0 10px!important;padding:3px 0 5px!important}
+  #news .mobile-category-rail a{min-height:40px!important;padding:9px 12px!important;font-size:10px!important;letter-spacing:.06em!important}
+  #news .news-card.featured{min-height:0!important;height:auto!important}
+  #news .news-card.featured .news-media{height:190px!important;aspect-ratio:16/9!important}
+  #news .news-card.featured .news-body{padding:14px!important;gap:8px!important}
+  #news .news-card.featured .news-body h3{font-size:clamp(23px,7vw,30px)!important;line-height:1.02!important;margin:0!important}
+  #news .news-card.featured .news-body p{font-size:12px!important;line-height:1.45!important;margin:0!important}
+  #news .news-card.featured .news-open{min-height:42px!important;margin-top:2px!important}
+}
+@media (prefers-reduced-motion:reduce){
+  #news .news-media img{transition:none!important}
+}
+
+
+/* Cinematic text field / black-gray motion · 2026-10-06 */
+@media (max-width:720px){
+  .mfilm-metin{
+    position:relative;
+    isolation:isolate;
+    overflow:hidden;
+    background:
+      linear-gradient(135deg,rgba(255,255,255,.045),transparent 34%),
+      linear-gradient(180deg,#07090c 0%,#11151a 48%,#080a0d 100%);
+    border-top:1px solid rgba(255,255,255,.12);
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .mfilm-metin::before{
+    content:"";
+    position:absolute;
+    z-index:-2;
+    width:135%;
+    height:170%;
+    left:-22%;
+    top:-38%;
+    pointer-events:none;
+    background:
+      radial-gradient(ellipse at 18% 22%,rgba(255,255,255,.17) 0,rgba(255,255,255,.055) 17%,transparent 43%),
+      radial-gradient(ellipse at 84% 72%,rgba(112,124,137,.19) 0,rgba(112,124,137,.055) 20%,transparent 48%);
+    filter:blur(22px);
+    opacity:.58;
+    transform:translate3d(-4%,-2%,0) rotate(-4deg) scale(1.04);
+    animation:btTextAtmosphere 14s cubic-bezier(.45,0,.25,1) infinite alternate;
+  }
+  .mfilm-metin::after{
+    content:"";
+    position:absolute;
+    z-index:-1;
+    inset:0;
+    pointer-events:none;
+    opacity:.18;
+    background:
+      linear-gradient(115deg,transparent 0 36%,rgba(255,255,255,.12) 46%,transparent 58%),
+      repeating-linear-gradient(0deg,rgba(255,255,255,.045) 0 1px,transparent 1px 7px);
+    mix-blend-mode:screen;
+    transform:translateX(-18%);
+    animation:btTextScan 11s ease-in-out infinite alternate;
+  }
+  .mfilm-metin>*{position:relative;z-index:1}
+  .mfilm-baslik{text-shadow:0 2px 0 rgba(0,0,0,.65),0 0 24px rgba(255,255,255,.045)}
+  .mfilm-spot{color:#c4ccd3;text-shadow:0 1px 8px rgba(0,0,0,.55)}
+}
+@keyframes btTextAtmosphere{
+  0%{transform:translate3d(-4%,-2%,0) rotate(-4deg) scale(1.04);opacity:.42}
+  50%{transform:translate3d(7%,3%,0) rotate(2deg) scale(1.11);opacity:.68}
+  100%{transform:translate3d(-1%,8%,0) rotate(6deg) scale(1.06);opacity:.5}
+}
+@keyframes btTextScan{
+  0%{transform:translateX(-18%);opacity:.08}
+  55%{transform:translateX(8%);opacity:.22}
+  100%{transform:translateX(20%);opacity:.12}
+}
+@media (prefers-reduced-motion:reduce){
+  .mfilm-metin::before,.mfilm-metin::after{animation:none!important;transform:none!important}
 }

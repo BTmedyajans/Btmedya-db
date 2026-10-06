@@ -21,7 +21,7 @@ const DEFAULT_POLICY = {
   enabled: true,
   discoveryEveryMinutes: 15,
   maxItemsPerRun: 3,
-  minScore: 72,
+  minScore: 60,
   autoPublish: true,
   autoPublishMinScore: 84,
   autoPublishSourceTiers: ["publisher"],

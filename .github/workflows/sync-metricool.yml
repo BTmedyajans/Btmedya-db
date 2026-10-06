@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/sync-metricool.yml"
+      - "wrangler.toml"
+      - "src/metricool-scheduler.js"
+      - "src/sosyal-otomasyon.js"
   schedule:
     - cron: "47 */3 * * *"
   workflow_dispatch:
@@ -29,9 +32,10 @@ jobs:
           set -euo pipefail
 
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Cloudflare deploy token eksik"; exit 1; }
-          test -n "$METRICOOL_USER_TOKEN" || { echo "::error::BTMEDYA_METRICOOL_USER_TOKEN GitHub secret eksik"; exit 1; }
-          test -n "$METRICOOL_USER_ID" || { echo "::error::BTMEDYA_METRICOOL_USER_ID GitHub secret eksik"; exit 1; }
-          test -n "$METRICOOL_BRAND_ID" || { echo "::error::BTMEDYA_METRICOOL_BRAND_ID GitHub secret eksik"; exit 1; }
+          if [ -z "$METRICOOL_USER_TOKEN" ] || [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
+            echo "::warning::GitHub Metricool secret'ları tanımlı değil; mevcut Cloudflare Worker secret'ları korunuyor, senkronizasyon atlandı."
+            exit 0
+          fi
 
           npm install --no-save --no-package-lock wrangler@4.142.0
 
@@ -46,6 +50,10 @@ jobs:
           METRICOOL_BRAND_ID: ${{ secrets.BTMEDYA_METRICOOL_BRAND_ID }}
         run: |
           set -euo pipefail
+          if [ -z "$METRICOOL_USER_TOKEN" ] || [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
+            echo "::warning::GitHub Metricool secret'ları tanımlı değil; doğrulama atlandı."
+            exit 0
+          fi
           body="$(curl -fsS -H "X-Mc-Auth: $METRICOOL_USER_TOKEN" \
             "https://app.metricool.com/api/admin/simpleProfiles?userId=$METRICOOL_USER_ID")"
 

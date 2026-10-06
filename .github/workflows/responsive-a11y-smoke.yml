@@ -33,5 +33,22 @@ jobs:
         run: |
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install --with-deps chromium
+      - name: Allow production deployment to settle
+        run: sleep 45
       - name: Test live responsive and accessibility basics
-        run: node tools/responsive-a11y-smoke.mjs
+        run: |
+          set -euo pipefail
+          echo "Testing current checkout: ${GITHUB_SHA}"
+          echo "Workspace HEAD: $(git rev-parse HEAD)"
+          for attempt in 1 2 3; do
+            echo "Live smoke attempt $attempt/3"
+            if node tools/responsive-a11y-smoke.mjs; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "Live deployment may still be propagating; retrying in 30s."
+              sleep 30
+            fi
+          done
+          echo "Live responsive/a11y smoke failed after 3 attempts."
+          exit 1

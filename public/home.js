@@ -396,7 +396,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       const label = active === 'all'
         ? 'Haber arşivi'
         : ((window.BTMEDYA_RELEVANCE?.categories || []).find(x => x.key === active)?.label || active);
-      newsGrid.innerHTML = '<article class="news-card news-empty-category"><div class="news-body"><small>BTMEDYA / KATEGORİ</small><h3>' + esc(label) + ' akışı hazırlanıyor.</h3><p>Bu kategori editoryal yapıda açık. İlk doğrulanmış içerik geldiğinde burada otomatik görünür.</p><a class="news-open" href="/kaynak-masasi/">KAYNAK MASASI ↗</a></div></article>';
+      newsGrid.innerHTML = '<article class="news-card news-empty-category"><div class="news-body"><small>BTMEDYA / KATEGORİ</small><h3>' + esc(label) + ' akışı hazırlanıyor.</h3><p>Bu kategori editoryal yapıda açık. İlk doğrulanmış içerik geldiğinde burada otomatik görünür.</p><a class="news-open" href="/kaynaklar/">KAYNAK MASASI ↗</a></div></article>';
       newsGrid.setAttribute('aria-busy','false');
       return;
     }
@@ -559,6 +559,12 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   const loadArsiv = async () => {
     const grid = d.getElementById('gercekArsivGrid');
     if (!grid) return;
+    let loadingTimer = setTimeout(() => {
+      if (grid.getAttribute('aria-busy') === 'true') {
+        grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv hazırlanıyor. Son doğrulanmış içerikler portföyde açık.</div>';
+        grid.setAttribute('aria-busy','false');
+      }
+    }, 3500);
     try {
       let data=null;
       try{
@@ -586,18 +592,22 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
           const kat=x=>({saha:0,haber:1,video:2,portfoy:3,hero:4}[x.category]??9);
           return kat(a)-kat(b);
         }).slice(0,8);
-      if(!ogeler.length){grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv kaydı henüz yayın akışına düşmedi.</div>';return;}
+      if(!ogeler.length){clearTimeout(loadingTimer);grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv kaydı henüz yayın akışına düşmedi.</div>';grid.setAttribute('aria-busy','false');return;}
+      clearTimeout(loadingTimer);
       grid.innerHTML=ogeler.map(arsivKarti).join('');
       document.querySelector('[data-fallback="media"]')?.remove();
       grid.setAttribute('aria-busy','false');
       grid.querySelectorAll('video').forEach(v=>{
         const io=new IntersectionObserver(es=>es.forEach(e=>{
-          if(e.isIntersecting){if(!v.src&&v.dataset.src){v.src=v.dataset.src;v.load();}v.play().catch(()=>{});} else v.pause();
+          // Anasayfada yalniz giris filmi oynar (6 Ekim): kart ilk karesini
+          // gosterir, video "Videoyu ac" baglantisiyla izlenir.
+          if(e.isIntersecting){if(!v.src&&v.dataset.src){v.preload='metadata';v.src=v.dataset.src+'#t=0.1';v.load();}io.unobserve(v);}
         }),{rootMargin:'120px'}); io.observe(v);
       });
     }catch(err){
+      clearTimeout(loadingTimer);
       if(!document.querySelector('[data-fallback="media"]')){
-        grid.innerHTML='<div class="archive-live-empty">Son doğrulanmış gerçek arşiv gösteriliyor. Daha fazlası için <a href="/portfoy/">portföy ↗</a></div>';
+        grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv geçici olarak güncellenemedi. Son doğrulanmış içerikler portföyde açık.</div>';
       } else {
         grid.setAttribute('aria-busy','false');
       }
@@ -733,7 +743,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       // snapshot silinmez; kullanıcı boş bir yayın alanıyla karşılaşmaz.
       const fallback=document.querySelector('[data-fallback="social"]');
       profiles.innerHTML=fallback?'':'';
-      meta.textContent=fallback?'Metricool anlık akışı okunamazsa son doğrulanmış snapshot gösteriliyor.':'Son doğrulanmış sosyal snapshot gösteriliyor.';
+      meta.textContent='Son doğrulanmış sosyal snapshot gösteriliyor.';
       if(!fallback) grid.innerHTML='<div class="social-feed-empty">Sosyal akış geçici olarak kullanılamıyor.</div>';
       markReady();
     }
@@ -822,17 +832,27 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
      Panelden bir sahneye gercek cekim atanirsa etiket asagidaki kancayla
      kendiliginden degisir; elle yazilmaz. */
   const scenes=[
-    {key:'hero',yuva:'hero-video',k:'01 / GİRİŞ',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'GERÇEK<br><span>GÖRÜNTÜ.</span>',d:'Sahadan gelen gerçek hikâyeleri görünür kılıyoruz.'},
+    {key:'hero',yuva:'hero-video',k:'BTMEDYA / GİRİŞ FİLMİ',kaynak:'AI ÜRETİMİ · BTMEDYA KARAKTER FİLMİ',t:'YENİ NESİL<br><span>ÜRETİM.</span>',d:'Haber, sosyal medya ve tanıtım filmi tek ekipten. Film bitince yolunu seç: kaynak ve etiket her zaman görünür.'},
     {key:'haber',yuva:'kategori-haber',k:'02 / HABER · SAHA',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
     {key:'medya',yuva:'kategori-medya',k:'03 / MEDYA · İÇERİK',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için üretim.'},
     {key:'produksiyon',yuva:'kategori-prod',k:'04 / PRODÜKSİYON',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
     {key:'ai',k:'05 / AI LAB · AÇIK ETİKET',kaynak:'AI ÜRETİMİ · AÇIKÇA ETİKETLİ',t:'YENİ<br><span>ARAÇLAR.</span>',d:'AI üretimi ayrı, açık ve şeffaf bir laboratuvar olarak konumlanıyor.'}
   ];
+  /* Tek film (6 Ekim, kullanici istegi): anasayfada yalniz AI giris filmi
+     oynar; kaydirmali bes sahne ve kategori videolari kalkti. Film bitince
+     secim-sahnesi.js uc yolu (Haber, Sosyal Medya, Tanitim) acar. */
+  const tekFilm=root.hasAttribute('data-tek-film');
+  const ESKI_AI_FILMI=/\/assets\/media\/web\/hero-story(-mobile)?\.mp4$/;
+  if(tekFilm) scenes.splice(1);
   /* Panel atamalari: sahnenin videosunu ve rozetini degistirir. Atama yoksa
      hicbir sey yapilmaz, sayfa kendi varsayilanlariyla kalir. */
   window.btYuvalar && window.btYuvalar.then(y=>{
     scenes.forEach((s,i)=>{
       const a=s.yuva && y[s.yuva]; if(!a || a.tur!=='video') return;
+      // Tek film (6 Ekim): panelde eski AI filmine (hero-story) yapilmis atama
+      // yeni giris filminin parcasidir ve onu gecersiz kilmasin; panelden
+      // baska bir video atanirsa o yine onceliklidir.
+      if(tekFilm && ESKI_AI_FILMI.test(String(a.url||'').split('?')[0])) return;
       s.kaynak=a.gercek?'GERÇEK ÇEKİM':'AI ÜRETİMİ';
       const el=videos[i] && videos[i].querySelector('video'); if(!el) return;
       el.dataset.src=a.url; delete el.dataset.mobile;
@@ -841,6 +861,13 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       if(el.dataset.loaded){ el.src=a.url; el.load(); if(i===active && i>0) el.play().catch(()=>{}); }
       if(i===active && kaynakEl) kaynakEl.textContent=s.kaynak;
     });
+    // Atama yoksa sayfanin varsayilan arsiv filmi oynar; o dosya
+    // medya-ozel.json gercek listesinde oldugu icin rozeti gercek cekimdir.
+    const hv0=videos[0] && videos[0].querySelector('video');
+    if(!y['hero-video'] && hv0 && /\/giris-filmi-genis\.mp4$/.test(hv0.dataset.src||'')){
+      scenes[0].kaynak='GERÇEK ÇEKİM · BTMEDYA ARŞİVİ';
+      if(active===0 && kaynakEl) kaynakEl.textContent=scenes[0].kaynak;
+    }
     const poster=y['hero-poster'], hv=videos[0] && videos[0].querySelector('video');
     if(poster && poster.tur==='image' && hv) hv.setAttribute('poster',poster.url);
   });
@@ -898,7 +925,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     for(let k=0;k<4;k++) tek();
   }
   function kareKur(){
-    if(reduced || kompakt() || tuval || !sticky) return;
+    if(tekFilm || reduced || kompakt() || tuval || !sticky) return;
     tuval=document.createElement('canvas');
     tuval.className='cinematic-kare'; tuval.setAttribute('aria-hidden','true');
     sticky.insertBefore(tuval, sticky.querySelector('.cinematic-vignette'));
@@ -909,7 +936,13 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     Promise.resolve(window.btYuvalar||{}).then(y=>{
       const yabanci=scenes.some(sc=>{ const a=sc.yuva && y[sc.yuva];
         return a && a.tur==='video' && !KARE_KAYNAKLARI.includes(String(a.url||'').split('?')[0]); });
-      if(yabanci){ kareKapat(); return; }
+      // Panel atamasi yoksa sayfanin varsayilan giris filmi oynar (5 Ekim'den
+      // beri gercek cekim arsiv kurgusu). Kareler eski AI filminden uretildigi
+      // icin varsayilan film o degilse dizi devreye girmez; yoksa okur AI
+      // karesini gercek film yerine gorur.
+      const heroEl=videos[0] && videos[0].querySelector('video');
+      const heroKaynak=String((y['hero-video'] && y['hero-video'].url) || (heroEl && heroEl.dataset.src) || '').split('?')[0];
+      if(yabanci || !KARE_KAYNAKLARI.includes(heroKaynak)){ kareKapat(); return; }
       const sira=[0]; for(let i=8;i<KARE_SAYISI;i+=8) sira.push(i);
       for(let i=1;i<KARE_SAYISI;i++) if(!sira.includes(i)) sira.push(i);
       kareYukle(sira);
@@ -924,7 +957,9 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
      sonra atanan videoyla degistiriliyordu (mobilde ~1,1 MB bosa). Bu
      sirada video afisi gorunur. */
   let yuvalarOkundu=false; const bekleyen=new Set();
-  Promise.resolve(window.btYuvalar||{}).finally(()=>{ yuvalarOkundu=true; bekleyen.forEach(v=>{ loadVideo(v); const el=v.querySelector('video'); if(el && videos.indexOf(v)===active && (active>0||kompakt()) && !reduced) el.play().catch(()=>{}); }); bekleyen.clear(); });
+  // 6 Ekim: tek filmde film önce sesli denenir (film-ses.js); diğer videolar sessiz.
+  const oynat=el=>{ const p=window.btFilmOynat?window.btFilmOynat(el):el.play(); if(p&&p.catch) p.catch(()=>{}); };
+  Promise.resolve(window.btYuvalar||{}).finally(()=>{ yuvalarOkundu=true; bekleyen.forEach(v=>{ loadVideo(v); const el=v.querySelector('video'); if(el && videos.indexOf(v)===active && (active>0||kompakt()||tekFilm) && !reduced) oynat(el); }); bekleyen.clear(); });
   function loadVideo(v){
     if(!v) return;
     if(!yuvalarOkundu){ bekleyen.add(v); return; }
@@ -934,6 +969,9 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     // hero-scrub 1280x720 ve 8,7 MB; ayni cekimin dikey kesimi 0,9 MB.
     if(mobile() && /\/hero-story\.mp4$/.test(src||'')) src='/assets/media/web/hero-story-mobile.mp4';
     if(!src) return;
+    // H.264 cozemeyen tarayicida (codec'siz Chromium/Firefox) varsayilan
+    // giris filminin WebM kopyasi oynar; panel atamasina dokunulmaz.
+    if(el.dataset.webm && /\/giris-ai(-genis)?\.mp4$/.test(src) && !el.canPlayType('video/mp4; codecs="avc1.42E01E"')) src=el.dataset.webm;
     el.dataset.loaded='1';
     el.addEventListener('error',()=>{
       el.dataset.loaded='';
@@ -965,7 +1003,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
         if(n===i && !kareAktif) {
           const el=v.querySelector('video');
           const sadeceAfis=kompakt() && i>0 && el && el.getAttribute('poster') && !el.dataset.loaded;
-          if(!sadeceAfis){ loadVideo(v); if(el && (i>0 || kompakt()) && !reduced) el.play().catch(()=>{}); }
+          if(!sadeceAfis){ loadVideo(v); if(el && (i>0 || kompakt() || tekFilm) && !reduced) oynat(el); }
         }
         const el=v.querySelector('video');
         if(el && n!==i) el.pause();
@@ -999,7 +1037,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     if(kompakt()) return;
     const rect=root.getBoundingClientRect();
     const travel=Math.max(1,root.offsetHeight-window.innerHeight);
-    const p=Math.min(1,Math.max(0,-rect.top/travel));
+    const p=tekFilm?0:Math.min(1,Math.max(0,-rect.top/travel));
     const scene=Math.min(scenes.length-1,Math.floor(p*scenes.length));
     setScene(scene,p);
     const x=parseFloat(root.style.getPropertyValue('--hero-mx')||0);
@@ -1127,7 +1165,9 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   const root=document.querySelector('.cinematic-hero');
   const dugme=root && root.querySelector('[data-hero-ses]');
   const AC=window.AudioContext||window.webkitAudioContext;
-  if(!root || !dugme || !AC) return;
+  // 6 Ekim: tek film modunda filmin kendi ses izi var (film-ses.js); sentez
+  // katman üstüne binerdi, düğmesi gizli kalır.
+  if(!root || !dugme || !AC || root.hasAttribute('data-tek-film')) return;
   dugme.hidden=false;
   const yazi=dugme.querySelector('span');
   let ac=null, ana=null, yatak=null, filtre=null, gerilim=null, gerilimFiltre=null, gurultu=null;

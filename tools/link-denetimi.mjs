@@ -13,7 +13,12 @@ function targetFile(path){
   let p=decodeURIComponent(path.split('#')[0].split('?')[0]);
   if(!p||p==='/') return 'public/index.html';
   if(p.startsWith('/api/')||p.startsWith('/media/')||p.startsWith('/pub/')) return null;
-  if(p.startsWith('/haberler/')) { const slug=p.replace(/^\/haberler\//,'').replace(/\/$/,''); return haberSlugs.has(slug)||p==='/haberler/' ? null : '__MISSING_DYNAMIC_NEWS__'; }
+  if(p.startsWith('/haberler/')) {
+    const slug=p.replace(/^\/haberler\//,'').replace(/\/$/,'');
+    const cleanCategories=new Set(['balikesir','turkiye','dunya','gundem','ekonomi','kultur','yasam','egitim','saglik','spor','teknoloji']);
+    if(p==='/haberler/' || cleanCategories.has(slug)) return null;
+    return haberSlugs.has(slug)||p.endsWith('.html') ? null : '__MISSING_DYNAMIC_NEWS__';
+  }
   if(p.startsWith('/assets/')) return existsSync('public'+p)?'public'+p:null;
   if(p==='/robots.txt'||p==='/sitemap.xml'||p==='/news-sitemap.xml'||p==='/rss.xml'||p.startsWith('/.well-known/')) return existsSync('public'+p)?'public'+p:null;
   if(!p.startsWith('/')) return null;

@@ -1,4 +1,4 @@
-/* /haberler/ BTMEDYA Haber Merkezi V14 · 2026-10-04
+/* /haberler/ BTMEDYA Haber Merkezi V16 · 2026-10-04
    Ulusal kanalların sırası: son haber şeridi → numaralı manşet → sürmanşet →
    kategori blokları. ?kategori=<anahtar> aynı sayfada kategori sayfasına
    döner; adres geçmişe yazılır, geri tuşu çalışır.
@@ -11,23 +11,56 @@
   'use strict';
 
   var KATEGORILER = [
-    ['balikesir', 'Balıkesir', /\b(yerel|balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|pazar|altyapi)\b/],
-    ['gundem', 'Gündem', /\b(gundem|asayis|yangin|afet|guvenlik|trafik)\b/],
-    ['ekonomi', 'Ekonomi', /\b(ekonomi|emlak|esnaf|tarim|ticaret|fiyat)\b/],
-    ['kultur', 'Kültür Sanat', /\b(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik)\b/],
-    ['egitim', 'Eğitim', /\b(egitim|universite|okul|sinav)\b/],
-    ['saglik', 'Sağlık', /\b(saglik|beslenme|bakim|hastane)\b/],
-    ['spor', 'Spor', /\b(spor|futbol|basketbol|turnuva)\b/],
-    ['teknoloji', 'Teknoloji', /\b(yapay zeka|teknoloji|yazilim|dijital|ai)\b/]
+    ['balikesir', 'Balıkesir', /\b(balikesir|yerel|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|pazar|altyapi|ulasim|belediye|sehir)\b/],
+    ['turkiye', 'Türkiye', /\b(turkiye|ankara|istanbul|izmir|adana|antalya|bursa|konya|meclis|bakanlik|cumhurbaskani|tbmm|yurt geneli|ulusal)\b/],
+    ['dunya', 'Dünya', /\b(dunya|abd|amerika|avrupa|almanya|fransa|ingiltere|rusya|ukrayna|israil|filistin|iran|cina|japonya|nato|ab|birlesmis milletler|dis politika|uluslararasi)\b/],
+    ['gundem', 'Gündem', /\b(gundem|asayis|yangin|afet|guvenlik|trafik|itfaiye|emniyet|polis|kaza|kamu)\b/],
+    ['ekonomi', 'Ekonomi', /\b(ekonomi|emlak|esnaf|tarim|ticaret|fiyat|piyasa|maas|istihdam|satis|konut)\b/],
+    ['kultur', 'Kültür Sanat', /\b(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik|tiyatro|sinema|festival)\b/],
+    ['egitim', 'Eğitim', /\b(egitim|universite|okul|sinav|ogrenci|kampus|yok)\b/],
+    ['saglik', 'Sağlık', /\b(saglik|beslenme|bakim|hastane|doktor|tedavi|epilasyon|obezite|kalp)\b/],
+    ['spor', 'Spor', /\b(spor|futbol|basketbol|turnuva|atletizm|pehlivan|muay thai|sporcu)\b/],
+    ['teknoloji', 'Teknoloji', /\b(yapay zeka|teknoloji|yazilim|dijital|ai|teknofest|uygulama|platform)\b/],
+    ['yasam', 'Yaşam', /\b(yasam|gundelik|aile|kadın|kadin|çocuk|cocuk|magazin|moda|evlilik|dugun)\b/]
   ];
   var AD = {}; KATEGORILER.forEach(function (k) { AD[k[0]] = k[1]; });
+  var KATEGORI_SIRA = ['balikesir','turkiye','dunya','gundem','ekonomi','kultur','egitim','saglik','spor','teknoloji','yasam'];
+  var KATEGORI_ACIKLAMA = {
+    balikesir: 'Balıkesir merkez, ilçeler, belediye hizmetleri, ulaşım ve kent yaşamı.',
+    gundem: 'Güvenlik, afet, yangın, kamu hizmetleri ve günlük gelişmeler.',
+    ekonomi: 'Esnaf, tarım, fiyatlar, emlak, istihdam ve yerel iş dünyası.',
+    kultur: 'Sanat, tiyatro, sinema, gastronomi, etkinlik ve kent hafızası.',
+    egitim: 'Okullar, üniversiteler, sınavlar ve öğrenci yaşamından gelişmeler.',
+    saglik: 'Sağlık hizmetleri, uzman görüşleri ve günlük yaşamı ilgilendiren gelişmeler.',
+    spor: 'Balıkesir ve Türkiye sporundan sonuçlar, oyuncular ve etkinlikler.',
+    teknoloji: 'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetler.'
+  };
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[x]; }); }
   function norm(s) { return String(s || '').toLocaleLowerCase('tr-TR').replace(/ı/g, 'i').normalize('NFD').replace(/[̀-ͯ]/g, ''); }
   function bul(t) { var k = KATEGORILER.find(function (x) { return x[2].test(t); }); return k ? k[0] : null; }
   function kategori(n) {
     var c = String(n.category || '');
-    return bul(norm(c.split('·')[0])) || bul(norm(c)) || bul(norm(n.title + ' ' + (n.excerpt || ''))) || 'gundem';
+    var metin = norm(c + ' ' + (n.title || '') + ' ' + (n.excerpt || '') + ' ' + (Array.isArray(n.body) ? n.body.slice(0, 2).join(' ') : ''));
+    // Güçlü yerel sinyal, tematik kelimelerden önce değerlendirilir.
+    // Böylece Balıkesir'e ait ekonomi/teknoloji/gündem haberleri yerelde kalır.
+    var yerelRegex = /\\b(balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|dursunbey|savastepe|bigadic|ivindi|manyas|havran|gomec|erdek|balya|sindirgi|pazar|altyapi|ulasim|belediye)\\b/;
+    if (yerelRegex.test(metin)) return 'balikesir';
+    var aliased = [
+      ['teknoloji', /(yapay zeka|teknoloji|yazilim|dijital|\bai\b|teknofest|uygulama|platform)/],
+      ['yasam', /(yasam|gundelik|aile|kadın|kadin|cocuk|magazin|moda|evlilik|dugun)/],
+      ['dunya', /(dunya|abd|amerika|avrupa|almanya|fransa|ingiltere|rusya|ukrayna|israil|filistin|iran|cina|japonya|nato|birlesmis milletler|dis politika|uluslararasi)/],
+      ['turkiye', /(turkiye|ankara|istanbul|izmir|adana|antalya|bursa|konya|meclis|bakanlik|cumhurbaskani|tbmm|yurt geneli|ulusal)/],
+      ['egitim', /(egitim|universite|okul|sinav|ogrenci|kampus|\byok\b)/],
+      ['saglik', /(saglik|beslenme|hastane|doktor|tedavi|epilasyon|obezite|kalp)/],
+      ['spor', /(spor|futbol|basketbol|turnuva|atletizm|pehlivan|muay thai|sporcu)/],
+      ['kultur', /(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik|tiyatro|sinema|festival)/],
+      ['ekonomi', /(ekonomi|emlak|esnaf|tarim|ticaret|fiyat|piyasa|maas|istihdam|satis|konut)/],
+      ['gundem', /(gundem|asayis|yangin|afet|guvenlik|trafik|itfaiye|emniyet|polis|kaza|kamu)/],
+      ['balikesir', /(balikesir|yerel|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|pazar|altyapi|ulasim|belediye)/]
+    ];
+    for (var i = 0; i < aliased.length; i++) if (aliased[i][1].test(metin)) return aliased[i][0];
+    return bul(norm(c.split('·')[0])) || bul(norm(c)) || bul(metin) || 'gundem';
   }
   function kapak(n) { return n.cover_url || ''; }
   // Kartlarda metinsiz/sade kare; manşette başlığı basılı tam kapak.
@@ -49,6 +82,17 @@
     var k = gorselTuru[n.slug];
     return k === 'gercek' ? 'Gerçek çekim' : k === 'arsiv' ? 'Arşiv fotoğrafı' : k === 'grafik' ? 'BTMEDYA grafik' : k === 'harita' ? 'Harita' : 'Temsili görsel';
   }
+  function formatEtiketi(n) {
+    var k = gorselTuru[n.slug];
+    if (n.video_url) return 'VIDEO HABER';
+    if (k === 'gercek') return 'SAHA';
+    if (k === 'arsiv') return 'ARŞİV';
+    if (k === 'grafik') return 'VERİ / GRAFİK';
+    if (k === 'harita') return 'HARİTA / VERİ';
+    var m = norm((n.category || '') + ' ' + (n.title || '') + ' ' + (n.excerpt || ''));
+    if (/roportaj|saha|dosya/.test(m)) return 'ÖZEL DOSYA';
+    return 'KAYNAKLI GÜNDEM';
+  }
 
   // Yardımcılar yukarıda: test, kategori eşlemesini sayfa olmadan çalıştırır.
   var kok = document.querySelector('.hm');
@@ -59,20 +103,20 @@
   function kart(n, s, sinif) {
     var k = n._kat;
     return '<a class="hm-kart hm-gor ' + (sinif || '') + '" style="--s:' + (s || 0) + '" data-kat="' + k + '" href="' + adres(n) + '">' +
-      '<figure><img src="' + esc(kare(n)) + '" alt="" loading="lazy" decoding="async" width="600" height="450"><span class="hm-kaynak">' + esc(kaynakEtiketi(n)) + '</span></figure>' +
-      '<span class="hm-ust-bilgi"><span class="hm-kat">' + esc(AD[k]) + '</span><time class="hm-zaman" datetime="' + tamTarih(n) + '">' + esc(onceYaz(n)) + '</time></span>' +
+      '<figure><img src="' + esc(kare(n)) + '" alt="' + esc(n.title) + '" loading="lazy" decoding="async" width="600" height="450"><span class="hm-kaynak">' + esc(kaynakEtiketi(n)) + '</span></figure>' +
+      '<span class="hm-ust-bilgi"><span class="hm-kat">' + esc(AD[k]) + '</span><span class="hm-format">' + esc(formatEtiketi(n)) + '</span><time class="hm-zaman" datetime="' + tamTarih(n) + '">' + esc(onceYaz(n)) + '</time></span>' +
       '<h3>' + esc(n.title) + '</h3></a>';
   }
   function satir(n, s) {
     return '<a class="hm-satir hm-gor" style="--s:' + (s || 0) + '" data-kat="' + n._kat + '" href="' + adres(n) + '">' +
-      '<img src="' + esc(kare(n)) + '" alt="" loading="lazy" decoding="async" width="96" height="72">' +
+      '<img src="' + esc(kare(n)) + '" alt="' + esc(n.title) + '" loading="lazy" decoding="async" width="96" height="72">' +
       '<span><h3>' + esc(n.title) + '</h3><time class="hm-zaman" datetime="' + tamTarih(n) + '">' + esc(onceYaz(n)) + '</time></span></a>';
   }
 
   /* ---- Bölümler ---- */
   function serit(liste) {
     var yer = kok.querySelector('[data-hm-serit]'); if (!yer) return;
-    var son = liste.slice(0, 8);
+    var son = liste.slice(0, 12);
     var taze = son.length && Date.now() - zaman(son[0]) < 3 * 3600 * 1000;
     var parca = son.map(function (n) {
       var t = zaman(n), saat = t ? new Date(t).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '';
@@ -141,12 +185,22 @@
     yer.innerHTML = KATEGORILER.filter(function (k) { return gruplar[k[0]].length; }).map(function (k) {
       var l = gruplar[k[0]], ilk = l[0], gerisi = l.slice(1, 5);
       return '<section class="hm-blok" data-kat="' + k[0] + '" aria-labelledby="hm-b-' + k[0] + '">' +
-        '<div class="hm-bolum-bas"><div><span class="hm-no" aria-hidden="true">' + ('0' + (++sira)).slice(-2) + '</span><h2 id="hm-b-' + k[0] + '">' + esc(k[1]) + '</h2></div><a href="/haberler/?kategori=' + k[0] + '" data-hm-kategori="' + k[0] + '">Tümü →</a></div>' +
+        '<div class="hm-bolum-bas"><div><span class="hm-no" aria-hidden="true">' + ('0' + (++sira)).slice(-2) + '</span><h2 id="hm-b-' + k[0] + '">' + esc(k[1]) + '</h2></div><a href="' + kategoriYolu(k[0]) + '" data-hm-kategori="' + k[0] + '">Tümü →</a></div>' +
         '<div class="hm-blok-ic">' + kart(ilk, 0, 'hm-buyuk') + (gerisi.length ? '<div class="hm-satirlar">' + gerisi.map(function (n, i) { return satir(n, i + 1); }).join('') + '</div>' : '') + '</div></section>';
     }).join('');
   }
 
   /* ---- Kategori sayfası ---- */
+  function aktifKategori() {
+    var server = document.documentElement.getAttribute('data-bt-haber-kategori') || '';
+    if (server && AD[server]) return server;
+    var m = location.pathname.match(/^\/haberler\/(balikesir|turkiye|dunya|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|yasam)\/$/);
+    if (m && AD[m[1]]) return m[1];
+    return new URLSearchParams(location.search).get('kategori') || '';
+  }
+  function kategoriYolu(anahtar) {
+    return anahtar && AD[anahtar] ? '/haberler/' + encodeURIComponent(anahtar) + '/' : '/haberler/';
+  }
   var tumHaberler = [];
   function kategoriGoster(anahtar, gecmis) {
     var gecerli = AD[anahtar] ? anahtar : '';
@@ -157,18 +211,23 @@
       var l = tumHaberler.filter(function (n) { return n._kat === gecerli; });
       var yer = kok.querySelector('[data-hm-katsayfa]');
       yer.setAttribute('data-kat', gecerli);
-      yer.innerHTML = '<div class="hm-kat-bas"><h2 aria-label="' + esc(AD[gecerli]) + '">' + esc(AD[gecerli]) + '<span class="hm-golge" aria-hidden="true">' + esc(AD[gecerli]) + '</span></h2><p>' + l.length + ' haber · en yeniden eskiye</p></div>' +
+      yer.innerHTML = '<div class="hm-kat-bas"><h2 aria-label="' + esc(AD[gecerli]) + '">' + esc(AD[gecerli]) + '<span class="hm-golge" aria-hidden="true">' + esc(AD[gecerli]) + '</span></h2><p>' + esc(KATEGORI_ACIKLAMA[gecerli] || 'BTMEDYA Haber Merkezi tarafından kaynak, tarih ve görsel türü kontrol edilerek derlenir.') + '</p><small>' + l.length + ' haber · en yeniden eskiye</small></div>' +
         (l.length ? '<div class="hm-izgara">' + l.map(function (n, i) { return kart(n, i % 3); }).join('') + '</div>' : '<p class="hm-bos">Bu kategoride henüz yayımlanmış haber yok.</p>');
       if (bas) bas.textContent = AD[gecerli] + ' Haberleri | BTMEDYA Haber Merkezi';
       gozle(yer);
     } else if (bas) bas.textContent = 'BTMEDYA Haber Merkezi | Balıkesir ve Türkiye Gündemi';
     if (gecmis) {
-      history.pushState({ kategori: gecerli }, '', gecerli ? '/haberler/?kategori=' + gecerli : '/haberler/');
+      history.pushState({ kategori: gecerli }, '', kategoriYolu(gecerli));
       window.scrollTo({ top: 0, behavior: azHareket ? 'auto' : 'smooth' });
     }
   }
   var ray = kok.querySelector('.hm-ray-iz'), imlec = kok.querySelector('.hm-imlec');
   function rayIsaretle(anahtar) {
+    document.querySelectorAll('.hm-cekmece-liste a').forEach(function (a) {
+      if (a.getAttribute('data-hm-kategori') === anahtar) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    var etiket = kok.querySelector('[data-hm-etkin]');
+    if (etiket) { etiket.textContent = anahtar === 'tumu' ? 'Tümü' : AD[anahtar] || 'Tümü'; etiket.parentNode.setAttribute('data-kat', anahtar); }
     if (!ray) return;
     var etkin = null;
     ray.querySelectorAll('a').forEach(function (a) {
@@ -183,15 +242,39 @@
       ray.scrollTo({ left: hedef, behavior: azHareket ? 'auto' : 'smooth' });
     }
   }
-  kok.addEventListener('click', function (e) {
+  function kategoriTik(e) {
     var a = e.target.closest('[data-hm-kategori]');
     if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
     if (!tumHaberler.length) return; // Veri gelmediyse bağlantı normal sayfa yüklemesi yapar.
     e.preventDefault();
+    cekmeceKapat();
     var k = a.getAttribute('data-hm-kategori');
     kategoriGoster(k === 'tumu' ? '' : k, true);
-  });
-  window.addEventListener('popstate', function () { kategoriGoster(new URLSearchParams(location.search).get('kategori') || '', false); });
+  }
+  kok.addEventListener('click', kategoriTik);
+  /* Mobil kategori çekmecesi (hamburger). Açıkken sayfa kaymaz, Esc kapatır,
+     odak çekmeceye girer ve kapanınca düğmeye döner. */
+  var cekmece = kok.querySelector('.hm-cekmece'), acDugme = kok.querySelector('[data-hm-ac]');
+  // Üst çubuk kendi katmanında; çekmece body'ye taşınınca her şeyin üstünde açılır.
+  if (cekmece) {
+    document.body.appendChild(cekmece);
+    cekmece.addEventListener('click', function (e) { if (e.target.closest('[data-hm-kapat]') || e.target === cekmece) { cekmeceKapat(); return; } kategoriTik(e); });
+  }
+  function cekmeceAc() {
+    if (!cekmece) return;
+    cekmece.hidden = false; acDugme.setAttribute('aria-expanded', 'true');
+    document.documentElement.style.overflow = 'hidden';
+    var etkin = cekmece.querySelector('a[aria-current]') || cekmece.querySelector('a'); if (etkin) etkin.focus();
+  }
+  function cekmeceKapat() {
+    if (!cekmece || cekmece.hidden) return;
+    cekmece.hidden = true; acDugme.setAttribute('aria-expanded', 'false');
+    document.documentElement.style.overflow = ''; acDugme.focus();
+  }
+  if (acDugme) acDugme.addEventListener('click', cekmeceAc);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') cekmeceKapat(); });
+
+  window.addEventListener('popstate', function () { kategoriGoster(aktifKategori(), false); });
 
   /* ---- Hareket: görünür olunca belirme ---- */
   var gozcu = null;
@@ -235,27 +318,32 @@
     guncel.sort(function (a, b) { return (zaman(b) || 0) - (zaman(a) || 0); });
     tumHaberler = guncel;
 
-    // Manşet: en yeni 10 haber, bir kategoriden en fazla 3 (tek konu manşeti doldurmasın).
+    // Manşet: Balıkesir önce, ardından diğer kategoriler dengeli biçimde.
     var sayac = {}, mansetler = [];
-    guncel.forEach(function (n) { if (mansetler.length < 10 && (sayac[n._kat] || 0) < 3) { mansetler.push(n); sayac[n._kat] = (sayac[n._kat] || 0) + 1; } });
+    guncel.filter(function (n) { return n._kat === 'balikesir'; }).slice(0, 5).forEach(function (n) { mansetler.push(n); sayac.balikesir = (sayac.balikesir || 0) + 1; });
+    guncel.forEach(function (n) { if (mansetler.length < 12 && (sayac[n._kat] || 0) < 3) { mansetler.push(n); sayac[n._kat] = (sayac[n._kat] || 0) + 1; } });
     var kalan = guncel.filter(function (n) { return mansetler.indexOf(n) < 0; });
-    var surler = kalan.slice(0, 8);
+    var surler = kalan.slice(0, 12);
     var gruplar = {}; KATEGORILER.forEach(function (k) { gruplar[k[0]] = []; });
     kalan.slice(8).forEach(function (n) { gruplar[n._kat].push(n); });
     // Bloğu boş kalan kategoriye sürmanşet dışındaki en yeni haberleri ver; yine de tekrar etme.
     KATEGORILER.forEach(function (k) { if (!gruplar[k[0]].length) gruplar[k[0]] = kalan.filter(function (n) { return n._kat === k[0] && surler.indexOf(n) < 0; }); });
 
+    document.querySelectorAll('[data-hm-sayi]').forEach(function (el) {
+      var k = el.getAttribute('data-hm-sayi');
+      el.textContent = (k === 'tumu' ? guncel.length : guncel.filter(function (n) { return n._kat === k; }).length) + ' haber';
+    });
     serit(guncel);
-    akis(guncel.slice(0, 7));
+    akis(guncel.slice(0, 12));
     manset(mansetler);
     surmanset(surler);
     bloklar(gruplar);
     var yedek = kok.querySelector('[data-hm-yedek]'); if (yedek) yedek.remove();
     if (!azHareket) document.documentElement.classList.add('hm-hareket');
     gozle();
-    kategoriGoster(new URLSearchParams(location.search).get('kategori') || '', false);
+    kategoriGoster(aktifKategori(), false);
   }
-  rayIsaretle(new URLSearchParams(location.search).get('kategori') || 'tumu');
+  rayIsaretle(aktifKategori() || 'tumu');
   yukle().catch(function (e) { console.warn('Haber akışı yüklenemedi', e); });
 
   /* ---- Arşiv araması ---- */

@@ -1,5 +1,5 @@
-const CACHE="btmedya-admin-v2";
-const CORE=["/admin/","/admin/index.html","/admin/app.html","/admin/admin-overrides.css","/admin/mobile-admin.css","/admin/mobile-upload.css","/admin/manifest.webmanifest"];
+const CACHE="btmedya-admin-v3";
+const CORE=["/admin/","/admin/index.html","/admin/agency-os/","/admin/agency-os/index.html","/admin/agency-os/agency-os.css","/admin/agency-os/agency-os.js","/admin/agency-os/agency-social-v1.css?v=20261002-1","/admin/agency-os/agency-social-v1.js?v=20261002-1","/admin/agency-os/agency-hamburger-v3.css?v=20261002-1","/admin/agency-os/agency-hamburger-v3.js?v=20261002-1","/admin/app.html","/admin/admin-overrides.css","/admin/mobile-admin.css","/admin/mobile-upload.css","/admin/manifest.webmanifest","/admin/pwa-install.js","/apple-touch-icon.png","/assets/icon-192.png","/assets/icon-512.png","/assets/icon-512-maskable.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",e=>{const u=new URL(e.request.url);if(u.origin!==location.origin||!u.pathname.startsWith("/admin/"))return;if(e.request.method!=="GET")return;e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy)).catch(()=>{});return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match("/admin/"))))});

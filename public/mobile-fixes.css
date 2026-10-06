@@ -1,6 +1,7 @@
 /* BTMEDYA V12 responsive media layer
    Real site assets remain the source of truth. */
 html,body{width:100%;max-width:100%;overflow-x:clip}
+main#icerik{max-width:100%;min-width:0;overflow-x:clip}
 img,video,svg,canvas,iframe{max-width:100%}
 button,a{touch-action:manipulation}
 
@@ -268,4 +269,79 @@ button,a{touch-action:manipulation}
   .mobile-quick-nav{grid-template-columns:repeat(6,minmax(0,1fr))!important}
   .menu-open .mobile-quick-nav{display:none!important}
   .menu-open{overflow:hidden;overscroll-behavior:none}
+}
+
+
+/* Google mobile performance guard — 04 Ekim 2026
+   Below-the-fold sections remain in the DOM for crawlers/accessibility, while
+   the browser can defer expensive layout/paint work until the section nears
+   the viewport. The first viewport and newsroom content are intentionally
+   excluded so mobile LCP and news discovery remain immediate. */
+@media (max-width:720px){
+  .story-lab,
+  .portfolio-section,
+  .social-feed-section,
+  .archive-section,
+  .nextgen-proof-section,
+  .ai-section,
+  .source-section,
+  .founder-section,
+  .revenue-section,
+  .editorial-hub-section,
+  .contact-section{
+    content-visibility:auto;
+    contain-intrinsic-size:800px;
+  }
+
+  /* Avoid GPU-heavy backdrop effects on small screens where they provide
+     little functional value. */
+  .mobile-quick-nav{
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  .mobile-quick-nav{
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+}
+
+
+/* Mobile UX V4 · Google-friendly interaction hardening */
+@media (max-width:720px){
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  :where(a,button,input,select,textarea):focus-visible{
+    outline:3px solid #d9ff3f!important;
+    outline-offset:3px!important;
+    box-shadow:0 0 0 6px rgba(217,255,63,.14)!important;
+  }
+  .mobile-quick-nav{
+    padding:max(5px,env(safe-area-inset-top)) 5px 5px;
+  }
+  .mobile-quick-nav a{
+    font-size:12px;
+    min-height:54px;
+  }
+  .mobile-quick-nav a small{
+    font-size:10px;
+    letter-spacing:.06em;
+  }
+  .mobile-quick-nav a[aria-current="location"]{
+    color:#fff;
+    background:rgba(255,255,255,.10);
+    box-shadow:inset 0 -2px 0 var(--mobile-accent,#d9ff3f);
+  }
+  .mobile-quick-nav a[aria-current="location"] span{
+    color:var(--mobile-accent,#d9ff3f);
+  }
+  main > section[id]{scroll-margin-top:92px}
+}
+@media (max-width:390px){
+  .mobile-quick-nav a{min-height:52px}
+  .mobile-quick-nav a span{font-size:12px}
+  .mobile-quick-nav a small{font-size:9px}
+}
+@media (prefers-reduced-motion:reduce){
+  .mobile-quick-nav a{transition:none!important}
 }

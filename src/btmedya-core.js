@@ -6,6 +6,7 @@
  */
 const now=()=>new Date().toISOString();
 const j=(d,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
+const oturumAnahtari=env=>{const x=env?.ADMIN_SESSION_SECRET_SECRET||env?.ADMIN_SESSION_SECRET||'';return x?(env?.MEDIA_SIGNING_SECRET?x+'\u0000'+env.MEDIA_SIGNING_SECRET:x):''};
 
 export async function ensureBtmedyaCore(env){
   if(!env?.DB) return {ok:false,reason:"D1 yok"};
@@ -69,7 +70,7 @@ export async function ensureBtmedyaCore(env){
 
 export async function btmedyaCoreApi(request,env,url,validSession){
   if(!url.pathname.startsWith("/api/admin/core")) return null;
-  if(!(await validSession(request,env.ADMIN_SESSION_SECRET_SECRET))) return j({ok:false,error:"Yetkisiz"},401);
+  if(!(await validSession(request,oturumAnahtari(env)))) return j({ok:false,error:"Yetkisiz"},401);
   if(!env.DB) return j({ok:false,error:"D1 yapılandırılmadı"},503);
   await ensureBtmedyaCore(env);
 

@@ -26,11 +26,26 @@ import { ayarlariOku, ayarlariYaz, platformSluglari, sonrakiYuva, altyazi, varli
 
 const json = (data, status=200, headers={}) => new Response(JSON.stringify(data), {status, headers:{'content-type':'application/json; charset=utf-8', 'cache-control':'no-store', ...headers}});
 const text = (data, status=200, headers={}) => new Response(data, {status, headers:{'content-type':'text/plain; charset=utf-8', ...headers}});
+const KANONIK_HOST = "btmedya.com.tr";
+const IKINCIL_HOSTLAR = new Set(["btmedyaajans.com"]);
+function kanonikHedef(host){
+  const h=String(host||"").toLowerCase();
+  if(h===KANONIK_HOST) return null;
+  if(h==="www."+KANONIK_HOST || IKINCIL_HOSTLAR.has(h) || IKINCIL_HOSTLAR.has(h.replace(/^www\./,''))) return KANONIK_HOST;
+  return null;
+}
 
 /* ---------- yardımcılar (medya kasası) ---------- */
 function b64url(bytes){ return btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function unb64url(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4)s+='='; return Uint8Array.from(atob(s),c=>c.charCodeAt(0)); }
 async function hmac(secret, message){ const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']); return b64url(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(message))); }
+// Admin oturum anahtari, iki ayri Cloudflare Secret'tan turetilir.
+// MEDIA_SIGNING_SECRET yoksa gecici geriye uyumluluk icin yalnizca oturum secret'i kullanilir.
+function oturumAnahtari(env){
+  const oturum=env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET || '';
+  if(!oturum) return '';
+  return env.MEDIA_SIGNING_SECRET ? oturum+'\u0000'+env.MEDIA_SIGNING_SECRET : oturum;
+}
 async function medyaListesi(env, origin){
   if(!env || !env.ASSETS) return [];
   try{
@@ -86,6 +101,10 @@ async function listR2Media(bucket, source, {q='',cat=''}={}){
       if(cat && category!==cat) continue;
       if(q && !key.toLowerCase().includes(q.toLowerCase())) continue;
       const isVideo=/\.(mp4|webm|mov|m4v)$/i.test(key) || /^video\//i.test(mime);
+      /* 5 Ekim 2026 R2 denetiminde 348 B'lık MP4 test nesneleri görüldü.
+         Geçerli prodüksiyon videoları bu boyutun çok üzerinde; bozuk/test
+         videoların public arşivde kart olarak görünmesini engelle. */
+      if(isVideo && Number(x.size||0) < 10 * 1024) continue;
       out.push({
         id:(source==='r2-legacy'?'legacy-':'r2-')+b64url(new TextEncoder().encode(key)).slice(0,24),
         key,
@@ -151,30 +170,6 @@ function safeKey(name){ return name.normalize('NFKD').replace(/[^\w.\-]+/g,'-').
 function extFromMime(mime){ const map={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/webm':'webm','audio/mpeg':'mp3','audio/wav':'wav','audio/mp4':'m4a','application/pdf':'pdf'}; return map[mime]||'bin'; }
 const ALLOWED_MIME = new Set(['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','audio/mpeg','audio/wav','audio/mp4','application/pdf']);
 
-/* ---------- kanonik alan adı ---------- */
-/* Marka iki alan adı taşıyor: btmedya.com.tr yayında, btmedyaajans.com ikincil.
-   Aynı içerik iki adreste 200 dönerse arama motoru hangisini göstereceğini
-   kendi seçer ve iki adres birbirinin sinyalini böler. Bu yüzden tek kanonik
-   adres var, geri kalan her host ona 301'lenir.
-   Bu kod yalnızca Worker çalıştığında devreye girer; Worker'ın hangi adreslerde
-   çalıştığı wrangler.toml içindeki run_worker_first listesine bağlıdır. Alan adı
-   genelinde kesin çözüm, ikincil zone üzerindeki Redirect Rule'dur (hiç Worker
-   çağrısı üretmez). Buradaki kod o kural yokken ya da ikincil alan adı Custom
-   Domain olarak bu Worker'a bağlandığında yedek görevi görür.
-   Ayrıntı: docs/ALAN-ADI-YAPILANDIRMA.md */
-const KANONIK_HOST = 'btmedya.com.tr';
-const IKINCIL_HOSTLAR = new Set(['btmedyaajans.com']);
-
-/* Host kanonik değilse 301 hedefini, kanonikse null döner.
-   workers.dev önizleme adresi kasıtla listede yok: oraya yönlendirme konursa
-   deploy öncesi test adresi canlı siteye kaçar ve test edilemez hale gelir. */
-function kanonikHedef(host){
-  const h = host.toLowerCase();
-  const wwwsuz = h.startsWith('www.') ? h.slice(4) : h;
-  if (IKINCIL_HOSTLAR.has(wwwsuz)) return KANONIK_HOST;
-  return wwwsuz === h ? null : wwwsuz;   // yalnızca "www." kırpıldıysa yönlendir
-}
-
 /* ---------- E-posta bildirimi (Resend) ---------- */
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 async function sendContactEmail(env, msg){
@@ -205,7 +200,7 @@ async function sendContactEmail(env, msg){
 /* ---------- Cloudflare Workflow API ---------- */
 async function workflowApi(request, env, url) {
   if (!url.pathname.startsWith('/api/workflow/')) return null;
-  if (!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) {
+  if (!(await validSession(request, oturumAnahtari(env)))) {
     return json({ok:false,error:'Yetkisiz'},401);
   }
   if (!env.BTMEDYA_WORKFLOW) {
@@ -276,7 +271,7 @@ function indexNowBildir(ctx, origin, slug){
 
 async function merakRadariApi(request, env, url){
   if(!url.pathname.startsWith('/api/admin/merak-radari')) return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   if(url.pathname==='/api/admin/merak-radari' && request.method==='POST'){
     return json(await merakRadariCalistir(env,{limit:16}));
   }
@@ -304,7 +299,7 @@ async function newsApi(request, env, url, ctx){
   const merakApi=await merakRadariApi(request,env,url); if(merakApi) return merakApi;
 
   if(url.pathname==='/api/admin/news-intelligence' && (request.method==='GET'||request.method==='POST')){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     if(request.method==='POST') return json(await runNewsIntelligence(env,{limit:16}));
     return json(await newsIntelligenceStatus(env));
   }
@@ -326,7 +321,7 @@ async function newsApi(request, env, url, ctx){
 
   const alertMatch=url.pathname.match(/^\/api\/admin\/news-intelligence\/alerts\/(\d+)$/);
   if(alertMatch && request.method==='PATCH'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const b=await request.json().catch(()=>({}));
     const status=String(b.status||'acknowledged');
@@ -355,7 +350,7 @@ async function newsApi(request, env, url, ctx){
     const live=socialProviderStatus(env);
     const fallbackProfiles=[
       {key:'instagram',label:'Instagram',url:'https://www.instagram.com/btmedyajans/',status:'verification_pending',note:'Metricool bağlantısı doğrulanıyor.'},
-      {key:'facebook',label:'Facebook',url:null,status:'verification_pending',note:'Metricool bağlantısı doğrulanıyor.'},
+      {key:'facebook',label:'Facebook · busetuncayy10',url:'https://www.facebook.com/people/busetuncayy10/100080226545931/',status:'connected_identity',note:'Metricool Brand 6858384 içinde doğrulanmış Facebook Sayfası; Page ID 107923075188798'},
       {key:'youtube',label:'YouTube',url:'https://www.youtube.com/@BTmedyaAjans',status:'connected_identity',note:'YouTube kanal kimliği doğrulandı.'},
       {key:'tiktok',label:'TikTok',url:'https://www.tiktok.com/@btmedya1010',status:'publishing_verified',note:'TikTok yayın durumu doğrulandı.'}
     ];
@@ -428,7 +423,8 @@ async function newsApi(request, env, url, ctx){
     let d1Items=[];
     if(env.DB){
       const rows=await env.DB.prepare("SELECT id,slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news WHERE status='published' ORDER BY published_at DESC LIMIT 200").all();
-      d1Items=rows.results||[];
+      const kapaklar=await uretilmisKapaklar(env);
+      d1Items=(rows.results||[]).map(n=>({...n,cover_url:kapakSec(n,kapaklar)}));
     }
     try{
       const req=new Request(new URL('/data/haberler.json',url.origin));
@@ -468,7 +464,7 @@ async function newsApi(request, env, url, ctx){
 
   /* Admin: haber listesi */
   if(url.pathname==='/api/admin/news' && request.method==='GET'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const status=url.searchParams.get('status');
     let sql='SELECT id,slug,title,excerpt,category,author,cover_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news';
@@ -481,7 +477,7 @@ async function newsApi(request, env, url, ctx){
 
   /* Admin: haber ekle / güncelle (slug ile upsert) */
   if(url.pathname==='/api/admin/news' && request.method==='POST'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const b=await request.json().catch(()=>null);
     if(!b || typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
@@ -510,7 +506,7 @@ async function newsApi(request, env, url, ctx){
   /* Admin: haber güncelle / sil (ID ile) */
   const newsById=url.pathname.match(/^\/api\/admin\/news\/(\d+)$/);
   if(newsById){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
     const id=Number(newsById[1]);
     if(request.method==='GET'){
@@ -600,7 +596,7 @@ async function scanNewsSources(env,feedIds){
 }
 async function newsFinderApi(request,env,url){
   if(!url.pathname.startsWith('/api/admin/news-finder')) return null;
-  if(!(await validSession(request,(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
   if(request.method==='GET') return json({ok:true,feeds:NEWS_FEEDS.map(x=>({id:x.id,name:x.name,category:x.category})),openai:!!env.OPENAI_API_KEY});
   if(request.method!=='POST') return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,POST'});
@@ -610,7 +606,7 @@ async function newsFinderApi(request,env,url){
 }
 async function aiDraftApi(request,env,url){
   if(url.pathname!=='/api/admin/ai-draft') return null;
-  if(!(await validSession(request,(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   if(request.method!=='POST') return json({ok:false,error:'Method not allowed'},405);
   if(!env.OPENAI_API_KEY) return json({ok:false,error:'OPENAI_API_KEY secret eksik'},503);
   const b=await request.json().catch(()=>({})); const title=String(b.title||'').trim().slice(0,500); const source=String(b.source||'').trim().slice(0,2000); const textIn=String(b.text||'').trim().slice(0,12000);
@@ -624,7 +620,7 @@ async function aiDraftApi(request,env,url){
 /* ---------- Statik arşiv -> R2 eşitleme ---------- */
 async function mediaSyncApi(request, env, url){
   if(url.pathname!=='/api/admin/media-sync' || request.method!=='POST') return null;
-  if(!(await validSession(request, (env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   if(!env.MEDIA) return json({ok:false,error:'Üretim R2 bağlı değil'},503);
   if(!env.ASSETS) return json({ok:false,error:'Statik ASSETS bağlı değil'},503);
   const body=await request.json().catch(()=>({}));
@@ -674,7 +670,7 @@ function publicPathFromInput(value){
 
 async function adminPageInspectApi(request, env, url){
   if(url.pathname!=='/api/admin/inspect' || request.method!=='GET') return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   const path=publicPathFromInput(url.searchParams.get('path')||'/');
   if(!path) return json({ok:false,error:'Yalnızca btmedya.com.tr üzerindeki public yollar denetlenebilir.'},400);
   const target=new URL(path,'https://btmedya.com.tr');
@@ -699,6 +695,7 @@ async function adminPageInspectApi(request, env, url){
         const yid=vid?(vid[1]||vid[2]):'';
         if(env.DB && yid)vlib=await env.DB.prepare('SELECT * FROM video_library WHERE youtube_id=?').bind(yid).first();
         if(env.DB && !vlib)vlib=await env.DB.prepare('SELECT * FROM video_library WHERE news_slug=?').bind(slug).first();
+        n={...n,cover_url:kapakSec(n,await uretilmisKapaklar(env))};
         const related=await ilgiliHaberler(env,n); html=renderNewsPage(n,target.origin,vlib,related);
         mode='dynamic-news';
         return json({ok:true,path,status,contentType:'text/html; charset=utf-8',html:true,mode,seo:inspectHtml(html)});
@@ -719,9 +716,12 @@ async function ilgiliHaberler(env,n){
   try{
     const category=String(n.category||'').trim();
     const result=await env.DB.prepare(
-      "SELECT slug,title,category FROM news WHERE status='published' AND slug<>? ORDER BY CASE WHEN category=? THEN 0 ELSE 1 END, published_at DESC LIMIT 3"
+      "SELECT slug,title,category,cover_url FROM news WHERE status='published' AND slug<>? ORDER BY CASE WHEN category=? THEN 0 ELSE 1 END, published_at DESC LIMIT 3"
     ).bind(n.slug,category).all();
-    return Array.isArray(result?.results)?result.results:[];
+    const rows=Array.isArray(result?.results)?result.results:[];
+    // Kartlar haber sayfasindaki kapak kuraliyla ayni gorseli gostersin.
+    const kapaklar=await uretilmisKapaklar(env);
+    return rows.map(x=>({...x,cover_url:kapakSec(x,kapaklar),kapak_turu:kapaklar.get(x.slug)||''}));
   }catch(e){
     console.error('[news-related] query failed:',e);
     return [];
@@ -746,7 +746,7 @@ function inspectHtml(html){
 
 async function adminAiCommandApi(request, env, url){
   if(url.pathname!=='/api/admin/ai-command' || request.method!=='POST') return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   const body=await request.json().catch(()=>null);
   const prompt=String(body?.prompt||'').trim().slice(0,800);
   if(!prompt) return json({ok:false,error:'Komut boş olamaz'},400);
@@ -797,7 +797,7 @@ async function adminAiCommandApi(request, env, url){
 
 async function adminCommandApi(request, env, url){
   if(url.pathname!=='/api/admin/command' || request.method!=='POST') return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   const body=await request.json().catch(()=>null);
   const command=String(body?.command||'').trim();
   if(!SAFE_ADMIN_COMMANDS.has(command)) return json({ok:false,error:'İzin verilmeyen komut'},400);
@@ -852,7 +852,7 @@ async function recordAdminAudit(env, request, response){
 }
 async function adminAuditApi(request, env, url){
   if(url.pathname!=='/api/admin/audit' || request.method!=='GET') return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   if(!env.DB) return json({ok:true,items:[]});
   try{
     await ensureAdminAuditTable(env);
@@ -872,7 +872,7 @@ async function adminAuditApi(request, env, url){
 /* ---------- BTMEDYA Autopilot API ---------- */
 async function autopilotApi(request, env, url){
   if(!url.pathname.startsWith('/api/admin/autopilot')) return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
 
   if(url.pathname==='/api/admin/autopilot' && request.method==='GET'){
     return json(await autopilotStatus(env));
@@ -925,7 +925,7 @@ async function autopilotApi(request, env, url){
 /* ---------- BTMEDYA Control Center ---------- */
 async function controlCenterApi(request, env, url){
   if(url.pathname!=='/api/admin/control-center' || request.method!=='GET') return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   let automation={configured:true,cron:'*/5 * * * *',lastHeartbeat:null};
   if(env.KV){
     const raw=await env.KV.get('automation:heartbeat').catch(()=>null);
@@ -941,6 +941,15 @@ async function controlCenterApi(request, env, url){
     metricool,
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db',surum:surumBilgisi(env)},
     storage:{d1:!!env.DB,r2:!!env.MEDIA},
+    google:{
+      property:'https://btmedya.com.tr/',
+      technicalEndpoints:true,
+      robots:'https://btmedya.com.tr/robots.txt',
+      sitemap:'https://btmedya.com.tr/sitemap.xml',
+      newsSitemap:'https://btmedya.com.tr/news-sitemap.xml',
+      apiAutomation:'github-actions-secret-required',
+      note:'Teknik Google uyumluluğu canlı uçlarla doğrulanır; kesin indeksleme ve URL Inspection sonucu Search Console yetkisi gerektirir.'
+    },
     admin:{configured:!!(env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD) && !!(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET),mediaSigning:!!env.MEDIA_SIGNING_SECRET},
     readiness:{
       ai:{openai:!!env.OPENAI_API_KEY},
@@ -954,7 +963,7 @@ async function controlCenterApi(request, env, url){
       {key:'instagram-brand',label:'BTMEDYA Instagram @btmedyajans',url:'https://www.instagram.com/btmedyajans/',note:'BTMEDYA marka profili'},
       {key:'tiktok',label:'TikTok @btmedya1010',url:'https://www.tiktok.com/@btmedya1010',note:'Kısa video kanalı; yayın API’si ayrıca yetkilendirilmeli'},
       {key:'youtube',label:'YouTube @BTmedyaAjans',url:'https://www.youtube.com/@BTmedyaAjans',note:'Video arşivi ve Shorts hedefi'},
-      {key:'facebook',label:'Facebook bağlantısı',url:'https://www.facebook.com/share/1HhRrPuq4u/',note:'Kullanıcı tarafından sağlanan bağlantı; kanonik Page kimliği Metricool bağlantısında doğrulanmalı'},
+      {key:'facebook',label:'Facebook Page · BTmedya',url:'https://www.facebook.com/people/busetuncayy10/100080226545931/',note:'Metricool Brand 6858384 içinde doğrulanmış Facebook Sayfası; Page ID 107923075188798'},
       {key:'whatsapp',label:'WhatsApp teklif hattı',url:'https://wa.me/905416401029',note:'İletişim ve proje talebi'}
     ],
     integrations:{
@@ -1015,18 +1024,18 @@ async function contactApi(request, env, url, ctx){
     return json({ok:true,message:'Mesajınız alındı, teşekkürler!'});
   }
   if(url.pathname==='/api/admin/contact' && request.method==='GET'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     const rows=await env.DB.prepare('SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 200').all();
     return json({ok:true,items:rows.results});
   }
   const contactById=url.pathname.match(/^\/api\/admin\/contact\/(\d+)$/);
   if(contactById && request.method==='PATCH'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     await env.DB.prepare('UPDATE contact_messages SET read=1 WHERE id=?').bind(Number(contactById[1])).run();
     return json({ok:true});
   }
   if(contactById && request.method==='DELETE'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     await env.DB.prepare('DELETE FROM contact_messages WHERE id=?').bind(Number(contactById[1])).run();
     return json({ok:true});
   }
@@ -1055,7 +1064,7 @@ function socialPlatformCheck(env,platforms){
 
 async function socialApi(request, env, url, ctx){
   if(!url.pathname.startsWith('/api/admin/social')) return null;
-  if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
   if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
 
   if(url.pathname==='/api/admin/social/providers' && request.method==='GET'){
@@ -1243,7 +1252,7 @@ async function mediaApi(request, env){
   const u=new URL(request.url); const path=u.pathname;
   if(request.method==='OPTIONS') return new Response(null,{status:204,headers:{'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,PATCH,DELETE,PUT,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'}});
 
-  const sess=env.ADMIN_SESSION_SECRET_SECRET;
+  const sess=oturumAnahtari(env);
   const mediaSec=env.MEDIA_SIGNING_SECRET;
 
   if(path==='/api/login' && request.method==='POST'){
@@ -1337,7 +1346,7 @@ async function mediaApi(request, env){
   const aiToken=env.AI_READ_TOKEN;
   const bearer=(request.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
   const aiRead=(aiToken && bearer===aiToken);
-  const auth=aiRead || await validSession(request,env.ADMIN_SESSION_SECRET_SECRET);
+  const auth=aiRead || await validSession(request,oturumAnahtari(env));
   if(!auth) return json({error:'Yetkisiz'},401);
 
   /* DEPO PLANI — her dosyanin teknik ozelligi, onerilen hedefler, secilen
@@ -1577,14 +1586,13 @@ async function mediaApi(request, env){
 /* 26 Eylul 2026: bes yuva (hizmet-haber, hizmet-belgesel, hizmet-tanitim,
    hizmet-dugun, siyah-oda) eski tasarimdan kalmisti; mevcut sitede yerleri
    yoktu. Panelde "Bu yere bagla" deyince hicbir sey degismiyordu. Kaldirildi.
-   Kalan her yuva anasayfada gercek bir yere baglidir (bkz. data-slot). */
+   Kalan her yuva anasayfada gercek bir yere baglidir (bkz. data-slot).
+   6 Ekim: anasayfa yalniz giris filmini oynatir; kaydirmali sahnelerin
+   kategori-haber / -medya / -prod yuvalari ayni nedenle kaldirildi. */
 const SITE_SLOTS=[
   // slug              bolum                       tur     oran    onerilen      notu
   ['hero-video',      'Giriş filmi',              'video','16:9','1920x1080','Anasayfanın ilk sahnesi. En fazla 30 sn.'],
   ['hero-poster',     'Giriş kapak karesi',       'image','16:9','1920x1080','Film inmeden önce görünen kare.'],
-  ['kategori-haber',  'Giriş filmi: Haber sahnesi','video','9:16','1080x1920','Kaydırınca 2. sahne. Saha görüntüsü.'],
-  ['kategori-medya',  'Giriş filmi: Medya sahnesi','video','9:16','1080x1920','Kaydırınca 3. sahne. Sosyal içerik üretiminden.'],
-  ['kategori-prod',   'Giriş filmi: Prodüksiyon sahnesi','video','9:16','1080x1920','Kaydırınca 4. sahne. Kamera, kurgu, set.'],
   ['saha-buse',       'Sahada çalışırken kare',   'image','16:9','1600x900', '01 / HABER sekmesi. Mikrofonlu, iş başında.'],
   ['portre-buse',     'Buse Tuncay portresi',     'image','4:5', '1200x1500','Kuruluş hikâyesi bölümü. Gerçek fotoğraf.'],
   ['og-image',        'Sosyal paylaşım görseli',  'image','16:9','1200x630', 'Anasayfa WhatsApp, X ve Facebook paylaşım kapağı.'],
@@ -1596,14 +1604,11 @@ const SITE_SLOTS=[
    tools/gerileme-denetimi.mjs bunu denetler. Kaynak (gercek/AI) burada
    yazmaz, medya-listesi.json'daki gercek alanindan turer. */
 const SITE_SLOT_VARSAYILAN={
-  'hero-video':     'media/web/hero-story.mp4',
-  'hero-poster':    'media/web/hero-story-poster.jpg',
-  'kategori-haber': 'media/web/state-haber.mp4',
-  'kategori-medya': 'media/web/state-medya.mp4',
-  'kategori-prod':  'media/web/state-produksiyon.mp4',
+  'hero-video':     'media/web/giris-ai-genis.mp4',
+  'hero-poster':    'media/web/giris-ai-genis-poster.jpg',
   'saha-buse':      'media/portfoy/buse-tuncay-saha-roportaj.webp',
   'portre-buse':    'media/portfoy/buse-tuncay-portre-01.webp',
-  'og-image':       'paylasim/btmedya-og.jpg',
+  'og-image':       'paylasim/btmedya-og-v2.jpg',
 };
 
 /* Kasa kaydinin sitede nereden servis edildigi. static/ onekli kayitlar
@@ -1617,6 +1622,31 @@ function uzantiMime(yol){
   const e=(String(yol).match(/\.([a-z0-9]+)$/i)||[])[1]?.toLowerCase();
   return {mp4:'video/mp4',webm:'video/webm',mov:'video/quicktime',m4v:'video/mp4',
     webp:'image/webp',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png'}[e]||'application/octet-stream';
+}
+
+/* Uretilmis kapak onceligi. Sabah Masasi yeni haberi kategori plakasiyla
+   yayinlar; haberin kendi kapagi (tools/haber-kapagi.py) sonradan uretilip
+   haber-kapak-kaynagi.json'a girer. D1'deki cover_url elle guncellenene kadar
+   site plakayi gosteriyordu (5 Ekim: 16 haber). Kayit yalniz bos ya da plaka
+   ise ve uretilmis kapak varsa degisir; panelden secilmis baska bir gorsel
+   (R2, otomasyon karesi) oldugu gibi kalir. Veri degismez, yalniz gosterim. */
+let kapakOnbellek={t:0,v:null};
+async function uretilmisKapaklar(env){
+  if(kapakOnbellek.v && Date.now()-kapakOnbellek.t<300000) return kapakOnbellek.v;
+  // Map: slug -> kapak karesinin turu (gercek/arsiv/temsili...). kapakSec
+  // yalniz .has kullanir; ilgili haber kartlari turu etiket olarak basar.
+  let v=new Map();
+  try{
+    const r=env.ASSETS && await env.ASSETS.fetch(new Request('https://btmedya.internal/data/haber-kapak-kaynagi.json'));
+    if(r && r.ok) v=new Map(Object.entries(await r.json()));
+  }catch{}
+  kapakOnbellek={t:Date.now(),v};
+  return v;
+}
+const PLAKA_KAPAK=/^\/assets\/(?:kategori-kapak|paylasim)\/[^/]+$/;
+function kapakSec(n,kapaklar){
+  const c=String(n.cover_url||'');
+  return (!c || PLAKA_KAPAK.test(c)) && kapaklar.has(n.slug) ? '/assets/haber-kapak/'+encodeURIComponent(n.slug)+'.webp' : n.cover_url;
 }
 
 /* Panelden atanmis yuvalar. Anasayfa her acilista soruyor; D1'e her
@@ -1812,6 +1842,26 @@ export default { async scheduled(controller, env, ctx){
     if(ctx?.waitUntil){ ctx.waitUntil(masa); ctx.waitUntil(ozet); } else await Promise.allSettled([masa,ozet]);
     return;
   }
+  /* Haber autopilotu: her 2 saatte bir, en fazla 2 yeni haber.
+     KV kilidi aynı saat içinde tekrar üretimi engeller. Kaynak/doğrulama
+     kapıları sabahMasasi içinde aynen korunur. */
+  const haberAutopilot=(controller && controller.cron==='*/15 * * * *')
+    ? (async()=>{
+        const saat=Math.floor(Date.now()/7200000);
+        const anahtar='autopilot:news:'+saat;
+        if(env.KV){
+          const once=await env.KV.get(anahtar).catch(()=>null);
+          if(once) return null;
+          await env.KV.put(anahtar,'1',{expirationTtl:7500}).catch(()=>{});
+        }
+        const bucket=Math.floor(Date.now()/7200000);
+        const start=(bucket*2)%KATEGORILER.length;
+        const kategoriler=[KATEGORILER[start],KATEGORILER[(start+1)%KATEGORILER.length]].map(x=>x.anahtar);
+        return sabahMasasi(env,{maxHaber:2,kategoriler})
+          .then(x=>console.log('[btmedya] haber autopilot',JSON.stringify({categories:kategoriler,published:x.yayinlanan,draft:x.taslak,errors:x.hatalar?.length||0})))
+          .catch(e=>console.error('[btmedya] haber autopilot:',e?.message||e));
+      })()
+    : Promise.resolve(null);
   const autopilot=(controller && controller.cron==='*/15 * * * *')
     ? runAutopilot(env,{force:false,limit:3}).then(x=>console.log('[btmedya] autopilot',JSON.stringify({scanned:x.scanned,candidates:x.candidates,news:x.created_news,published:x.published_news,social:x.social_created,blocked:x.blocked}))).catch(e=>console.error('[btmedya] autopilot:',e?.message||e))
     : Promise.resolve(null);
@@ -1872,24 +1922,24 @@ export default { async scheduled(controller, env, ctx){
   // (/admin/) açık kalır; gerçek yönetim alt yolları imzalı oturum olmadan
   // giriş ekranına döner. API'ler ayrıca kendi session kontrollerini uygular.
   if(url.pathname.startsWith('/admin/') && url.pathname !== '/admin/'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))){
-      return Response.redirect(new URL('/admin/', url.origin), 302);
+    if(!(await validSession(request, oturumAnahtari(env)))){
+      // Sayfa isteğinde hedef korunur: girişten sonra okur istediği modüle döner.
+      const sayfa=/text\/html/.test(request.headers.get('accept')||'') && !/\.(?:css|js|json|webmanifest|png|webp|jpg|svg|ico)$/i.test(url.pathname);
+      return Response.redirect(new URL(sayfa ? '/admin/?sonra='+encodeURIComponent(url.pathname+url.search) : '/admin/', url.origin), 302);
     }
   }
   const coreApi=await btmedyaCoreApi(request,env,url,validSession); if(coreApi) return coreApi;
 
-  /* Tek adımda kanonik adrese: www eki ve ikincil alan adı aynı yerde çözülür.
-     Yol ve sorgu korunur, böylece ikincil alan adına verilmiş eski bağlantılar
-     anasayfaya değil kendi sayfasına düşer. Zincirleme yönlendirme olmaması
-     için hedef doğrudan kanonik host; www.btmedyaajans.com tek 301 ile biter.
-     hedef === mevcut host karşılaştırması, IKINCIL_HOSTLAR'a yanlışlıkla
-     kanonik host yazılırsa oluşacak sonsuz döngüyü keser. */
-  const hedef = kanonikHedef(url.hostname);
-  if(hedef && hedef !== url.hostname.toLowerCase()){
-    url.hostname = hedef;
-    url.protocol = 'https:';
-    url.port = '';
+  const hedefHost = kanonikHedef(url.hostname);
+  if(hedefHost){
+    url.hostname = hedefHost;
     return Response.redirect(url.toString(), 301);
+  }
+
+  // Kaynak Masası'nın eski adresini kalıcı olarak yeni kanonik adrese taşı.
+  // Böylece eski bağlantılar korunur, Google iki ayrı içerik URL'si görmez.
+  if(url.pathname === '/kaynak-masasi' || url.pathname === '/kaynak-masasi/'){
+    return Response.redirect(new URL('/kaynaklar/' + url.search, url.origin), 301);
   }
 
   /* Admin kabuğu: API zaten oturum korumalı olsa da /admin/ HTML'inin
@@ -1899,8 +1949,12 @@ export default { async scheduled(controller, env, ctx){
      başarı sayfası gibi görünmez. CSS/JS/manifest gibi alt kaynaklar
      normal statik varlık olarak kalır; başarılı giriş mevcut kabuğu açar. */
   if(url.pathname === '/admin/' && request.method === 'GET'){
-    const authenticated = await validSession(request, env.ADMIN_SESSION_SECRET_SECRET);
-    const adminRes = await env.ASSETS.fetch(request);
+    const authenticated = await validSession(request, oturumAnahtari(env));
+    /* 6 Ekim: public/admin/index.html giriş formu değil, yönetim merkezine
+       yönlendiren kabuk. Oturumsuz okur oraya, oradan da (oturum yok) yine
+       /admin/'e gidiyordu: sonsuz döngü, giriş formu hiç görünmüyordu.
+       Oturum yoksa ayrı giriş sayfası (public/admin/giris/) sunulur. */
+    const adminRes = await env.ASSETS.fetch(authenticated ? request : new Request(new URL('/admin/giris/', url.origin), request));
     if(!adminRes.ok) return adminRes;
     const adminHeaders = new Headers(adminRes.headers);
     for(const [k,v] of Object.entries(guvenlikBasliklari(url.pathname))) adminHeaders.set(k,v);
@@ -1944,7 +1998,7 @@ export default { async scheduled(controller, env, ctx){
   }
 
   if(url.pathname==='/api/admin/sabah-masasi'){
-    if(!(await validSession(request, env.ADMIN_SESSION_SECRET_SECRET))) return json({ok:false,error:'Yetkisiz'},401);
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
     if(request.method==='GET') return json({ok:true,ayarlar:await sabahAyarlari(env),rapor:await sabahRaporu(env),ai:Boolean(env.AI),kategoriler:KATEGORILER.map(k=>({anahtar:k.anahtar,kategori:k.kategori}))});
     if(request.method==='PUT'){
       const b=await request.json().catch(()=>null);
@@ -2042,6 +2096,124 @@ export default { async scheduled(controller, env, ctx){
     if (ag) return ag;
   }
 
+  /* Temiz kategori rotaları:
+     Google ve kullanıcılar için /haberler/?kategori=... yerine kalıcı
+     /haberler/<kategori>/ adresleri. Kategori sayfası HTML'i sunucuda
+     D1'den hazırlanır; JS ayrıca zenginleştirme yapar. */
+  const HABER_KATEGORILERI = {
+    balikesir:{label:'Balıkesir',desc:'Balıkesir merkez ve ilçelerinden güncel haberler, belediye hizmetleri, ulaşım, ekonomi ve kent yaşamı.'},
+    turkiye:{label:'Türkiye',desc:'Türkiye genelindeki ulusal gündem, kamu, siyaset, toplum ve kentlerden gelişmeler.'},
+    dunya:{label:'Dünya',desc:'Dünyadan Türkiye’yi ve bölgeyi ilgilendiren gelişmeler, uluslararası gündem ve dış politika.'},
+    gundem:{label:'Gündem',desc:'Güvenlik, afet, yangın, kamu hizmetleri ve Balıkesir gündemindeki önemli gelişmeleri kaynaklarıyla takip edin.'},
+    ekonomi:{label:'Ekonomi',desc:'Balıkesir ekonomisi, esnaf, tarım, fiyatlar, emlak, istihdam ve yerel iş dünyasındaki gelişmeler.'},
+    kultur:{label:'Kültür Sanat',desc:'Balıkesir kültür sanat gündemi: tiyatro, sinema, gastronomi, etkinlikler ve kentin hafızasını yaşatan hikâyeler.'},
+    egitim:{label:'Eğitim',desc:'Okullar, üniversiteler, sınavlar ve öğrencilerin gündemindeki gelişmeleri BTMEDYA kaynaklarıyla izleyin.'},
+    saglik:{label:'Sağlık',desc:'Sağlık hizmetleri, uzman görüşleri ve günlük yaşamı ilgilendiren sağlık gelişmelerini kaynaklarıyla takip edin.'},
+    spor:{label:'Spor',desc:'Balıkesir ve Türkiye sporundan sonuçlar, takımlar, sporcular, karşılaşmalar ve etkinliklerden güncel haberler.'},
+    teknoloji:{label:'Teknoloji',desc:'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetleri anlaşılır haberler ve kaynaklarla takip edin.'},
+    yasam:{label:'Yaşam',desc:'Günlük yaşam, aile, moda, etkinlik, insan hikâyeleri ve şehir yaşamına dair haberler.'}
+  };
+  function htmlKac(s){
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function haberKategoriAnahtari(n){
+    const metin=String((n?.category||'')+' '+(n?.title||'')+' '+(n?.excerpt||'')).toLocaleLowerCase('tr-TR')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
+    const rawKategori=String(n?.category||'').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i').trim();
+    const explicit={balikesir:'balikesir',turkiye:'turkiye','türkiye':'turkiye',dunya:'dunya','dünya':'dunya',gundem:'gundem',ekonomi:'ekonomi',kultur:'kultur','kültür':'kultur',egitim:'egitim',saglik:'saglik',spor:'spor',teknoloji:'teknoloji',yasam:'yasam','yaşam':'yasam'};
+    if(explicit[rawKategori]) return explicit[rawKategori].replace(/,$/,'');
+    // Güçlü Balıkesir sinyali, tematik kelimelerden önce değerlendirilir.
+    // Açık kategori adı varsa önce o korunur; otomatik sınıflandırmada yerel haber
+    // ekonomi/teknoloji/gündem kelimeleri yüzünden başka bölüme taşınmaz.
+    const balikesir=/\b(balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|dursunbey|savastepe|bigadic|ivindi|manyas|havran|gomec|erdek|balya|sindirgi|pazar|altyapi|ulasim|belediye)\b/;
+    if(balikesir.test(metin)) return 'balikesir';
+    const rules=[
+      ['dunya',/(dunya|abd|amerika|avrupa|almanya|fransa|ingiltere|rusya|ukrayna|israil|filistin|iran|cina|japonya|nato|birlesmis milletler|dis politika|uluslararasi)/],
+      ['turkiye',/(turkiye|ankara|istanbul|izmir|adana|antalya|bursa|konya|meclis|bakanlik|cumhurbaskani|tbmm|yurt geneli|ulusal)/],
+      ['teknoloji',/(yapay zeka|teknoloji|yazilim|dijital|\bai\b|teknofest|uygulama|platform)/],
+      ['egitim',/(egitim|universite|okul|sinav|ogrenci|kampus|\byok\b)/],
+      ['saglik',/(saglik|beslenme|hastane|doktor|tedavi|epilasyon|obezite|kalp)/],
+      ['spor',/(spor|futbol|basketbol|turnuva|atletizm|pehlivan|muay thai|sporcu)/],
+      ['kultur',/(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik|tiyatro|sinema|festival)/],
+      ['yasam',/(yasam|gundelik|aile|kadin|cocuk|magazin|moda|evlilik|dugun)/],
+      ['ekonomi',/(ekonomi|emlak|esnaf|tarim|ticaret|fiyat|piyasa|maas|istihdam|satis|konut)/],
+      ['gundem',/(gundem|asayis|yangin|afet|guvenlik|trafik|itfaiye|emniyet|polis|kaza|kamu)/]
+    ];
+    for(const [key,re] of rules) if(re.test(metin)) return key;
+    return 'gundem';
+  }
+  async function temizKategoriSayfasi(request, env, url, key){
+    const bilgi=HABER_KATEGORILERI[key];
+    if(!bilgi) return null;
+    let base=await env.ASSETS.fetch(new Request(new URL('/haberler/index.html',url.origin),{headers:{accept:'text/html'}}));
+    if(!base.ok) return new Response('Kategori sayfası hazırlanamadı',503);
+    let html=await base.text();
+
+    let items=[];
+    if(env.DB){
+      const rows=(await env.DB.prepare(
+        "SELECT slug,title,excerpt,category,cover_url,published_at,updated_at FROM news WHERE status='published' AND slug<>'' ORDER BY published_at DESC LIMIT 500"
+      ).all().catch(()=>({results:[]}))).results||[];
+      const kapaklar=await uretilmisKapaklar(env);
+      items=rows.filter(n=>haberKategoriAnahtari(n)===key).slice(0,30).map(n=>({...n,cover_url:kapakSec(n,kapaklar)}));
+    }
+
+    let coverMap={};
+    try{
+      const cr=await env.ASSETS.fetch(new Request(new URL('/data/haber-kapak-kaynagi.json',url.origin)));
+      if(cr.ok) coverMap=await cr.json();
+    }catch{}
+
+    const cards=items.map(n=>{
+      const img=n.cover_url || ('/assets/haber-kapak/'+encodeURIComponent(n.slug)+'.webp');
+      const provenance=coverMap[n.slug];
+      const provenanceLabel=provenance==='gercek'?'Gerçek çekim':provenance==='arsiv'?'Arşiv fotoğrafı':provenance==='grafik'?'BTMEDYA grafik':provenance==='harita'?'Harita':'Temsili görsel';
+      const date=n.published_at?new Date(n.published_at).toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'}):'';
+      return '<article class="hm-kat-sunucu-kart">'+
+        '<a class="hm-kart" href="/haberler/'+encodeURIComponent(n.slug)+'">'+
+        '<figure><img src="'+htmlKac(img)+'" alt="'+htmlKac(n.title)+'" loading="lazy" decoding="async" width="600" height="450"><span class="hm-kaynak">'+htmlKac(provenanceLabel)+'</span></figure>'+
+        '<span class="hm-ust-bilgi"><span class="hm-kat">'+htmlKac(bilgi.label)+'</span><span class="hm-format">KAYNAKLI GÜNDEM</span><time class="hm-zaman" datetime="'+htmlKac(n.published_at||'')+'">'+htmlKac(date)+'</time></span>'+
+        '<h3>'+htmlKac(n.title)+'</h3><p class="hm-kat-spot">'+htmlKac(n.excerpt||'')+'</p></a></article>';
+    }).join('');
+
+    const title=bilgi.label+' Haberleri | BTMEDYA Haber Merkezi';
+    const canonical=url.origin+'/haberler/'+key+'/';
+    const block='<section class="hm-katsayfa" data-hm-katsayfa data-kat="'+key+'" aria-labelledby="hm-kategori-h1">'+
+      '<div class="hm-kat-bas"><h2 id="hm-kategori-h1" aria-label="'+htmlKac(bilgi.label)+'">'+htmlKac(bilgi.label)+'<span class="hm-golge" aria-hidden="true">'+htmlKac(bilgi.label)+'</span></h2>'+
+      '<p>'+htmlKac(bilgi.desc)+'</p><small>'+items.length+' güncel haber · en yeniden eskiye</small></div>'+
+      (cards?'<div class="hm-izgara hm-kat-sunucu-izgara">'+cards+'</div>':'<p class="hm-bos">Bu kategoride henüz yayımlanmış haber yok.</p>')+
+      '<section class="hm-ilkeler hm-kat-kaynak" aria-label="Kategori yayın ilkeleri"><div><b>Kaynak</b><span>Haber kaynağı ve yayın tarihi kartlarda korunur.</span></div><div><b>Görsel</b><span>Gerçek çekim, arşiv, grafik veya temsili görsel açıkça etiketlenir.</span></div><div><b>Güncellik</b><span>Liste D1 yayın akışından hazırlanır ve yeni yayınlarla güncellenir.</span></div></section>'+
+      '</section>';
+
+    html=html.replace('<html lang="tr">','<html lang="tr" data-bt-haber-kategori="'+key+'">');
+    html=html.replace('<main class="hm" id="icerik">','<main class="hm kategori-modu" id="icerik">');
+    html=html.replace(/<title>[^<]*<\/title>/i,'<title>'+htmlKac(title)+'</title>');
+    html=html.replace(/<meta name="description" content="[^"]*">/i,'<meta name="description" content="'+htmlKac(bilgi.desc)+'">');
+    html=html.replace(/<link rel="canonical" href="[^"]*">/i,'<link rel="canonical" href="'+canonical+'">');
+    html=html.replace(/<meta property="og:url" content="[^"]*">/i,'<meta property="og:url" content="'+canonical+'">');
+    html=html.replace(/<meta property="og:title" content="[^"]*">/i,'<meta property="og:title" content="'+htmlKac(title)+'">');
+    html=html.replace(/<meta property="og:description" content="[^"]*">/i,'<meta property="og:description" content="'+htmlKac(bilgi.desc)+'">');
+    html=html.replace(/<meta name="twitter:title" content="[^"]*">/i,'<meta name="twitter:title" content="'+htmlKac(title)+'">');
+    html=html.replace(/<meta name="twitter:description" content="[^"]*">/i,'<meta name="twitter:description" content="'+htmlKac(bilgi.desc)+'">');
+    html=html.replace(/<section class="hm-katsayfa" data-hm-katsayfa aria-live="polite"><\/section>/i,block);
+    // Kategori sayfası arşiv ile aynı içeriği tekrar etmez. Arşiv kartlarını
+    // DOM'dan da çıkarıyoruz; böylece Google aynı 27 eski haberi sekiz
+    // kategori sayfasında tekrar tekrar görmez.
+    const arsivAt=html.indexOf('<section class="hm-arsiv"');
+    const mainEnd=arsivAt>=0 ? html.indexOf('</main>',arsivAt) : -1;
+    if(arsivAt>=0 && mainEnd>arsivAt) html=html.slice(0,arsivAt)+html.slice(mainEnd);
+    return new Response(html,{status:200,headers:{...guvenlikBasliklari(url.pathname),'content-type':'text/html; charset=utf-8','x-robots-tag':robotsBasligi(url.pathname),'cache-control':'public, max-age=60, s-maxage=60, must-revalidate','cache-tag':'btmedya-html'}});
+  }
+
+  // Eski sorgu tabanlı kategori adresleri kalıcı temiz rotaya gider.
+  if(url.pathname==='/haberler/' && url.searchParams.has('kategori')){
+    const key=String(url.searchParams.get('kategori')||'').toLowerCase();
+    if(HABER_KATEGORILERI[key]) return Response.redirect(new URL('/haberler/'+key+'/',url.origin).toString(),301);
+  }
+
+  const temizKatMatch=url.pathname.match(/^\/haberler\/(balikesir|turkiye|dunya|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|yasam)\/$/);
+  if(temizKatMatch) return await temizKategoriSayfasi(request,env,url,temizKatMatch[1]);
+
   /* HABER SAYFASI — once statik dosya, yoksa D1'den uretim.
      Depodaki 27 haber oldugu gibi kalir; panelden girilen yeni haberler
      dosya olusturmadan kendi adresinde yayina girer. */
@@ -2090,6 +2262,7 @@ export default { async scheduled(controller, env, ctx){
             if(yid) vlib=await env.DB.prepare('SELECT * FROM video_library WHERE youtube_id=?').bind(yid).first();
           }
           if(!vlib) vlib=await env.DB.prepare('SELECT * FROM video_library WHERE news_slug=?').bind(slug).first();
+          n={...n,cover_url:kapakSec(n,await uretilmisKapaklar(env))};
           const related=await ilgiliHaberler(env,n);
           return new Response(renderNewsPage(n, url.origin, vlib, related), {
             headers:{...guvenlikBasliklari(url.pathname),

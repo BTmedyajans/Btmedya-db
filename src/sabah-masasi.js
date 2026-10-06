@@ -482,6 +482,43 @@ function temizle(j) {
   };
 }
 
+/* ---------- İddia doğrulaması (Workers AI) ---------- */
+/* 6 Ekim: Fenerbahçe haberinde "Ethan Mbappe Real Madrid altyapısında
+   başladı" yazdık; kaynakta Real Madrid ağabeyin kulübü, oyuncunun
+   altyapısı PSG'ydi. Ad denetimi geçti çünkü ad kaynakta vardı: yanlış olan
+   adın kime bağlandığıydı. Deterministik denetimler ilişki hatasını
+   göremediği için taslak, ikinci bir model çağrısında kaynağa karşı tek tek
+   sınanır. Doğrulayıcı yanıt veremezse haber taslakta kalır: yanlış
+   alarm editöre iş çıkarır, yanlış kabul uydurmayı yayına çıkarır. */
+export const DOGRULAMA_YONERGESI = [
+  'Sen BTMEDYA haber merkezinin doğrulama editörüsün. KAYNAK METİN ile ondan yazılmış TASLAK verilecek.',
+  'TASLAK\'taki her olgusal iddiayı kaynağa karşı sına: kişi, kurum, kulüp, yer, tarih, rakam, unvan ve bunların birbirine bağlanışı (kim, neyi, nerede, ne zaman, hangi kuruma/kişiye ait).',
+  'Kaynakta açıkça yazmayan ya da kaynakla çelişen her ifadeyi listele. Kaynakta geçen bir adı ya da bilgiyi başka bir kişiye, kuruma veya zamana bağlamak da desteksizdir (örn. kaynakta ağabeyin kulübü olarak geçen takımı oyuncunun altyapısı gibi yazmak).',
+  'Yeniden ifade etme, sıralama, özetleme ve üslup sorun değildir; yalnız olgu hatalarını yaz. Emin değilsen listeleme.',
+  'YANIT: Yalnız tek bir JSON nesnesi: {"desteksiz":[{"ifade":"taslaktan kısa alıntı","neden":"kaynakta ne yazıyor"}]}. Sorun yoksa {"desteksiz":[]}.'
+].join('\n');
+
+export async function iddiaDenetimi(env, model, y, kaynakMetin) {
+  const taslak = [y.baslik, y.spot, ...(y.paragraflar || [])].join('\n');
+  try {
+    const r = await env.AI.run(model, {
+      messages: [
+        { role: 'system', content: DOGRULAMA_YONERGESI },
+        { role: 'user', content: 'KAYNAK METİN:\n' + String(kaynakMetin).slice(0, 9000) + '\n\nTASLAK:\n' + taslak }
+      ],
+      max_tokens: 4000, temperature: 0
+    });
+    const j = jsonAyikla(yanitMetni(r));
+    if (!j || !Array.isArray(j.desteksiz)) return { gecti: false, desteksiz: [], hata: 'doğrulayıcı geçerli yanıt vermedi' };
+    const desteksiz = j.desteksiz
+      .map(d => ({ ifade: String((d && d.ifade) || '').trim().slice(0, 160), neden: String((d && d.neden) || '').trim().slice(0, 200) }))
+      .filter(d => d.ifade);
+    return { gecti: desteksiz.length === 0, desteksiz: desteksiz.slice(0, 8) };
+  } catch (e) {
+    return { gecti: false, desteksiz: [], hata: 'doğrulayıcı çalışmadı: ' + String(e && e.message || e).slice(0, 120) };
+  }
+}
+
 /* Yazar, üç denetimden geçirir; geçemezse sorunları modele geri verip bir
    kez daha (en fazla üç deneme) yazdırır. En iyi (en az sorunlu) deneme döner; yayın kararı
    çağırandadır. */
@@ -515,6 +552,13 @@ export async function yaz(env, ayar, kaynak, kategori, denemeSayisi = 3) {
       ...(y.denetim.rakam.gecti ? [] : ['kaynakta bulunmayan sayılar: ' + y.denetim.rakam.eksik.join(', ')]),
       ...(y.denetim.ad.gecti ? [] : ['kaynakta bulunmayan adlar: ' + y.denetim.ad.eksik.join(', ')])
     ];
+    // Doğrulayıcı yalnız deterministik denetimden geçen taslağa çalışır:
+    // kalan taslak zaten yeniden yazılacak, ikinci çağrı boşa gitmesin.
+    if (!sorun.length) {
+      y.denetim.iddia = await iddiaDenetimi(env, ayar.model, y, kaynakMetin);
+      if (y.denetim.iddia.hata) sorun.push(y.denetim.iddia.hata);
+      for (const d of y.denetim.iddia.desteksiz) sorun.push(`kaynakla desteklenmeyen ifade: "${d.ifade}"${d.neden ? ' (' + d.neden + ')' : ''}`);
+    }
     y.sorunSayisi = sorun.length;
     if (!enIyi || y.sorunSayisi < enIyi.sorunSayisi) enIyi = y;
     if (!sorun.length) break;
@@ -613,7 +657,10 @@ export async function sabahMasasi(env, secenek = {}) {
 
   try { rapor.trendler = await trendleriOku(); } catch (e) { rapor.hatalar.push('Trendler okunamadı: ' + e.message); }
   const agirlik = trendAgirliklari(rapor.trendler);
-  const kategoriler = KATEGORILER.filter(k => istenen.has(k.anahtar)).slice(0, ayar.gunlukAzami);
+  const gunlukLimit = Number.isFinite(Number(secenek.maxHaber)) && Number(secenek.maxHaber)>0
+    ? Math.min(Number(secenek.maxHaber), ayar.gunlukAzami)
+    : ayar.gunlukAzami;
+  const kategoriler = KATEGORILER.filter(k => istenen.has(k.anahtar)).slice(0, gunlukLimit);
 
   // Kaynakları paralel oku; biri düşerse diğerleri devam eder.
   const idler = [...new Set(kategoriler.flatMap(k => k.kaynaklar))];
@@ -745,15 +792,17 @@ async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit, son = [] }, denem
     if (!env.AI) throw new Error('Workers AI bağlaması (AI) yok');
     const y = await yaz(env, ayar, kaynak, kat.kategori);
     const { rakam: rd, ad, kalite } = y.denetim;
+    const iddia = y.denetim.iddia || { gecti: false, desteksiz: [], hata: 'iddia doğrulaması çalışmadı (önceki denetimler geçmedi)' };
     // Kaynak başlığı farklı olsa da yazılan başlık son günlerdeki bir
     // haberle aynı konuyu anlatıyorsa yayına çıkmaz; editör karar verir.
     const tekrarKonu = benzerBaslik(y.baslik, son);
-    const denetimTamam = rd.gecti && ad.gecti && kalite.gecti && !tekrarKonu;
+    const denetimTamam = rd.gecti && ad.gecti && kalite.gecti && iddia.gecti && !tekrarKonu;
     const yayinla = ayar.otomatikYayin && denetimTamam;
     const nedenler = [
       !rd.gecti ? 'rakam: ' + rd.eksik.slice(0, 3).join(', ') : '',
       !ad.gecti ? 'özel ad: ' + ad.eksik.slice(0, 3).join(', ') : '',
       !kalite.gecti ? 'kalite: ' + kalite.sorun.slice(0, 2).join('; ') : '',
+      !iddia.gecti && rd.gecti && ad.gecti && kalite.gecti ? 'iddia: ' + (iddia.hata || iddia.desteksiz.slice(0, 2).map(d => d.ifade).join('; ')) : '',
       tekrarKonu ? 'tekrar: son 4 günde benzer başlıklı haber var' : ''
     ].filter(Boolean);
     Object.assign(kayit, {
@@ -777,11 +826,12 @@ async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit, son = [] }, denem
        SABAH_FOTOGRAF=acik ile, bilerek açılır. */
     const gorsel = env.SABAH_FOTOGRAF === 'acik' ? await gorselBul(env, y.gorselAnahtar, slug).catch(() => null) : null;
     const not = [
-      `Bu haber, ${o.kaynakAd} kaynağındaki bilgilerden BTMEDYA Sabah Masası tarafından yapay zekâ desteğiyle derlenmiştir${yayinla ? ' ve otomatik denetimlerden (rakam, özel ad ve dil kalitesi) geçerek yayımlanmıştır; editör denetiminden geçmemiştir' : ''}.`,
+      `Bu haber, ${o.kaynakAd} kaynağındaki bilgilerden BTMEDYA Sabah Masası tarafından yapay zekâ desteğiyle derlenmiştir${yayinla ? ' ve otomatik denetimlerden (rakam, özel ad, kaynakla iddia doğrulaması ve dil kalitesi) geçerek yayımlanmıştır; editör denetiminden geçmemiştir' : ''}.`,
       gorsel ? `Kapaktaki görsel ${gorsel.kunye} lisanslıdır ve olayın kendisini göstermez.` : 'Kapak, BTMEDYA kategori grafiğidir; fotoğraf değildir.',
       !rd.gecti ? `Rakam denetimi: kaynakta bulunmayan ${rd.eksik.join(', ')}.` : '',
       !ad.gecti ? `Özel ad denetimi: kaynakta bulunmayan ${ad.eksik.join(', ')}.` : '',
       !kalite.gecti ? `Kalite denetimi: ${kalite.sorun.join('; ')}.` : '',
+      !iddia.gecti && rd.gecti && ad.gecti && kalite.gecti ? `İddia doğrulaması: ${iddia.hata || iddia.desteksiz.map(d => '"' + d.ifade + '"' + (d.neden ? ' (' + d.neden + ')' : '')).join('; ')}.` : '',
       tekrarKonu ? 'Tekrar denetimi: son 4 günde benzer başlıklı bir haber yayınlanmış; yayın kararı editörün.' : ''
     ].filter(Boolean).join(' ');
     const govde = [...y.paragraflar, gorsel ? `Görsel: ${gorsel.kunye}.` : ''].filter(Boolean).join('\n\n');

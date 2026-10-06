@@ -439,11 +439,11 @@ def bilgi_karti_foto(h, cikti):
     d = ImageDraw.Draw(im)
     gen = FOTO - 200
     deger = buyuk(vurgu.get("deger") or h["kategori"].split("·")[0].strip())
-    vf = f_an(330)
+    vf = f_baslik(330)
     while vf.size > 90 and d.textlength(deger, font=vf) > gen:
-        vf = f_an(vf.size - 10)
+        vf = f_baslik(vf.size - 10)
     etiket = buyuk(vurgu.get("etiket", "").split("·")[0].strip())
-    ef = sigdir(d, etiket, f_an, gen, 64, 34) if etiket else None
+    ef = sigdir(d, etiket, f_baslik, gen, 64, 34) if etiket else None
     db = d.textbbox((0, 0), deger, font=vf)
     eh = (d.textbbox((0, 0), etiket, font=ef)[3] + 34) if etiket else 0
     y = (FOTO - (db[3] - db[1]) - eh) // 2
@@ -605,16 +605,20 @@ def kanal_karti_foto(h, foto_yolu, cikti):
     d = ImageDraw.Draw(im)
     vurgu = h.get("vurgu") or {}
     if vurgu.get("deger"):
-        vf = sigdir(d, vurgu["deger"], f_sg, 520, 96, 44)
+        # Rakam Haber sesiyle (Big Shoulders 900) yazilir. Kutu, yazi tipi
+        # boyutundan degil glifin gercek sinirindan olculur; bu fontta harf
+        # govdesi asagi oturdugu icin boyuta gore kutu ustte bos kaliyordu.
+        vf = sigdir(d, vurgu["deger"], f_baslik, 520, 124, 52)
         ef = f_mr(30)
         etiket = sar(d, vurgu.get("etiket", ""), ef, 560)[:2]
-        gen = max(d.textlength(vurgu["deger"], font=vf), *(d.textlength(s, font=ef) for s in etiket or [""])) + 48
-        yuk = int(vf.size * 1.08) + 28 + len(etiket) * 38
+        db = d.textbbox((0, 0), vurgu["deger"], font=vf)
+        gen = max(db[2], *(d.textlength(s, font=ef) for s in etiket or [""])) + 48
+        yuk = 22 + (db[3] - db[1]) + (14 + len(etiket) * 38 if etiket else 0) + 18
         y = 740 - yuk
         d.rectangle([60, y, 60 + gen, y + yuk], fill=renk)
-        d.text((84, y + 12), vurgu["deger"], font=vf, fill=yazi_rengi(renk))
+        d.text((84, y + 22 - db[1]), vurgu["deger"], font=vf, fill=yazi_rengi(renk))
         for j, s in enumerate(etiket):
-            d.text((84, y + 18 + int(vf.size * 1.08) + j * 38), s, font=ef, fill=yazi_rengi(renk))
+            d.text((84, y + 22 + (db[3] - db[1]) + 10 + j * 38), s, font=ef, fill=yazi_rengi(renk))
         kunye_y = max(752, y + yuk + 12)
     else:
         kunye_y = 752
@@ -642,13 +646,17 @@ def kanal_karti_foto(h, foto_yolu, cikti):
 #     haberinde ve lisansli/kendi karemizse girer.
 #   - "SON DAKIKA" yalniz planda son_dakika: true ise basilir.
 # ---------------------------------------------------------------------------
-ANTON = os.path.join(FONT_DIR, "anton-regular.ttf")
+# Haber sesi (Gorsel Kimlik 2.0): Big Shoulders Display 900. Anton'la ayni
+# satir genisligini verir ama harf govdesi daha kisa ve yukari oturur;
+# baslik satirinin dikey kaydirmasi bu yuzden BASLIK_KAYMA ile ayarlanir.
+BASLIK_FONT = os.path.join(FONT_DIR, "big-shoulders-900.ttf")
+BASLIK_KAYMA = 0.07
 SARI_M = (255, 212, 0)
 KIRMIZI_M = (227, 20, 27)
 LACIVERT = ((5, 16, 44), (10, 46, 112))
 
 
-def f_an(b): return ImageFont.truetype(ANTON, b)
+def f_baslik(b): return ImageFont.truetype(BASLIK_FONT, b)
 
 
 def manset_zemini():
@@ -776,9 +784,9 @@ def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
     serit = "SON DAKİKA" if h.get("son_dakika") else buyuk(h["kategori"].split("·")[0].strip())
     if yer and buyuk(yer) not in serit:
         serit += "  ·  " + buyuk(yer)
-    sx, sy = egik_serit(im, KEN - 18, 36, serit, f_an(34), KIRMIZI_M)
+    sx, sy = egik_serit(im, KEN - 18, 36, serit, f_baslik(34), KIRMIZI_M)
     if h.get("video"):
-        egik_serit(im, sx + 8, 36, "▶ VİDEO", f_an(34), (255, 255, 255), (12, 12, 12))
+        egik_serit(im, sx + 8, 36, "▶ VİDEO", f_baslik(34), (255, 255, 255), (12, 12, 12))
     logo_plakasi(im)
 
     # Sari etiket: haberin gercek rakami + kisa aciklama (planda yazili).
@@ -789,16 +797,16 @@ def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
         if vurgu.get("etiket"):
             etiket += "  " + buyuk(vurgu["etiket"].split("·")[0].strip())
 
-    # Baslik: Anton, buyuk harf, en fazla 4 satir, olabildigince iri.
+    # Baslik: Big Shoulders 900, buyuk harf, en fazla 4 satir, olabildigince iri.
     baslik = buyuk(h["baslik"])
     dikey = H > W
     punto = 150 if dikey else 118
     while punto > 50:
-        bf = f_an(punto)
+        bf = f_baslik(punto)
         if len(sar(d, baslik, bf, metin_gen)) <= (4 if dikey else (3 if punto > 80 else 4)):
             break
         punto -= 4
-    bf = f_an(punto)
+    bf = f_baslik(punto)
     satirlar = sar(d, baslik, bf, metin_gen)[:4]
     # Turkce buyuk harflerin noktasi (İ) ve cengeli (Ş, Ç) ust satira
     # degmesin diye satir araligi 1.10.
@@ -806,9 +814,9 @@ def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
     alt = H - 60
     y = alt - len(satirlar) * sat_y
     if etiket:
-        ef = f_an(40)
+        ef = f_baslik(40)
         while ef.size > 24 and d.textlength(etiket, font=ef) > metin_gen - 40:
-            ef = f_an(ef.size - 2)
+            ef = f_baslik(ef.size - 2)
         if d.textlength(etiket, font=ef) > metin_gen - 40:
             etiket = buyuk(vurgu["deger"])
         eb = d.textbbox((0, 0), etiket, font=ef)
@@ -824,14 +832,14 @@ def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
         ust_sinir, alt_sinir = 150, y - 60
         dv = buyuk(vurgu["deger"])
         et = buyuk(vurgu.get("etiket") or "")
-        tf = sigdir(d, et, f_an, W - 2 * KEN, 60, 30) if et else None
+        tf = sigdir(d, et, f_baslik, W - 2 * KEN, 60, 30) if et else None
         th = (d.textbbox((0, 0), et, font=tf)[3] + 30) if et else 0
-        df = f_an(320)
+        df = f_baslik(320)
         while df.size > 80:
             db = d.textbbox((0, 0), dv, font=df)
             if db[2] - db[0] <= W - 2 * KEN and (db[3] - db[1]) + th <= alt_sinir - ust_sinir:
                 break
-            df = f_an(df.size - 8)
+            df = f_baslik(df.size - 8)
         db = d.textbbox((0, 0), dv, font=df)
         blok = (db[3] - db[1]) + th
         by = ust_sinir + (alt_sinir - ust_sinir - blok) // 2
@@ -846,7 +854,7 @@ def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
     sari_satir = next((i for i, s in enumerate(satirlar) if vurgu_kelime and kapak_norm(vurgu_kelime) in kapak_norm(s)), -1)
     for i, s in enumerate(satirlar):
         sari = i == sari_satir
-        golgeli_yazi(im, (KEN, y - int(punto * 0.12)), s, bf, SARI_M if sari else INK)
+        golgeli_yazi(im, (KEN, y + int(punto * BASLIK_KAYMA)), s, bf, SARI_M if sari else INK)
         y += sat_y
 
     # Alt satir: tarih + kaynak etiketi solda, alan adi sagda. Etiket karenin

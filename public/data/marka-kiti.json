@@ -1,6 +1,6 @@
 {
- "surum": "1.0",
- "tarih": "2026-10-04",
+ "surum": "2.0",
+ "tarih": "2026-10-05",
  "renkler": [
   {
    "ad": "Gece Siyahı",
@@ -35,7 +35,7 @@
   {
    "ad": "BT Altını",
    "hex": "#E3A436",
-   "rol": "Logo; yalnız logo ve imza alanında",
+   "rol": "Logo ve Prodüksiyon sesi (sinema kapağı çizgi ve rozetleri); haber kapağında kullanılmaz",
    "kaynak": "logodan ölçüldü"
   },
   {
@@ -47,14 +47,26 @@
   {
    "ad": "Canlı Lime",
    "hex": "#D9FF3F",
-   "rol": "Ajans vurgusu, canlı nokta; haber kapağında kullanılmaz",
+   "rol": "Ajans vurgusu, canlı nokta, AI ÜRETİMİ çipi; haber kapağında kullanılmaz",
    "kaynak": "--bt-brand-accent"
+  },
+  {
+   "ad": "Sentez Moru",
+   "hex": "#8B5CFF",
+   "rol": "AI LAB sesi: kategori çipi, ızgara ve ışık; yalnız AI üretimi işlerde",
+   "kaynak": "btmedya-brand-system.css --bt-ses-ai"
+  },
+  {
+   "ad": "Film Kremi",
+   "hex": "#F3E9D2",
+   "rol": "Prodüksiyon sesi: sinema kapağı başlığı (Gece Siyahı üstünde)",
+   "kaynak": "btmedya-brand-system.css --bt-ses-film"
   }
  ],
  "tipografi": [
   {
    "ad": "Anton",
-   "kullanim": "Manşet kapağı ve sosyal kart başlığı (BÜYÜK HARF)",
+   "kullanim": "Yalnız giriş filmi başlığı; haber kapaklarında yerini Big Shoulders aldı",
    "lisans": "SIL OFL 1.1"
   },
   {
@@ -76,6 +88,78 @@
    "ad": "JetBrains Mono",
    "kullanim": "Üst etiket (kicker), kaynak ve durum etiketleri",
    "lisans": "SIL OFL 1.1"
+  },
+  {
+   "ad": "Unbounded 800",
+   "kullanim": "Marka sesi: SAHADAN EKRANA gibi marka cümleleri, paylaşım görseli, kanal kapağı",
+   "lisans": "SIL OFL 1.1"
+  },
+  {
+   "ad": "Big Shoulders Display 900",
+   "kullanim": "Haber sesi: haber kapağı, sosyal kart ve kategori plakası başlığı; video kapağında TV alt bandı (BÜYÜK HARF)",
+   "lisans": "SIL OFL 1.1"
+  },
+  {
+   "ad": "Fraunces 900 İtalik",
+   "kullanim": "Prodüksiyon sesi: film ve klip adı, sinema afişi başlığı",
+   "lisans": "SIL OFL 1.1"
+  },
+  {
+   "ad": "Archivo Black",
+   "kullanim": "Reklam sesi: ürün ve marka filmi başlığı",
+   "lisans": "SIL OFL 1.1"
+  },
+  {
+   "ad": "Syne 800",
+   "kullanim": "AI LAB sesi: geniş, fütüristik başlık (renk kaymalı)",
+   "lisans": "SIL OFL 1.1"
+  },
+  {
+   "ad": "Instrument Serif İtalik",
+   "kullanim": "Editoryal vurgu: alt başlık, alıntı, imza cümlesi",
+   "lisans": "SIL OFL 1.1"
+  }
+ ],
+ "kapak_dilleri": [
+  {
+   "ad": "Haber & Saha",
+   "font": "Big Shoulders Display 900",
+   "renkler": [
+    "Haber Kırmızısı",
+    "Manşet Sarısı"
+   ],
+   "kompozisyon": "Belgesel renk ayarı, TV alt bandı: sarı yer şeridi + kırmızı başlık bandı; kişi kesilip öne alınabilir.",
+   "ornek": "/assets/portfoy-youtube/kpxTyrsBTuw.webp"
+  },
+  {
+   "ad": "Prodüksiyon",
+   "font": "Fraunces 900 İtalik",
+   "renkler": [
+    "BT Altını",
+    "Film Kremi"
+   ],
+   "kompozisyon": "Sinemaskop şeritleri, sıcak altın ayar, film greni; 'BİR BTMEDYA YAPIMI' üst başlığı.",
+   "ornek": "/assets/portfoy-youtube/ffsnWWZupcY.webp"
+  },
+  {
+   "ad": "Reklam & Tanıtım",
+   "font": "Archivo Black",
+   "renkler": [
+    "Sinyal Camgöbeği",
+    "Kâğıt Beyazı"
+   ],
+   "kompozisyon": "Açık zemin, yuvarlak köşeli ürün kartı, camgöbeği vurgu çizgisi; temiz ve ticari.",
+   "ornek": "/assets/portfoy-youtube/k6yTp16e22w.webp"
+  },
+  {
+   "ad": "AI LAB",
+   "font": "Syne 800",
+   "renkler": [
+    "Sentez Moru",
+    "Canlı Lime"
+   ],
+   "kompozisyon": "Koyu ızgara, mor ışık, renk kaymalı başlık, lime konturlu özne; kapakta AI ÜRETİMİ çipi zorunlu.",
+   "ornek": "/assets/portfoy-youtube/hsuPlVIZ7zw.webp"
   }
  ],
  "etiketler": [
@@ -130,7 +214,7 @@
    "w": 1080,
    "h": 1920,
    "oran": "9:16",
-   "kaynak": "PLATFORM_RULES + SITE_SLOTS kategori-*",
+   "kaynak": "PLATFORM_RULES (Reels, TikTok, Shorts)",
    "dosya": "dikey-1080x1920.jpg"
   },
   {

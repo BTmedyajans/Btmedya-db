@@ -6,6 +6,8 @@
 # Audit trigger: 2026-09-28 production chain revalidation / live smoke retrigger.
 # Live repair: re-trigger Workers Builds so declared Custom Domains are reconciled.
 # Live repair retrigger: 2026-10-01 — rebuild production from canonical main to reconcile apex/www.
+# Production rebuild trigger: 2026-10-05 RLS + Metricool chain revalidation.
+# Production rebuild trigger: 2026-10-05 Metricool secret-sync path verification.
 # DNS administration is intentionally kept outside the application deploy path.
 name = "btmedya-db"
 main = "src/worker.js"
@@ -25,10 +27,10 @@ binding = "ASSETS"
 # Sitemap'e giren her sayfa bu listede olmak zorunda. Olmayan sayfada Worker
 # hiç çalışmaz: www -> apex 301'i, güvenlik başlıkları ve X-Robots-Tag devre
 # dışı kalır, sayfa hem www hem apex adresinde 200 döner (yinelenen içerik).
-# /marka-kiti/, /ai-lab/, /reklam-ve-sponsorluk/ ve /en/ bu yüzden eklendi;
+# /marka-kiti/, /ai-lab/, /reklam-ve-sponsorluk/ ve /en/ tam bu durumdaydı:
 # dördü de sitemap'te olduğu halde listede yoktu ve canlıda www adresinde 200
-# dönüyordu. tools/alan-adi-denetimi.mjs bu boşluğu bir daha açılırsa yakalar.
-run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/index.html", "/haber/*", "/haberler", "/haberler/*", "/hakkimizda*", "/iletisim*", "/hizmetler*", "/sosyal-medya*", "/video-produksiyon*", "/whatsapp-katalog*", "/basin-kiti*", "/vaka-calismalari*", "/gizlilik*", "/admin/*", "/gorsel/*", "/social-studio/*", "/kaynak-masasi*", "/portfoy/*", "/marka-kiti*", "/ai-lab*", "/reklam-ve-sponsorluk*", "/en", "/en/*", "/robots.txt", "/llms.txt", "/llms-full.txt", "/index.json", "/jsonld", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml", "/.well-known/*"]
+# dönüyordu. tools/alan-adi-denetimi.mjs bu boşluk bir daha açılırsa yakalar.
+run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/index.html", "/haber/*", "/haberler", "/haberler/*", "/hakkimizda*", "/iletisim*", "/hizmetler*", "/sosyal-medya*", "/video-produksiyon*", "/whatsapp-katalog*", "/basin-kiti*", "/vaka-calismalari*", "/arsiv*", "/dosyalar*", "/siyah-oda*", "/halk-roportaji*", "/gizlilik*", "/admin/*", "/gorsel/*", "/social-studio/*", "/kaynak-masasi*", "/kaynaklar*", "/portfoy/*", "/marka-kiti*", "/search-strategy*", "/programmatic-seo*", "/ai-lab*", "/reklam-ve-sponsorluk*", "/robots.txt", "/llms.txt", "/llms-full.txt", "/index.json", "/jsonld", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml", "/.well-known/*", "/en", "/en/*"]
 
 not_found_handling = "404-page"
 

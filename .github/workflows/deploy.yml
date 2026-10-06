@@ -11,6 +11,7 @@ on:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/deploy.yml"
+      - ".github/workflows/sync-worker-secrets.yml"
       - "control-plane/**"
       - "control-plane/reconcile-worker-domains.sh"
   workflow_dispatch:
@@ -49,6 +50,7 @@ jobs:
           test -s package.json
           node --check src/worker.js
           node --check src/sales-router.js
+          grep -q 'WHERE client_id=? AND id IN' src/sales-router.js
           node --check public/editorial-cover-system.js
           node --check public/admin/agency-os/agency-hamburger-v3.js
           node --check public/admin/client-hub/client-hub-v3.js
@@ -109,14 +111,20 @@ jobs:
           grep -q 'data-fallback="social"' public/index.html
           grep -q 'data-fallback="media"' public/index.html
           grep -q 'preserve verified fallbacks' public/home.js
+          grep -q "Son doğrulanmış sosyal snapshot gösteriliyor." public/home.js
+          grep -q "Gerçek arşiv geçici olarak güncellenemedi." public/home.js
           grep -q 'prefers-reduced-motion' public/mobile-fixes.css
-          grep -q 'Control Center' public/admin/index.html
-          grep -q '/api/admin/control-center' public/admin/index.html
+          grep -q 'BTMEDYA Yönetim Merkezi' public/admin/index.html
+          grep -q '/admin/agency-os/' public/admin/index.html
           grep -q 'btmedya-core' src/worker.js
           grep -q '/api/admin/core' public/admin/agency-os/agency-os.js
           grep -q '/kaynak-masasi' wrangler.toml
           grep -q '/rss.xml' wrangler.toml
           grep -q '/news-sitemap.xml' wrangler.toml
+          grep -q '"/arsiv\*"' wrangler.toml
+          grep -q '"/dosyalar\*"' wrangler.toml
+          grep -q '"/siyah-oda\*"' wrangler.toml
+          grep -q '"/halk-roportaji\*"' wrangler.toml
           grep -q '/.well-known/*' wrangler.toml
           grep -q 'Sitemap: https://btmedya.com.tr/sitemap.xml' public/robots.txt
           grep -q 'Sitemap: https://btmedya.com.tr/news-sitemap.xml' public/robots.txt
@@ -236,7 +244,7 @@ jobs:
           check_http "legacy-client-hub" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/musteri-merkezi/" "302"
           check_http "client-review" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/client/review/" "200"
           check_http "haberler" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/haberler/" "200"
-          check_http "kaynak-masasi" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/kaynak-masasi/" "200"
+          check_http "kaynak-masasi" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/kaynak-masasi/" "301"
           check_http "robots" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/robots.txt" "200"
           check_http "sitemap" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/sitemap.xml" "200"
           check_http "news-sitemap" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/news-sitemap.xml" "200"
@@ -281,6 +289,7 @@ jobs:
           echo "SMOKE home content-type: $home_type"
           echo "$home_type" | grep -qi "^text/html"
           live_markers=(
+            "name=\"btmedya-live-revision\" content=\"2026-10-06-mobile-repair1\""
             "GERÇEK ÇEKİM"
             "AI ÜRETİMİ"
             "Kaynak Masası"

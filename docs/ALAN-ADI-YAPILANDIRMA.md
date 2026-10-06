@@ -68,9 +68,18 @@ görüyordu; hangisini göstereceğini kendi seçer ve iki adres birbirinin
 sinyalini böler. Aynı sayfalar `X-Robots-Tag` ve güvenlik başlıklarını da
 alamıyordu, çünkü o başlıkları Worker basıyor.
 
-**Düzeltildi:** dört desen `wrangler.toml > run_worker_first` listesine eklendi
-(`/marka-kiti*`, `/ai-lab*`, `/reklam-ve-sponsorluk*`, `/en` + `/en/*`).
-Deploy sonrası dördü de `www` adresinde 301 dönmeli:
+**Düzeltildi ve canlıda doğrulandı.** Dört desen `wrangler.toml >
+run_worker_first` listesine eklendi (`/marka-kiti*`, `/ai-lab*`,
+`/reklam-ve-sponsorluk*`, `/en` + `/en/*`). Deploy sonrası ölçüm:
+
+| Sayfa | www yanıtı |
+|---|---|
+| `/marka-kiti/` | 301 → `https://btmedya.com.tr/marka-kiti/` |
+| `/ai-lab/` | 301 → `https://btmedya.com.tr/ai-lab/` |
+| `/reklam-ve-sponsorluk/` | 301 → `https://btmedya.com.tr/reklam-ve-sponsorluk/` |
+| `/en/` | 301 → `https://btmedya.com.tr/en/` |
+
+Yol korunuyor, zincir yok. Yeniden ölçmek için:
 
 ```bash
 for p in marka-kiti ai-lab reklam-ve-sponsorluk en; do
@@ -110,14 +119,20 @@ ve ikinci bir Worker kurmaktır. Ama o zaman ajans sitesinin içeriği de
 
 ## 4. Kod tarafı — yapıldı
 
-Alan adı satın alınmadan yapılabilecek her şey tamamlandı.
+Alan adı satın alınmadan yapılabilecek her şey tamamlandı ve `main`'de.
 
-| Dosya | Değişiklik |
-|---|---|
-| `src/worker.js` | `KANONIK_HOST` / `IKINCIL_HOSTLAR` tablosu + `kanonikHedef()` |
-| `wrangler.toml` | 4 eksik desen eklendi; ikincil alan adının neden route olmadığı |
-| `tools/alan-adi-denetimi.mjs` | 4 kontrol (yeni) |
-| `.github/workflows/pr-validation.yml` | denetimi her PR'da çalıştırır |
+| Dosya | Değişiklik | Nerede |
+|---|---|---|
+| `src/worker.js` | `KANONIK_HOST` / `IKINCIL_HOSTLAR` + `kanonikHedef()` | `main` |
+| `wrangler.toml` | 4 eksik desen (bölüm 2) | `main` |
+| `tools/alan-adi-denetimi.mjs` | 4 kontrol | `main` |
+| `.github/workflows/pr-validation.yml` | denetimi her PR'da çalıştırır | `main` |
+| bu belge + gerekçe yorumları | neden böyle yapıldığı | bu dal |
+
+Kod `main`'e bu belgeden önce girdi. Bu dal yalnızca kararın gerekçesini,
+ölçümleri ve kalan adımları ekliyor: `wrangler.toml` ve `pr-validation.yml`
+içindeki açıklama yorumları, `README.md` durum tablosu, `AGENTS.md` içinde
+denetim betiğinin ne yaptığı, ve bu belge.
 
 ### Yönlendirme tablosu
 

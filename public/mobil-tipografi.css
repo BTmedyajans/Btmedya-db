@@ -1,0 +1,73 @@
+/* BTMEDYA Mobil Tipografi Ölçeği · 2026-10-05
+   Neden: 390 px'de anasayfada 291, haber merkezinde 122 metin öğesi 12 px'in
+   altındaydı (7,5–11 px; portföy süresi 8 px, alt menü etiketi 7,5 px).
+   Google mobil öncelikli dizinde "okunaklı yazı boyutu" ölçütü ve okurun
+   telefonda yakınlaştırmadan okuyabilmesi için tek bir taban ölçek kurulur:
+     mikro  12 px : etiket, kicker, tarih, kaynak, sayaç
+     küçük  13 px : kart bağlantısı, kart açıklaması, alt bilgi
+     ikincil 14 px: kart gövde metni
+     gövde  16 px : paragraf
+   Sayfanın kendi CSS'i başlıkları ve gövdeyi belirlemeye devam eder; bu
+   katman yalnız ölçülerek 12 px altında bulunan bileşenlerin tabanını yükseltir. Son yüklenen stil olduğu için !important yalnız
+   satır içi ve sonradan basılan değerleri yenmek için kullanılır.
+   Dar ekranda geniş harf aralığı (0,14–0,2em) mikro etiketleri satıra
+   sığdırmıyordu; harf aralığı da sınırlandı. */
+@media (max-width:720px){
+  :root{--m-mikro:12px;--m-kucuk:13px;--m-ikincil:14px;--m-govde:16px}
+
+  /* Mikro katman: etiket, kicker, zaman, kaynak satırı. */
+  .kicker,p.kicker,.menu-topline,.hamburger,#menuClose,
+  .bt-breaking b,.bt-world-tab,.bt-world-caption span,.bt-world-caption small,
+  .portfoy-sure,.portfoy-sekme,.portfoy-kanal span,.portfoy-kanal b,
+  .news-meta span,.news-body>small,.service-grid article>span,
+  .archive-live-card small,.city-radar-card small,.source-grid a small,
+  .social-feed-card-top span,.social-feed-card-top time,.editorial-hub-grid a small,
+  .canli-sayac span,.canli-sayac-not,.social-platform-tag,.social-profile-card small,
+  .revenue-tag,.offer-index,.ai-tags span,.story-card-copy small,
+  .program-kart b,.program-kopy small,.mobile-quick-nav a small,
+  .mfilm-etiket,.footer-legal,.article-eyebrow,.article-back,
+  .hm-kat,.hm-kaynak,.hm-format,.hm-kunye,.hm-tarih,
+  #newsGrid .news-body>small,.revenue-proof span,.social-feed-meta,.source-note,
+  .story-scroll,.city-radar-note,.social-profile-card .is-disabled,.packages-stamp span,
+  .eyebrow,.contact-form label,.article-meta span,.medya-etiket,
+  .footer-brand span,.final-footer>div>span,footer>small,.kariyer-yil,.kariyer-liste small,
+  .package-proof span,.package-proof small,.workflow-grid span,.package-card-top span,
+  .case-grid a span,.floating-whatsapp span,.floating-whatsapp b,.about-team-card small,
+  header.topbar a.quote,footer>div>span,#newsGrid .news-body>a.news-open,
+  .tag,.card .tag,.card>div>small,.media-copy b,.hero-meta b,.source-grid a span,
+  .ai-grid article>span,.head small,.head>a,.head .muted,.head .badge,.manifest small,
+  .founder small,footer>span,.eh-tags a,.eh-head span,.s-kicker,
+  .service-columns article>span,.service-strip span,.case-study-list article span,
+  .ai-badge,label{
+    font-size:var(--m-mikro)!important;letter-spacing:.06em!important;line-height:1.35!important}
+
+  /* Küçük katman: kart bağlantıları ve kısa açıklamalar. */
+  .mobile-category-rail a,.archive-live-card span,.contact-links a span,
+  .city-radar-card span,.social-feed-card a,.revenue-proof b,
+  .editorial-hub-grid a span,footer nav a,.inline-links a.text-link,a.text-link,
+  .social-profile-card a,.offer-link,.story-card-copy a,.portfoy-metin a,
+  .article-note,.article-source,
+  .footer-social a,.footer-contact a,.kariyer-baglanti a,.workflow-grid p,
+  .package-card>a,.about-value b,.teklif-cta-blok p,
+  .hero-actions .button,.inline-links .button,.founder-copy .button,#cf-submit,
+  .card>div>p,.media-copy span,footer>a,.eh-top>a,.eh-grid article>b,.s-card>b,
+  .cards .card>b,.case-study-list article a,.service-cta .button,.ai-actions .button,
+  .ai-footer .button,.founder .button{
+    font-size:var(--m-kucuk)!important}
+
+  /* İkincil katman: kart gövde metni. */
+  .portfoy-metin p,.social-feed-card p,.ai-grid article p{
+    font-size:var(--m-ikincil)!important;line-height:1.5!important}
+}
+
+/* Dokunma hedefleri · 2026-10-06 günlük denetimi
+   390 px'de /en/ dil düğmeleri 19x23, alt bilgi bağlantıları 18 px; arama
+   stratejisi ve programatik SEO kart bağlantıları 22 px yüksekti. Bu
+   sayfalar mobile-motion.css'i yüklemediği için anasayfadaki 44 px kuralı
+   onlara ulaşmıyordu. Görünüm değişmez, yalnız dokunulan alan büyür. */
+@media (max-width:720px){
+  .language-switch a{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px}
+  .site-footer a,.s-card>a,.p-card>a{display:inline-flex;align-items:center;min-height:44px}
+  /* /en/ alt bilgisi ızgaraydı; "·" ayraçları ayrı satıra düşüyordu. */
+  .site-footer{display:flex;flex-wrap:wrap;align-items:center;gap:0 12px}
+}

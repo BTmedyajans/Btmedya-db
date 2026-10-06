@@ -1,0 +1,41 @@
+{
+ "dosya": "/assets/media/web/giris-ai.mp4",
+ "sure": 28.6,
+ "etiket": "AI ÜRETİMİ · BTMEDYA KARAKTER FİLMİ",
+ "kaynak": "BTMEDYA AI LAB giriş filmi",
+ "bolumler": [
+  {
+   "bolum": "AÇILIŞ",
+   "bas": 0.0
+  },
+  {
+   "bolum": "SAHA",
+   "alt": "GECE ÇEKİMİ",
+   "bas": 2.6
+  },
+  {
+   "bolum": "STÜDYO",
+   "alt": "YEŞİL PERDE ÇEKİMİ",
+   "bas": 6.8
+  },
+  {
+   "bolum": "STÜDYO MASASI",
+   "alt": "SET ÇEKİMİ",
+   "bas": 11.8
+  },
+  {
+   "bolum": "KAMERA ARKASI",
+   "alt": "STÜDYODA ÇEKİM ANI",
+   "bas": 16.8
+  },
+  {
+   "bolum": "PRODÜKSİYON",
+   "alt": "DEFİLE ÇEKİMİ",
+   "bas": 21.4
+  },
+  {
+   "bolum": "KAPANIŞ",
+   "bas": 26.0
+  }
+ ]
+}

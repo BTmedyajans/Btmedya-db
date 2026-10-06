@@ -1,0 +1,107 @@
+/* BTMEDYA Film Seçimi + Film Sesi · 2026-10-06
+   Siyah-gri saydam cam düğmeler, gri degrade yazı, harf harf motion başlık.
+   Seçenekler filmin üstünde açılır; film görünür kalır (eski seçim sahnesi
+   filmi gizliyordu). Dokunma hedefleri ≥44 px. */
+.film-secim{position:absolute;inset:0;z-index:30;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;color:#ececef;
+  --cam:linear-gradient(135deg,rgba(30,30,34,.46),rgba(8,8,10,.34));--cam-cizgi:rgba(255,255,255,.15);--gri-yazi:linear-gradient(180deg,#fbfbfc 0%,#b9b9c0 100%)}
+.film-secim[hidden]{display:none}
+.fs-perde{position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,3,5,0) 28%,rgba(3,3,5,.5) 58%,rgba(3,3,5,.86) 100%);opacity:0;transition:opacity 1s ease}
+.film-secim.is-acik .fs-perde{opacity:1}
+/* --fs-tasma: masaüstünde yapışkan sahnenin ekran altında kalan kısmı (film-secim.js ölçer);
+   seçenekler görünen alanın içinde durur. */
+.fs-icerik{position:relative;width:min(1120px,calc(100% - 48px));padding:0 0 calc(clamp(28px,6vh,64px) + var(--fs-tasma,0px));pointer-events:auto}
+.fs-ust{display:flex;align-items:center;gap:12px;margin:0 0 14px;font:700 11px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.26em;color:rgba(232,232,238,.62);
+  opacity:0;transform:translateY(10px);transition:opacity .6s ease .05s,transform .8s cubic-bezier(.16,1,.3,1) .05s}
+.fs-ust i{display:block;width:44px;height:1px;background:rgba(255,255,255,.4);transform:scaleX(0);transform-origin:left;transition:transform .9s cubic-bezier(.16,1,.3,1) .25s}
+.film-secim.is-acik .fs-ust{opacity:1;transform:none}
+.film-secim.is-acik .fs-ust i{transform:scaleX(1)}
+.fs-baslik{margin:0 0 22px;font:800 clamp(40px,6.4vw,104px)/.88 'Space Grotesk','Bricolage Grotesque',Inter,Arial,sans-serif;letter-spacing:-.045em;perspective:700px}
+.fs-satir{display:block;white-space:nowrap}
+/* Her harf alttan, eğik ve bulanık gelir; gri degrade cam görünümünü taşır. */
+.fs-h{display:inline-block;background:var(--gri-yazi);-webkit-background-clip:text;background-clip:text;color:transparent;
+  opacity:0;transform:translateY(.6em) rotateX(-75deg);transform-origin:50% 100%;filter:blur(8px);
+  transition:opacity .55s ease,transform .8s cubic-bezier(.16,1,.3,1),filter .7s ease;transition-delay:calc(.2s + var(--i) * .035s)}
+.film-secim.is-acik .fs-h{opacity:1;transform:none;filter:blur(0)}
+.fs-liste{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.fs-secenek{position:relative;display:flex;align-items:center;gap:16px;min-height:84px;padding:18px 20px;border-radius:18px;overflow:hidden;
+  border:1px solid var(--cam-cizgi);background:var(--cam);backdrop-filter:blur(18px) saturate(115%);-webkit-backdrop-filter:blur(18px) saturate(115%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 24px 60px rgba(0,0,0,.38);color:#ececef;text-decoration:none;
+  opacity:0;transform:translateY(28px) scale(.98);
+  transition:opacity .6s ease calc(.85s + var(--s) * .15s),transform .9s cubic-bezier(.16,1,.3,1) calc(.85s + var(--s) * .15s),border-color .3s ease,background .3s ease,box-shadow .3s ease}
+.film-secim.is-acik .fs-secenek{opacity:1;transform:none}
+.fs-secenek:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(240px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.13),transparent 62%);opacity:0;transition:opacity .3s ease}
+/* Cam yüzeyden bir kez geçen ışık şeridi: düğme göründüğü an. */
+.fs-secenek:after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:30%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,255,255,.14),transparent);transform:skewX(-18deg);opacity:0}
+.film-secim.is-acik .fs-secenek:after{animation:fsParilti 1.4s cubic-bezier(.4,0,.2,1) calc(1.3s + var(--s) * .15s) 1 both}
+.fs-secenek:hover,.fs-secenek:focus-visible{border-color:rgba(255,255,255,.36);background:linear-gradient(135deg,rgba(44,44,50,.58),rgba(10,10,12,.48));box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 28px 70px rgba(0,0,0,.5)}
+.fs-secenek:hover:before,.fs-secenek:focus-visible:before{opacity:1}
+.fs-secenek:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.fs-no{flex:0 0 auto;font:600 11px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;color:rgba(222,222,228,.5)}
+.fs-ad{display:flex;flex-direction:column;gap:6px;min-width:0}
+/* Düğme adı soldan sağa maskeyle yazılır. */
+.fs-ad b{font:800 clamp(18px,1.55vw,23px)/1 'Space Grotesk','Bricolage Grotesque',Inter,Arial,sans-serif;letter-spacing:.05em;white-space:nowrap;
+  background:var(--gri-yazi);-webkit-background-clip:text;background-clip:text;color:transparent;
+  clip-path:inset(0 100% 0 0);transition:clip-path .8s cubic-bezier(.65,0,.35,1) calc(1.05s + var(--s) * .15s)}
+.film-secim.is-acik .fs-ad b{clip-path:inset(0 0 0 0)}
+.fs-ad small{font:500 12.5px/1.3 Manrope,Inter,Arial,sans-serif;color:rgba(206,206,214,.68);opacity:0;transform:translateY(6px);
+  transition:opacity .6s ease calc(1.35s + var(--s) * .15s),transform .6s ease calc(1.35s + var(--s) * .15s)}
+.film-secim.is-acik .fs-ad small{opacity:1;transform:none}
+.fs-ok{margin-left:auto;flex:0 0 auto;font-size:19px;line-height:1;color:rgba(230,230,236,.55);transition:transform .3s cubic-bezier(.16,1,.3,1),color .3s ease}
+.fs-secenek:hover .fs-ok,.fs-secenek:focus-visible .fs-ok{transform:translate(3px,-3px);color:#fff}
+.fs-tekrar{margin-top:14px;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(10,10,12,.36);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:rgba(232,232,238,.82);font:600 13px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer;
+  opacity:0;transition:opacity .6s ease 1.9s,border-color .25s ease}
+.film-secim.is-acik .fs-tekrar{opacity:1}
+.fs-tekrar:hover{border-color:rgba(255,255,255,.4)}
+.fs-tekrar:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@keyframes fsParilti{0%{left:-40%;opacity:0}20%{opacity:1}100%{left:120%;opacity:0}}
+
+/* Film oynarken hero başlığı %12 opaklıkta bulanık bir iz olarak filmin
+   üstünde kalıyordu (hero-sequence-v2.css); tek filmde film oynarken gizli. */
+.cinematic-hero[data-tek-film].bt-hero-intro-active .cinematic-copy{opacity:0!important;filter:none}
+/* Seçenekler açılınca filmin üstündeki diğer katmanlar çekilir. */
+.cinematic-hero.film-secim-acik .cinematic-copy{opacity:0!important;transform:translateY(-14px);pointer-events:none;transition:opacity .6s ease,transform .8s cubic-bezier(.16,1,.3,1)}
+.cinematic-hero.film-secim-acik .bt-3d-model,.cinematic-hero.film-secim-acik .film-ses-davet{opacity:0;pointer-events:none}
+.cinematic-hero.film-secim-acik .mfilm-oynat{display:none!important}
+
+/* Ses düğmesi: cam hap, açıkken ses çubukları oynar. */
+.film-ses{position:absolute;right:24px;top:24px;z-index:35;display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:0 15px 0 13px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(10,10,12,.4);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  color:#ececef;font:700 11px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;cursor:pointer;transition:border-color .25s ease,background .25s ease}
+.film-ses:hover{border-color:rgba(255,255,255,.4);background:rgba(10,10,12,.58)}
+.film-ses:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.film-ses-cubuk{display:inline-flex;align-items:flex-end;gap:2px;height:13px}
+.film-ses-cubuk b{display:block;width:3px;height:4px;border-radius:1px;background:currentColor;opacity:.55}
+.film-ses.acik .film-ses-cubuk b{opacity:1;animation:fsCubuk .9s ease-in-out infinite}
+.film-ses.acik .film-ses-cubuk b:nth-child(2){animation-delay:-.3s}
+.film-ses.acik .film-ses-cubuk b:nth-child(3){animation-delay:-.6s}
+@keyframes fsCubuk{0%,100%{height:4px}50%{height:13px}}
+/* Tarayıcı sesli başlatmayı reddettiğinde: ortada büyük davet. */
+.film-ses-davet{position:absolute;left:50%;top:50%;z-index:34;display:inline-flex;align-items:center;gap:12px;min-height:56px;padding:0 26px 0 20px;transform:translate(-50%,-50%);
+  border-radius:999px;border:1px solid rgba(255,255,255,.26);background:rgba(8,8,10,.5);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  color:#f4f4f6;font:800 14px/1 'Space Grotesk',Inter,Arial,sans-serif;letter-spacing:.14em;cursor:pointer;box-shadow:0 20px 60px rgba(0,0,0,.45);transition:opacity .4s ease}
+.film-ses-davet[hidden]{display:none}
+.film-ses-davet i{position:relative;width:12px;height:12px;border-radius:50%;background:#fff}
+.film-ses-davet i:after{content:"";position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(255,255,255,.6);animation:fsNabiz 1.6s ease-out infinite}
+.film-ses-davet:focus-visible{outline:2px solid #fff;outline-offset:3px}
+@keyframes fsNabiz{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.8);opacity:0}}
+
+@media(max-width:720px){
+  .fs-icerik{width:calc(100% - 24px);padding-bottom:14px}
+  .fs-ust{margin-bottom:10px;font-size:10px}
+  .fs-baslik{margin-bottom:14px;font-size:clamp(32px,10.4vw,46px)}
+  .fs-liste{grid-template-columns:1fr;gap:8px}
+  .fs-secenek{min-height:60px;padding:12px 14px;gap:12px;border-radius:14px}
+  .fs-ad b{font-size:17px}
+  .fs-ad small{font-size:12px}
+  .fs-tekrar{margin-top:10px;font-size:12px}
+  /* Sol üstteki AI ÜRETİMİ etiketi düğmenin altına girmesin: etiket gerekirse iki satıra iner. */
+  .film-ses{top:12px;right:12px;min-height:44px;padding:0 12px 0 11px;font-size:10px}
+  .cinematic-hero[data-tek-film] .mfilm-etiket{max-width:calc(100% - 148px)}
+  .film-ses-davet{min-height:52px;padding:0 22px 0 18px;font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){
+  .fs-perde,.fs-ust,.fs-ust i,.fs-h,.fs-secenek,.fs-ad b,.fs-ad small,.fs-tekrar{transition:none!important}
+  .fs-h{filter:none}
+  .film-secim.is-acik .fs-secenek:after,.film-ses.acik .film-ses-cubuk b,.film-ses-davet i:after{animation:none}
+}

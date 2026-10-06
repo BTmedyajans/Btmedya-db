@@ -1,0 +1,60 @@
+/* BTMEDYA MOTION SYSTEM V2 · dynamic editorial navigation + CSS 3D model */
+:root{--bt-motion-ease:cubic-bezier(.16,1,.3,1);--bt-motion-lime:#d9ff3f;--bt-motion-cyan:#35d6ff;--bt-motion-bg:#050607}
+html{background:var(--bt-motion-bg)}
+body{--bt-mx:0;--bt-my:0;--bt-scroll:0;--bt-tilt-x:0deg;--bt-tilt-y:0deg;--bt-tilt-z:0deg;perspective:1200px}
+/* Link-to-link editorial transition */
+/* overflow:hidden: :before 1.08 ölçekli; body perspective taşıdığı için sabit katman
+   belge genişliğine sayılıyor ve 10 sayfayı yana kaydırıyordu (390 px'de +16 px). */
+.bt-page-transition{position:fixed;inset:0;z-index:10050;overflow:hidden;display:grid;place-items:center;background:#050607;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .42s var(--bt-motion-ease),visibility 0s linear .42s}
+.bt-page-transition.is-active{opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}
+.bt-page-transition:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,rgba(53,214,255,.18),transparent 30%),linear-gradient(115deg,transparent 0 44%,rgba(217,255,63,.08) 44.2% 44.5%,transparent 44.7% 100%);transform:scale(1.08);transition:transform .7s var(--bt-motion-ease)}
+.bt-page-transition.is-active:before{transform:scale(1)}
+.bt-transition-inner{position:relative;width:min(720px,78vw);display:flex;align-items:flex-end;justify-content:space-between;gap:20px;color:#fff}
+.bt-transition-kicker{color:var(--bt-motion-lime);font:700 10px/1.2 ui-monospace,monospace;letter-spacing:.18em}
+.bt-transition-title{margin:12px 0 0;font:800 clamp(34px,7vw,88px)/.82 "Space Grotesk",system-ui,sans-serif;letter-spacing:-.08em;text-transform:uppercase}
+.bt-transition-index{font:700 clamp(44px,9vw,120px)/.8 "Space Grotesk",system-ui,sans-serif;letter-spacing:-.1em;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.5)}
+/* Pointer and scroll parallax; only compositor properties are animated */
+[data-bt-parallax]{--bt-depth:10px;transform:translate3d(calc(var(--bt-mx) * var(--bt-depth)),calc(var(--bt-my) * var(--bt-depth) + var(--bt-scroll) * var(--bt-scroll-depth,0px)),0);transition:transform .35s var(--bt-motion-ease)}
+.bt-parallax-layer{will-change:transform;transform:translate3d(calc(var(--bt-mx) * 8px),calc(var(--bt-my) * 8px + var(--bt-scroll) * -10px),0)}
+/* CSS 3D model: abstract BTMEDYA signal/orbit, intentionally not a stock asset */
+.bt-3d-model{position:absolute;right:clamp(24px,7vw,110px);top:clamp(88px,15vh,160px);width:clamp(120px,16vw,240px);aspect-ratio:1;z-index:4;pointer-events:none;perspective:900px;opacity:.82;transform:translate3d(calc(var(--bt-mx) * 10px),calc(var(--bt-my) * 10px),0) rotateX(var(--bt-tilt-x)) rotateY(var(--bt-tilt-y)) rotateZ(var(--bt-tilt-z));transform-style:preserve-3d;transition:transform .32s var(--bt-motion-ease),filter .45s ease}
+.bt-3d-model .bt-orbit,.bt-3d-model .bt-core{position:absolute;inset:0;border:1px solid rgba(53,214,255,.7);border-radius:50%;transform-style:preserve-3d;box-shadow:0 0 28px rgba(53,214,255,.13),inset 0 0 22px rgba(217,255,63,.08)}
+.bt-3d-model .bt-orbit:nth-child(1){transform:rotateX(68deg) rotateZ(0deg);animation:btOrbitA 11s linear infinite}
+.bt-3d-model .bt-orbit:nth-child(2){transform:rotateY(68deg) rotateZ(24deg);border-color:rgba(217,255,63,.72);animation:btOrbitB 8s linear infinite reverse}
+.bt-3d-model .bt-orbit:nth-child(3){transform:rotateX(28deg) rotateY(58deg);border-color:rgba(255,255,255,.38);animation:btOrbitC 14s linear infinite}
+.bt-3d-model .bt-core{inset:29%;border-color:var(--bt-motion-lime);background:radial-gradient(circle at 35% 28%,#fff 0 3%,#d9ff3f 4% 20%,#13200c 58%,transparent 68%);box-shadow:0 0 30px rgba(217,255,63,.32);animation:btCorePulse 3.2s ease-in-out infinite}
+.bt-3d-model:after{content:"BT / SIGNAL";position:absolute;left:50%;top:calc(100% + 15px);transform:translateX(-50%);white-space:nowrap;color:rgba(255,255,255,.56);font:700 9px/1 ui-monospace,monospace;letter-spacing:.18em}
+/* Category geometry signatures: one common rig, four distinct visual languages. */
+body[data-hero-scene="haber"] .bt-3d-model{filter:hue-rotate(0deg) saturate(1.18)}
+body[data-hero-scene="haber"] .bt-3d-model .bt-orbit:nth-child(1){transform:rotateX(76deg) rotateZ(0deg);border-color:#64e4ff}
+body[data-hero-scene="haber"] .bt-3d-model .bt-orbit:nth-child(2){transform:rotateY(54deg) rotateZ(18deg);border-style:dashed;border-color:#35d6ff}
+body[data-hero-scene="haber"] .bt-3d-model .bt-orbit:nth-child(3){transform:rotateX(18deg) rotateY(72deg);border-color:rgba(255,255,255,.55)}
+body[data-hero-scene="haber"] .bt-3d-model:after{content:"HABER / SIGNAL"}
+body[data-hero-scene="produksiyon"] .bt-3d-model{filter:hue-rotate(52deg) saturate(1.12)}
+body[data-hero-scene="produksiyon"] .bt-3d-model .bt-orbit{border-radius:18%;transform-style:preserve-3d}
+body[data-hero-scene="produksiyon"] .bt-3d-model .bt-orbit:nth-child(1){transform:rotateX(70deg) rotateZ(45deg);border-color:#65e6a4}
+body[data-hero-scene="produksiyon"] .bt-3d-model .bt-orbit:nth-child(2){transform:rotateY(68deg) rotateZ(45deg);border-style:solid;border-color:#d9ff3f}
+body[data-hero-scene="produksiyon"] .bt-3d-model .bt-orbit:nth-child(3){transform:rotateX(30deg) rotateY(55deg);border-color:rgba(255,255,255,.48)}
+body[data-hero-scene="produksiyon"] .bt-3d-model:after{content:"PROD / FRAME"}
+body[data-hero-scene="medya"] .bt-3d-model{filter:hue-rotate(228deg) saturate(1.2)}
+body[data-hero-scene="medya"] .bt-3d-model .bt-orbit{border-style:dotted}
+body[data-hero-scene="medya"] .bt-3d-model .bt-orbit:nth-child(1){transform:rotateX(62deg) rotateZ(24deg);border-color:#a78bfa}
+body[data-hero-scene="medya"] .bt-3d-model .bt-orbit:nth-child(2){transform:rotateY(76deg) rotateZ(-16deg);border-color:#c4b5fd}
+body[data-hero-scene="medya"] .bt-3d-model .bt-orbit:nth-child(3){transform:rotateX(42deg) rotateY(46deg);border-color:rgba(255,255,255,.7)}
+body[data-hero-scene="medya"] .bt-3d-model:after{content:"MEDIA / FLOW"}
+body[data-hero-scene="ai"] .bt-3d-model{filter:hue-rotate(304deg) saturate(1.35)}
+body[data-hero-scene="ai"] .bt-3d-model .bt-orbit{border-radius:28% 72% 35% 65%;border-style:dashed}
+body[data-hero-scene="ai"] .bt-3d-model .bt-orbit:nth-child(1){transform:rotateX(38deg) rotateZ(45deg);border-color:#ff5662}
+body[data-hero-scene="ai"] .bt-3d-model .bt-orbit:nth-child(2){transform:rotateY(56deg) rotateZ(-35deg);border-color:#ff9aa2}
+body[data-hero-scene="ai"] .bt-3d-model .bt-orbit:nth-child(3){transform:rotateX(76deg) rotateY(18deg);border-color:rgba(255,255,255,.8)}
+body[data-hero-scene="ai"] .bt-3d-model .bt-core{clip-path:polygon(50% 0,92% 24%,92% 76%,50% 100%,8% 76%,8% 24%);background:radial-gradient(circle at 35% 28%,#fff 0 3%,#ff5662 4% 20%,#260b11 58%,transparent 68%)}
+body[data-hero-scene="ai"] .bt-3d-model:after{content:"AI / NEURAL"}
+@keyframes btOrbitA{to{transform:rotateX(68deg) rotateZ(360deg)}}
+@keyframes btOrbitB{to{transform:rotateY(68deg) rotateZ(-336deg)}}
+@keyframes btOrbitC{to{transform:rotateX(388deg) rotateY(58deg)}}
+@keyframes btCorePulse{50%{transform:scale(1.1);filter:brightness(1.18)}}
+/* New pages inherit a subtle depth reveal without disturbing existing layout */
+body.bt-motion-ready main{animation:btPageIn .62s var(--bt-motion-ease) both}
+@keyframes btPageIn{from{opacity:.84;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media(max-width:720px){.bt-3d-model{right:16px;top:82px;width:108px;opacity:.48}.bt-3d-model:after{font-size:7px}.bt-transition-inner{width:calc(100% - 36px)}[data-bt-parallax],.bt-parallax-layer{transform:none!important;transition:none!important}.bt-3d-model{transform:translate3d(0,0,0) rotateX(var(--bt-tilt-x)) rotateY(var(--bt-tilt-y)) rotateZ(var(--bt-tilt-z))}}
+@media(prefers-reduced-motion:reduce){.bt-page-transition,.bt-page-transition:before,body.bt-motion-ready main{transition:none!important;animation:none!important}.bt-3d-model{display:none}.bt-3d-model *{animation:none!important}[data-bt-parallax],.bt-parallax-layer{transform:none!important;transition:none!important}}

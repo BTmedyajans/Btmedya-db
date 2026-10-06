@@ -378,6 +378,129 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   if (!/navigator\.webdriver/.test(olcum)) bulgular.push('public/olcum.js otomatik tarayıcıları ayıklamıyor; kendi testlerimiz okur sayısını şişirir.');
 }
 
+/* 14) Dizinlenen her sayfa mobil paylaşım önizlemesi ve okunaklılık için
+       og:image, twitter:card, viewport ve mobil tipografi katmanını taşımalı.
+       5 Ekim denetiminde 8 sayfada og:image/twitter:card yoktu (WhatsApp
+       önizlemesi görselsiz); anasayfada 291 metin öğesi 12 px altındaydı. */
+{
+  const haric = /^public\/(admin|client|social-studio)\/|^public\/google[^/]*\.html$|^public\/404\.html$/;
+  const tara = (dizin) => readdirSync(dizin, { withFileTypes: true }).flatMap(g => {
+    const yol = join(dizin, g.name);
+    if (g.isDirectory()) return /^(assets|gorsel|data|media)$/.test(g.name) ? [] : tara(yol);
+    return g.name.endsWith('.html') ? [yol] : [];
+  });
+  for (const f of tara('public')) {
+    if (haric.test(f)) continue;
+    const html = readFileSync(f, 'utf8');
+    if (!html.includes('</head>') || /<meta name="robots" content="[^"]*noindex/.test(html)) continue;
+    for (const [ad, desen] of [['og:image', /property="og:image"/], ['twitter:card', /name="twitter:card"/], ['viewport', /name="viewport"/]])
+      if (!desen.test(html)) bulgular.push(`${f} ${ad} etiketi taşımıyor; mobil paylaşım/görünüm eksik kalır.`);
+    if (/site-motion-v2\.css/.test(html) && !/mobil-tipografi\.css/.test(html)) bulgular.push(`${f} mobil tipografi katmanını (mobil-tipografi.css) yüklemiyor; 12 px altı metin geri gelir.`);
+    if (/site-motion-v2\.css/.test(html) && !/kategori-menu\.js/.test(html)) bulgular.push(`${f} hamburger kategori menüsünü (kategori-menu.js) yüklemiyor; okur bu sayfadan diğer bölümlere menüyle geçemez.`);
+  }
+  if (!readFileSync('src/news-page.js', 'utf8').includes('/mobil-tipografi.css')) bulgular.push('src/news-page.js haber şablonu mobil tipografi katmanını yüklemiyor.');
+  if (!readFileSync('src/news-page.js', 'utf8').includes('/kategori-menu.js')) bulgular.push('src/news-page.js haber şablonu hamburger kategori menüsünü yüklemiyor.');
+  // Menüdeki her bağlantının karşılığı olmalı: statik sayfa ya da Worker'ın
+  // ürettiği temiz haber kategorisi adresi.
+  const menu = readFileSync('public/kategori-menu.js', 'utf8');
+  for (const [, yol] of menu.matchAll(/\['[^']+','(\/[^']*)'\]/g)) {
+    if (/^\/haberler\/(balikesir|turkiye|dunya|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|yasam)\/$/.test(yol)) continue;
+    if (!existsSync(join('public', yol, 'index.html'))) bulgular.push(`public/kategori-menu.js menü bağlantısı ${yol} için sayfa yok (public${yol}index.html).`);
+  }
+}
+
+/* 15) Betikle basılan GERÇEK ÇEKİM rozeti de katalogla eşleşmeli. 5 Ekim'de
+       mobile-motion.js, üzerinde "AI ÜRETİMİ GÖRSEL" yazan üç grafik kartı
+       (assets/sosyal/*-dikey.mp4) GERÇEK ÇEKİM diye bir video rayına koyup
+       VideoObject olarak bildiriyordu. Kural: public/ altındaki bir .js
+       dosyasında GERÇEK ÇEKİM yazısıyla aynı satırda geçen her /assets/
+       medya yolu medya-ozel.json gercek listesinde olmalı (sahne kayıtları
+       ve kart şablonları tek satırda yazılıyor). */
+{
+  const ozel = existsSync('public/data/medya-ozel.json') ? JSON.parse(readFileSync('public/data/medya-ozel.json', 'utf8')) : {};
+  const gercek = new Set((ozel.gercek || []).map(x => String(x).replace(/^\/?assets\//, '')));
+  for (const ad of readdirSync('public').filter(f => f.endsWith('.js'))) {
+    const kod = readFileSync(join('public', ad), 'utf8');
+    for (const pencere of kod.split('\n').filter(satir => satir.includes('GERÇEK ÇEKİM'))) {
+      for (const y of pencere.matchAll(/\/assets\/([^'"`\s)]+\.(?:mp4|webm|webp|jpe?g|png))/g)) {
+        if (!gercek.has(y[1])) bulgular.push(`public/${ad} "${y[1]}" dosyasının yanına GERÇEK ÇEKİM basıyor ama dosya medya-ozel.json gercek listesinde değil (AGENTS.md: varsayılan AI ÜRETİMİ).`);
+      }
+    }
+  }
+}
+
+/* 16) Yönetim paneli tek kategori menüsünden gezilir. Modüllerin kendi
+       gezinmesi farklıydı; Satış, Yayın ve Merak Radarı'ndan diğer
+       modüllere geçiş yoktu. Kural: yönlendirme sayfası olmayan her
+       panel modülü admin-menu.js yükler ve menüdeki her /admin/ yolu
+       gerçek bir dosyaya çıkar. */
+{
+  const moduller = ['agency-os/index.html', 'app.html', 'autopilot/index.html', 'editor/index.html', 'merak-radari/index.html', 'sales/index.html', 'yayin/index.html', 'client-hub/index.html'];
+  for (const m of moduller) {
+    const yol = join('public/admin', m);
+    if (!existsSync(yol)) { bulgular.push(`${yol} yok; yönetim menüsü bu modüle bağlantı veriyor.`); continue; }
+    if (!readFileSync(yol, 'utf8').includes('/admin/admin-menu.js')) bulgular.push(`${yol} yönetim kategori menüsünü (admin-menu.js) yüklemiyor.`);
+  }
+  const menu = readFileSync('public/admin/admin-menu.js', 'utf8');
+  for (const [, y] of menu.matchAll(/'(\/admin\/[^'#]*)(?:#[^']*)?'/g)) {
+    const dosya = y.endsWith('/') ? join('public', y, 'index.html') : join('public', y);
+    if (!existsSync(dosya)) bulgular.push(`public/admin/admin-menu.js menü bağlantısı ${y} için dosya yok (${dosya}).`);
+  }
+}
+
+/* 17) Mobil giriş filmi H.264 çözemeyen tarayıcıda WebM'e düşer. 5 Ekim'de
+       (c9b021f) canPlayType yedeği kaldırıldı; codec'siz Chromium/Firefox'ta
+       film hata 4 verip hiç başlamadı. Kural: anasayfadaki .mfilm-video
+       data-webm taşır, dosya vardır ve mobile-motion.js onu canPlayType
+       sonucuna göre seçer. */
+{
+  const ana = readFileSync('public/index.html', 'utf8');
+  const vid = (ana.match(/<video class="mfilm-video"[^>]*>/) || [''])[0];
+  const webm = (vid.match(/data-webm="([^"]+)"/) || [])[1];
+  if (!webm) bulgular.push('public/index.html .mfilm-video data-webm taşımıyor; H.264 çözemeyen tarayıcıda giriş filmi açılmaz.');
+  else if (!existsSync(join('public', webm))) bulgular.push(`public/index.html .mfilm-video data-webm dosyası yok: ${webm}`);
+  const mm = readFileSync('public/mobile-motion.js', 'utf8');
+  if (!/canPlayType\(\s*['"]video\/mp4[^)]*\)/.test(mm) || !mm.includes('dataset.webm')) bulgular.push('public/mobile-motion.js giriş filminde MP4 desteğini (canPlayType) sorup data-webm yedeğine düşmüyor.');
+}
+
+/* 18) Anasayfada yalniz giris filmi oynar (6 Ekim, kullanici istegi).
+       Kaydirmali sahne videolari ve arsiv kartlarindaki otomatik oynatma
+       sayfayi karisik gosteriyordu. Kural: index.html'de yalniz mobil ve
+       masaustu giris filmi <video> olarak bulunur, hero tek film modundadir
+       ve arsiv kartlari gorunur olunca oynatilmaz. */
+{
+  const ana = readFileSync('public/index.html', 'utf8');
+  const videolar = ana.match(/<video\b[^>]*>/g) || [];
+  const fazla = videolar.filter(v => !/class="mfilm-video"|data-slot="hero-video"/.test(v));
+  if (fazla.length) bulgular.push(`public/index.html giris filmi disinda ${fazla.length} video iceriyor; anasayfada yalniz giris filmi oynar.`);
+  if (!/<section class="cinematic-hero"[^>]*\bdata-tek-film\b/.test(ana)) bulgular.push('public/index.html hero tek film modunda degil (data-tek-film yok); kaydirmali sahneler geri gelir.');
+  const home = readFileSync('public/home.js', 'utf8');
+  const arsiv = (home.match(/grid\.querySelectorAll\('video'\)\.forEach\([\s\S]*?io\.observe\(v\)/) || [''])[0];
+  if (!arsiv || /\.play\(/.test(arsiv)) bulgular.push('public/home.js arsiv kartlarindaki videolari otomatik oynatiyor; anasayfada yalniz giris filmi oynar.');
+}
+
+/* 19) Giriş filmi sesli ve önce sesli denenir (6 Ekim, kullanıcı isteği).
+       Film parçalarında ses izi yoktu, film hep sessiz başlatılıyordu.
+       Kural: dört film dosyası ses izi taşır (MP4'te mp4a, WebM'de Opus),
+       film-ses.js filmi oynatan betiklerden önce yüklenir, mobil ve
+       masaüstü film btFilmOynat ile başlar ve tek film modunda sentez ses
+       katmanı (HERO SES KATMANI) filmin sesine binmez. */
+{
+  const ana = readFileSync('public/index.html', 'utf8');
+  for (const [dosya, imza] of [['giris-ai.mp4', 'mp4a'], ['giris-ai-genis.mp4', 'mp4a'], ['giris-ai.webm', 'OpusHead'], ['giris-ai-genis.webm', 'OpusHead']]) {
+    const yol = join('public/assets/media/web', dosya);
+    if (!existsSync(yol)) { bulgular.push(`${yol} yok.`); continue; }
+    if (!readFileSync(yol).includes(Buffer.from(imza))) bulgular.push(`${yol} ses izi taşımıyor (${imza} yok); giriş filmi sessiz kalır.`);
+  }
+  const sira = ['/film-ses.js', '/home.js', '/mobile-motion.js'].map(d => ana.indexOf(`<script src="${d}`));
+  if (sira.some(i => i < 0) || !(sira[0] < sira[1] && sira[0] < sira[2])) bulgular.push('public/index.html film-ses.js, home.js ve mobile-motion.js\'ten önce yüklenmiyor; film sesli denenmez.');
+  if (!/btFilmOynat/.test(readFileSync('public/mobile-motion.js', 'utf8'))) bulgular.push('public/mobile-motion.js mobil filmi btFilmOynat ile başlatmıyor; film hep sessiz başlar.');
+  const home = readFileSync('public/home.js', 'utf8');
+  if (!/btFilmOynat/.test(home)) bulgular.push('public/home.js masaüstü filmi btFilmOynat ile başlatmıyor; film hep sessiz başlar.');
+  if (!/if\(!root \|\| !dugme \|\| !AC \|\| root\.hasAttribute\('data-tek-film'\)\) return;/.test(home)) bulgular.push('public/home.js sentez ses katmanı tek film modunda kapanmıyor; filmin sesine biner.');
+  if (!existsSync('public/film-secim.js') || !ana.includes('/film-secim.js')) bulgular.push('public/index.html film sonu seçeneklerini (film-secim.js) yüklemiyor.');
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
