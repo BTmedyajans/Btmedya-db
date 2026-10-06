@@ -22,8 +22,8 @@
   if(introKicker) introKicker.textContent='BTMEDYA / GİRİŞ FİLMİ · AI ÜRETİMİ';
   // Mobil kalite kapısı bu sahne kaydını katalogla karşılaştırır: GERÇEK ÇEKİM
   // diyen film medya-ozel.json gercek listesinde olmalı.
-  // 6 Ekim: giriş filmi kullanıcının AI karakter videolarından kurgulandı.
-  const FILM={source:'AI ÜRETİMİ · BTMEDYA KARAKTER FİLMİ',video:'/assets/media/web/giris-ai.mp4'};
+  // 6 Ekim: giriş filmi gerçek BTMEDYA arşiv kurgusuna alındı; ses izi korunur.
+  const FILM={source:'GERÇEK ÇEKİM · BTMEDYA ARŞİVİ',video:'/assets/media/web/giris-filmi.mp4'};
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches, DEFAULT=FILM.video;
   const net=()=>navigator.connection||navigator.mozConnection||navigator.webkitConnection;
   const hqAllowed=()=>{const c=net(); if(!video.dataset.srcHq)return false; if(c?.saveData)return false; if(c?.effectiveType&&/^(slow-2g|2g|3g)$/i.test(c.effectiveType))return false; return !c||!c.effectiveType||c.effectiveType==='4g';};
@@ -43,7 +43,7 @@
   // Biten film ekrana geri gelince kendiliğinden baştan başlamasın: sonunda
   // seçim sahnesi (secim-sahnesi.js) açık kalır. "Yeniden izle" stopped'u sıfırlar.
   video.addEventListener('ended',()=>{stopped=true;if(playBtn){playBtn.hidden=false;playBtn.textContent='↺ Yeniden izle'}});
-  video.addEventListener('error',()=>{if(video.dataset.heroQuality==='hq'&&DEFAULT){video.dataset.heroQuality='standard';video.removeAttribute('src');video.src=kaynak();video.load();video.play().catch(()=>{});}});
+  video.addEventListener('error',()=>{if(video.dataset.heroQuality==='hq'&&DEFAULT){video.dataset.heroQuality='standard';video.removeAttribute('src');video.src=(hqAllowed()&&video.dataset.srcHq?video.dataset.srcHq:kaynak());video.load();video.play().catch(()=>{});}});
   if('IntersectionObserver' in window)new IntersectionObserver(es=>es.forEach(e=>{visible=e.isIntersecting;if(visible&&!reduced)start();else if(!visible)video.pause()}),{threshold:.15}).observe(video);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)video.pause();else if(!reduced)start()});
   if(label)label.textContent=FILM.source; sound();

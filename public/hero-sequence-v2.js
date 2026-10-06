@@ -15,7 +15,7 @@
   const film=mobile?root.querySelector('.mfilm-video'):root.querySelector('.cinematic-video-1 video');
   if(!film)return;
   const intro= document.createElement('div'); intro.className='bt-hero-intro'; intro.setAttribute('role','region'); intro.setAttribute('aria-label','BTMEDYA giriş filmi');
-  intro.innerHTML='<div class="bt-hero-intro-card"><span class="bt-hero-intro-kicker">BTMEDYA / GİRİŞ FİLMİ</span><strong>HABER · SOSYAL<br><em>TANITIM.</em></strong><p>Sesli giriş filmi; sonunda yolunu seç.</p><div class="bt-hero-intro-aksiyon"><button type="button" class="bt-hero-start">▶ İzle</button><button type="button" class="bt-hero-gec">Filmi geç</button></div></div>';
+  intro.innerHTML='<div class="bt-hero-intro-card"><span class="bt-hero-intro-kicker">BTMEDYA / GİRİŞ FİLMİ</span><strong>SAHA · STÜDYO<br><em>PRODÜKSİYON.</em></strong><p>Sesli gerçek arşiv filmi; saha, stüdyo, kamera arkası ve prodüksiyon tek hikâyede.</p><div class="bt-hero-intro-aksiyon"><button type="button" class="bt-hero-start">▶ İzle</button><button type="button" class="bt-hero-gec">Filmi geç</button></div></div>';
   // Mobilde kart kare filmin altında durur, böylece posterin kendi başlığı
   // ("SAHADAN STÜDYOYA") örtülmez.
   // Masaüstü hero birkaç ekran boyunda; kart köke eklenince bu yüksekliğin
@@ -26,14 +26,14 @@
   /* Kartın kaynak satırı oynayacak filmin kaydından gelir (AGENTS.md:
      varsayılan AI ÜRETİMİ). Panel ataması yoksa sayfanın varsayılan filmi
      oynar; o arşiv kurgusu medya-ozel.json gercek listesindedir. */
-  const ARSIV_FILMI=/\/giris-filmi(-genis)?\.(mp4|webm)$/;
+  const ARSIV_FILMI=/\/giris-filmi(-genis)?(-hq)?\.(mp4|webm)$/;
   Promise.resolve(window.btYuvalar).then(y=>{
     // Eski AI filmine (hero-story) yapılmış panel ataması tek filmde yok sayılır (home.js ile aynı kural).
-    const a0=y&&y['hero-video'], a=a0&&!(root.hasAttribute('data-tek-film')&&/\/hero-story(-mobile)?\.mp4$/.test(String(a0.url||'').split('?')[0]))?a0:null, atanmis=a&&a.tur==='video'&&a.url;
+    const a0=y&&y['hero-video'], a=a0&&!(root.hasAttribute('data-tek-film')&&/\/(hero-story(-mobile)?|giris-ai(-genis)?)\.mp4$/.test(String(a0.url||'').split('?')[0]))?a0:null, atanmis=a&&a.tur==='video'&&a.url;
     const url=String(atanmis?a.url:(film.dataset.src||'')).split('?')[0];
     const gercek=atanmis?a.gercek===true:ARSIV_FILMI.test(url);
     intro.querySelector('.bt-hero-intro-kicker').textContent='BTMEDYA / GİRİŞ FİLMİ · '+(gercek?'GERÇEK ÇEKİM':'AI ÜRETİMİ');
-    if(gercek&&ARSIV_FILMI.test(url))intro.querySelector('p').textContent='BTMEDYA arşivinden 28 saniye: saha, stüdyo, kamera arkası ve prodüksiyon.';
+    if(gercek&&ARSIV_FILMI.test(url))intro.querySelector('p').textContent='BTMEDYA arşivinden 28,6 saniye: saha, stüdyo, kamera arkası ve prodüksiyon.';
   }).catch(()=>{});
   const net=()=>navigator.connection||navigator.mozConnection||navigator.webkitConnection;
   const hqIcin = video => {
