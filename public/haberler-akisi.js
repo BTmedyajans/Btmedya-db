@@ -42,6 +42,10 @@
   function kategori(n) {
     var c = String(n.category || '');
     var metin = norm(c + ' ' + (n.title || '') + ' ' + (n.excerpt || '') + ' ' + (Array.isArray(n.body) ? n.body.slice(0, 2).join(' ') : ''));
+    // Güçlü yerel sinyal, tematik kelimelerden önce değerlendirilir.
+    // Böylece Balıkesir'e ait ekonomi/teknoloji/gündem haberleri yerelde kalır.
+    var yerelRegex = /\\b(balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|dursunbey|savastepe|bigadic|ivindi|manyas|havran|gomec|erdek|balya|sindirgi|pazar|altyapi|ulasim|belediye)\\b/;
+    if (yerelRegex.test(metin)) return 'balikesir';
     var aliased = [
       ['teknoloji', /(yapay zeka|teknoloji|yazilim|dijital|\bai\b|teknofest|uygulama|platform)/],
       ['yasam', /(yasam|gundelik|aile|kadın|kadin|cocuk|magazin|moda|evlilik|dugun)/],
@@ -112,7 +116,7 @@
   /* ---- Bölümler ---- */
   function serit(liste) {
     var yer = kok.querySelector('[data-hm-serit]'); if (!yer) return;
-    var son = liste.slice(0, 8);
+    var son = liste.slice(0, 12);
     var taze = son.length && Date.now() - zaman(son[0]) < 3 * 3600 * 1000;
     var parca = son.map(function (n) {
       var t = zaman(n), saat = t ? new Date(t).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '';
@@ -314,11 +318,12 @@
     guncel.sort(function (a, b) { return (zaman(b) || 0) - (zaman(a) || 0); });
     tumHaberler = guncel;
 
-    // Manşet: en yeni 10 haber, bir kategoriden en fazla 3 (tek konu manşeti doldurmasın).
+    // Manşet: Balıkesir önce, ardından diğer kategoriler dengeli biçimde.
     var sayac = {}, mansetler = [];
-    guncel.forEach(function (n) { if (mansetler.length < 10 && (sayac[n._kat] || 0) < 3) { mansetler.push(n); sayac[n._kat] = (sayac[n._kat] || 0) + 1; } });
+    guncel.filter(function (n) { return n._kat === 'balikesir'; }).slice(0, 5).forEach(function (n) { mansetler.push(n); sayac.balikesir = (sayac.balikesir || 0) + 1; });
+    guncel.forEach(function (n) { if (mansetler.length < 12 && (sayac[n._kat] || 0) < 3) { mansetler.push(n); sayac[n._kat] = (sayac[n._kat] || 0) + 1; } });
     var kalan = guncel.filter(function (n) { return mansetler.indexOf(n) < 0; });
-    var surler = kalan.slice(0, 8);
+    var surler = kalan.slice(0, 12);
     var gruplar = {}; KATEGORILER.forEach(function (k) { gruplar[k[0]] = []; });
     kalan.slice(8).forEach(function (n) { gruplar[n._kat].push(n); });
     // Bloğu boş kalan kategoriye sürmanşet dışındaki en yeni haberleri ver; yine de tekrar etme.
@@ -329,7 +334,7 @@
       el.textContent = (k === 'tumu' ? guncel.length : guncel.filter(function (n) { return n._kat === k; }).length) + ' haber';
     });
     serit(guncel);
-    akis(guncel.slice(0, 7));
+    akis(guncel.slice(0, 12));
     manset(mansetler);
     surmanset(surler);
     bloklar(gruplar);
