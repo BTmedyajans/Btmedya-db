@@ -86,6 +86,13 @@ assert.equal(k('Yaşam'), 'yasam');
 assert.equal(k('Türkiye'), 'turkiye');
 assert.equal(k('Spor', 'Milli güreşçi dünya şampiyonu oldu'), 'spor');
 assert.equal(k('', 'Balıkesir Büyükşehir yeni hat açtı'), 'balikesir');
+// Genel kelime yer adı değildir: başka şehrin belediyesi, "pazar" (piyasa ya
+// da gün) ve "ulaşım" geçen ulusal haber Balıkesir etiketi almaz.
+assert.equal(k('Eğitim', 'Büyükçekmece Belediyesi bilim şenliği düzenledi'), 'egitim');
+assert.equal(k('Ekonomi', 'Küresel pazar rafineri kapasitesini tartışıyor'), 'ekonomi');
+assert.equal(k('Dünya', 'Zirve pazar günü toplanacak'), 'dunya');
+assert.equal(k('Türkiye', 'Bakanlık şehirler arası ulaşım planını açıkladı'), 'turkiye');
+assert.equal(k('Yerel · Pazar'), 'balikesir');
 // İlgili haberler kartı görselli: kapak varsa metinsiz "-foto" kare ve kaynak
 // etiketi basılır; kapaksız haber kırık <img> değil yazılı kart olur.
 const { renderNewsPage } = await import('../src/news-page.js');

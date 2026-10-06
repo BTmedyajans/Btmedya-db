@@ -47,7 +47,11 @@
     var metin = norm(c + ' ' + (n.title || '') + ' ' + (n.excerpt || '') + ' ' + (Array.isArray(n.body) ? n.body.slice(0, 2).join(' ') : ''));
     // Güçlü yerel sinyal, tematik kelimelerden önce değerlendirilir.
     // Böylece Balıkesir'e ait ekonomi/teknoloji/gündem haberleri yerelde kalır.
-    var yerelRegex = /\b(balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|dursunbey|savastepe|bigadic|ivindi|manyas|havran|gomec|erdek|balya|sindirgi|pazar|altyapi|ulasim|belediye)\b/;
+    // Yalnız yer adları sayılır. Listede "pazar, altyapı, ulaşım, belediye" de
+    // vardı: Büyükçekmece Belediyesi'nin etkinliği, "küresel pazar" geçen
+    // ekonomi haberi ya da "pazar günü" diyen her metin Balıkesir etiketi
+    // alıyordu (6 Ekim, canlı Balıkesir sayfasında İstanbul ve dünya haberleri).
+    var yerelRegex = /\b(balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|dursunbey|savastepe|bigadic|ivindi|manyas|havran|gomec|erdek|balya|sindirgi)\b/;
     if (yerelRegex.test(metin)) return 'balikesir';
     // Yerel sinyalden sonra editoryal kategori alanı esastır: metninde "dünya
     // şampiyonu" geçen spor haberi Dünya'ya taşınmaz.
