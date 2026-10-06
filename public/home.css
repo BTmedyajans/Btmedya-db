@@ -315,3 +315,13 @@ footer .footer-logo{display:block;width:auto;height:54px;max-width:100%;margin-b
 .portfoy-bos-filtre strong{font:700 14px/1.35 Space,system-ui,sans-serif;color:#fff}
 .portfoy-bos-filtre span{font:500 11px/1.5 Jet,monospace;color:var(--muted)}
 @media (max-width:720px){.portfoy-filtre{align-items:flex-start;flex-direction:column;overflow:visible;flex-wrap:wrap}.portfoy-filtre-grup{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}.portfoy-filtre-label{min-width:max-content}.portfoy-bos-filtre{padding:28px}}
+
+/* Canonical three-path visitor routing: visible/crawlable fallback under hero. */
+.hero-paths-static{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:1120px;margin:18px auto 0;padding:0 24px;position:relative;z-index:31}
+.hero-paths-static a{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;min-height:66px;padding:12px 14px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(10,10,12,.38);color:inherit;text-decoration:none;backdrop-filter:blur(12px)}
+.hero-paths-static span{font:700 10px/1 Jet,monospace;color:rgba(255,255,255,.45)}
+.hero-paths-static b{font:800 15px/1.05 Space,Inter,sans-serif;letter-spacing:.05em}
+.hero-paths-static small{grid-column:2/3;color:rgba(220,220,226,.64);font:500 10px/1.3 Manrope,Inter,sans-serif}
+.hero-paths-static i{grid-column:3;grid-row:1/3;font-style:normal;color:rgba(255,255,255,.62)}
+.hero-paths-static a:hover,.hero-paths-static a:focus-visible{border-color:rgba(255,255,255,.34);background:rgba(18,18,22,.58)}
+@media(max-width:720px){.hero-paths-static{grid-template-columns:1fr;padding:0 12px;margin-top:10px;gap:7px}.hero-paths-static a{min-height:56px}.hero-paths-static small{font-size:9.5px}}
