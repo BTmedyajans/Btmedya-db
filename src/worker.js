@@ -350,7 +350,7 @@ async function newsApi(request, env, url, ctx){
     const live=socialProviderStatus(env);
     const fallbackProfiles=[
       {key:'instagram',label:'Instagram',url:'https://www.instagram.com/btmedyajans/',status:'verification_pending',note:'Metricool bağlantısı doğrulanıyor.'},
-      {key:'facebook',label:'Facebook',url:null,status:'verification_pending',note:'Metricool bağlantısı doğrulanıyor.'},
+      {key:'facebook',label:'Facebook · busetuncayy10',url:'https://www.facebook.com/people/busetuncayy10/100080226545931/',status:'connected_identity',note:'Metricool Brand 6725412 içinde doğrulanmış Facebook Sayfası; Page ID 107923075188798'},
       {key:'youtube',label:'YouTube',url:'https://www.youtube.com/@BTmedyaAjans',status:'connected_identity',note:'YouTube kanal kimliği doğrulandı.'},
       {key:'tiktok',label:'TikTok',url:'https://www.tiktok.com/@btmedya1010',status:'publishing_verified',note:'TikTok yayın durumu doğrulandı.'}
     ];
@@ -963,7 +963,7 @@ async function controlCenterApi(request, env, url){
       {key:'instagram-brand',label:'BTMEDYA Instagram @btmedyajans',url:'https://www.instagram.com/btmedyajans/',note:'BTMEDYA marka profili'},
       {key:'tiktok',label:'TikTok @btmedya1010',url:'https://www.tiktok.com/@btmedya1010',note:'Kısa video kanalı; yayın API’si ayrıca yetkilendirilmeli'},
       {key:'youtube',label:'YouTube @BTmedyaAjans',url:'https://www.youtube.com/@BTmedyaAjans',note:'Video arşivi ve Shorts hedefi'},
-      {key:'facebook',label:'Facebook Page · BTmedya',url:'https://www.facebook.com/575215109000565',note:'Meta’da doğrulanan BTmedya sayfası; yayın için META_PAGE_ID gerekir'},
+      {key:'facebook',label:'Facebook Page · BTmedya',url:'https://www.facebook.com/people/busetuncayy10/100080226545931/',note:'Meta’da doğrulanan BTmedya sayfası; yayın için META_PAGE_ID gerekir'},
       {key:'whatsapp',label:'WhatsApp teklif hattı',url:'https://wa.me/905416401029',note:'İletişim ve proje talebi'}
     ],
     integrations:{
