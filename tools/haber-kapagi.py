@@ -315,6 +315,8 @@ KATEGORI_RENK = [
     ("yerel", (100, 228, 255)),     # camgobegi: yerel
     ("egitim", (80, 214, 200)),     # camgobegi-yesil: egitim (ulasim ile ayni aile)
     ("teknoloji", (92, 168, 255)),  # mavi: teknoloji / savunma / TEKNOFEST
+    ("dunya", (64, 132, 220)),      # lacivert-mavi: dunya
+    ("yasam", (246, 150, 70)),      # turuncu: yasam / cevre / tuketici
 ]
 
 
@@ -905,6 +907,7 @@ def manset_sosyal(h, cikti, **kaynak):
 KATEGORI_PLAKALARI = {
     "gundem": "Gündem", "balikesir": "Balıkesir", "ekonomi": "Ekonomi", "spor": "Spor",
     "kultur": "Kültür Sanat", "saglik": "Sağlık", "egitim": "Eğitim", "teknoloji": "Teknoloji",
+    "dunya": "Dünya", "yasam": "Yaşam",
 }
 
 

@@ -21,6 +21,8 @@
     ['teknoloji', 'Teknoloji', /\b(yapay zeka|teknoloji|yazilim|dijital|ai|teknofest|uygulama|platform)\b/]
   ];
   var AD = {}; KATEGORILER.forEach(function (k) { AD[k[0]] = k[1]; });
+  // Dünya ve Yaşam yalnız editoryal kategori alanından okunur (worker ile aynı kural).
+  AD.dunya = 'Dünya'; AD.yasam = 'Yaşam';
   var KATEGORI_ACIKLAMA = {
     balikesir: 'Balıkesir merkez, ilçeler, belediye hizmetleri, ulaşım ve kent yaşamı.',
     gundem: 'Güvenlik, afet, yangın, kamu hizmetleri ve günlük gelişmeler.',
@@ -29,7 +31,9 @@
     egitim: 'Okullar, üniversiteler, sınavlar ve öğrenci yaşamından gelişmeler.',
     saglik: 'Sağlık hizmetleri, uzman görüşleri ve günlük yaşamı ilgilendiren gelişmeler.',
     spor: 'Balıkesir ve Türkiye sporundan sonuçlar, oyuncular ve etkinlikler.',
-    teknoloji: 'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetler.'
+    teknoloji: 'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetler.',
+    dunya: 'Dünyadan önemli gelişmeler; kurumsal kaynaklardan derlenir.',
+    yasam: 'Günlük yaşam, çevre, tüketici ve toplum haberleri.'
   };
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[x]; }); }
@@ -37,6 +41,8 @@
   function bul(t) { var k = KATEGORILER.find(function (x) { return x[2].test(t); }); return k ? k[0] : null; }
   function kategori(n) {
     var c = String(n.category || '');
+    var kat = norm(c.split('·')[0]).trim();
+    if (kat === 'dunya' || kat === 'yasam') return kat;
     var metin = norm(c + ' ' + (n.title || '') + ' ' + (n.excerpt || '') + ' ' + (Array.isArray(n.body) ? n.body.slice(0, 2).join(' ') : ''));
     var aliased = [
       ['teknoloji', /(yapay zeka|teknoloji|yazilim|dijital|\bai\b|teknofest|uygulama|platform)/],
@@ -183,7 +189,7 @@
   function aktifKategori() {
     var server = document.documentElement.getAttribute('data-bt-haber-kategori') || '';
     if (server && AD[server]) return server;
-    var m = location.pathname.match(/^\/haberler\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji)\/$/);
+    var m = location.pathname.match(/^\/haberler\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|dunya|yasam)\/$/);
     if (m && AD[m[1]]) return m[1];
     return new URLSearchParams(location.search).get('kategori') || '';
   }

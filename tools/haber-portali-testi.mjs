@@ -50,7 +50,7 @@ assert.ok(!/<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>/.test(say
 // Sekiz kategori rayda, anasayfadaki anahtarlarla aynı. 4 Ekim'den beri
 // kategoriler sunucuda işlenen temiz adreslerde (/haberler/spor/);
 // ?kategori= biçimi 301 ile oraya yönlenir.
-for (const k of ['balikesir', 'gundem', 'ekonomi', 'kultur', 'egitim', 'saglik', 'spor', 'teknoloji'])
+for (const k of ['balikesir', 'gundem', 'ekonomi', 'kultur', 'egitim', 'saglik', 'spor', 'teknoloji', 'dunya', 'yasam'])
   assert.match(sayfa, new RegExp(`href="/haberler/${k}/" data-hm-kategori="${k}"`));
 
 // 3) Akış kuralları (kaynak kodda): özet isteği, 3 saat kuralı, kapak üstüne başlık yok.
@@ -78,6 +78,10 @@ assert.equal(k('Gündem · Asayiş'), 'gundem');
 assert.equal(k('Sağlık · Beslenme'), 'saglik');
 assert.equal(k('Spor'), 'spor');
 assert.equal(k('Eğitim'), 'egitim');
+// 6 Ekim: Dünya ve Yaşam yalnız kategori alanından; metindeki "dünya" spor haberini taşımaz.
+assert.equal(k('Dünya'), 'dunya');
+assert.equal(k('Yaşam'), 'yasam');
+assert.equal(k('Spor', 'Milli güreşçi dünya şampiyonu oldu'), 'spor');
 // İlgili haberler kartı görselli: kapak varsa metinsiz "-foto" kare ve kaynak
 // etiketi basılır; kapaksız haber kırık <img> değil yazılı kart olur.
 const { renderNewsPage } = await import('../src/news-page.js');

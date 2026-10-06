@@ -2108,7 +2108,9 @@ export default { async scheduled(controller, env, ctx){
     egitim:{label:'Eğitim',desc:'Okullar, üniversiteler, sınavlar ve öğrencilerin gündemindeki gelişmeleri BTMEDYA kaynaklarıyla izleyin.'},
     saglik:{label:'Sağlık',desc:'Sağlık hizmetleri, uzman görüşleri ve günlük yaşamı ilgilendiren sağlık gelişmelerini kaynaklarıyla takip edin.'},
     spor:{label:'Spor',desc:'Balıkesir ve Türkiye sporundan sonuçlar, takımlar, sporcular, karşılaşmalar ve etkinliklerden güncel haberler.'},
-    teknoloji:{label:'Teknoloji',desc:'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetleri anlaşılır haberler ve kaynaklarla takip edin.'}
+    teknoloji:{label:'Teknoloji',desc:'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetleri anlaşılır haberler ve kaynaklarla takip edin.'},
+    dunya:{label:'Dünya',desc:'Dünyadan önemli gelişmeler: uluslararası ilişkiler, ekonomi, afet ve toplum; kurumsal kaynaklardan derlenir, kaynağı her haberde görünür.'},
+    yasam:{label:'Yaşam',desc:'Günlük yaşam, çevre, hava durumu, tüketici ve toplum haberleri; kurumsal kaynaklardan derlenir, kaynağı her haberde görünür.'}
   };
   function htmlKac(s){
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -2126,6 +2128,11 @@ export default { async scheduled(controller, env, ctx){
       ['gundem',/(gundem|asayis|yangin|afet|guvenlik|trafik|itfaiye|emniyet|polis|kaza|kamu)/],
       ['balikesir',/(balikesir|yerel|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|pazar|altyapi|ulasim|belediye)/]
     ];
+    // Dünya ve Yaşam yalnız editoryal kategori alanından gelir: "dünya şampiyonu"
+    // gibi metinler spor haberini Dünya'ya taşımasın (6 Ekim).
+    const kat=String(n?.category||'').split('·')[0].trim().toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
+    if(kat==='dunya') return 'dunya';
+    if(kat==='yasam') return 'yasam';
     for(const [key,re] of rules) if(re.test(metin)) return key;
     return 'gundem';
   }
@@ -2198,7 +2205,7 @@ export default { async scheduled(controller, env, ctx){
     if(HABER_KATEGORILERI[key]) return Response.redirect(new URL('/haberler/'+key+'/',url.origin).toString(),301);
   }
 
-  const temizKatMatch=url.pathname.match(/^\/haberler\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji)\/$/);
+  const temizKatMatch=url.pathname.match(/^\/haberler\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|dunya|yasam)\/$/);
   if(temizKatMatch) return await temizKategoriSayfasi(request,env,url,temizKatMatch[1]);
 
   /* HABER SAYFASI — once statik dosya, yoksa D1'den uretim.
