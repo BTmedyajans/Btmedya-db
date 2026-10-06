@@ -9,6 +9,7 @@ on:
       - "public/hero-sequence-v2.js"
       - "public/mobile-motion.js"
       - "public/hero-video-quality-v1.css"
+      - ".github/workflows/hero-video-quality.yml"
   workflow_dispatch:
 
 permissions:
