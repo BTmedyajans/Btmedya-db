@@ -69,8 +69,8 @@ jobs:
 
           grep -q 'mobile-fixes.css' public/index.html
           grep -q 'prefers-reduced-motion' public/mobile-fixes.css
-          grep -q 'Control Center' public/admin/index.html
-          grep -q '/api/admin/control-center' public/admin/index.html
+          # Admin girişi artık yönetim merkezine (agency-os) yönlendiren kabuk (deploy.yml ile aynı kontrol).
+          grep -q '/admin/agency-os/' public/admin/index.html
           grep -q '/kaynak-masasi' wrangler.toml
 
           test ! -e .github/workflows/media-smoke.yml
