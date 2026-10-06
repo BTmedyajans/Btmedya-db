@@ -91,3 +91,19 @@ Yeni bir kaynak veya medya kaydı mümkün olduğunca şu alanlarla tutulmalı:
 - BAÜN Kütüphane, lisanslı veritabanlarının kişisel araştırma amaçlı olduğunu; toplu kopyalama, dışarı dağıtım ve ticari kullanımın yasak olduğunu belirtiyor.
 - Wikimedia Commons, yeniden dağıtım ve ticari kullanıma izin veren özgür lisans şartlarını; dosya sayfasında lisans, kaynak ve üretici bilgilerinin bulunmasını gerekli görüyor.
 - Balıkesir Büyükşehir Belediyesi ana portalı, haber ve duyuruların yanı sıra Kent Arşivi, Belediye Yayınları, Hal ve Pazar Fiyatları, Şehir Kameraları ve Keşfet Balıkesir gibi araştırma bağlantılarını listeliyor.
+
+
+## 2026-10-07 · Kaynak Masası ve site zinciri tamamlanan katmanlar
+
+Bu sürümde Kaynak Masası yalnızca bir rehber sayfası olmaktan çıkarılıp admin içindeki kalıcı editoryal kayıt katmanına bağlandı.
+
+- `src/kaynak-masasi.js`: kaynak URL, yayıncı, katman, konu, Balıkesir ilçesi, güven puanı, durum ve notların D1 üzerinde kalıcı kaydı.
+- `src/news-intelligence.js`: keşif motoru kaynakları ve bulunan haber adayları Kaynak Masası ile ilişkilendiriliyor.
+- `src/worker.js`: `/api/admin/sources` GET/POST/PATCH uçları ve haber → kaynak provenance bağlantısı.
+- `src/sosyal-dedupe.js`: sosyal içerik için kalıcı parmak izi; aynı haber/içerik kombinasyonunun ikinci kez kuyruğa alınması engelleniyor.
+- Ana sayfa haber akışı: canlı D1 kaynağından daha geniş güncel veri okunuyor ve istemci tarafında slug/tarih ile tekilleştiriliyor.
+- Portföy: gerçek YouTube arşivine kanıt temelli hizmet niyetleri eklendi. Kanıtı olmayan düğün/nişan/kına/gelin alımı işi uydurulmuyor; ilgili filtre boşsa açıkça belirtiliyor.
+- Ana sayfa eski çoklu menü kabuğu kaldırıldı; üç ana yol olan HABER / SOSYAL MEDYA / TANITIM kanonik gezinme haline getirildi.
+- PR doğrulama iş akışına yeni kaynak, sosyal tekilleştirme ve public navigation sözdizimi kontrolleri eklendi.
+
+Dış sistemlerde kullanıcı yetkisi gerektiren işler ayrı tutulur: Search Console API yetkilendirmesi ve Metricool'da Instagram/Facebook bağlantısının gerçek hesap doğrulaması, erişim bilgisi olmadan otomatik tamamlanamaz.
