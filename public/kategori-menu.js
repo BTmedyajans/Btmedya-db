@@ -1,27 +1,55 @@
-/* BTMEDYA Hamburger Kategori Menüsü · v5.0
+/* BTMEDYA Hamburger Kategori Menüsü · v6.0
    Üç ana yol: HABER / SOSYAL MEDYA / TANITIM.
-   Her yolun altında iç içe alt gruplar bulunur. */
+   Her yol az sayıda müşteri niyetine göre gruplanır. */
 (()=>{
   if(document.getElementById('btKategoriMenu')) return;
 
   const KATEGORILER=[
-    {key:'haber',ad:'HABER',ozet:'Önce Balıkesir; ardından Türkiye ve dünya gündemi.',groups:[
-      {ad:'ÖNCE BALIKESİR',items:[['Balıkesir haberleri','/haberler/balikesir/'],['Tüm haberler','/haberler/']]},
-      {ad:'TÜRKİYE & DÜNYA',items:[['Türkiye','/haberler/turkiye/'],['Dünya','/haberler/dunya/']]},
-      {ad:'KONULAR',items:[['Gündem','/haberler/gundem/'],['Ekonomi','/haberler/ekonomi/'],['Kültür & Sanat','/haberler/kultur/'],['Yaşam','/haberler/yasam/'],['Eğitim & Sağlık','/haberler/egitim/'],['Spor','/haberler/spor/'],['Teknoloji','/haberler/teknoloji/']]},
-      {ad:'ÖZEL & ARŞİV',items:[['Halk Röportajı','/halk-roportaji/'],['Arşiv Merkezi','/arsiv/'],['Dosyalar','/dosyalar/']]}
+    {key:'haber',ad:'HABER',ozet:'Önce Balıkesir; sonra Türkiye ve dünya.',groups:[
+      {ad:'HABERİ BUL',items:[
+        ['Balıkesir','/haberler/balikesir/'],
+        ['Türkiye','/haberler/turkiye/'],
+        ['Dünya','/haberler/dunya/'],
+        ['Özel haberler','/halk-roportaji/']
+      ]},
+      {ad:'ARŞİV & DOSYA',items:[
+        ['Haber arşivi','/haberler/'],
+        ['Arşiv','/arsiv/'],
+        ['Dosyalar','/dosyalar/']
+      ]}
     ]},
-    {key:'sosyal',ad:'SOSYAL MEDYA',ozet:'Markan için sosyal içerik, YouTube, AI ve görünürlük.',groups:[
-      {ad:'SOSYAL YÖNETİM',items:[['Sosyal medya yönetimi','/sosyal-medya/'],['Balıkesir sosyal medya ajansı','/hizmetler/balikesir-sosyal-medya-ajansi/'],['Sosyal profil kiti','/sosyal-medya-kit/']]},
-      {ad:'YOUTUBE',items:[['Siyah Oda','/siyah-oda/'],['YouTube portföyü','/portfoy/?kategori=produksiyon']]},
-      {ad:'AI & İÇERİK',items:[['AI Lab','/ai-lab/'],['Yapay zekâ ajansı','/hizmetler/balikesir-yapay-zeka-ajansi/']]},
-      {ad:'ARAMA / GÖRÜNÜRLÜK',items:[['Arama stratejisi','/search-strategy/'],['Programatik SEO','/programmatic-seo/']]}
+    {key:'sosyal',ad:'SOSYAL MEDYA',ozet:'İçerik üret, YouTube’a taşı, görünürlüğü büyüt.',groups:[
+      {ad:'ÜRET & YAYINLA',items:[
+        ['Sosyal medya yönetimi','/sosyal-medya/'],
+        ['Siyah Oda / YouTube','/siyah-oda/'],
+        ['YouTube portföyü','/portfoy/?kategori=produksiyon']
+      ]},
+      {ad:'AI & GÖRÜNÜRLÜK',items:[
+        ['AI Lab','/ai-lab/'],
+        ['SEO & arama görünürlüğü','/search-strategy/'],
+        ['Sosyal profil kiti','/sosyal-medya-kit/']
+      ]}
     ]},
-    {key:'tanitim',ad:'TANITIM',ozet:'Düğün, nişan, kına, gelin alımı ve işletme filmleri.',groups:[
-      {ad:'DÜĞÜN & ETKİNLİK',items:[['Düğün videosu / klip','/portfoy/?niyet=dugun'],['Nişan çekimi','/portfoy/?niyet=nisan'],['Kına çekimi','/portfoy/?niyet=kina'],['Gelin alımı','/portfoy/?niyet=gelin-alimi'],['Etkinlik çekimi','/portfoy/?niyet=etkinlik']]},
-      {ad:'İŞLETME & MARKA',items:[['Video prodüksiyon','/video-produksiyon/?kaynak=menu'],['Tanıtım filmi · Belgesel','/portfoy/?niyet=tanitim'],['Balıkesir video prodüksiyon','/hizmetler/balikesir-video-produksiyon/'],['Reklam ve sponsorluk','/reklam-ve-sponsorluk/']]},
-      {ad:'PORTFÖY',items:[['Düğün videoları','/portfoy/?niyet=dugun'],['Tüm portföy','/portfoy/'],['Vaka çalışmaları','/vaka-calismalari/'],['Referanslar','/referanslar/']]},
-      {ad:'TEKLİF',items:[['Hizmetler','/hizmetler/'],['Hizmet kataloğu','/whatsapp-katalog/'],['Teklif al','/teklif-al/']]}
+    {key:'tanitim',ad:'TANITIM',ozet:'Düğün, özel gün ve marka filmi.',groups:[
+      {ad:'ÖZEL GÜN',items:[
+        ['Düğün','/portfoy/?niyet=dugun'],
+        ['Nişan','/portfoy/?niyet=nisan'],
+        ['Kına','/portfoy/?niyet=kina'],
+        ['Gelin alımı','/portfoy/?niyet=gelin-alimi'],
+        ['Etkinlik','/portfoy/?niyet=etkinlik']
+      ]},
+      {ad:'FİRMA & MARKA',items:[
+        ['Tanıtım filmi','/portfoy/?niyet=tanitim'],
+        ['Video prodüksiyon','/video-produksiyon/?kaynak=menu'],
+        ['Balıkesir video prodüksiyon','/hizmetler/balikesir-video-produksiyon/'],
+        ['Reklam & sponsorluk','/reklam-ve-sponsorluk/']
+      ]},
+      {ad:'PORTFÖY & TEKLİF',items:[
+        ['Tüm portföy','/portfoy/'],
+        ['Vaka çalışmaları','/vaka-calismalari/'],
+        ['Referanslar','/referanslar/'],
+        ['Teklif al','/teklif-al/']
+      ]}
     ]}
   ];
   const KURUMSAL=[['Hakkımızda','/hakkimizda/'],['İletişim','/iletisim/'],['Basın kiti','/basin-kiti/'],['Marka kiti','/marka-kiti/'],['Yayın ilkeleri','/yayin-ilkeleri/'],['Gizlilik','/gizlilik/'],['English','/en/']];
