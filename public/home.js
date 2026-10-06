@@ -559,6 +559,12 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   const loadArsiv = async () => {
     const grid = d.getElementById('gercekArsivGrid');
     if (!grid) return;
+    let loadingTimer = setTimeout(() => {
+      if (grid.getAttribute('aria-busy') === 'true') {
+        grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv hazırlanıyor. Son doğrulanmış içerikler portföyde açık.</div>';
+        grid.setAttribute('aria-busy','false');
+      }
+    }, 3500);
     try {
       let data=null;
       try{
@@ -586,7 +592,8 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
           const kat=x=>({saha:0,haber:1,video:2,portfoy:3,hero:4}[x.category]??9);
           return kat(a)-kat(b);
         }).slice(0,8);
-      if(!ogeler.length){grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv kaydı henüz yayın akışına düşmedi.</div>';return;}
+      if(!ogeler.length){clearTimeout(loadingTimer);grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv kaydı henüz yayın akışına düşmedi.</div>';grid.setAttribute('aria-busy','false');return;}
+      clearTimeout(loadingTimer);
       grid.innerHTML=ogeler.map(arsivKarti).join('');
       document.querySelector('[data-fallback="media"]')?.remove();
       grid.setAttribute('aria-busy','false');
@@ -598,6 +605,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
         }),{rootMargin:'120px'}); io.observe(v);
       });
     }catch(err){
+      clearTimeout(loadingTimer);
       if(!document.querySelector('[data-fallback="media"]')){
         grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv geçici olarak güncellenemedi. Son doğrulanmış içerikler portföyde açık.</div>';
       } else {
