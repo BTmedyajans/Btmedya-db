@@ -23,18 +23,31 @@
      karar vermeye zorluyordu. Kurumsal sayfalar sekme değil, menünün
      altındaki küçük satırdadır; hiçbir sayfa erişilmez kalmaz. */
   const KATEGORILER=[
-    {ad:'Haber',ozet:'Balıkesir merkezli kaynaklı haber akışı; yerel, Türkiye ve dünya gündemi ayrı.',alt:[['Tüm haberler','/haberler/'],['Balıkesir','/haberler/balikesir/'],['Türkiye','/haberler/turkiye/'],['Dünya','/haberler/dunya/'],['Gündem','/haberler/gundem/'],['Ekonomi','/haberler/ekonomi/'],['Kültür Sanat','/haberler/kultur/'],['Yaşam','/haberler/yasam/'],['Eğitim','/haberler/egitim/'],['Sağlık','/haberler/saglik/'],['Spor','/haberler/spor/'],['Teknoloji','/haberler/teknoloji/'],['Halk Röportajı','/halk-roportaji/'],['Siyah Oda','/siyah-oda/'],['Kaynak Masası','/kaynaklar/'],['Arşiv Merkezi','/arsiv/'],['Dosyalar','/dosyalar/']]},
-    {ad:'Sosyal Medya',ozet:'İçerik üretimi, hesap yönetimi ve dijital görünürlük; AI üretimi açık etiketli.',alt:[['Sosyal medya yönetimi','/sosyal-medya/'],['Balıkesir sosyal medya ajansı','/hizmetler/balikesir-sosyal-medya-ajansi/'],['Sosyal profil kiti','/sosyal-medya-kit/'],['AI Lab','/ai-lab/'],['Yapay zekâ ajansı','/hizmetler/balikesir-yapay-zeka-ajansi/'],['Arama stratejisi','/search-strategy/'],['Programatik SEO','/programmatic-seo/']]},
-    {ad:'Tanıtım',ozet:'Düğün klibi, tanıtım ve reklam filmi; portföy, referans ve teklif.',alt:[['Video prodüksiyon','/video-produksiyon/'],['Düğün çekimleri','/video-produksiyon/'],['Balıkesir tanıtım filmi','/hizmetler/balikesir-tanitim-filmi/'],['Balıkesir video prodüksiyon','/hizmetler/balikesir-video-produksiyon/'],['Reklam ve sponsorluk','/reklam-ve-sponsorluk/'],['Portföy','/portfoy/'],['Buse Tuncay','/portfoy/buse-tuncay/'],['Vaka çalışmaları','/vaka-calismalari/'],['Referanslar','/referanslar/'],['Tüm hizmetler','/hizmetler/'],['Hizmet kataloğu','/whatsapp-katalog/'],['Teklif al','/teklif-al/']]}
+    {key:'haber',ad:'HABER',ozet:'Kaynaklı gündem. Önce Balıkesir, ardından Türkiye ve dünya.',groups:[
+      {ad:'COĞRAFYA',items:[['Balıkesir','/haberler/balikesir/'],['Türkiye','/haberler/turkiye/'],['Dünya','/haberler/dunya/']]},
+      {ad:'GÜNDEM',items:[['Gündem','/haberler/gundem/'],['Ekonomi','/haberler/ekonomi/'],['Kültür · Sanat','/haberler/kultur/'],['Yaşam','/haberler/yasam/'],['Eğitim','/haberler/egitim/'],['Sağlık','/haberler/saglik/'],['Spor','/haberler/spor/'],['Teknoloji','/haberler/teknoloji/']]},
+      {ad:'ÖZEL / ARŞİV',items:[['Halk Röportajı','/halk-roportaji/'],['Siyah Oda','/siyah-oda/'],['Kaynak Masası','/kaynaklar/'],['Arşiv Merkezi','/arsiv/'],['Dosyalar','/dosyalar/'],['Tüm haberler','/haberler/']]}
+    ]},
+    {key:'sosyal',ad:'SOSYAL MEDYA',ozet:'İçerik üretimi, hesap yönetimi ve dijital görünürlük.',groups:[
+      {ad:'YÖNETİM',items:[['Sosyal medya yönetimi','/sosyal-medya/'],['Balıkesir sosyal medya ajansı','/hizmetler/balikesir-sosyal-medya-ajansi/'],['Sosyal profil kiti','/sosyal-medya-kit/']]},
+      {ad:'AI / İÇERİK',items:[['AI Lab','/ai-lab/'],['Yapay zekâ ajansı','/hizmetler/balikesir-yapay-zeka-ajansi/']]},
+      {ad:'ARAMA / GÖRÜNÜRLÜK',items:[['Arama stratejisi','/search-strategy/'],['Programatik SEO','/programmatic-seo/']]}
+    ]},
+    {key:'tanitim',ad:'TANITIM',ozet:'Prodüksiyon, reklam, portföy ve doğrudan proje yolu.',groups:[
+      {ad:'PRODÜKSİYON',items:[['Video prodüksiyon','/video-produksiyon/'],['Düğün çekimleri','/video-produksiyon/'],['Balıkesir tanıtım filmi','/hizmetler/balikesir-tanitim-filmi/'],['Balıkesir video prodüksiyon','/hizmetler/balikesir-video-produksiyon/']]},
+      {ad:'MARKA / DAĞITIM',items:[['Reklam ve sponsorluk','/reklam-ve-sponsorluk/'],['Tüm hizmetler','/hizmetler/'],['Hizmet kataloğu','/whatsapp-katalog/'],['Teklif al','/teklif-al/']]},
+      {ad:'PORTFÖY',items:[['Portföy','/portfoy/'],['Buse Tuncay','/portfoy/buse-tuncay/'],['Vaka çalışmaları','/vaka-calismalari/'],['Referanslar','/referanslar/']]}
+    ]}
   ];
   const KURUMSAL=[['Hakkımızda','/hakkimizda/'],['İletişim','/iletisim/'],['Basın kiti','/basin-kiti/'],['Marka kiti','/marka-kiti/'],['Yayın ilkeleri','/yayin-ilkeleri/'],['Gizlilik','/gizlilik/'],['English','/en/']];
   const HABER_KATALOG=[['YEREL · Balıkesir','/haberler/balikesir/'],['ULUSAL · Türkiye','/haberler/turkiye/'],['DÜNYA','/haberler/dunya/'],['GÜNDEM','/haberler/gundem/'],['EKONOMİ','/haberler/ekonomi/'],['KÜLTÜR · SANAT','/haberler/kultur/'],['YAŞAM','/haberler/yasam/'],['EĞİTİM','/haberler/egitim/'],['SAĞLIK','/haberler/saglik/'],['SPOR','/haberler/spor/'],['BİLİM · TEKNOLOJİ','/haberler/teknoloji/'],['ÖZEL · Halk Röportajı','/halk-roportaji/'],['ÖZEL · Siyah Oda','/siyah-oda/'],['ARŞİV · Kaynak Masası','/kaynaklar/'],['ARŞİV · Arşiv Merkezi','/arsiv/'],['ARŞİV · Dosyalar','/dosyalar/']];
   const yolu=location.pathname.replace(/index\.html$/,'').replace(/([^/])$/,'$1/');
-  // Etkin kategori: sayfanın yolu kategorinin bir bağlantısıyla en uzun eşleşen.
-  let etkin=-1,enUzun=0;
-  KATEGORILER.forEach((k,i)=>k.alt.forEach(([,y])=>{ if(yolu.startsWith(y)&&y.length>enUzun&&y!=='/'){enUzun=y.length;etkin=i;} }));
-  // Haber detay sayfaları (/haber/<slug>/) Haber kategorisindedir.
-  if(etkin<0&&yolu.startsWith('/haber/')) etkin=0;
+  // Etkin ana yol: üç seçenekten hangisinin içindeki bir bağlantıdaysak onu aç.
+  let etkin=0,enUzun=0;
+  KATEGORILER.forEach((k,i)=>k.groups.forEach(g=>g.items.forEach(([,y])=>{
+    if(yolu.startsWith(y)&&y.length>enUzun&&y!=='/'){enUzun=y.length;etkin=i;}
+  })));
+  if(yolu.startsWith('/haber/') && etkin===0) etkin=0;
   const kac=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const iki=n=>String(n).padStart(2,'0');
   // Üzerine gelince yukarı yuvarlanan yazı: aynı metin iki kat, ikincisi
@@ -46,19 +59,25 @@
   kok.id='btKategoriMenu'; kok.className='btkm'; kok.hidden=true;
   kok.setAttribute('role','dialog'); kok.setAttribute('aria-modal','true'); kok.setAttribute('aria-label','BTMEDYA site menüsü');
   const kayanMetin=KATEGORILER.map(k=>'<span>'+kac(k.ad)+'</span><i>✦</i>').join('');
+  const kok=document.createElement('div');
+  kok.id='btKategoriMenu'; kok.className='btkm'; kok.hidden=true;
+  kok.setAttribute('role','dialog'); kok.setAttribute('aria-modal','true'); kok.setAttribute('aria-label','BTMEDYA site menüsü');
   kok.innerHTML='<div class="btkm-perde" data-btkm-kapat></div><div class="btkm-panel">'+
     '<div class="btkm-ust"><a class="btkm-marka" href="/">BTMEDYA</a><button type="button" class="btkm-kapat" data-btkm-kapat aria-label="Menüyü kapat">Kapat ×</button></div>'+
-    '<div class="btkm-serit"><div class="btkm-serit-ic"><span class="btkm-imlec" aria-hidden="true"></span>'+
-      '<div class="btkm-sekmeler" role="tablist" aria-label="Kategoriler">'+KATEGORILER.map((k,i)=>
-        '<button type="button" role="tab" class="btkm-cip" id="btkm-sekme-'+i+'" aria-controls="btkm-pano-'+i+'" aria-selected="false" tabindex="-1" style="--i:'+i+'"><small aria-hidden="true">'+iki(i+1)+'</small>'+yuvarla(k.ad)+'</button>').join('')+
-      '</div></div></div>'+
-    '<div class="btkm-sahne" data-yon="ileri">'+KATEGORILER.map((k,i)=>
-      '<section class="btkm-pano" role="tabpanel" id="btkm-pano-'+i+'" aria-labelledby="btkm-sekme-'+i+'" hidden>'+
-        '<div class="btkm-pano-bas"><p class="btkm-sayac"><b>'+iki(i+1)+'</b> / '+iki(KATEGORILER.length)+'</p>'+
-        '<h2 class="btkm-baslik"><span class="btkm-maske"><span>'+kac(k.ad)+'</span></span></h2>'+
-        '<p class="btkm-ozet">'+kac(k.ozet)+'</p></div>'+
-        '<ul class="btkm-baglar">'+(i===0?HABER_KATALOG:k.alt).map(([ad,y],j)=>
-          '<li style="--j:'+j+'"><a href="'+y+'"'+(y===yolu?' aria-current="page"':'')+'>'+(ad.indexOf(' · ')>0?'<small class="btkm-grup-etiket">'+kac(ad.split(' · ')[0])+'</small>':'')+yuvarla(ad.indexOf(' · ')>0?ad.split(' · ').slice(1).join(' · '):ad)+'<i aria-hidden="true">↗</i></a></li>').join('')+'</ul>'+
+    '<div class="btkm-yollar" aria-label="Üç ana yol">'+KATEGORILER.map((k,i)=>
+      '<section class="btkm-yol" data-yol="'+k.key+'"'+(i===etkin?' data-active="true"':'')+'>'+
+        '<button type="button" class="btkm-yol-baslik" aria-expanded="'+(i===etkin?'true':'false')+'" aria-controls="btkm-yol-pano-'+i+'">'+
+          '<span class="btkm-yol-no">0'+(i+1)+'</span><span><strong>'+kac(k.ad)+'</strong><small>'+kac(k.ozet)+'</small></span><i aria-hidden="true">+</i>'+
+        '</button>'+
+        '<div class="btkm-yol-pano" id="btkm-yol-pano-'+i+'"'+(i===etkin?'':' hidden')+'>'+
+          k.groups.map((g,gi)=>
+            '<section class="btkm-altgrup" data-altgrup="'+i+'-'+gi">'+
+              '<h3>'+kac(g.ad)+'</h3><ul>'+g.items.map(([ad,y])=>
+                '<li><a href="'+y+'"'+(y===yolu?' aria-current="page"':'')+'>'+yuvarla(ad)+'<i aria-hidden="true">↗</i></a></li>'
+              ).join('')+'</ul>'+
+            '</section>'
+          ).join('')+
+        '</div>'+
       '</section>').join('')+
     '</div>'+
     '<div class="btkm-kayan" aria-hidden="true"><div class="btkm-kayan-iz">'+kayanMetin+kayanMetin+'</div></div>'+
@@ -69,56 +88,23 @@
   // çekmeceyi viewport yerine sayfa yüksekliğine (23.000+ px) bağlıyordu.
   document.documentElement.appendChild(kok);
   const panel=kok.querySelector('.btkm-panel');
-  const serit=kok.querySelector('.btkm-serit');
-  const imlec=kok.querySelector('.btkm-imlec');
-  const sahne=kok.querySelector('.btkm-sahne');
-  const sekmeler=[...kok.querySelectorAll('.btkm-cip')];
-  const panolar=[...kok.querySelectorAll('.btkm-pano')];
-
-  /* Kategori seçimi: işaretçi seçilen düğmenin altına süzülür, şerit onu
-     ortaya kaydırır; yeni sahne geliş yönüne göre kayarak girer (gizliden
-     görünüre geçen öğede CSS animasyonu kendiliğinden yeniden başlar). */
-  let secili=-1;
-  const imleciTasi=()=>{
-    const b=sekmeler[secili]; if(!b||!b.offsetWidth)return;
-    imlec.style.setProperty('--x',b.offsetLeft+'px');
-    imlec.style.setProperty('--w',b.offsetWidth+'px');
-  };
-  const sec=(i,odakla)=>{
+  const yollar=[...kok.querySelectorAll('.btkm-yol')];
+  const yolButtons=[...kok.querySelectorAll('.btkm-yol-baslik')];
+  const setYol=(i,focus=false)=>{
     i=(i+KATEGORILER.length)%KATEGORILER.length;
-    if(i===secili){ if(odakla) sekmeler[i].focus(); return; }
-    sahne.dataset.yon=(secili<0||i>secili)?'ileri':'geri';
-    sekmeler.forEach((b,j)=>{ const s=j===i; b.setAttribute('aria-selected',String(s)); b.tabIndex=s?0:-1; });
-    panolar.forEach((p,j)=>{ p.hidden=j!==i; });
-    secili=i; imleciTasi();
-    const b=sekmeler[i];
-    if(b.offsetWidth) serit.scrollTo({left:b.offsetLeft-(serit.clientWidth-b.offsetWidth)/2,behavior:azHareket.matches?'auto':'smooth'});
-    if(odakla) b.focus();
-  };
-  sec(etkin<0?0:etkin);
-  sekmeler.forEach((b,i)=>b.addEventListener('click',()=>sec(i)));
-  // İnce imleçli cihazda üzerine gelmek de kategoriyi açar; kısa niyet
-  // gecikmesi, fare şeritten geçerken sahnenin titremesini önler.
-  if(matchMedia('(hover:hover) and (pointer:fine)').matches){
-    let niyet=0;
-    sekmeler.forEach((b,i)=>{
-      b.addEventListener('pointerenter',()=>{ clearTimeout(niyet); niyet=setTimeout(()=>sec(i),140); });
-      b.addEventListener('pointerleave',()=>clearTimeout(niyet));
+    yollar.forEach((el,j)=>{
+      const on=j===i;
+      el.dataset.active=on?'true':'false';
+      const b=el.querySelector('.btkm-yol-baslik');
+      const p=el.querySelector('.btkm-yol-pano');
+      b.setAttribute('aria-expanded',String(on));
+      p.hidden=!on;
     });
-  }
-  kok.querySelector('[role=tablist]').addEventListener('keydown',e=>{
-    const h={ArrowRight:secili+1,ArrowLeft:secili-1,Home:0,End:KATEGORILER.length-1}[e.key];
-    if(h===undefined)return; e.preventDefault(); sec(h,true);
-  });
-  // Sahnede yatay kaydırma kategori değiştirir; dikey kaydırma serbest kalır.
-  let x0=null,y0=0;
-  sahne.addEventListener('touchstart',e=>{ const t=e.touches[0]; x0=t.clientX; y0=t.clientY; },{passive:true});
-  sahne.addEventListener('touchend',e=>{
-    if(x0===null)return; const t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0; x0=null;
-    if(Math.abs(dx)>56&&Math.abs(dx)>Math.abs(dy)*1.4) sec(secili+(dx<0?1:-1));
-  },{passive:true});
-  addEventListener('resize',imleciTasi);
-
+    if(focus)yolButtons[i].focus();
+  };
+  yolButtons.forEach((b,i)=>b.addEventListener('click',()=>setYol(i)));
+  // Alt grup başlıkları açık kalır; ana üç yol birbirini dışlar.
+  // Böylece mobilde önce HABER/SOSYAL/TANITIM, sonra ilgili alt kategori seçilir.
   let tetik=null;
   const TETIKLER='#menuToggle,.menu-toggle,.hamburger,.btkm-dugme';
   const durum=a=>document.querySelectorAll(TETIKLER).forEach(d=>d.setAttribute('aria-expanded',String(a)));
