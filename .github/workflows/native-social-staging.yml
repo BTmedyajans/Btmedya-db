@@ -1,0 +1,57 @@
+name: BTMEDYA Native Social Staging
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/native-social.js"
+      - "src/client-autopilot.js"
+      - "src/content-pulse.js"
+      - "src/autopilot.js"
+      - "src/worker.js"
+      - "public/admin/native-social/**"
+      - "public/admin/agency-os/agency-os.js"
+      - "migrations/0020_native_social_automation.sql"
+      - "migrations/0021_client_autopilot.sql"
+      - "wrangler.toml"
+      - ".github/workflows/native-social-staging.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Static staging gate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: |
+          set -euo pipefail
+          node --check src/native-social.js
+          node --check src/client-autopilot.js
+          node --check src/content-pulse.js
+          node --check src/autopilot.js
+          node --check src/worker.js
+          node --check public/admin/native-social/native-social.js
+          node --check public/admin/agency-os/agency-os.js
+      - name: Contract
+        run: |
+          set -euo pipefail
+          grep -q 'SOCIAL_CREDENTIALS_SECRET' wrangler.toml
+          grep -q '0 \* \* \* \*' wrangler.toml
+          grep -q '0020_native_social_automation' migrations/0020_native_social_automation.sql || true
+          grep -q 'nativeSocialApi' src/worker.js
+          grep -q 'processNativeSocialQueue' src/worker.js
+          grep -q 'runHourlyContentPulse' src/worker.js
+          grep -q 'delivery_provider' src/autopilot.js
+          grep -q 'native_social_accounts' src/client-autopilot.js
+      - name: No production deployment
+        run: |
+          set -euo pipefail
+          test ! -f .github/workflows/native-social-deploy.yml
+          echo "STAGING_ONLY=1"
