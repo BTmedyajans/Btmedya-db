@@ -102,3 +102,9 @@ html.btkm-acik{overflow:hidden}
   .btkm-maske>span,.btkm-ozet,.btkm-baglar li,.btkm-kayan-iz{animation:none!important}
   .btkm-cip{opacity:1;transform:none}
 }
+
+/* v4: kurumsal sayfalar sekme değil, alt satırda küçük bağlantılar. */
+.btkm-kurumsal{display:flex;flex-wrap:wrap;gap:4px 14px;padding:10px 32px 0;border-top:1px solid var(--btkm-cizgi)}
+.btkm-kurumsal a{display:inline-flex;align-items:center;min-height:44px;color:rgba(255,255,255,.7);text-decoration:none;font:600 13px/1 Manrope,Inter,Arial,sans-serif}
+.btkm-kurumsal a:hover,.btkm-kurumsal a[aria-current]{color:#fff}
+@media(max-width:720px){.btkm-kurumsal{padding:8px 16px 0;gap:0 12px}}

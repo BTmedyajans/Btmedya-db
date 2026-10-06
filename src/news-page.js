@@ -209,8 +209,8 @@ ${videoLd?`<script type="application/ld+json">
 ${ldYaz(videoLd)}
 </script>`:''}
 <link rel="stylesheet" href="/mobil-tipografi.css?v=20261006-1">
-<link rel="stylesheet" href="/kategori-menu.css?v=20261005-3">
-<script src="/kategori-menu.js?v=20261005-3" defer></script>
+<link rel="stylesheet" href="/kategori-menu.css?v=20261006-1">
+<script src="/kategori-menu.js?v=20261006-1" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">İçeriğe geç</a>

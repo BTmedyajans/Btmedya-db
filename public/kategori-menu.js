@@ -1,4 +1,4 @@
-/* BTMEDYA Hamburger Kategori Menüsü · v3 hareketli kategori sistemi · 2026-10-05
+/* BTMEDYA Hamburger Kategori Menüsü · v4 üç ana yol (Haber, Sosyal Medya, Tanıtım) · 2026-10-06
    Neden: sitede üç ayrı menü vardı. Anasayfada kategorili bir panel, alt
    sayfalarda sekiz bağlantılık düz bir liste vardı; yaklaşık 20 sayfada ise
    hiç menü yoktu. v2 bunları tek kategori listesinde birleştirdi. v3 aynı
@@ -18,14 +18,16 @@
    ([data-hm-ac]) ayrı bir sayfa içi gezinmedir, ona dokunulmaz. */
 (()=>{
   if(document.getElementById('btKategoriMenu'))return;
+  /* 6 Ekim (kullanıcı): kategoriler giriş filminin sonundaki üç yolla aynı
+     üç başlıkta toplanır: Haber, Sosyal Medya, Tanıtım. Altı sekme okuru
+     karar vermeye zorluyordu. Kurumsal sayfalar sekme değil, menünün
+     altındaki küçük satırdadır; hiçbir sayfa erişilmez kalmaz. */
   const KATEGORILER=[
-    {ad:'Haber',ozet:'Kaynaklı yerel ve ulusal gündem; Balıkesir merkezli.',alt:[['Tüm haberler','/haberler/'],['Gündem','/haberler/gundem/'],['Balıkesir','/haberler/balikesir/'],['Ekonomi','/haberler/ekonomi/'],['Kültür','/haberler/kultur/'],['Eğitim','/haberler/egitim/'],['Sağlık','/haberler/saglik/'],['Spor','/haberler/spor/'],['Teknoloji','/haberler/teknoloji/']]},
-    {ad:'Hizmetler',ozet:'Video, sosyal medya ve reklam: briften yayına.',alt:[['Tüm hizmetler','/hizmetler/'],['Video prodüksiyon','/video-produksiyon/'],['Sosyal medya','/sosyal-medya/'],['Reklam ve sponsorluk','/reklam-ve-sponsorluk/'],['Hizmet kataloğu','/whatsapp-katalog/'],['Teklif al','/teklif-al/']]},
-    {ad:'Programlar & Portföy',ozet:'Gerçek işler, programlar ve vaka çalışmaları.',alt:[['Portföy','/portfoy/'],['Buse Tuncay','/portfoy/buse-tuncay/'],['Siyah Oda','/siyah-oda/'],['Halk Röportajı','/halk-roportaji/'],['Vaka çalışmaları','/vaka-calismalari/'],['Referanslar','/referanslar/']]},
-    {ad:'AI Lab',ozet:'Açık etiketli yapay zekâ üretimi ve arama stratejisi.',alt:[['AI Lab','/ai-lab/'],['Arama stratejisi','/search-strategy/'],['Programatik SEO','/programmatic-seo/']]},
-    {ad:'Kaynak & Arşiv',ozet:'Doğrulanabilir kaynaklar ve BTMEDYA arşivi.',alt:[['Kaynak Masası','/kaynaklar/'],['Arşiv Merkezi','/arsiv/'],['Dosyalar','/dosyalar/']]},
-    {ad:'Kurumsal',ozet:'BTMEDYA’yı tanıyın; kitler ve iletişim.',alt:[['Hakkımızda','/hakkimizda/'],['İletişim','/iletisim/'],['Basın kiti','/basin-kiti/'],['Marka kiti','/marka-kiti/'],['Sosyal profil kiti','/sosyal-medya-kit/'],['Gizlilik','/gizlilik/'],['English','/en/']]}
+    {ad:'Haber',ozet:'Kaynaklı yerel ve ulusal gündem; röportaj, program ve arşiv.',alt:[['Tüm haberler','/haberler/'],['Gündem','/haberler/gundem/'],['Balıkesir','/haberler/balikesir/'],['Ekonomi','/haberler/ekonomi/'],['Kültür','/haberler/kultur/'],['Eğitim','/haberler/egitim/'],['Sağlık','/haberler/saglik/'],['Spor','/haberler/spor/'],['Teknoloji','/haberler/teknoloji/'],['Halk Röportajı','/halk-roportaji/'],['Siyah Oda','/siyah-oda/'],['Kaynak Masası','/kaynaklar/'],['Arşiv Merkezi','/arsiv/'],['Dosyalar','/dosyalar/']]},
+    {ad:'Sosyal Medya',ozet:'İçerik üretimi, hesap yönetimi ve dijital görünürlük; AI üretimi açık etiketli.',alt:[['Sosyal medya yönetimi','/sosyal-medya/'],['Balıkesir sosyal medya ajansı','/hizmetler/balikesir-sosyal-medya-ajansi/'],['Sosyal profil kiti','/sosyal-medya-kit/'],['AI Lab','/ai-lab/'],['Yapay zekâ ajansı','/hizmetler/balikesir-yapay-zeka-ajansi/'],['Arama stratejisi','/search-strategy/'],['Programatik SEO','/programmatic-seo/']]},
+    {ad:'Tanıtım',ozet:'Düğün klibi, tanıtım ve reklam filmi; portföy, referans ve teklif.',alt:[['Video prodüksiyon','/video-produksiyon/'],['Balıkesir tanıtım filmi','/hizmetler/balikesir-tanitim-filmi/'],['Balıkesir video prodüksiyon','/hizmetler/balikesir-video-produksiyon/'],['Reklam ve sponsorluk','/reklam-ve-sponsorluk/'],['Portföy','/portfoy/'],['Buse Tuncay','/portfoy/buse-tuncay/'],['Vaka çalışmaları','/vaka-calismalari/'],['Referanslar','/referanslar/'],['Tüm hizmetler','/hizmetler/'],['Hizmet kataloğu','/whatsapp-katalog/'],['Teklif al','/teklif-al/']]}
   ];
+  const KURUMSAL=[['Hakkımızda','/hakkimizda/'],['İletişim','/iletisim/'],['Basın kiti','/basin-kiti/'],['Marka kiti','/marka-kiti/'],['Gizlilik','/gizlilik/'],['English','/en/']];
   const yolu=location.pathname.replace(/index\.html$/,'').replace(/([^/])$/,'$1/');
   // Etkin kategori: sayfanın yolu kategorinin bir bağlantısıyla en uzun eşleşen.
   let etkin=-1,enUzun=0;
@@ -59,6 +61,7 @@
       '</section>').join('')+
     '</div>'+
     '<div class="btkm-kayan" aria-hidden="true"><div class="btkm-kayan-iz">'+kayanMetin+kayanMetin+'</div></div>'+
+    '<nav class="btkm-kurumsal" aria-label="Kurumsal">'+KURUMSAL.map(([ad,y])=>'<a href="'+y+'"'+(y===yolu?' aria-current="page"':'')+'>'+kac(ad)+'</a>').join('')+'</nav>'+
     '<div class="btkm-alt"><a class="btkm-cta" href="/teklif-al/?kaynak=menu">'+yuvarla('Proje anlat ↗')+'</a><a href="https://wa.me/905416401029?text=Merhaba%20BTMEDYA" target="_blank" rel="noopener">WhatsApp</a><a href="tel:+905416401029">+90 541 640 10 29</a></div>'+
     '</div>';
   // body'ye eklenmez: anasayfa body'ye perspective veriyor ve bu, fixed
