@@ -120,6 +120,10 @@ jobs:
           grep -q '/kaynak-masasi' wrangler.toml
           grep -q '/rss.xml' wrangler.toml
           grep -q '/news-sitemap.xml' wrangler.toml
+          grep -q '"/arsiv\*"' wrangler.toml
+          grep -q '"/dosyalar\*"' wrangler.toml
+          grep -q '"/siyah-oda\*"' wrangler.toml
+          grep -q '"/halk-roportaji\*"' wrangler.toml
           grep -q '/.well-known/*' wrangler.toml
           grep -q 'Sitemap: https://btmedya.com.tr/sitemap.xml' public/robots.txt
           grep -q 'Sitemap: https://btmedya.com.tr/news-sitemap.xml' public/robots.txt
