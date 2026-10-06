@@ -23,11 +23,12 @@
      karar vermeye zorluyordu. Kurumsal sayfalar sekme değil, menünün
      altındaki küçük satırdadır; hiçbir sayfa erişilmez kalmaz. */
   const KATEGORILER=[
-    {ad:'Haber',ozet:'Kaynaklı yerel ve ulusal gündem; röportaj, program ve arşiv.',alt:[['Tüm haberler','/haberler/'],['Gündem','/haberler/gundem/'],['Balıkesir','/haberler/balikesir/'],['Ekonomi','/haberler/ekonomi/'],['Kültür','/haberler/kultur/'],['Eğitim','/haberler/egitim/'],['Sağlık','/haberler/saglik/'],['Spor','/haberler/spor/'],['Teknoloji','/haberler/teknoloji/'],['Dünya','/haberler/dunya/'],['Yaşam','/haberler/yasam/'],['Halk Röportajı','/halk-roportaji/'],['Siyah Oda','/siyah-oda/'],['Kaynak Masası','/kaynaklar/'],['Arşiv Merkezi','/arsiv/'],['Dosyalar','/dosyalar/']]},
+    {ad:'Haber',ozet:'Balıkesir merkezli kaynaklı haber akışı; yerel, Türkiye ve dünya gündemi ayrı.',alt:[['Tüm haberler','/haberler/'],['Balıkesir','/haberler/balikesir/'],['Türkiye','/haberler/turkiye/'],['Dünya','/haberler/dunya/'],['Gündem','/haberler/gundem/'],['Ekonomi','/haberler/ekonomi/'],['Kültür Sanat','/haberler/kultur/'],['Yaşam','/haberler/yasam/'],['Eğitim','/haberler/egitim/'],['Sağlık','/haberler/saglik/'],['Spor','/haberler/spor/'],['Teknoloji','/haberler/teknoloji/'],['Halk Röportajı','/halk-roportaji/'],['Siyah Oda','/siyah-oda/'],['Kaynak Masası','/kaynaklar/'],['Arşiv Merkezi','/arsiv/'],['Dosyalar','/dosyalar/']]},
     {ad:'Sosyal Medya',ozet:'İçerik üretimi, hesap yönetimi ve dijital görünürlük; AI üretimi açık etiketli.',alt:[['Sosyal medya yönetimi','/sosyal-medya/'],['Balıkesir sosyal medya ajansı','/hizmetler/balikesir-sosyal-medya-ajansi/'],['Sosyal profil kiti','/sosyal-medya-kit/'],['AI Lab','/ai-lab/'],['Yapay zekâ ajansı','/hizmetler/balikesir-yapay-zeka-ajansi/'],['Arama stratejisi','/search-strategy/'],['Programatik SEO','/programmatic-seo/']]},
     {ad:'Tanıtım',ozet:'Düğün klibi, tanıtım ve reklam filmi; portföy, referans ve teklif.',alt:[['Video prodüksiyon','/video-produksiyon/'],['Balıkesir tanıtım filmi','/hizmetler/balikesir-tanitim-filmi/'],['Balıkesir video prodüksiyon','/hizmetler/balikesir-video-produksiyon/'],['Reklam ve sponsorluk','/reklam-ve-sponsorluk/'],['Portföy','/portfoy/'],['Buse Tuncay','/portfoy/buse-tuncay/'],['Vaka çalışmaları','/vaka-calismalari/'],['Referanslar','/referanslar/'],['Tüm hizmetler','/hizmetler/'],['Hizmet kataloğu','/whatsapp-katalog/'],['Teklif al','/teklif-al/']]}
   ];
   const KURUMSAL=[['Hakkımızda','/hakkimizda/'],['İletişim','/iletisim/'],['Basın kiti','/basin-kiti/'],['Marka kiti','/marka-kiti/'],['Yayın ilkeleri','/yayin-ilkeleri/'],['Gizlilik','/gizlilik/'],['English','/en/']];
+  const HABER_KATALOG=[['YEREL · Balıkesir','/haberler/balikesir/'],['ULUSAL · Türkiye','/haberler/turkiye/'],['DÜNYA','/haberler/dunya/'],['GÜNDEM','/haberler/gundem/'],['EKONOMİ','/haberler/ekonomi/'],['KÜLTÜR · SANAT','/haberler/kultur/'],['YAŞAM','/haberler/yasam/'],['EĞİTİM','/haberler/egitim/'],['SAĞLIK','/haberler/saglik/'],['SPOR','/haberler/spor/'],['BİLİM · TEKNOLOJİ','/haberler/teknoloji/'],['ÖZEL · Halk Röportajı','/halk-roportaji/'],['ÖZEL · Siyah Oda','/siyah-oda/'],['ARŞİV · Kaynak Masası','/kaynaklar/'],['ARŞİV · Arşiv Merkezi','/arsiv/'],['ARŞİV · Dosyalar','/dosyalar/']];
   const yolu=location.pathname.replace(/index\.html$/,'').replace(/([^/])$/,'$1/');
   // Etkin kategori: sayfanın yolu kategorinin bir bağlantısıyla en uzun eşleşen.
   let etkin=-1,enUzun=0;
@@ -56,8 +57,8 @@
         '<div class="btkm-pano-bas"><p class="btkm-sayac"><b>'+iki(i+1)+'</b> / '+iki(KATEGORILER.length)+'</p>'+
         '<h2 class="btkm-baslik"><span class="btkm-maske"><span>'+kac(k.ad)+'</span></span></h2>'+
         '<p class="btkm-ozet">'+kac(k.ozet)+'</p></div>'+
-        '<ul class="btkm-baglar">'+k.alt.map(([ad,y],j)=>
-          '<li style="--j:'+j+'"><a href="'+y+'"'+(y===yolu?' aria-current="page"':'')+'>'+yuvarla(ad)+'<i aria-hidden="true">↗</i></a></li>').join('')+'</ul>'+
+        '<ul class="btkm-baglar">'+(i===0?HABER_KATALOG:k.alt).map(([ad,y],j)=>
+          '<li style="--j:'+j+'"><a href="'+y+'"'+(y===yolu?' aria-current="page"':'')+'>'+(ad.indexOf(' · ')>0?'<small class="btkm-grup-etiket">'+kac(ad.split(' · ')[0])+'</small>':'')+yuvarla(ad.indexOf(' · ')>0?ad.split(' · ').slice(1).join(' · '):ad)+'<i aria-hidden="true">↗</i></a></li>').join('')+'</ul>'+
       '</section>').join('')+
     '</div>'+
     '<div class="btkm-kayan" aria-hidden="true"><div class="btkm-kayan-iz">'+kayanMetin+kayanMetin+'</div></div>'+

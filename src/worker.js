@@ -350,7 +350,7 @@ async function newsApi(request, env, url, ctx){
     const live=socialProviderStatus(env);
     const fallbackProfiles=[
       {key:'instagram',label:'Instagram',url:'https://www.instagram.com/btmedyajans/',status:'verification_pending',note:'Metricool bağlantısı doğrulanıyor.'},
-      {key:'facebook',label:'Facebook · busetuncayy10',url:'https://www.facebook.com/people/busetuncayy10/100080226545931/',status:'connected_identity',note:'Metricool Brand 6725412 içinde doğrulanmış Facebook Sayfası; Page ID 107923075188798'},
+      {key:'facebook',label:'Facebook · busetuncayy10',url:'https://www.facebook.com/people/busetuncayy10/100080226545931/',status:'connected_identity',note:'Metricool Brand 6858384 içinde doğrulanmış Facebook Sayfası; Page ID 107923075188798'},
       {key:'youtube',label:'YouTube',url:'https://www.youtube.com/@BTmedyaAjans',status:'connected_identity',note:'YouTube kanal kimliği doğrulandı.'},
       {key:'tiktok',label:'TikTok',url:'https://www.tiktok.com/@btmedya1010',status:'publishing_verified',note:'TikTok yayın durumu doğrulandı.'}
     ];
@@ -963,7 +963,7 @@ async function controlCenterApi(request, env, url){
       {key:'instagram-brand',label:'BTMEDYA Instagram @btmedyajans',url:'https://www.instagram.com/btmedyajans/',note:'BTMEDYA marka profili'},
       {key:'tiktok',label:'TikTok @btmedya1010',url:'https://www.tiktok.com/@btmedya1010',note:'Kısa video kanalı; yayın API’si ayrıca yetkilendirilmeli'},
       {key:'youtube',label:'YouTube @BTmedyaAjans',url:'https://www.youtube.com/@BTmedyaAjans',note:'Video arşivi ve Shorts hedefi'},
-      {key:'facebook',label:'Facebook Page · BTmedya',url:'https://www.facebook.com/people/busetuncayy10/100080226545931/',note:'Metricool Brand 6725412 içinde doğrulanmış Facebook Sayfası; Page ID 107923075188798'},
+      {key:'facebook',label:'Facebook Page · BTmedya',url:'https://www.facebook.com/people/busetuncayy10/100080226545931/',note:'Metricool Brand 6858384 içinde doğrulanmış Facebook Sayfası; Page ID 107923075188798'},
       {key:'whatsapp',label:'WhatsApp teklif hattı',url:'https://wa.me/905416401029',note:'İletişim ve proje talebi'}
     ],
     integrations:{
@@ -2102,6 +2102,8 @@ export default { async scheduled(controller, env, ctx){
      D1'den hazırlanır; JS ayrıca zenginleştirme yapar. */
   const HABER_KATEGORILERI = {
     balikesir:{label:'Balıkesir',desc:'Balıkesir merkez ve ilçelerinden güncel haberler, belediye hizmetleri, ulaşım, ekonomi ve kent yaşamı.'},
+    turkiye:{label:'Türkiye',desc:'Türkiye genelindeki ulusal gündem, kamu, siyaset, toplum ve kentlerden gelişmeler.'},
+    dunya:{label:'Dünya',desc:'Dünyadan Türkiye’yi ve bölgeyi ilgilendiren gelişmeler, uluslararası gündem ve dış politika.'},
     gundem:{label:'Gündem',desc:'Güvenlik, afet, yangın, kamu hizmetleri ve Balıkesir gündemindeki önemli gelişmeleri kaynaklarıyla takip edin.'},
     ekonomi:{label:'Ekonomi',desc:'Balıkesir ekonomisi, esnaf, tarım, fiyatlar, emlak, istihdam ve yerel iş dünyasındaki gelişmeler.'},
     kultur:{label:'Kültür Sanat',desc:'Balıkesir kültür sanat gündemi: tiyatro, sinema, gastronomi, etkinlikler ve kentin hafızasını yaşatan hikâyeler.'},
@@ -2109,8 +2111,7 @@ export default { async scheduled(controller, env, ctx){
     saglik:{label:'Sağlık',desc:'Sağlık hizmetleri, uzman görüşleri ve günlük yaşamı ilgilendiren sağlık gelişmelerini kaynaklarıyla takip edin.'},
     spor:{label:'Spor',desc:'Balıkesir ve Türkiye sporundan sonuçlar, takımlar, sporcular, karşılaşmalar ve etkinliklerden güncel haberler.'},
     teknoloji:{label:'Teknoloji',desc:'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetleri anlaşılır haberler ve kaynaklarla takip edin.'},
-    dunya:{label:'Dünya',desc:'Dünyadan önemli gelişmeler: uluslararası ilişkiler, ekonomi, afet ve toplum; kurumsal kaynaklardan derlenir, kaynağı her haberde görünür.'},
-    yasam:{label:'Yaşam',desc:'Günlük yaşam, çevre, hava durumu, tüketici ve toplum haberleri; kurumsal kaynaklardan derlenir, kaynağı her haberde görünür.'}
+    yasam:{label:'Yaşam',desc:'Günlük yaşam, aile, moda, etkinlik, insan hikâyeleri ve şehir yaşamına dair haberler.'}
   };
   function htmlKac(s){
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -2118,21 +2119,26 @@ export default { async scheduled(controller, env, ctx){
   function haberKategoriAnahtari(n){
     const metin=String((n?.category||'')+' '+(n?.title||'')+' '+(n?.excerpt||'')).toLocaleLowerCase('tr-TR')
       .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
+    const rawKategori=String(n?.category||'').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i').trim();
+    const explicit={balikesir:'balikesir',turkiye:'turkiye','türkiye':'turkiye',dunya:'dunya','dünya':'dunya',gundem:'gundem',ekonomi:'ekonomi',kultur:'kultur','kültür':'kultur',egitim:'egitim',saglik:'saglik',spor:'spor',teknoloji:'teknoloji',yasam:'yasam','yaşam':'yasam'};
+    if(explicit[rawKategori]) return explicit[rawKategori].replace(/,$/,'');
+    // Güçlü Balıkesir sinyali, tematik kelimelerden önce değerlendirilir.
+    // Açık kategori adı varsa önce o korunur; otomatik sınıflandırmada yerel haber
+    // ekonomi/teknoloji/gündem kelimeleri yüzünden başka bölüme taşınmaz.
+    const balikesir=/\b(balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|dursunbey|savastepe|bigadic|ivindi|manyas|havran|gomec|erdek|balya|sindirgi|pazar|altyapi|ulasim|belediye)\b/;
+    if(balikesir.test(metin)) return 'balikesir';
     const rules=[
+      ['dunya',/(dunya|abd|amerika|avrupa|almanya|fransa|ingiltere|rusya|ukrayna|israil|filistin|iran|cina|japonya|nato|birlesmis milletler|dis politika|uluslararasi)/],
+      ['turkiye',/(turkiye|ankara|istanbul|izmir|adana|antalya|bursa|konya|meclis|bakanlik|cumhurbaskani|tbmm|yurt geneli|ulusal)/],
       ['teknoloji',/(yapay zeka|teknoloji|yazilim|dijital|\bai\b|teknofest|uygulama|platform)/],
       ['egitim',/(egitim|universite|okul|sinav|ogrenci|kampus|\byok\b)/],
       ['saglik',/(saglik|beslenme|hastane|doktor|tedavi|epilasyon|obezite|kalp)/],
       ['spor',/(spor|futbol|basketbol|turnuva|atletizm|pehlivan|muay thai|sporcu)/],
       ['kultur',/(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik|tiyatro|sinema|festival)/],
+      ['yasam',/(yasam|gundelik|aile|kadin|cocuk|magazin|moda|evlilik|dugun)/],
       ['ekonomi',/(ekonomi|emlak|esnaf|tarim|ticaret|fiyat|piyasa|maas|istihdam|satis|konut)/],
-      ['gundem',/(gundem|asayis|yangin|afet|guvenlik|trafik|itfaiye|emniyet|polis|kaza|kamu)/],
-      ['balikesir',/(balikesir|yerel|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|pazar|altyapi|ulasim|belediye)/]
+      ['gundem',/(gundem|asayis|yangin|afet|guvenlik|trafik|itfaiye|emniyet|polis|kaza|kamu)/]
     ];
-    // Dünya ve Yaşam yalnız editoryal kategori alanından gelir: "dünya şampiyonu"
-    // gibi metinler spor haberini Dünya'ya taşımasın (6 Ekim).
-    const kat=String(n?.category||'').split('·')[0].trim().toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
-    if(kat==='dunya') return 'dunya';
-    if(kat==='yasam') return 'yasam';
     for(const [key,re] of rules) if(re.test(metin)) return key;
     return 'gundem';
   }
@@ -2205,7 +2211,7 @@ export default { async scheduled(controller, env, ctx){
     if(HABER_KATEGORILERI[key]) return Response.redirect(new URL('/haberler/'+key+'/',url.origin).toString(),301);
   }
 
-  const temizKatMatch=url.pathname.match(/^\/haberler\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|dunya|yasam)\/$/);
+  const temizKatMatch=url.pathname.match(/^\/haberler\/(balikesir|turkiye|dunya|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|yasam)\/$/);
   if(temizKatMatch) return await temizKategoriSayfasi(request,env,url,temizKatMatch[1]);
 
   /* HABER SAYFASI — once statik dosya, yoksa D1'den uretim.

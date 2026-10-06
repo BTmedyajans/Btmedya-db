@@ -16,7 +16,7 @@
   const kap=mobil?root.querySelector('.mfilm-kare'):root.querySelector('.cinematic-sticky');
   if(!film||!kap)return;
   const azHareket=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const ESIK=3.4;
+  const ESIK=2.8;
   const SECENEKLER=[
     {anahtar:'haber',no:'01',ad:'HABER',alt:'Kaynaklı gündem · Balıkesir ve Türkiye',yol:'/haberler/'},
     {anahtar:'sosyal',no:'02',ad:'SOSYAL MEDYA',alt:'İçerik · hesap yönetimi · reels',yol:'/sosyal-medya/'},

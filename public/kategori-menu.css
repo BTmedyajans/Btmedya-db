@@ -56,6 +56,7 @@ html.btkm-acik{overflow:hidden}
 .btkm-ozet{margin:12px 0 18px;max-width:46ch;color:var(--btkm-soluk);font:500 15px/1.5 Manrope,Inter,Arial,sans-serif;animation:btkmBelir .6s ease .12s both}
 .btkm-baglar{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;border-top:1px solid var(--btkm-cizgi)}
 .btkm-baglar li{border-bottom:1px solid var(--btkm-cizgi);animation:btkmKay .55s var(--btkm-egri) calc(.06s + var(--j)*.045s) both}
+.btkm-grup-etiket{display:block;min-width:96px;margin-right:10px;color:var(--btkm-yesil);font:800 9px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.12em;opacity:.82}
 .btkm-baglar a{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;padding:0 4px;color:#e6edf2;text-decoration:none;
   font:650 18px/1.2 Manrope,Inter,Arial,sans-serif;overflow:hidden}
 /* Üzerine gelince alttan dolan çizgi ve sağa kayan ok. */

@@ -12,17 +12,19 @@
 
   var KATEGORILER = [
     ['balikesir', 'Balıkesir', /\b(balikesir|yerel|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|pazar|altyapi|ulasim|belediye|sehir)\b/],
+    ['turkiye', 'Türkiye', /\b(turkiye|ankara|istanbul|izmir|adana|antalya|bursa|konya|meclis|bakanlik|cumhurbaskani|tbmm|yurt geneli|ulusal)\b/],
+    ['dunya', 'Dünya', /\b(dunya|abd|amerika|avrupa|almanya|fransa|ingiltere|rusya|ukrayna|israil|filistin|iran|cina|japonya|nato|ab|birlesmis milletler|dis politika|uluslararasi)\b/],
     ['gundem', 'Gündem', /\b(gundem|asayis|yangin|afet|guvenlik|trafik|itfaiye|emniyet|polis|kaza|kamu)\b/],
     ['ekonomi', 'Ekonomi', /\b(ekonomi|emlak|esnaf|tarim|ticaret|fiyat|piyasa|maas|istihdam|satis|konut)\b/],
     ['kultur', 'Kültür Sanat', /\b(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik|tiyatro|sinema|festival)\b/],
     ['egitim', 'Eğitim', /\b(egitim|universite|okul|sinav|ogrenci|kampus|yok)\b/],
     ['saglik', 'Sağlık', /\b(saglik|beslenme|bakim|hastane|doktor|tedavi|epilasyon|obezite|kalp)\b/],
     ['spor', 'Spor', /\b(spor|futbol|basketbol|turnuva|atletizm|pehlivan|muay thai|sporcu)\b/],
-    ['teknoloji', 'Teknoloji', /\b(yapay zeka|teknoloji|yazilim|dijital|ai|teknofest|uygulama|platform)\b/]
+    ['teknoloji', 'Teknoloji', /\b(yapay zeka|teknoloji|yazilim|dijital|ai|teknofest|uygulama|platform)\b/],
+    ['yasam', 'Yaşam', /\b(yasam|gundelik|aile|kadın|kadin|çocuk|cocuk|magazin|moda|evlilik|dugun)\b/]
   ];
   var AD = {}; KATEGORILER.forEach(function (k) { AD[k[0]] = k[1]; });
-  // Dünya ve Yaşam yalnız editoryal kategori alanından okunur (worker ile aynı kural).
-  AD.dunya = 'Dünya'; AD.yasam = 'Yaşam';
+  var KATEGORI_SIRA = ['balikesir','turkiye','dunya','gundem','ekonomi','kultur','egitim','saglik','spor','teknoloji','yasam'];
   var KATEGORI_ACIKLAMA = {
     balikesir: 'Balıkesir merkez, ilçeler, belediye hizmetleri, ulaşım ve kent yaşamı.',
     gundem: 'Güvenlik, afet, yangın, kamu hizmetleri ve günlük gelişmeler.',
@@ -32,8 +34,9 @@
     saglik: 'Sağlık hizmetleri, uzman görüşleri ve günlük yaşamı ilgilendiren gelişmeler.',
     spor: 'Balıkesir ve Türkiye sporundan sonuçlar, oyuncular ve etkinlikler.',
     teknoloji: 'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetler.',
+    turkiye: 'Türkiye genelindeki ulusal gündem ve kentlerden gelişmeler.',
     dunya: 'Dünyadan önemli gelişmeler; kurumsal kaynaklardan derlenir.',
-    yasam: 'Günlük yaşam, çevre, tüketici ve toplum haberleri.'
+    yasam: 'Günlük yaşam, aile, tüketici ve toplum haberleri.'
   };
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[x]; }); }
@@ -41,11 +44,20 @@
   function bul(t) { var k = KATEGORILER.find(function (x) { return x[2].test(t); }); return k ? k[0] : null; }
   function kategori(n) {
     var c = String(n.category || '');
-    var kat = norm(c.split('·')[0]).trim();
-    if (kat === 'dunya' || kat === 'yasam') return kat;
     var metin = norm(c + ' ' + (n.title || '') + ' ' + (n.excerpt || '') + ' ' + (Array.isArray(n.body) ? n.body.slice(0, 2).join(' ') : ''));
+    // Güçlü yerel sinyal, tematik kelimelerden önce değerlendirilir.
+    // Böylece Balıkesir'e ait ekonomi/teknoloji/gündem haberleri yerelde kalır.
+    var yerelRegex = /\b(balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|dursunbey|savastepe|bigadic|ivindi|manyas|havran|gomec|erdek|balya|sindirgi|pazar|altyapi|ulasim|belediye)\b/;
+    if (yerelRegex.test(metin)) return 'balikesir';
+    // Yerel sinyalden sonra editoryal kategori alanı esastır: metninde "dünya
+    // şampiyonu" geçen spor haberi Dünya'ya taşınmaz.
+    var acik = norm(c.split('·')[0]).trim();
+    if (AD[acik]) return acik;
     var aliased = [
       ['teknoloji', /(yapay zeka|teknoloji|yazilim|dijital|\bai\b|teknofest|uygulama|platform)/],
+      ['yasam', /(yasam|gundelik|aile|kadın|kadin|cocuk|magazin|moda|evlilik|dugun)/],
+      ['dunya', /(dunya|abd|amerika|avrupa|almanya|fransa|ingiltere|rusya|ukrayna|israil|filistin|iran|cina|japonya|nato|birlesmis milletler|dis politika|uluslararasi)/],
+      ['turkiye', /(turkiye|ankara|istanbul|izmir|adana|antalya|bursa|konya|meclis|bakanlik|cumhurbaskani|tbmm|yurt geneli|ulusal)/],
       ['egitim', /(egitim|universite|okul|sinav|ogrenci|kampus|\byok\b)/],
       ['saglik', /(saglik|beslenme|hastane|doktor|tedavi|epilasyon|obezite|kalp)/],
       ['spor', /(spor|futbol|basketbol|turnuva|atletizm|pehlivan|muay thai|sporcu)/],
@@ -111,7 +123,7 @@
   /* ---- Bölümler ---- */
   function serit(liste) {
     var yer = kok.querySelector('[data-hm-serit]'); if (!yer) return;
-    var son = liste.slice(0, 8);
+    var son = liste.slice(0, 12);
     var taze = son.length && Date.now() - zaman(son[0]) < 3 * 3600 * 1000;
     var parca = son.map(function (n) {
       var t = zaman(n), saat = t ? new Date(t).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '';
@@ -189,7 +201,7 @@
   function aktifKategori() {
     var server = document.documentElement.getAttribute('data-bt-haber-kategori') || '';
     if (server && AD[server]) return server;
-    var m = location.pathname.match(/^\/haberler\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|dunya|yasam)\/$/);
+    var m = location.pathname.match(/^\/haberler\/(balikesir|turkiye|dunya|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|yasam)\/$/);
     if (m && AD[m[1]]) return m[1];
     return new URLSearchParams(location.search).get('kategori') || '';
   }
@@ -313,11 +325,12 @@
     guncel.sort(function (a, b) { return (zaman(b) || 0) - (zaman(a) || 0); });
     tumHaberler = guncel;
 
-    // Manşet: en yeni 10 haber, bir kategoriden en fazla 3 (tek konu manşeti doldurmasın).
+    // Manşet: Balıkesir önce, ardından diğer kategoriler dengeli biçimde.
     var sayac = {}, mansetler = [];
-    guncel.forEach(function (n) { if (mansetler.length < 10 && (sayac[n._kat] || 0) < 3) { mansetler.push(n); sayac[n._kat] = (sayac[n._kat] || 0) + 1; } });
+    guncel.filter(function (n) { return n._kat === 'balikesir'; }).slice(0, 5).forEach(function (n) { mansetler.push(n); sayac.balikesir = (sayac.balikesir || 0) + 1; });
+    guncel.forEach(function (n) { if (mansetler.length < 12 && (sayac[n._kat] || 0) < 3) { mansetler.push(n); sayac[n._kat] = (sayac[n._kat] || 0) + 1; } });
     var kalan = guncel.filter(function (n) { return mansetler.indexOf(n) < 0; });
-    var surler = kalan.slice(0, 8);
+    var surler = kalan.slice(0, 12);
     var gruplar = {}; KATEGORILER.forEach(function (k) { gruplar[k[0]] = []; });
     kalan.slice(8).forEach(function (n) { gruplar[n._kat].push(n); });
     // Bloğu boş kalan kategoriye sürmanşet dışındaki en yeni haberleri ver; yine de tekrar etme.
@@ -328,7 +341,7 @@
       el.textContent = (k === 'tumu' ? guncel.length : guncel.filter(function (n) { return n._kat === k; }).length) + ' haber';
     });
     serit(guncel);
-    akis(guncel.slice(0, 7));
+    akis(guncel.slice(0, 12));
     manset(mansetler);
     surmanset(surler);
     bloklar(gruplar);

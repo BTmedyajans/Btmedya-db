@@ -1,0 +1,64 @@
+name: BTMEDYA Hero Video Quality
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tools/giris-filmi/video-quality-pass.sh"
+      - "public/index.html"
+      - "public/hero-sequence-v2.js"
+      - "public/mobile-motion.js"
+      - "public/hero-video-quality-v1.css"
+      - ".github/workflows/hero-video-quality.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: btmedya-hero-video-quality
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Align with latest main before generating binaries
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git reset --hard origin/main
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Build HQ hero video variants
+        run: |
+          chmod +x tools/giris-filmi/video-quality-pass.sh
+          tools/giris-filmi/video-quality-pass.sh
+          test -s public/assets/media/web/giris-filmi-genis-hq.mp4
+          test -s public/assets/media/web/giris-filmi-genis-hq.webm
+          test -s public/assets/media/web/giris-filmi-genis-hq-poster.jpg
+          test -s public/assets/media/web/giris-filmi-hq.mp4
+          test -s public/assets/media/web/giris-filmi-hq.webm
+          test -s public/assets/media/web/giris-filmi-hq-poster.jpg
+
+      - name: Commit generated HQ video variants
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain -- public/assets/media/web/*-hq.*)" ]; then
+            echo "No generated HQ media changes."
+            exit 0
+          fi
+          git config user.name "BTMEDYA Hero Video Builder"
+          git config user.email "actions@users.noreply.github.com"
+          git add public/assets/media/web/*-hq.*
+          git commit -m "chore: refresh hero video HQ variants"
+          git push origin HEAD:main

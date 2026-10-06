@@ -11,6 +11,7 @@ on:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/deploy.yml"
+      - ".github/workflows/sync-worker-secrets.yml"
       - "control-plane/**"
       - "control-plane/reconcile-worker-domains.sh"
   workflow_dispatch:
@@ -113,13 +114,17 @@ jobs:
           grep -q "Son doğrulanmış sosyal snapshot gösteriliyor." public/home.js
           grep -q "Gerçek arşiv geçici olarak güncellenemedi." public/home.js
           grep -q 'prefers-reduced-motion' public/mobile-fixes.css
-          grep -q 'Control Center' public/admin/index.html
-          grep -q '/api/admin/control-center' public/admin/index.html
+          grep -q 'BTMEDYA Yönetim Merkezi' public/admin/index.html
+          grep -q '/admin/agency-os/' public/admin/index.html
           grep -q 'btmedya-core' src/worker.js
           grep -q '/api/admin/core' public/admin/agency-os/agency-os.js
           grep -q '/kaynak-masasi' wrangler.toml
           grep -q '/rss.xml' wrangler.toml
           grep -q '/news-sitemap.xml' wrangler.toml
+          grep -q '"/arsiv\*"' wrangler.toml
+          grep -q '"/dosyalar\*"' wrangler.toml
+          grep -q '"/siyah-oda\*"' wrangler.toml
+          grep -q '"/halk-roportaji\*"' wrangler.toml
           grep -q '/.well-known/*' wrangler.toml
           grep -q 'Sitemap: https://btmedya.com.tr/sitemap.xml' public/robots.txt
           grep -q 'Sitemap: https://btmedya.com.tr/news-sitemap.xml' public/robots.txt

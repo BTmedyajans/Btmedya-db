@@ -24,7 +24,7 @@ binding = "ASSETS"
 
 # API ve medya istekleri önce Worker'a gitmeli; aksi halde Static Assets
 # katmanı mevcut olmayan /api/* yollarını 404 olarak keser.
-run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/index.html", "/haber/*", "/haberler", "/haberler/*", "/hakkimizda*", "/iletisim*", "/hizmetler*", "/sosyal-medya*", "/video-produksiyon*", "/whatsapp-katalog*", "/basin-kiti*", "/vaka-calismalari*", "/gizlilik*", "/yayin-ilkeleri*", "/admin/*", "/gorsel/*", "/social-studio/*", "/kaynak-masasi*", "/kaynaklar*", "/portfoy/*", "/marka-kiti*", "/search-strategy*", "/programmatic-seo*", "/ai-lab*", "/reklam-ve-sponsorluk*", "/robots.txt", "/llms.txt", "/llms-full.txt", "/index.json", "/jsonld", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml", "/.well-known/*", "/en", "/en/*"]
+run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/index.html", "/haber/*", "/haberler", "/haberler/*", "/hakkimizda*", "/iletisim*", "/hizmetler*", "/sosyal-medya*", "/video-produksiyon*", "/whatsapp-katalog*", "/basin-kiti*", "/vaka-calismalari*", "/arsiv*", "/dosyalar*", "/siyah-oda*", "/halk-roportaji*", "/gizlilik*", "/yayin-ilkeleri*", "/admin/*", "/gorsel/*", "/social-studio/*", "/kaynak-masasi*", "/kaynaklar*", "/portfoy/*", "/marka-kiti*", "/search-strategy*", "/programmatic-seo*", "/ai-lab*", "/reklam-ve-sponsorluk*", "/robots.txt", "/llms.txt", "/llms-full.txt", "/index.json", "/jsonld", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml", "/.well-known/*", "/en", "/en/*"]
 
 not_found_handling = "404-page"
 
@@ -56,20 +56,20 @@ database_id = "94a980cd-62c5-4c29-b7fc-40f96ab665e4"
 MEDIA_PUBLIC_TTL = "86400"
 # BTMEDYA admin login user. This is a non-secret identifier; the password remains a Worker Secret.
 ADMIN_USERNAME = "busetuncay74@gmail.com"
-# Metricool Brand 6725412'te 29 Eylül 2026 itibarıyla doğrulanan yayın ağları.
+# Metricool Brand 6858384'te 29 Eylül 2026 itibarıyla doğrulanan yayın ağları.
 # Bu değişiklik aynı zamanda sync-worker-secrets workflow'unun mevcut GitHub -> Cloudflare secret zincirini yeniden çalıştırır.
 # Yeni bir ağ Metricool Connections'a bağlandığında bu liste güncellenir.
-METRICOOL_CONNECTED_NETWORKS = "facebook,instagram,tiktok,youtube"
+METRICOOL_CONNECTED_NETWORKS = "tiktok,youtube"
 # Kişisel hesaplar ayrı Metricool Brand olmadan hiçbir zaman otomatik yayın ağı olarak etkinleşmez.
 METRICOOL_PERSONAL_CONNECTED_NETWORKS = ""
 # Metricool kullanıcı numarası kimlik bilgisi değil (API her çağrıda ayrıca
 # METRICOOL_USER_TOKEN ister). Burada durduğu için GitHub'a yalnız anahtar
 # eklemek yeter. Secret adı METRICOOL_USER_ID ile çakışmasın diye farklı ad.
-METRICOOL_KULLANICI_NO = "5174304"
-METRICOOL_USER_ID = "5174304"
-METRICOOL_BRAND_ID = "6725412"
-METRICOOL_CREATOR_EMAIL = "busetuncay1029@gmail.com"
-METRICOOL_ACCOUNT_EMAIL = "busetuncay1029@gmail.com"
+METRICOOL_KULLANICI_NO = "5278969"
+METRICOOL_USER_ID = "5278969"
+METRICOOL_BRAND_ID = "6858384"
+METRICOOL_CREATOR_EMAIL = "busetuncay74@gmail.com"
+METRICOOL_ACCOUNT_EMAIL = "busetuncay74@gmail.com"
 METRICOOL_TIMEZONE = "Europe/Istanbul"
 
 # Secret değerleri GitHub'a veya bu dosyaya yazılmaz.
