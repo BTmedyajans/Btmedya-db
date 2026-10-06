@@ -1,6 +1,7 @@
 const $=s=>document.querySelector(s);
 let state={};
 function num(v){return Number(v||0)}
+function ageMinutes(when){if(!when)return null;const n=Date.parse(when);return Number.isFinite(n)?Math.max(0,Math.round((Date.now()-n)/60000)):null}
 function esc(s){return String(s??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
 async function api(u,o){const r=await fetch(u,o);const d=await r.json().catch(()=>({ok:false,error:'JSON okunamadı'}));if(!r.ok||d.ok===false)throw Error(d.error||'İstek başarısız');return d}
 function render(){
@@ -11,7 +12,9 @@ function render(){
  $('#mSales').textContent=num(s.sales?.open);$('#mSalesHint').textContent=num(s.sales?.due)+' takip zamanı geldi';
  $('#mNews').textContent=num(s.ownedNews?.published7d);$('#mRefs').textContent=num(s.references?.public);
  const when=state.latest?.finished_at||state.heartbeat?.finished_at||state.heartbeat?.summary?.heartbeat;
- $('#heartbeat').textContent=when?'Son denetim: '+new Date(when).toLocaleString('tr-TR')+' · 15 dakikalık otomatik döngü aktif':'Henüz denetim kaydı yok';
+ const age=ageMinutes(when);
+ $('#heartbeat').textContent=when?(age!==null&&age>20?'⚠ Son denetim '+age+' dk önce · otomasyon gecikmiş':'✓ Son denetim: '+new Date(when).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'})+' · 15 dakikalık otomatik döngü aktif'):'Henüz denetim kaydı yok';
+ $('#heartbeat').classList.toggle('warning',age!==null&&age>20);
  const alerts=state.alerts||[];$('#alertCount').textContent=alerts.length;
  $('#alerts').innerHTML=alerts.length?alerts.map(a=>'<div class="alert"><i class="dot '+esc(a.severity)+'"></i><div><strong>'+esc(a.title)+'</strong><div class="meta">'+esc(a.client_name||'BTMEDYA')+' · '+esc(a.detail)+'</div></div><span class="badge">'+esc(a.severity)+'</span></div>').join(''):'<div class="rec"><b>Temiz kuyruk ✅</b><span class="meta">Açık süpervizör alarmı bulunmuyor.</span></div>';
  const rec=s.recommendations||[];
@@ -32,7 +35,7 @@ async function loadSystemSnapshot(){
   el.innerHTML='<div class="rule"><b>CANONICAL</b><span>'+esc(site.url||'https://btmedya.com.tr')+' · '+esc(site.worker||'btmedya-db')+'</span></div>'+
     '<div class="rule"><b>DATA</b><span>D1 '+(s.d1?'✓':'✗')+' · R2 '+(s.r2?'✓':'✗')+' · KV '+(s.kv?'✓':'✗')+'</span></div>'+
     '<div class="rule"><b>METRICOOL</b><span>'+ (m.yapilandirildi?'✓ Worker bağlantısı hazır':'⚠ Secret/bağlantı bekliyor') +'</span></div>'+
-    '<div class="rule"><b>OTOMASYON</b><span>'+esc(a.cron||'*/5 * * * *')+' · '+esc(a.lastHeartbeat||'bekleniyor')+'</span></div>';
+    '<div class="rule"><b>OTOMASYON</b><span>'+esc(a.cron||'*/5 * * * *')+' · '+(ageMinutes(a.heartbeatAt)!==null?ageMinutes(a.heartbeatAt)+' dk önce':'heartbeat bekleniyor')+(Number(a.overdue||0)?' · '+Number(a.overdue)+' gecikmiş':' · kuyruk temiz')+'</span></div>';
  }catch(e){el.innerHTML='<div class="rec"><b>Sistem sağlık verisi okunamadı.</b><span class="meta">'+esc(e.message)+'</span></div>'}
 }
 
