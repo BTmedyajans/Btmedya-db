@@ -15,7 +15,7 @@
   const film=mobile?root.querySelector('.mfilm-video'):root.querySelector('.cinematic-video-1 video');
   if(!film)return;
   const intro= document.createElement('div'); intro.className='bt-hero-intro'; intro.setAttribute('role','region'); intro.setAttribute('aria-label','BTMEDYA giriş filmi');
-  intro.innerHTML='<div class="bt-hero-intro-card"><span class="bt-hero-intro-kicker">BTMEDYA / GİRİŞ FİLMİ</span><strong>HABER · SOSYAL<br><em>TANITIM.</em></strong><p>12 saniyelik giriş filmi; bitince yolunu seç.</p><div class="bt-hero-intro-aksiyon"><button type="button" class="bt-hero-start">▶ İzle</button><button type="button" class="bt-hero-gec">Filmi geç</button></div></div>';
+  intro.innerHTML='<div class="bt-hero-intro-card"><span class="bt-hero-intro-kicker">BTMEDYA / GİRİŞ FİLMİ</span><strong>HABER · SOSYAL<br><em>TANITIM.</em></strong><p>Sesli giriş filmi; sonunda yolunu seç.</p><div class="bt-hero-intro-aksiyon"><button type="button" class="bt-hero-start">▶ İzle</button><button type="button" class="bt-hero-gec">Filmi geç</button></div></div>';
   // Mobilde kart kare filmin altında durur, böylece posterin kendi başlığı
   // ("SAHADAN STÜDYOYA") örtülmez.
   // Masaüstü hero birkaç ekran boyunda; kart köke eklenince bu yüksekliğin

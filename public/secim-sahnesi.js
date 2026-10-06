@@ -13,7 +13,8 @@
    yapmadığı bir hareket yaptırılmaz; seçenekler karaktersiz gelir. */
 (()=>{
   const root=document.querySelector('.cinematic-hero');
-  if(!root)return;
+  // 6 Ekim: tek film modunda seçenekler filmin üstünde açılır (film-secim.js).
+  if(!root||root.hasAttribute('data-tek-film'))return;
   const mobil=matchMedia('(max-width:720px)').matches;
   const film=mobil?root.querySelector('.mfilm-video'):root.querySelector('.cinematic-video-1 video');
   const yuva=mobil?root.querySelector('[data-mfilm]'):root.querySelector('.cinematic-sticky');

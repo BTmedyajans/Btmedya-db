@@ -479,6 +479,28 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   if (!arsiv || /\.play\(/.test(arsiv)) bulgular.push('public/home.js arsiv kartlarindaki videolari otomatik oynatiyor; anasayfada yalniz giris filmi oynar.');
 }
 
+/* 19) Giriş filmi sesli ve önce sesli denenir (6 Ekim, kullanıcı isteği).
+       Film parçalarında ses izi yoktu, film hep sessiz başlatılıyordu.
+       Kural: dört film dosyası ses izi taşır (MP4'te mp4a, WebM'de Opus),
+       film-ses.js filmi oynatan betiklerden önce yüklenir, mobil ve
+       masaüstü film btFilmOynat ile başlar ve tek film modunda sentez ses
+       katmanı (HERO SES KATMANI) filmin sesine binmez. */
+{
+  const ana = readFileSync('public/index.html', 'utf8');
+  for (const [dosya, imza] of [['giris-ai.mp4', 'mp4a'], ['giris-ai-genis.mp4', 'mp4a'], ['giris-ai.webm', 'OpusHead'], ['giris-ai-genis.webm', 'OpusHead']]) {
+    const yol = join('public/assets/media/web', dosya);
+    if (!existsSync(yol)) { bulgular.push(`${yol} yok.`); continue; }
+    if (!readFileSync(yol).includes(Buffer.from(imza))) bulgular.push(`${yol} ses izi taşımıyor (${imza} yok); giriş filmi sessiz kalır.`);
+  }
+  const sira = ['/film-ses.js', '/home.js', '/mobile-motion.js'].map(d => ana.indexOf(`<script src="${d}`));
+  if (sira.some(i => i < 0) || !(sira[0] < sira[1] && sira[0] < sira[2])) bulgular.push('public/index.html film-ses.js, home.js ve mobile-motion.js\'ten önce yüklenmiyor; film sesli denenmez.');
+  if (!/btFilmOynat/.test(readFileSync('public/mobile-motion.js', 'utf8'))) bulgular.push('public/mobile-motion.js mobil filmi btFilmOynat ile başlatmıyor; film hep sessiz başlar.');
+  const home = readFileSync('public/home.js', 'utf8');
+  if (!/btFilmOynat/.test(home)) bulgular.push('public/home.js masaüstü filmi btFilmOynat ile başlatmıyor; film hep sessiz başlar.');
+  if (!/if\(!root \|\| !dugme \|\| !AC \|\| root\.hasAttribute\('data-tek-film'\)\) return;/.test(home)) bulgular.push('public/home.js sentez ses katmanı tek film modunda kapanmıyor; filmin sesine biner.');
+  if (!existsSync('public/film-secim.js') || !ana.includes('/film-secim.js')) bulgular.push('public/index.html film sonu seçeneklerini (film-secim.js) yüklemiyor.');
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));

@@ -949,7 +949,9 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
      sonra atanan videoyla degistiriliyordu (mobilde ~1,1 MB bosa). Bu
      sirada video afisi gorunur. */
   let yuvalarOkundu=false; const bekleyen=new Set();
-  Promise.resolve(window.btYuvalar||{}).finally(()=>{ yuvalarOkundu=true; bekleyen.forEach(v=>{ loadVideo(v); const el=v.querySelector('video'); if(el && videos.indexOf(v)===active && (active>0||kompakt()||tekFilm) && !reduced) el.play().catch(()=>{}); }); bekleyen.clear(); });
+  // 6 Ekim: tek filmde film önce sesli denenir (film-ses.js); diğer videolar sessiz.
+  const oynat=el=>{ const p=window.btFilmOynat?window.btFilmOynat(el):el.play(); if(p&&p.catch) p.catch(()=>{}); };
+  Promise.resolve(window.btYuvalar||{}).finally(()=>{ yuvalarOkundu=true; bekleyen.forEach(v=>{ loadVideo(v); const el=v.querySelector('video'); if(el && videos.indexOf(v)===active && (active>0||kompakt()||tekFilm) && !reduced) oynat(el); }); bekleyen.clear(); });
   function loadVideo(v){
     if(!v) return;
     if(!yuvalarOkundu){ bekleyen.add(v); return; }
@@ -993,7 +995,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
         if(n===i && !kareAktif) {
           const el=v.querySelector('video');
           const sadeceAfis=kompakt() && i>0 && el && el.getAttribute('poster') && !el.dataset.loaded;
-          if(!sadeceAfis){ loadVideo(v); if(el && (i>0 || kompakt() || tekFilm) && !reduced) el.play().catch(()=>{}); }
+          if(!sadeceAfis){ loadVideo(v); if(el && (i>0 || kompakt() || tekFilm) && !reduced) oynat(el); }
         }
         const el=v.querySelector('video');
         if(el && n!==i) el.pause();
@@ -1155,7 +1157,9 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   const root=document.querySelector('.cinematic-hero');
   const dugme=root && root.querySelector('[data-hero-ses]');
   const AC=window.AudioContext||window.webkitAudioContext;
-  if(!root || !dugme || !AC) return;
+  // 6 Ekim: tek film modunda filmin kendi ses izi var (film-ses.js); sentez
+  // katman üstüne binerdi, düğmesi gizli kalır.
+  if(!root || !dugme || !AC || root.hasAttribute('data-tek-film')) return;
   dugme.hidden=false;
   const yazi=dugme.querySelector('span');
   let ac=null, ana=null, yatak=null, filtre=null, gerilim=null, gerilimFiltre=null, gurultu=null;

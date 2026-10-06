@@ -30,8 +30,9 @@
   // H.264 çözemeyen tarayıcıda (codec'siz Chromium/Firefox) MP4 hata 4 verip
   // film hiç başlamıyordu; aynı kurgunun WebM kopyası data-webm'de duruyor.
   const kaynak=()=>source===DEFAULT&&video.dataset.webm&&!video.canPlayType('video/mp4; codecs="avc1.42E01E"')?video.dataset.webm:source;
-  const load=()=>{if(video.src)return;video.preload='auto';video.muted=true;video.playsInline=true;video.src=kaynak();video.load()};
-  const start=()=>{if(stopped||!visible||document.hidden)return;load();const p=video.play();if(p)p.catch(()=>{})};
+  const load=()=>{if(video.src)return;video.preload='auto';video.playsInline=true;video.src=kaynak();video.load()};
+  // 6 Ekim: film önce sesli denenir; ses kararı film-ses.js'te (btFilmOynat).
+  const start=()=>{if(stopped||!visible||document.hidden)return;load();const p=(window.btFilmOynat||(v=>v.play()))(video);if(p&&p.catch)p.catch(()=>{})};
   playBtn&&playBtn.addEventListener('click',()=>{stopped=false;if(video.ended)video.currentTime=0;start()});
   soundBtn&&soundBtn.addEventListener('click',()=>{video.muted=!video.muted;sound();if(!video.paused)start()});
   video.addEventListener('play',()=>{if(playBtn)playBtn.hidden=true;box.classList.add('mfilm-oynuyor')});
@@ -43,5 +44,5 @@
   if('IntersectionObserver' in window)new IntersectionObserver(es=>es.forEach(e=>{visible=e.isIntersecting;if(visible&&!reduced)start();else if(!visible)video.pause()}),{threshold:.15}).observe(video);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)video.pause();else if(!reduced)start()});
   if(label)label.textContent=FILM.source; sound();
-  setTimeout(()=>{if(!reduced&&!document.hidden){video.muted=true;start()}},100);
+  setTimeout(()=>{if(!reduced&&!document.hidden)start()},100);
 })();
