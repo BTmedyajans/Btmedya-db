@@ -15,7 +15,7 @@ export const SOCIAL_PROVIDERS = {
 };
 
 export function metricoolConnectedNetworks(env) {
-  const raw = String(env?.METRICOOL_CONNECTED_NETWORKS || "facebook,instagram,tiktok,youtube");
+  const raw = String(env?.METRICOOL_CONNECTED_NETWORKS || "tiktok,youtube");
   return new Set(raw.split(",").map(x => x.trim().toLowerCase()).filter(x => SOCIAL_PROVIDERS[x]));
 }
 
@@ -36,7 +36,7 @@ export function metricoolAccountConfig(env, scope = "company") {
   const key = scope === "personal" ? "personal" : "company";
   const cfg = SOCIAL_ACCOUNT_SCOPES[key];
   const brandId = String(env?.[cfg.brandEnv] ?? "").trim();
-  const fallback = key === "company" ? "facebook,instagram,tiktok,youtube" : "";
+  // Yalnızca kaynakla doğrulanmış ağları varsayılan olarak bağlı kabul et.\n  // Instagram/Facebook bağlantısı Metricool tarafında ayrıca doğrulanana kadar\n  // panelde "bağlantı bekleniyor" görünmelidir.\n  const fallback = key === "company" ? "tiktok,youtube" : "";
   const raw = String(env?.[cfg.networksEnv] ?? fallback);
   const connectedNetworks = new Set(
     raw.split(",")
