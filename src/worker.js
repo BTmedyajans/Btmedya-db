@@ -17,6 +17,8 @@ import { WorkerEntrypoint } from "cloudflare:workers";
 import { aiGorunurluk, ICERIK_SINYALI } from "./ai-gorunurluk.js";
 import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu, KATEGORILER, kategoriIsle, yanitMetni, jsonAyikla } from "./sabah-masasi.js";
 import { ayarlariOku, ayarlariYaz, platformSluglari, sonrakiYuva, altyazi, varlikVar, kapakKunyesi, yayinlananlariIsaretle, gecikenleriKaydir } from "./sosyal-otomasyon.js";
+import { kaynakKaydet, kaynakListele, kaynakGuncelle, kaynakOzeti, kaynakBaglaHaber, ensureKaynakMasasiTables } from "./kaynak-masasi.js";
+import { sosyalTekillemeAyir, sosyalTekillemeBagla, sosyalTekillemeBirak, sosyalTekillemeSil, ensureSosyalParmakTablosu } from "./sosyal-dedupe.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
  * 2) Medya Kasası (D1 tablo: media, R2) — /api/media*, /api/public/media, /api/export, /media/*, /api/login, /api/logout
@@ -499,6 +501,7 @@ async function newsApi(request, env, url, ctx){
         VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(slug) DO UPDATE SET title=excluded.title,excerpt=excluded.excerpt,body=excluded.body,category=excluded.category,author=excluded.author,cover_url=excluded.cover_url,video_url=excluded.video_url,status=excluded.status,published_at=excluded.published_at,updated_at=excluded.updated_at`)
         .bind(slug,title,String(b.excerpt||'').slice(0,1000),String(b.body||'').slice(0,200000),String(b.category||'').slice(0,100),String(b.author||'').slice(0,160),String(b.cover_url||'').slice(0,2000),String(b.video_url||'').slice(0,2000),status,status==='published'?(b.published_at||now):null,now).run();
     }
+    if(sourceUrl) await kaynakBaglaHaber(env,sourceUrl,slug).catch(()=>{});
     if(status==='published') indexNowBildir(ctx, url.origin, slug);
     return json({ok:true,slug,status});
   }
@@ -526,7 +529,8 @@ async function newsApi(request, env, url, ctx){
           .bind(...values.slice(0,9),now,id).run();
       }
       if(status==='published'){
-        const r=await env.DB.prepare('SELECT slug FROM news WHERE id=?').bind(id).first().catch(()=>null);
+        const r=await env.DB.prepare('SELECT slug,source_url FROM news WHERE id=?').bind(id).first().catch(()=>null);
+        if(r?.source_url) await kaynakBaglaHaber(env,r.source_url,r.slug).catch(()=>{});
         indexNowBildir(ctx, url.origin, r?.slug);
       }
       return json({ok:true});
@@ -869,6 +873,49 @@ async function adminAuditApi(request, env, url){
   }
 }
 
+/* ---------- Kalıcı Kaynak Masası API ---------- */
+async function kaynakMasasiApi(request,env,url){
+  if(!url.pathname.startsWith('/api/admin/sources')) return null;
+  if(!(await validSession(request,oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
+  if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
+  await ensureKaynakMasasiTables(env).catch(()=>{});
+
+  if(url.pathname==='/api/admin/sources' && request.method==='GET'){
+    const data=await kaynakListele(env,{
+      q:url.searchParams.get('q')||'',
+      status:url.searchParams.get('status')||'',
+      tier:url.searchParams.get('tier')||'',
+      limit:url.searchParams.get('limit')||80
+    });
+    return json({ok:true,...data,summary:await kaynakOzeti(env)});
+  }
+  if(url.pathname==='/api/admin/sources' && request.method==='POST'){
+    const b=await request.json().catch(()=>null);
+    if(!b||typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
+    const source=await kaynakKaydet(env,{
+      url:b.url,publisher:b.publisher,tier:b.tier,status:b.status,category:b.category,
+      district:b.district,license_note:b.license_note,trust_score:b.trust_score,notes:b.notes,
+      title:b.title,text:b.text,score:b.score
+    });
+    if(!source) return json({ok:false,error:'Geçerli bir http/https kaynak URL gerekli'},400);
+    return json({ok:true,item:source},201);
+  }
+  const match=url.pathname.match(/^\/api\/admin\/sources\/([^/]+)$/);
+  if(match && request.method==='PATCH'){
+    const id=decodeURIComponent(match[1]);
+    const b=await request.json().catch(()=>({}));
+    const item=await kaynakGuncelle(env,id,b||{});
+    if(!item) return json({ok:false,error:'Kaynak bulunamadı'},404);
+    return json({ok:true,item});
+  }
+  if(match && request.method==='GET'){
+    const item=await env.DB.prepare('SELECT k.*,(SELECT COUNT(*) FROM kaynak_baglantilari b WHERE b.source_id=k.id) AS link_count FROM kaynak_kayitlari k WHERE k.id=?').bind(decodeURIComponent(match[1])).first().catch(()=>null);
+    if(!item) return json({ok:false,error:'Kaynak bulunamadı'},404);
+    return json({ok:true,item});
+  }
+  return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,POST,PATCH'});
+}
+
 /* ---------- BTMEDYA Autopilot API ---------- */
 async function autopilotApi(request, env, url){
   if(!url.pathname.startsWith('/api/admin/autopilot')) return null;
@@ -1164,6 +1211,20 @@ async function socialApi(request, env, url, ctx){
     }
     const disId=String(b.metricool_id||'').trim();
     if(disId) await disTeslimKaydet(env,id,disId);
+    const accountScope=String(b.account_scope||'company');
+    const brandId=String(b.metricool_brand_id||env.METRICOOL_BRAND_ID||'');
+    if(!exists){
+      const rezerv=await sosyalTekillemeAyir(env,{post_id:id,source_slug:sourceSlug,title,body,format,platforms,account_scope:accountScope,metricool_brand_id:brandId});
+      if(!rezerv.allowed) return json({ok:false,error:'Aynı sosyal içerik zaten kuyrukta veya daha önce kaydedilmiş.',duplicate_of:rezerv.existing_post_id||null},409);
+      try{
+        await env.DB.prepare('UPDATE social_posts SET account_scope=?,metricool_brand_id=?,account_label=? WHERE id=?')
+          .bind(accountScope,brandId,String(b.account_label||'BTMEDYA Şirket').slice(0,120),id).run();
+        await sosyalTekillemeBagla(env,rezerv.fingerprint,id,sourceSlug);
+      }catch(e){
+        await sosyalTekillemeBirak(env,rezerv.fingerprint);
+        throw e;
+      }
+    }
     if(status==='planlandi' && !disId && ctx?.waitUntil){
       ctx.waitUntil(
         processMetricoolQueue(env,10)
@@ -1238,6 +1299,7 @@ async function socialApi(request, env, url, ctx){
   }
   if(byId && request.method==='DELETE'){
     const id=decodeURIComponent(byId[1]);
+    await sosyalTekillemeSil(env,id).catch(()=>{});
     const r=await env.DB.prepare('DELETE FROM social_posts WHERE id=?').bind(id).run();
     if(!(r.meta?.changes)) return json({ok:false,error:'Bulunamadı'},404);
     return json({ok:true});
