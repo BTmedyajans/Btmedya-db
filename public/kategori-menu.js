@@ -18,9 +18,9 @@
       {ad:'ARAMA / GÖRÜNÜRLÜK',items:[['Arama stratejisi','/search-strategy/'],['Programatik SEO','/programmatic-seo/']]}
     ]},
     {key:'tanitim',ad:'TANITIM',ozet:'Düğün, nişan, kına, gelin alımı ve işletme filmleri.',groups:[
-      {ad:'DÜĞÜN & ETKİNLİK',items:[['Düğün videosu / klip','/portfoy/?kategori=produksiyon'],['Nişan çekimi','/video-produksiyon/'],['Kına çekimi','/video-produksiyon/'],['Gelin alımı','/video-produksiyon/'],['Etkinlik çekimi','/video-produksiyon/']]},
-      {ad:'İŞLETME & MARKA',items:[['Video prodüksiyon','/video-produksiyon/'],['Tanıtım filmi · Belgesel','/hizmetler/balikesir-tanitim-filmi/'],['Balıkesir video prodüksiyon','/hizmetler/balikesir-video-produksiyon/'],['Reklam ve sponsorluk','/reklam-ve-sponsorluk/']]},
-      {ad:'PORTFÖY',items:[['Düğün videoları','/portfoy/?kategori=produksiyon'],['Tüm portföy','/portfoy/'],['Vaka çalışmaları','/vaka-calismalari/'],['Referanslar','/referanslar/']]},
+      {ad:'DÜĞÜN & ETKİNLİK',items:[['Düğün videosu / klip','/portfoy/?niyet=dugun'],['Nişan çekimi','/portfoy/?niyet=nisan'],['Kına çekimi','/portfoy/?niyet=kina'],['Gelin alımı','/portfoy/?niyet=gelin-alimi'],['Etkinlik çekimi','/portfoy/?niyet=etkinlik']]},
+      {ad:'İŞLETME & MARKA',items:[['Video prodüksiyon','/video-produksiyon/?kaynak=menu'],['Tanıtım filmi · Belgesel','/portfoy/?niyet=tanitim'],['Balıkesir video prodüksiyon','/hizmetler/balikesir-video-produksiyon/'],['Reklam ve sponsorluk','/reklam-ve-sponsorluk/']]},
+      {ad:'PORTFÖY',items:[['Düğün videoları','/portfoy/?niyet=dugun'],['Tüm portföy','/portfoy/'],['Vaka çalışmaları','/vaka-calismalari/'],['Referanslar','/referanslar/']]},
       {ad:'TEKLİF',items:[['Hizmetler','/hizmetler/'],['Hizmet kataloğu','/whatsapp-katalog/'],['Teklif al','/teklif-al/']]}
     ]}
   ];
