@@ -59,6 +59,10 @@ jobs:
           node tools/medya-listesi.mjs --kontrol
           node tools/css-denetimi.mjs
           node tools/mobile-regression-gate.mjs
+          # Sitemap'e girip run_worker_first'e girmeyen sayfa, www adresinde de
+          # 200 doner (yinelenen icerik). 4 Ekim: /marka-kiti/, /ai-lab/,
+          # /reklam-ve-sponsorluk/ ve /en/ tam bu durumdaydi. Ayni bosluk bir
+          # daha acilirsa burada kirmiziya duser.
           node tools/alan-adi-denetimi.mjs
 
           # node --check her sozdizimi hatasini yakalamiyor: 115a50e'deki

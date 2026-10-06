@@ -24,6 +24,12 @@ binding = "ASSETS"
 
 # API ve medya istekleri önce Worker'a gitmeli; aksi halde Static Assets
 # katmanı mevcut olmayan /api/* yollarını 404 olarak keser.
+# Sitemap'e giren her sayfa bu listede olmak zorunda. Olmayan sayfada Worker
+# hiç çalışmaz: www -> apex 301'i, güvenlik başlıkları ve X-Robots-Tag devre
+# dışı kalır, sayfa hem www hem apex adresinde 200 döner (yinelenen içerik).
+# /marka-kiti/, /ai-lab/, /reklam-ve-sponsorluk/ ve /en/ tam bu durumdaydı:
+# dördü de sitemap'te olduğu halde listede yoktu ve canlıda www adresinde 200
+# dönüyordu. tools/alan-adi-denetimi.mjs bu boşluk bir daha açılırsa yakalar.
 run_worker_first = ["/api/*", "/media/*", "/pub/*", "/", "/index.html", "/haber/*", "/haberler", "/haberler/*", "/hakkimizda*", "/iletisim*", "/hizmetler*", "/sosyal-medya*", "/video-produksiyon*", "/whatsapp-katalog*", "/basin-kiti*", "/vaka-calismalari*", "/arsiv*", "/dosyalar*", "/siyah-oda*", "/halk-roportaji*", "/gizlilik*", "/admin/*", "/gorsel/*", "/social-studio/*", "/kaynak-masasi*", "/kaynaklar*", "/portfoy/*", "/marka-kiti*", "/search-strategy*", "/programmatic-seo*", "/ai-lab*", "/reklam-ve-sponsorluk*", "/robots.txt", "/llms.txt", "/llms-full.txt", "/index.json", "/jsonld", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml", "/.well-known/*", "/en", "/en/*"]
 
 not_found_handling = "404-page"
@@ -37,6 +43,22 @@ custom_domain = true
 [[routes]]
 pattern = "www.btmedya.com.tr"
 custom_domain = true
+
+# İKİNCİL ALAN ADI (btmedyaajans.com) BURAYA EKLENMEZ.
+# Marka ikinci bir alan adı taşıyor ama ikinci bir site yok: ikincil adres
+# btmedya.com.tr'ye 301 döner. Yalnızca yönlendirme için Custom Domain açmak
+# yanlış araç olur, iki nedenle:
+#   - Her istek ücretli bir Worker çağrısına dönüşür; oysa yönlendirme hiç kod
+#     çalıştırmadan yapılabilir.
+#   - Worker yalnızca yukarıdaki run_worker_first desenlerinde çalışır.
+#     Kapsam dışı kalan /styles.css, /assets/* gibi dosyalar ikincil adreste
+#     200 dönmeye devam eder; yönlendirme alan adı genelinde olmaz.
+# Doğru yer: btmedyaajans.com zone'u üzerinde bir Redirect Rule. Worker'dan
+# önce çalışır, her yolu kapsar, ücretsizdir.
+# src/worker.js içindeki KANONIK_HOST / IKINCIL_HOSTLAR tablosu o kuralın
+# yedeğidir; kural kurulmadan önce ya da ikincil adres bir gün buraya
+# bağlanırsa devreye girer.
+# Adım adım: docs/ALAN-ADI-YAPILANDIRMA.md
 
 [[r2_buckets]]
 binding = "MEDIA"

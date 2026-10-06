@@ -74,12 +74,23 @@ hedefli bir commit tercih edin.
 Değişiklikler için öncelik sırası:
 
 1. sözdizimi
-2. yerel davranış
-3. mobil davranış
-4. canlı smoke test
+2. yapılandırma (`node tools/alan-adi-denetimi.mjs`)
+3. yerel davranış
+4. mobil davranış
+5. canlı smoke test
 
 Production smoke test GitHub Actions üzerinden ana sayfa ve /api/health
 için çalışır.
+
+`tools/alan-adi-denetimi.mjs`, aşağıdaki "sessizce bozan tuzaklar" bölümünde
+yazılı hataların alan adı ve yönlendirme ile ilgili olanlarını denetler:
+kanonik adres tutarlılığı (sitemap, robots.txt, sayfa içi `canonical`),
+`run_worker_first` kapsamı ve `src/worker.js` içindeki host yönlendirme
+tablosunun gerçek davranışı. Her pull request'te
+`.github/workflows/pr-validation.yml` içinde çalışır.
+
+Betik görsel hiçbir şey denetlemez; "denetim temiz" çıktısı sayfanın doğru
+göründüğü anlamına gelmez.
 
 Görsel ve davranış kontrolü için headless Chrome kullanılabilir. Chromium'da
 H.264 olmayabilir; .mp4 oynatılamaması tek başına sitede hata değildir.

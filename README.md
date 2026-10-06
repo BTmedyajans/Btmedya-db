@@ -55,9 +55,26 @@ Cloudflare Workers Builds, `wrangler.toml` içindeki `name` alanını yok sayar 
 daima bağlı olduğu servise (`btmedya-db`) deploy eder. `main` dalına push
 yapıldığında site otomatik güncellenir.
 
+### Alan adları
+
+| Alan adı | Durum (4 Ekim 2026 ölçümü) |
+|---|---|
+| `btmedya.com.tr` | **Canlı** — `btmedya-db` Worker'ına bağlı, 200 dönüyor |
+| `www.btmedya.com.tr` | 301 → `btmedya.com.tr` |
+| `btmedyaajans.com` | **Tescilli değil** — satın alınmayı bekliyor |
+
+`btmedyaajans.com` ikincil alan adı: ayrı bir site değil, `btmedya.com.tr`'ye
+301 yönlendirme olarak planlandı (aynı içeriği iki adreste yayınlamak yinelenen
+içeriktir). Yönlendirme tablosu `src/worker.js` içinde (`KANONIK_HOST`,
+`IKINCIL_HOSTLAR`) hazır; alan adı alındığı anda devreye girer. Alan adı
+genelinde kesin çözüm, ikincil zone üzerindeki Redirect Rule'dur.
+
+Adım adım kurulum, ölçüm komutları ve geriye kalan işler:
+[`docs/ALAN-ADI-YAPILANDIRMA.md`](docs/ALAN-ADI-YAPILANDIRMA.md)
+
 ### Alan adı bağlama
 
-`btmedya.com.tr` alan adı şu an `btmedya-db` Worker'ına bağlı ve canlı.
+`btmedya.com.tr` alan adı `btmedya-db` Worker'ına Custom Domain olarak bağlı.
 
 `www.btmedya.com.tr` ile gelen istekler Worker tarafından `btmedya.com.tr`
 adresine 301 yönlendirilir. Bu yönlendirme yalnızca Worker çalıştığında devreye
