@@ -46,7 +46,11 @@ export const KATEGORILER = [
   { anahtar: 'saglik', kategori: 'Sağlık', kaynaklar: ['trt-saglik', 'sabah-saglik', 'balikesir-valilik', 'baun'] },
   // TRT spor akışı günlerce güncellenmeyebiliyor; Hürriyet ve Sabah yedek.
   { anahtar: 'spor', kategori: 'Spor', kaynaklar: ['trt-spor', 'hurriyet-spor', 'sabah-spor', 'baun'] },
-  { anahtar: 'teknoloji', kategori: 'Teknoloji', kaynaklar: ['trt-teknoloji', 'hurriyet-teknoloji', 'aa-teknoloji', 'baun'] }
+  { anahtar: 'teknoloji', kategori: 'Teknoloji', kaynaklar: ['trt-teknoloji', 'hurriyet-teknoloji', 'aa-teknoloji', 'baun'] },
+  // 6 Ekim: ulusal haber sitelerindeki Dünya ve Yaşam bölümleri. Yalnız
+  // kurumsal yayıncıların RSS akışları; hassas konu ve iddia kapıları aynen geçerli.
+  { anahtar: 'dunya', kategori: 'Dünya', kaynaklar: ['trt-dunya', 'hurriyet-dunya', 'sabah-dunya'] },
+  { anahtar: 'yasam', kategori: 'Yaşam', kaynaklar: ['trt-yasam', 'sabah-yasam'] }
 ];
 
 const KAYNAK = {
@@ -68,6 +72,11 @@ const KAYNAK = {
   'aa-teknoloji': { ad: 'Anadolu Ajansı', tur: 'rss', url: 'https://www.aa.com.tr/tr/rss/default?cat=bilim-teknoloji' },
   'sabah-kultur': { ad: 'Sabah', tur: 'rss', url: 'https://www.sabah.com.tr/rss/kultur-sanat.xml' },
   'sabah-saglik': { ad: 'Sabah', tur: 'rss', url: 'https://www.sabah.com.tr/rss/saglik.xml' },
+  'trt-dunya': { ad: 'TRT Haber', tur: 'rss', url: 'https://www.trthaber.com/dunya_articles.rss' },
+  'hurriyet-dunya': { ad: 'Hürriyet', tur: 'rss', url: 'https://www.hurriyet.com.tr/rss/dunya' },
+  'sabah-dunya': { ad: 'Sabah', tur: 'rss', url: 'https://www.sabah.com.tr/rss/dunya.xml' },
+  'trt-yasam': { ad: 'TRT Haber', tur: 'rss', url: 'https://www.trthaber.com/yasam_articles.rss' },
+  'sabah-yasam': { ad: 'Sabah', tur: 'rss', url: 'https://www.sabah.com.tr/rss/yasam.xml' },
   // Balıkesir yerel radar: kurumların resmi haber/duyuru sayfaları.
   'balikesir-valilik': { ad: 'Balıkesir Valiliği', tur: 'html', url: 'https://www.balikesir.gov.tr/haberler', base: 'https://www.balikesir.gov.tr' },
   'baun': { ad: 'Balıkesir Üniversitesi', tur: 'html', url: 'https://balikesir.edu.tr/', base: 'https://balikesir.edu.tr' },

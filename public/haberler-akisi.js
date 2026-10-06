@@ -33,7 +33,10 @@
     egitim: 'Okullar, üniversiteler, sınavlar ve öğrenci yaşamından gelişmeler.',
     saglik: 'Sağlık hizmetleri, uzman görüşleri ve günlük yaşamı ilgilendiren gelişmeler.',
     spor: 'Balıkesir ve Türkiye sporundan sonuçlar, oyuncular ve etkinlikler.',
-    teknoloji: 'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetler.'
+    teknoloji: 'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetler.',
+    turkiye: 'Türkiye genelindeki ulusal gündem ve kentlerden gelişmeler.',
+    dunya: 'Dünyadan önemli gelişmeler; kurumsal kaynaklardan derlenir.',
+    yasam: 'Günlük yaşam, aile, tüketici ve toplum haberleri.'
   };
 
   function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (x) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[x]; }); }
@@ -44,8 +47,12 @@
     var metin = norm(c + ' ' + (n.title || '') + ' ' + (n.excerpt || '') + ' ' + (Array.isArray(n.body) ? n.body.slice(0, 2).join(' ') : ''));
     // Güçlü yerel sinyal, tematik kelimelerden önce değerlendirilir.
     // Böylece Balıkesir'e ait ekonomi/teknoloji/gündem haberleri yerelde kalır.
-    var yerelRegex = /\\b(balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|dursunbey|savastepe|bigadic|ivindi|manyas|havran|gomec|erdek|balya|sindirgi|pazar|altyapi|ulasim|belediye)\\b/;
+    var yerelRegex = /\b(balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|dursunbey|savastepe|bigadic|ivindi|manyas|havran|gomec|erdek|balya|sindirgi|pazar|altyapi|ulasim|belediye)\b/;
     if (yerelRegex.test(metin)) return 'balikesir';
+    // Yerel sinyalden sonra editoryal kategori alanı esastır: metninde "dünya
+    // şampiyonu" geçen spor haberi Dünya'ya taşınmaz.
+    var acik = norm(c.split('·')[0]).trim();
+    if (AD[acik]) return acik;
     var aliased = [
       ['teknoloji', /(yapay zeka|teknoloji|yazilim|dijital|\bai\b|teknofest|uygulama|platform)/],
       ['yasam', /(yasam|gundelik|aile|kadın|kadin|cocuk|magazin|moda|evlilik|dugun)/],

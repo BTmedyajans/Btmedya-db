@@ -80,6 +80,12 @@ assert.equal(k('Gündem · Asayiş'), 'gundem');
 assert.equal(k('Sağlık · Beslenme'), 'saglik');
 assert.equal(k('Spor'), 'spor');
 assert.equal(k('Eğitim'), 'egitim');
+// 6 Ekim: açık kategori alanı esastır; metindeki "dünya" spor haberini taşımaz.
+assert.equal(k('Dünya'), 'dunya');
+assert.equal(k('Yaşam'), 'yasam');
+assert.equal(k('Türkiye'), 'turkiye');
+assert.equal(k('Spor', 'Milli güreşçi dünya şampiyonu oldu'), 'spor');
+assert.equal(k('', 'Balıkesir Büyükşehir yeni hat açtı'), 'balikesir');
 // İlgili haberler kartı görselli: kapak varsa metinsiz "-foto" kare ve kaynak
 // etiketi basılır; kapaksız haber kırık <img> değil yazılı kart olur.
 const { renderNewsPage } = await import('../src/news-page.js');

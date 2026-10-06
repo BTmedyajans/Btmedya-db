@@ -1282,7 +1282,8 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
  // icindeki "spor" yuzunden bir yapay zeka haberi SPOR'a dusuyordu.
  const CATS=[['balikesir','BALIKESİR',/\b(yerel|balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|pazar|altyapi)\b/],['gundem','GÜNDEM',/\b(gundem|asayis|yangin|afet|guvenlik|trafik)\b/],['ekonomi','EKONOMİ',/\b(ekonomi|emlak|esnaf|tarim|ticaret|fiyat)\b/],['kultur','KÜLTÜR',/\b(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik)\b/],['egitim','EĞİTİM',/\b(egitim|universite|okul|sinav)\b/],['saglik','SAĞLIK',/\b(saglik|beslenme|bakim|hastane)\b/],['spor','SPOR',/\b(spor|futbol|basketbol|turnuva)\b/],['teknoloji','TEKNOLOJİ / AI',/\b(yapay zeka|teknoloji|yazilim|dijital|ai)\b/]];
  const bul=t=>(CATS.find(x=>x[2].test(t))||[null])[0];
- const cat=n=>{const k=String(n&&n.category||'');return bul(norm(k.split('·')[0]))||bul(norm(k))||bul(norm([n&&n.title,n&&n.excerpt].join(' ')))||'diger'};
+ // Dünya ve Yaşam yalnız editoryal kategori alanından (worker ile aynı kural).
+ const cat=n=>{const k=String(n&&n.category||''),e=norm(k.split('·')[0]).trim();if(e==='dunya'||e==='yasam')return e;return bul(norm(k.split('·')[0]))||bul(norm(k))||bul(norm([n&&n.title,n&&n.excerpt].join(' ')))||'diger'};
  const quality=n=>Number(!!n&&n.source_url)*2+Number(!!n&&n.cover_url)*2+Number(!!n&&n.author)+Number(String(n&&n.body||'').length>=500)+Number(String(n&&n.published_at||'').slice(0,4)===String(new Date().getFullYear()))*2+Number(n&&n.ai_generated===true);
  window.BTMEDYA_RELEVANCE={categories:CATS.map(x=>({key:x[0],label:x[1]})),category:cat,quality};
  // Sekmeleri ve izgarayi yalniz haber filtresi (yukarida, loadNews) cizer.
