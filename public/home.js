@@ -124,6 +124,15 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
         '<button class="portfoy-sekme' + (i === 0 ? ' secili' : '') + '" type="button"' +
         ' aria-pressed="' + (i === 0) + '" data-kategori="' + esc(c.ad) + '">' + esc(c.etiket) + '</button>'
       ).join('');
+      // Menüden gelen niyet filtresini doğrudan portföyde aç.
+      // Örn. /portfoy/?kategori=produksiyon -> Düğün videosu / prodüksiyon işleri.
+      const urlKategori = new URLSearchParams(location.search).get('kategori');
+      if (urlKategori) {
+        const hedef = [...filtre.querySelectorAll('.portfoy-sekme')]
+          .find(x => x.dataset.kategori === urlKategori);
+        if (hedef) hedef.click();
+      }
+
       filtre.addEventListener('click', e => {
         const b = e.target.closest('.portfoy-sekme');
         if (!b) return;
