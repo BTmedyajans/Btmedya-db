@@ -50,7 +50,7 @@ assert.ok(!/<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>/.test(say
 // Sekiz kategori rayda, anasayfadaki anahtarlarla aynı. 4 Ekim'den beri
 // kategoriler sunucuda işlenen temiz adreslerde (/haberler/spor/);
 // ?kategori= biçimi 301 ile oraya yönlenir.
-for (const k of ['balikesir', 'gundem', 'ekonomi', 'kultur', 'egitim', 'saglik', 'spor', 'teknoloji'])
+for (const k of ['balikesir', 'turkiye', 'dunya', 'gundem', 'ekonomi', 'kultur', 'yasam', 'egitim', 'saglik', 'spor', 'teknoloji'])
   assert.match(sayfa, new RegExp(`href="/haberler/${k}/" data-hm-kategori="${k}"`));
 
 // 3) Akış kuralları (kaynak kodda): özet isteği, 3 saat kuralı, kapak üstüne başlık yok.
@@ -71,6 +71,8 @@ const kaynak = betik.replace("if (!kok) return;", "if (!kok) { globalThis.katego
 vm.runInNewContext(kaynak, Object.assign(kum, { globalThis: kum }));
 const k = (category, title = '') => kum.kategoriBul({ category, title });
 assert.equal(k('Yerel · Pazar'), 'balikesir');
+assert.equal(k('Ekonomi', 'Balıkesir’de yeni pazar düzenlemesi'), 'balikesir');
+assert.equal(k('Teknoloji', 'Balıkesir’de yeni dijital portal hizmete girdi'), 'balikesir');
 assert.equal(k('Yapay Zekâ'), 'teknoloji');
 assert.equal(k('Kültür · Zanaat'), 'kultur');
 assert.equal(k('Ekonomi · Emlak'), 'ekonomi');
