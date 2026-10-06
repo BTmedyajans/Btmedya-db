@@ -1,3 +1,5 @@
+import { kaynakKaydet, kaynakBagla, ensureKaynakMasasiTables, ilceBul } from "./kaynak-masasi.js";
+
 /* BTMEDYA Haber İstihbarat Motoru
  * Gün içi keşif katmanı: Google Trends TR + birincil/ulusal kaynaklar +
  * Balıkesir yerel yayınlarının kamuya açık RSS/Google News sonuçları.
@@ -80,6 +82,7 @@ export const NEWS_INTEL_FEEDS=FEEDS.map(({id,name,category,tier})=>({id,name,cat
 export async function runNewsIntelligence(env,{limit=8}={}){
   const result={ok:true,scanned:0,added:0,hot:0,errors:[],items:[]};
   if(!env.DB) return {...result,ok:false,error:'D1 not configured'};
+  await ensureKaynakMasasiTables(env).catch(()=>{});
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS news_intelligence (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     source_url TEXT NOT NULL UNIQUE,
@@ -114,6 +117,11 @@ export async function runNewsIntelligence(env,{limit=8}={}){
   try{trendXml=await get('https://trends.google.com/trending/rss?geo=TR');}catch(e){result.errors.push('Google Trends: '+String(e.message||e).slice(0,120));}
   const trendItems=rssItems(trendXml);
   const trendMap=trendWords(trendItems);
+  /* Feed kataloğu Kaynak Masası'nda da kalıcı tutulur. Bu kayıtlar editörün
+     aday kaynakları ile tarama motorunun kendi giriş noktalarını ayırmasını sağlar. */
+  for(const feed of FEEDS){
+    await kaynakKaydet(env,{url:feed.url,publisher:feed.name,tier:feed.tier,category:feed.category,status:'active',notes:'BTMEDYA Haber İstihbarat Motoru kaynak kataloğu.'}).catch(()=>{});
+  }
   const fetched=await Promise.all(FEEDS.map(async feed=>{
     try{return {feed,items:rssItems(await get(feed.url))};}
     catch(e){result.errors.push(feed.name+': '+String(e.message||e).slice(0,100));return {feed,items:[]};}
@@ -136,6 +144,11 @@ export async function runNewsIntelligence(env,{limit=8}={}){
     const now=new Date().toISOString();
     const isHot=c.score>=65 && !c.risk;
     try{
+      const source = await kaynakKaydet(env,{
+        url:c.link,publisher:c.feed.name,tier:c.feed.tier,category:c.feed.category,
+        district:ilceBul(c.title+' '+c.description),title:c.title,text:c.description,score:c.score,
+        status:'review'
+      });
       await env.DB.prepare(`INSERT INTO news_intelligence
         (source_url,title,excerpt,category,source_name,source_host,source_tier,score,risk,trend_signal,commercial_signal,status,first_seen_at,updated_at)
         VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
@@ -145,6 +158,9 @@ export async function runNewsIntelligence(env,{limit=8}={}){
           score=excluded.score,risk=excluded.risk,trend_signal=excluded.trend_signal,
           commercial_signal=excluded.commercial_signal,updated_at=excluded.updated_at`)
         .bind(c.link,safeText(c.title,240),safeText(c.description,1800),c.feed.category,c.feed.name,host(c.link),c.feed.tier,c.score,c.risk,c.trend,c.commercial,'new',now,now).run();
+      if(source?.id){
+        await kaynakBagla(env,{sourceId:source.id,entityType:'news-intelligence',entityId:String(c.link),role:'discovery'}).catch(()=>{});
+      }
       if(isHot){
         result.hot++;
         await env.DB.prepare(`INSERT INTO news_intelligence_alerts
