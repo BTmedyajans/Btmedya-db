@@ -1,4 +1,4 @@
-/* BTMEDYA Mobil Motion V10.3 · 2026-10-06
+/* BTMEDYA Mobil Motion V10.4 · 2026-10-06
    Mobil giriş filmi (gerçek çekim arşiv kurgusu) + hero kaynak köprüsü.
    V10.2: yanlış etiketli "Sahadan" rayı kaldırıldı (aşağıda); bitmiş film
    kendiliğinden baştan başlamaz, sonunda seçim sahnesi açık kalır. */
@@ -25,7 +25,10 @@
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches, DEFAULT=FILM.video;
   let visible=true, stopped=false, source=DEFAULT;
   const sound=()=>{if(!soundBtn)return;soundBtn.setAttribute('aria-pressed',String(!video.muted));soundBtn.setAttribute('aria-label',video.muted?'Sesi aç':'Sesi kapat');soundBtn.textContent=video.muted?'🔇 Sesi aç':'🔊 Sesi kapat'};
-  const load=()=>{if(video.src)return;video.preload='auto';video.muted=true;video.playsInline=true;video.src=source;video.load()};
+  // H.264 çözemeyen tarayıcıda (codec'siz Chromium/Firefox) MP4 hata 4 verip
+  // film hiç başlamıyordu; aynı kurgunun WebM kopyası data-webm'de duruyor.
+  const kaynak=()=>source===DEFAULT&&video.dataset.webm&&!video.canPlayType('video/mp4; codecs="avc1.42E01E"')?video.dataset.webm:source;
+  const load=()=>{if(video.src)return;video.preload='auto';video.muted=true;video.playsInline=true;video.src=kaynak();video.load()};
   const start=()=>{if(stopped||!visible||document.hidden)return;load();const p=video.play();if(p)p.catch(()=>{})};
   playBtn&&playBtn.addEventListener('click',()=>{stopped=false;if(video.ended)video.currentTime=0;start()});
   soundBtn&&soundBtn.addEventListener('click',()=>{video.muted=!video.muted;sound();if(!video.paused)start()});
