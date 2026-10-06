@@ -8,7 +8,7 @@
  * Platform app credentials remain Worker Secrets and are never stored in D1.
  */
 const NETWORKS=new Set(["instagram","facebook","tiktok","youtube","linkedin"]);
-const META_VERSION=()=>String(globalThis.__BTMEDYA_META_VERSION||"v26.0");
+const META_VERSION=env=>String(env?.META_GRAPH_VERSION||"v26.0");
 
 function now(){return new Date().toISOString()}
 function j(x){try{return JSON.stringify(x||{})}catch{return "{}"}}
@@ -91,7 +91,7 @@ function authUrl(request,env,network,state){
   }
   if(network==="facebook"){
     const p=new URLSearchParams({client_id:String(env.META_APP_ID),redirect_uri:redirect,response_type:"code",scope:oauthScope(network),state});
-    return "https://www.facebook.com/"+META_VERSION()+"/dialog/oauth?"+p;
+    return "https://www.facebook.com/"+META_VERSION(env)+"/dialog/oauth?"+p;
   }
   if(network==="tiktok"){
     const p=new URLSearchParams({client_key:String(env.TIKTOK_CLIENT_KEY),redirect_uri:redirect,response_type:"code",scope:oauthScope(network),state});
@@ -124,10 +124,10 @@ async function exchangeCode(request,env,network,code){
   }
   if(network==="facebook"){
     const body=new URLSearchParams({client_id:String(env.META_APP_ID),client_secret:String(env.META_APP_SECRET),redirect_uri:redirect,code:String(code)});
-    const r=await fetch("https://graph.facebook.com/"+META_VERSION()+"/oauth/access_token",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body});
+    const r=await fetch("https://graph.facebook.com/"+META_VERSION(env)+"/oauth/access_token",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body});
     const user=await r.json().catch(()=>({}));
     if(!r.ok||!user.access_token)throw new Error("Facebook OAuth HTTP "+r.status);
-    const pages=await fetch("https://graph.facebook.com/"+META_VERSION()+"/me/accounts?fields=id,name,access_token,category&access_token="+encodeURIComponent(user.access_token));
+    const pages=await fetch("https://graph.facebook.com/"+META_VERSION(env)+"/me/accounts?fields=id,name,access_token,category&access_token="+encodeURIComponent(user.access_token));
     const pj=await pages.json().catch(()=>({}));
     if(!pages.ok)throw new Error("Facebook Pages alınamadı HTTP "+pages.status);
     const page=(pj.data||[])[0];
@@ -193,7 +193,7 @@ async function mediaUrl(env,key){
 }
 async function publishInstagram(env,account,post,asset){
   if(!asset.url)throw new Error("Instagram için medya URL gerekli");
-  const base="https://graph.instagram.com/"+META_VERSION();
+  const base="https://graph.instagram.com/"+META_VERSION(env);
   const token=account.token;
   const meta=String(asset.mime||"").startsWith("video/")?{media_type:"REELS",video_url:asset.url,caption:String(post.body||post.title||"")}:{image_url:asset.url,caption:String(post.body||post.title||"")};
   if(account.metadata?.ai_generated)meta.is_ai_generated=true;
@@ -214,7 +214,7 @@ async function publishInstagram(env,account,post,asset){
   return String(pj.id);
 }
 async function publishFacebook(env,account,post){
-  const base="https://graph.facebook.com/"+META_VERSION();
+  const base="https://graph.facebook.com/"+META_VERSION(env);
   const body=new URLSearchParams({message:String(post.body||post.title||""),access_token:account.token});
   if(post.link)body.set("link",String(post.link));
   const r=await fetch(base+"/"+encodeURIComponent(account.external_id)+"/feed",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body});
@@ -275,7 +275,9 @@ async function loadAsset(env,post,network){
   const key=String(post.media_key||"");
   const url=await mediaUrl(env,key);
   if(!url)return {url:"",mime:"",bytes:null};
-  if(network!=="youtube")return {url,mime:/\.(png|jpe?g|webp)$/i.test(key)?"image/jpeg":"video/mp4",bytes:null};
+  const obj=env.MEDIA?await env.MEDIA.head(key).catch(()=>null):null;
+  const mime=String(obj?.httpMetadata?.contentType||(/\.(png|jpe?g|webp)$/i.test(key)?"image/jpeg":"video/mp4"));
+  if(network!=="youtube")return {url,mime,bytes:null};
   const obj=env.MEDIA?await env.MEDIA.get(key).catch(()=>null):null;
   if(!obj)return {url,mime:"",bytes:null};
   return {url,mime:String(obj.httpMetadata?.contentType||"video/mp4"),bytes:await obj.arrayBuffer()};
