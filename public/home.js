@@ -130,7 +130,16 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       if (urlKategori) {
         const hedef = [...filtre.querySelectorAll('.portfoy-sekme')]
           .find(x => x.dataset.kategori === urlKategori);
-        if (hedef) hedef.click();
+        if (hedef) {
+          filtre.querySelectorAll('.portfoy-sekme').forEach(x => {
+            const aktif = x === hedef;
+            x.classList.toggle('secili', aktif);
+            x.setAttribute('aria-pressed', String(aktif));
+          });
+          grid.querySelectorAll('.portfoy-kart').forEach(kart => {
+            kart.hidden = kart.dataset.kategori !== urlKategori;
+          });
+        }
       }
 
       filtre.addEventListener('click', e => {
