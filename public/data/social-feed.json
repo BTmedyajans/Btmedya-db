@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-10-05T18:13:38.094Z",
-  "source": "Metricool MCP",
-  "mode": "verified_planner_snapshot",
+  "generated_at": "2026-10-06T08:00:00+03:00",
+  "source": "Metricool",
+  "mode": "verified_connection_snapshot",
   "plan_note": "Ücretsiz Metricool MCP kullanılır; ücretli API kullanılmaz. Metricool plan limitleri aynen geçerlidir.",
   "brand": {
     "id": 6858384,
@@ -23,10 +23,10 @@
     },
     {
       "key": "facebook",
-      "label": "Facebook",
-      "url": null,
+      "label": "Facebook · busetuncayy10",
+      "url": "https://www.facebook.com/people/busetuncayy10/100080226545931/",
       "status": "verification_pending",
-      "note": "Metricool Brand bağlantısı bu snapshotta doğrulanmadı."
+      "note": "Metricool Brand 6725412 Facebook bağlantısı Worker tokenı ile doğrulanacak."
     },
     {
       "key": "youtube",
@@ -242,5 +242,18 @@
       "archive_context": "BTMEDYA haber/gündem yayını",
       "note": "Metricool durumu: PUBLISHED."
     }
-  ]
+  ],
+  "note": "Metricool Brand 6725412 için Facebook/Instagram/TikTok/YouTube bağlantı yapılandırması hazırlandı; Worker secret doğrulaması bekleniyor.",
+  "metricool": {
+    "brand_id": "6725412",
+    "user_id": "5278969",
+    "facebook_page_id": "107923075188798",
+    "facebook_page_url": "https://www.facebook.com/people/busetuncayy10/100080226545931/",
+    "networks": [
+      "facebook",
+      "instagram",
+      "tiktok",
+      "youtube"
+    ]
+  }
 }
