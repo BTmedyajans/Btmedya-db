@@ -38,24 +38,24 @@ async function decryptSecret(secret,value){
 async function ensureNativeSocialTables(env){
   if(!env?.DB)return {ok:false,error:"D1 veritabanı bağlı değil"};
   const q=[
-    \`CREATE TABLE IF NOT EXISTS native_social_accounts (
+    `CREATE TABLE IF NOT EXISTS native_social_accounts (
       id TEXT PRIMARY KEY, client_id TEXT NOT NULL DEFAULT '', scope TEXT NOT NULL DEFAULT 'company',
       network TEXT NOT NULL, handle TEXT NOT NULL DEFAULT '', external_id TEXT NOT NULL DEFAULT '',
       token_enc TEXT NOT NULL DEFAULT '', refresh_token_enc TEXT NOT NULL DEFAULT '', token_expires_at TEXT,
       metadata_json TEXT NOT NULL DEFAULT '{}', status TEXT NOT NULL DEFAULT 'connected',
       last_error TEXT NOT NULL DEFAULT '', last_used_at TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
       UNIQUE(client_id,network,handle)
-    )\`,
-    \`CREATE TABLE IF NOT EXISTS native_social_deliveries (
+    )`,
+    `CREATE TABLE IF NOT EXISTS native_social_deliveries (
       post_id TEXT NOT NULL, account_id TEXT NOT NULL, network TEXT NOT NULL,
       remote_id TEXT NOT NULL DEFAULT '', status TEXT NOT NULL, error TEXT NOT NULL DEFAULT '',
       attempts INTEGER NOT NULL DEFAULT 0, response_json TEXT NOT NULL DEFAULT '{}',
       created_at TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY(post_id,account_id)
-    )\`,
-    \`CREATE TABLE IF NOT EXISTS native_social_oauth_states (
+    )`,
+    `CREATE TABLE IF NOT EXISTS native_social_oauth_states (
       state TEXT PRIMARY KEY, network TEXT NOT NULL, client_id TEXT NOT NULL DEFAULT '',
       return_to TEXT NOT NULL DEFAULT '/admin/native-social/', created_at TEXT NOT NULL, expires_at TEXT NOT NULL
-    )\`,
+    )`,
     "CREATE INDEX IF NOT EXISTS idx_native_social_accounts_client ON native_social_accounts(client_id,status)",
     "CREATE INDEX IF NOT EXISTS idx_native_social_accounts_network ON native_social_accounts(network,status)",
     "CREATE INDEX IF NOT EXISTS idx_native_social_deliveries_status ON native_social_deliveries(status,updated_at)",
@@ -174,9 +174,9 @@ async function saveAccount(env,input){
   const tokenEnc= input.token ? await encryptSecret(secret,input.token) : String(old?.token_enc||"");
   const refreshEnc=input.refresh_token ? await encryptSecret(secret,input.refresh_token) : String(old?.refresh_token_enc||"");
   const created=String(old?.created_at||now()),updated=now();
-  await env.DB.prepare(\`INSERT INTO native_social_accounts(id,client_id,scope,network,handle,external_id,token_enc,refresh_token_enc,token_expires_at,metadata_json,status,last_error,last_used_at,created_at,updated_at)
+  await env.DB.prepare(`INSERT INTO native_social_accounts(id,client_id,scope,network,handle,external_id,token_enc,refresh_token_enc,token_expires_at,metadata_json,status,last_error,last_used_at,created_at,updated_at)
   VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-  ON CONFLICT(id) DO UPDATE SET client_id=excluded.client_id,scope=excluded.scope,network=excluded.network,handle=excluded.handle,external_id=excluded.external_id,token_enc=excluded.token_enc,refresh_token_enc=excluded.refresh_token_enc,token_expires_at=excluded.token_expires_at,metadata_json=excluded.metadata_json,status=excluded.status,last_error=excluded.last_error,updated_at=excluded.updated_at\`)
+  ON CONFLICT(id) DO UPDATE SET client_id=excluded.client_id,scope=excluded.scope,network=excluded.network,handle=excluded.handle,external_id=excluded.external_id,token_enc=excluded.token_enc,refresh_token_enc=excluded.refresh_token_enc,token_expires_at=excluded.token_expires_at,metadata_json=excluded.metadata_json,status=excluded.status,last_error=excluded.last_error,updated_at=excluded.updated_at`)
     .bind(id,clientId,String(input.scope||"company"),network,String(input.handle||""),String(input.external_id||""),tokenEnc,refreshEnc,input.expires_at||old?.token_expires_at||null,j(input.metadata||parse(old?.metadata_json||"{}")),String(input.status||"connected"),String(input.last_error||""),old?.last_used_at||null,created,updated).run();
   return {id,network,handle:String(input.handle||""),client_id:clientId,status:String(input.status||"connected"),token_expires_at:input.expires_at||old?.token_expires_at||null};
 }
@@ -295,12 +295,12 @@ export async function processNativeSocialQueue(env,limit=8){
   await ensureNativeSocialTables(env);
   const out={enabled:Boolean(env.SOCIAL_CREDENTIALS_SECRET),processed:0,published:0,failed:0,items:[]};
   if(!env.DB||!env.SOCIAL_CREDENTIALS_SECRET)return out;
-  const rows=(await env.DB.prepare(\`SELECT p.* FROM social_posts p
+  const rows=(await env.DB.prepare(`SELECT p.* FROM social_posts p
     WHERE p.status='planlandi' AND p.delivery_provider='native'
       AND p.scheduled_at IS NOT NULL AND p.scheduled_at<=?
       AND p.native_account_id<>''
       AND NOT EXISTS(SELECT 1 FROM native_social_deliveries d WHERE d.post_id=p.id AND d.account_id=p.native_account_id AND d.status='published')
-    ORDER BY p.scheduled_at ASC LIMIT ?\`).bind(now(),Number(limit)||8).all()).results||[];
+    ORDER BY p.scheduled_at ASC LIMIT ?`).bind(now(),Number(limit)||8).all()).results||[];
   for(const post of rows){
     out.processed++;
     const account=await loadAccount(env,post.native_account_id);
@@ -310,16 +310,16 @@ export async function processNativeSocialQueue(env,limit=8){
     try{
       const remote=await publishOne(env,post,account);
       const t=now();
-      await env.DB.prepare(\`INSERT INTO native_social_deliveries(post_id,account_id,network,remote_id,status,error,attempts,response_json,created_at,updated_at)
-        VALUES(?,?,?,?,?,'',?,?,?,?) ON CONFLICT(post_id,account_id) DO UPDATE SET remote_id=excluded.remote_id,status='published',error='',attempts=excluded.attempts,response_json=excluded.response_json,updated_at=excluded.updated_at\`)
+      await env.DB.prepare(`INSERT INTO native_social_deliveries(post_id,account_id,network,remote_id,status,error,attempts,response_json,created_at,updated_at)
+        VALUES(?,?,?,?,?,'',?,?,?,?) ON CONFLICT(post_id,account_id) DO UPDATE SET remote_id=excluded.remote_id,status='published',error='',attempts=excluded.attempts,response_json=excluded.response_json,updated_at=excluded.updated_at`)
         .bind(post.id,account.id,account.network,remote,"published",attempts,j({remote_id:remote}),t,t).run();
       await env.DB.prepare("UPDATE social_posts SET status='yayinlandi',updated_at=? WHERE id=?").bind(t,post.id).run();
       await env.DB.prepare("UPDATE native_social_accounts SET last_error='',last_used_at=?,updated_at=? WHERE id=?").bind(t,t,account.id).run();
       out.published++;out.items.push({post_id:post.id,network:account.network,status:"published",remote_id:remote});
     }catch(e){
       const err=String(e?.message||e).slice(0,1600),t=now();
-      await env.DB.prepare(\`INSERT INTO native_social_deliveries(post_id,account_id,network,remote_id,status,error,attempts,response_json,created_at,updated_at)
-        VALUES(?,?,?,?,?,'',?,?,?,?) ON CONFLICT(post_id,account_id) DO UPDATE SET status='error',error=excluded.error,attempts=excluded.attempts,updated_at=excluded.updated_at\`)
+      await env.DB.prepare(`INSERT INTO native_social_deliveries(post_id,account_id,network,remote_id,status,error,attempts,response_json,created_at,updated_at)
+        VALUES(?,?,?,?,?,'',?,?,?,?) ON CONFLICT(post_id,account_id) DO UPDATE SET status='error',error=excluded.error,attempts=excluded.attempts,updated_at=excluded.updated_at`)
         .bind(post.id,account.id,account.network,"","error",err,attempts,j({error:err}),t,t).run();
       await env.DB.prepare("UPDATE native_social_accounts SET last_error=?,updated_at=? WHERE id=?").bind(err,t,account.id).run();
       out.failed++;out.items.push({post_id:post.id,network:account.network,status:"error",error:err});
