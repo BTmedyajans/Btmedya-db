@@ -112,7 +112,7 @@ button,a{touch-action:manipulation}
     right:10px!important;
     bottom:calc(10px + var(--bt-safe-bottom))!important;
     z-index:100!important;
-    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
     gap:3px!important;
     padding:5px!important;
   }
