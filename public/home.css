@@ -306,3 +306,12 @@ footer .footer-logo{display:block;width:auto;height:54px;max-width:100%;margin-b
 .urun-not{max-width:var(--max);margin:30px auto 0;padding:16px 18px;border:1px solid var(--line);border-left:3px solid var(--gold);color:var(--muted);font-size:14px;line-height:1.6}
 .urun-not b{color:#fff}
 @media(max-width:900px){.urun-grid{grid-template-columns:1fr}}
+
+/* Portfolio intent navigation — evidence-based service routing. */
+.portfoy-filtre{align-items:center}
+.portfoy-filtre-grup{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.portfoy-filtre-label{font:700 8px/1 Jet,monospace;letter-spacing:.14em;color:var(--muted);margin-right:2px}
+.portfoy-bos-filtre{display:flex;flex-direction:column;gap:8px}
+.portfoy-bos-filtre strong{font:700 14px/1.35 Space,system-ui,sans-serif;color:#fff}
+.portfoy-bos-filtre span{font:500 11px/1.5 Jet,monospace;color:var(--muted)}
+@media (max-width:720px){.portfoy-filtre{align-items:flex-start;flex-direction:column;overflow:visible;flex-wrap:wrap}.portfoy-filtre-grup{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}.portfoy-filtre-label{min-width:max-content}.portfoy-bos-filtre{padding:28px}}
