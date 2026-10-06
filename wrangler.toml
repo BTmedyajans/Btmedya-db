@@ -59,7 +59,7 @@ ADMIN_USERNAME = "busetuncay74@gmail.com"
 # Metricool Brand 6858384'te 29 Eylül 2026 itibarıyla doğrulanan yayın ağları.
 # Bu değişiklik aynı zamanda sync-worker-secrets workflow'unun mevcut GitHub -> Cloudflare secret zincirini yeniden çalıştırır.
 # Yeni bir ağ Metricool Connections'a bağlandığında bu liste güncellenir.
-METRICOOL_CONNECTED_NETWORKS = "facebook,instagram,tiktok,youtube"
+METRICOOL_CONNECTED_NETWORKS = "tiktok,youtube"
 # Kişisel hesaplar ayrı Metricool Brand olmadan hiçbir zaman otomatik yayın ağı olarak etkinleşmez.
 METRICOOL_PERSONAL_CONNECTED_NETWORKS = ""
 # Metricool kullanıcı numarası kimlik bilgisi değil (API her çağrıda ayrıca
