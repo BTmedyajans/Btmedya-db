@@ -21,8 +21,8 @@ const fail = msg => { console.error("MOBILE_GATE_FAIL:",msg); process.exitCode=1
 const ok = msg => console.log("MOBILE_GATE_OK:",msg);
 
 const navCount = (index.match(/data-mobile-nav=/g)||[]).length;
-if (navCount !== 6) fail(`expected exactly 6 mobile nav links, got ${navCount}`);
-else ok("mobile quick navigation has exactly 6 links");
+if (navCount !== 4) fail(`expected exactly 4 mobile nav links, got ${navCount}`);
+else ok("mobile quick navigation has exactly 4 links");
 
 if (/repeat\(5,1fr\)/.test(mobileFixes)) fail("legacy 5-column mobile nav rule still exists");
 else ok("no legacy 5-column mobile nav rule");
