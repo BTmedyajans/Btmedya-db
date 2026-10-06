@@ -72,7 +72,7 @@ load();loadCategoryFeed();setInterval(load,60000);setInterval(loadCategoryFeed,6
   const bar=document.createElement('section');
   bar.className='admin-commandbar';
   bar.setAttribute('aria-label','Öncelikli yönetim işlemleri');
-  bar.innerHTML='<a href="/admin/editor/"><small>İÇERİK</small><b>Haber / AI Editör ↗</b></a><a href="/admin/app.html"><small>MEDYA</small><b>Fotoğraf / Video Yükle ↗</b></a><a href="/social-studio/"><small>SOSYAL</small><b>Instagram · Facebook · YouTube ↗</b></a><a href="/admin/client-hub/"><small>MÜŞTERİ</small><b>Brief / Teklif / İşler ↗</b></a>';
+  bar.innerHTML='<a href="/admin/editor/"><small>İÇERİK</small><b>Haber / AI Editör ↗</b></a><a href="/admin/app.html"><small>MEDYA</small><b>Fotoğraf / Video Yükle ↗</b></a><a href="/social-studio/"><small>SOSYAL</small><b>Metricool / Kuyruk ↗</b></a><a href="/admin/native-social/"><small>NATIVE SOSYAL</small><b>Instagram · Facebook · TikTok · YouTube · LinkedIn ↗</b></a><a href="/admin/client-hub/"><small>MÜŞTERİ</small><b>Brief / Teklif / Sosyal Yönetim ↗</b></a>';
   hero.insertAdjacentElement('afterend',bar);
 })();
 
