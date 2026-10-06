@@ -56,7 +56,7 @@ database_id = "94a980cd-62c5-4c29-b7fc-40f96ab665e4"
 MEDIA_PUBLIC_TTL = "86400"
 # BTMEDYA admin login user. This is a non-secret identifier; the password remains a Worker Secret.
 ADMIN_USERNAME = "busetuncay74@gmail.com"
-# Metricool Brand 6725412'te 29 Eylül 2026 itibarıyla doğrulanan yayın ağları.
+# Metricool Brand 6858384'te 29 Eylül 2026 itibarıyla doğrulanan yayın ağları.
 # Bu değişiklik aynı zamanda sync-worker-secrets workflow'unun mevcut GitHub -> Cloudflare secret zincirini yeniden çalıştırır.
 # Yeni bir ağ Metricool Connections'a bağlandığında bu liste güncellenir.
 METRICOOL_CONNECTED_NETWORKS = "facebook,instagram,tiktok,youtube"
@@ -65,11 +65,11 @@ METRICOOL_PERSONAL_CONNECTED_NETWORKS = ""
 # Metricool kullanıcı numarası kimlik bilgisi değil (API her çağrıda ayrıca
 # METRICOOL_USER_TOKEN ister). Burada durduğu için GitHub'a yalnız anahtar
 # eklemek yeter. Secret adı METRICOOL_USER_ID ile çakışmasın diye farklı ad.
-METRICOOL_KULLANICI_NO = "5174304"
-METRICOOL_USER_ID = "5174304"
-METRICOOL_BRAND_ID = "6725412"
-METRICOOL_CREATOR_EMAIL = "busetuncay1029@gmail.com"
-METRICOOL_ACCOUNT_EMAIL = "busetuncay1029@gmail.com"
+METRICOOL_KULLANICI_NO = "5278969"
+METRICOOL_USER_ID = "5278969"
+METRICOOL_BRAND_ID = "6858384"
+METRICOOL_CREATOR_EMAIL = "busetuncay74@gmail.com"
+METRICOOL_ACCOUNT_EMAIL = "busetuncay74@gmail.com"
 METRICOOL_TIMEZONE = "Europe/Istanbul"
 
 # Secret değerleri GitHub'a veya bu dosyaya yazılmaz.
