@@ -59,3 +59,15 @@
   .portfoy-metin p,.social-feed-card p,.ai-grid article p{
     font-size:var(--m-ikincil)!important;line-height:1.5!important}
 }
+
+/* Dokunma hedefleri · 2026-10-06 günlük denetimi
+   390 px'de /en/ dil düğmeleri 19x23, alt bilgi bağlantıları 18 px; arama
+   stratejisi ve programatik SEO kart bağlantıları 22 px yüksekti. Bu
+   sayfalar mobile-motion.css'i yüklemediği için anasayfadaki 44 px kuralı
+   onlara ulaşmıyordu. Görünüm değişmez, yalnız dokunulan alan büyür. */
+@media (max-width:720px){
+  .language-switch a{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px}
+  .site-footer a,.s-card>a,.p-card>a{display:inline-flex;align-items:center;min-height:44px}
+  /* /en/ alt bilgisi ızgaraydı; "·" ayraçları ayrı satıra düşüyordu. */
+  .site-footer{display:flex;flex-wrap:wrap;align-items:center;gap:0 12px}
+}

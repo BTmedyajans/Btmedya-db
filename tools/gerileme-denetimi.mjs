@@ -448,6 +448,21 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   }
 }
 
+/* 17) Mobil giriş filmi H.264 çözemeyen tarayıcıda WebM'e düşer. 5 Ekim'de
+       (c9b021f) canPlayType yedeği kaldırıldı; codec'siz Chromium/Firefox'ta
+       film hata 4 verip hiç başlamadı. Kural: anasayfadaki .mfilm-video
+       data-webm taşır, dosya vardır ve mobile-motion.js onu canPlayType
+       sonucuna göre seçer. */
+{
+  const ana = readFileSync('public/index.html', 'utf8');
+  const vid = (ana.match(/<video class="mfilm-video"[^>]*>/) || [''])[0];
+  const webm = (vid.match(/data-webm="([^"]+)"/) || [])[1];
+  if (!webm) bulgular.push('public/index.html .mfilm-video data-webm taşımıyor; H.264 çözemeyen tarayıcıda giriş filmi açılmaz.');
+  else if (!existsSync(join('public', webm))) bulgular.push(`public/index.html .mfilm-video data-webm dosyası yok: ${webm}`);
+  const mm = readFileSync('public/mobile-motion.js', 'utf8');
+  if (!/canPlayType\(\s*['"]video\/mp4[^)]*\)/.test(mm) || !mm.includes('dataset.webm')) bulgular.push('public/mobile-motion.js giriş filminde MP4 desteğini (canPlayType) sorup data-webm yedeğine düşmüyor.');
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
