@@ -130,7 +130,8 @@ export async function kaynakBaglaHaber(env,sourceUrl,slug){
   if(!sourceUrl || !slug) return null;
   const n=kaynakUrlNorm(sourceUrl);
   if(!n) return null;
-  await kaynakKaydet(env,{url:n,tier:'btmedya',publisher:'BTMEDYA Haber Merkezi',status:'active'});
+  const isBt=hostBul(n)==='btmedya.com.tr';
+  await kaynakKaydet(env,{url:n,tier:isBt?'btmedya':'publisher',publisher:isBt?'BTMEDYA':'BTMEDYA Haber Merkezi',status:isBt?'active':'review'});
   return kaynakBagla(env,{url:n,entityType:'news',entityId:slug,role:'original-source'});
 }
 
