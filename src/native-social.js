@@ -275,8 +275,8 @@ async function loadAsset(env,post,network){
   const key=String(post.media_key||"");
   const url=await mediaUrl(env,key);
   if(!url)return {url:"",mime:"",bytes:null};
-  const obj=env.MEDIA?await env.MEDIA.head(key).catch(()=>null):null;
-  const mime=String(obj?.httpMetadata?.contentType||(/\.(png|jpe?g|webp)$/i.test(key)?"image/jpeg":"video/mp4"));
+  const headObj=env.MEDIA?await env.MEDIA.head(key).catch(()=>null):null;
+  const mime=String(headObj?.httpMetadata?.contentType||(/\.(png|jpe?g|webp)$/i.test(key)?"image/jpeg":"video/mp4"));
   if(network!=="youtube")return {url,mime,bytes:null};
   const obj=env.MEDIA?await env.MEDIA.get(key).catch(()=>null):null;
   if(!obj)return {url,mime:"",bytes:null};
