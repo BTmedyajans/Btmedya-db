@@ -1923,7 +1923,9 @@ export default { async scheduled(controller, env, ctx){
   // giriş ekranına döner. API'ler ayrıca kendi session kontrollerini uygular.
   if(url.pathname.startsWith('/admin/') && url.pathname !== '/admin/'){
     if(!(await validSession(request, oturumAnahtari(env)))){
-      return Response.redirect(new URL('/admin/', url.origin), 302);
+      // Sayfa isteğinde hedef korunur: girişten sonra okur istediği modüle döner.
+      const sayfa=/text\/html/.test(request.headers.get('accept')||'') && !/\.(?:css|js|json|webmanifest|png|webp|jpg|svg|ico)$/i.test(url.pathname);
+      return Response.redirect(new URL(sayfa ? '/admin/?sonra='+encodeURIComponent(url.pathname+url.search) : '/admin/', url.origin), 302);
     }
   }
   const coreApi=await btmedyaCoreApi(request,env,url,validSession); if(coreApi) return coreApi;
@@ -1948,7 +1950,11 @@ export default { async scheduled(controller, env, ctx){
      normal statik varlık olarak kalır; başarılı giriş mevcut kabuğu açar. */
   if(url.pathname === '/admin/' && request.method === 'GET'){
     const authenticated = await validSession(request, oturumAnahtari(env));
-    const adminRes = await env.ASSETS.fetch(request);
+    /* 6 Ekim: public/admin/index.html giriş formu değil, yönetim merkezine
+       yönlendiren kabuk. Oturumsuz okur oraya, oradan da (oturum yok) yine
+       /admin/'e gidiyordu: sonsuz döngü, giriş formu hiç görünmüyordu.
+       Oturum yoksa ayrı giriş sayfası (public/admin/giris/) sunulur. */
+    const adminRes = await env.ASSETS.fetch(authenticated ? request : new Request(new URL('/admin/giris/', url.origin), request));
     if(!adminRes.ok) return adminRes;
     const adminHeaders = new Headers(adminRes.headers);
     for(const [k,v] of Object.entries(guvenlikBasliklari(url.pathname))) adminHeaders.set(k,v);
