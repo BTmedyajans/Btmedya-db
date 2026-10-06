@@ -8,15 +8,17 @@
     {key:'haber',ad:'HABER',ozet:'Kaynaklı gündem. Önce Balıkesir, ardından Türkiye ve dünya.',groups:[
       {ad:'COĞRAFYA',items:[['Balıkesir','/haberler/balikesir/'],['Türkiye','/haberler/turkiye/'],['Dünya','/haberler/dunya/']]},
       {ad:'GÜNDEM',items:[['Gündem','/haberler/gundem/'],['Ekonomi','/haberler/ekonomi/'],['Kültür · Sanat','/haberler/kultur/'],['Yaşam','/haberler/yasam/'],['Eğitim','/haberler/egitim/'],['Sağlık','/haberler/saglik/'],['Spor','/haberler/spor/'],['Teknoloji','/haberler/teknoloji/']]},
-      {ad:'ÖZEL / ARŞİV',items:[['Halk Röportajı','/halk-roportaji/'],['Siyah Oda','/siyah-oda/'],['Kaynak Masası','/kaynaklar/'],['Arşiv Merkezi','/arsiv/'],['Dosyalar','/dosyalar/'],['Tüm haberler','/haberler/']]}
+      {ad:'ÖZEL / ARŞİV',items:[['Halk Röportajı','/halk-roportaji/'],['Kaynak Masası','/kaynaklar/'],['Arşiv Merkezi','/arsiv/'],['Dosyalar','/dosyalar/'],['Tüm haberler','/haberler/']]}
     ]},
     {key:'sosyal',ad:'SOSYAL MEDYA',ozet:'İçerik üretimi, hesap yönetimi ve dijital görünürlük.',groups:[
-      {ad:'YÖNETİM',items:[['Sosyal medya yönetimi','/sosyal-medya/'],['Balıkesir sosyal medya ajansı','/hizmetler/balikesir-sosyal-medya-ajansi/'],['Sosyal profil kiti','/sosyal-medya-kit/']]},
+      {ad:'YÖNETİM',items:[['Sosyal medya yönetimi','/sosyal-medya/'],['Sosyal profil kiti','/sosyal-medya-kit/']]},
+      {ad:'YOUTUBE',items:[['Siyah Oda','/siyah-oda/']]},
       {ad:'AI / İÇERİK',items:[['AI Lab','/ai-lab/'],['Yapay zekâ ajansı','/hizmetler/balikesir-yapay-zeka-ajansi/']]},
       {ad:'ARAMA / GÖRÜNÜRLÜK',items:[['Arama stratejisi','/search-strategy/'],['Programatik SEO','/programmatic-seo/']]}
     ]},
     {key:'tanitim',ad:'TANITIM',ozet:'Prodüksiyon, reklam, portföy ve doğrudan proje yolu.',groups:[
-      {ad:'PRODÜKSİYON',items:[['Video prodüksiyon','/video-produksiyon/'],['Düğün çekimleri','/video-produksiyon/'],['Balıkesir tanıtım filmi','/hizmetler/balikesir-tanitim-filmi/'],['Balıkesir video prodüksiyon','/hizmetler/balikesir-video-produksiyon/']]},
+      {ad:'PRODÜKSİYON',items:[['Video prodüksiyon','/video-produksiyon/'],['Tanıtım filmi · Belgesel','/hizmetler/balikesir-tanitim-filmi/'],['Balıkesir video prodüksiyon','/hizmetler/balikesir-video-produksiyon/']]},
+      {ad:'DÜĞÜN / ÇEKİM',items:[['Firmalar','/video-produksiyon/'],['Düğün','/video-produksiyon/'],['Nişan','/video-produksiyon/'],['Kına','/video-produksiyon/'],['Gelin alımı','/video-produksiyon/']]},
       {ad:'MARKA / DAĞITIM',items:[['Reklam ve sponsorluk','/reklam-ve-sponsorluk/'],['Tüm hizmetler','/hizmetler/'],['Hizmet kataloğu','/whatsapp-katalog/'],['Teklif al','/teklif-al/']]},
       {ad:'PORTFÖY',items:[['Portföy','/portfoy/'],['Buse Tuncay','/portfoy/buse-tuncay/'],['Vaka çalışmaları','/vaka-calismalari/'],['Referanslar','/referanslar/']]}
     ]}
