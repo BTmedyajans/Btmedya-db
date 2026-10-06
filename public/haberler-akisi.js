@@ -12,15 +12,19 @@
 
   var KATEGORILER = [
     ['balikesir', 'Balıkesir', /\b(balikesir|yerel|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|pazar|altyapi|ulasim|belediye|sehir)\b/],
+    ['turkiye', 'Türkiye', /\b(turkiye|ankara|istanbul|izmir|adana|antalya|bursa|konya|meclis|bakanlik|cumhurbaskani|tbmm|yurt geneli|ulusal)\b/],
+    ['dunya', 'Dünya', /\b(dunya|abd|amerika|avrupa|almanya|fransa|ingiltere|rusya|ukrayna|israil|filistin|iran|cina|japonya|nato|ab|birlesmis milletler|dis politika|uluslararasi)\b/],
     ['gundem', 'Gündem', /\b(gundem|asayis|yangin|afet|guvenlik|trafik|itfaiye|emniyet|polis|kaza|kamu)\b/],
     ['ekonomi', 'Ekonomi', /\b(ekonomi|emlak|esnaf|tarim|ticaret|fiyat|piyasa|maas|istihdam|satis|konut)\b/],
     ['kultur', 'Kültür Sanat', /\b(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik|tiyatro|sinema|festival)\b/],
     ['egitim', 'Eğitim', /\b(egitim|universite|okul|sinav|ogrenci|kampus|yok)\b/],
     ['saglik', 'Sağlık', /\b(saglik|beslenme|bakim|hastane|doktor|tedavi|epilasyon|obezite|kalp)\b/],
     ['spor', 'Spor', /\b(spor|futbol|basketbol|turnuva|atletizm|pehlivan|muay thai|sporcu)\b/],
-    ['teknoloji', 'Teknoloji', /\b(yapay zeka|teknoloji|yazilim|dijital|ai|teknofest|uygulama|platform)\b/]
+    ['teknoloji', 'Teknoloji', /\b(yapay zeka|teknoloji|yazilim|dijital|ai|teknofest|uygulama|platform)\b/],
+    ['yasam', 'Yaşam', /\b(yasam|gundelik|aile|kadın|kadin|çocuk|cocuk|magazin|moda|evlilik|dugun)\b/]
   ];
   var AD = {}; KATEGORILER.forEach(function (k) { AD[k[0]] = k[1]; });
+  var KATEGORI_SIRA = ['balikesir','turkiye','dunya','gundem','ekonomi','kultur','egitim','saglik','spor','teknoloji','yasam'];
   var KATEGORI_ACIKLAMA = {
     balikesir: 'Balıkesir merkez, ilçeler, belediye hizmetleri, ulaşım ve kent yaşamı.',
     gundem: 'Güvenlik, afet, yangın, kamu hizmetleri ve günlük gelişmeler.',
@@ -40,6 +44,9 @@
     var metin = norm(c + ' ' + (n.title || '') + ' ' + (n.excerpt || '') + ' ' + (Array.isArray(n.body) ? n.body.slice(0, 2).join(' ') : ''));
     var aliased = [
       ['teknoloji', /(yapay zeka|teknoloji|yazilim|dijital|\bai\b|teknofest|uygulama|platform)/],
+      ['yasam', /(yasam|gundelik|aile|kadın|kadin|cocuk|magazin|moda|evlilik|dugun)/],
+      ['dunya', /(dunya|abd|amerika|avrupa|almanya|fransa|ingiltere|rusya|ukrayna|israil|filistin|iran|cina|japonya|nato|birlesmis milletler|dis politika|uluslararasi)/],
+      ['turkiye', /(turkiye|ankara|istanbul|izmir|adana|antalya|bursa|konya|meclis|bakanlik|cumhurbaskani|tbmm|yurt geneli|ulusal)/],
       ['egitim', /(egitim|universite|okul|sinav|ogrenci|kampus|\byok\b)/],
       ['saglik', /(saglik|beslenme|hastane|doktor|tedavi|epilasyon|obezite|kalp)/],
       ['spor', /(spor|futbol|basketbol|turnuva|atletizm|pehlivan|muay thai|sporcu)/],
@@ -183,7 +190,7 @@
   function aktifKategori() {
     var server = document.documentElement.getAttribute('data-bt-haber-kategori') || '';
     if (server && AD[server]) return server;
-    var m = location.pathname.match(/^\/haberler\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji)\/$/);
+    var m = location.pathname.match(/^\/haberler\/(balikesir|turkiye|dunya|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|yasam)\/$/);
     if (m && AD[m[1]]) return m[1];
     return new URLSearchParams(location.search).get('kategori') || '';
   }

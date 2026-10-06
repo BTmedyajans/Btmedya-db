@@ -2102,13 +2102,16 @@ export default { async scheduled(controller, env, ctx){
      D1'den hazırlanır; JS ayrıca zenginleştirme yapar. */
   const HABER_KATEGORILERI = {
     balikesir:{label:'Balıkesir',desc:'Balıkesir merkez ve ilçelerinden güncel haberler, belediye hizmetleri, ulaşım, ekonomi ve kent yaşamı.'},
+    turkiye:{label:'Türkiye',desc:'Türkiye genelindeki ulusal gündem, kamu, siyaset, toplum ve kentlerden gelişmeler.'},
+    dunya:{label:'Dünya',desc:'Dünyadan Türkiye’yi ve bölgeyi ilgilendiren gelişmeler, uluslararası gündem ve dış politika.'},
     gundem:{label:'Gündem',desc:'Güvenlik, afet, yangın, kamu hizmetleri ve Balıkesir gündemindeki önemli gelişmeleri kaynaklarıyla takip edin.'},
     ekonomi:{label:'Ekonomi',desc:'Balıkesir ekonomisi, esnaf, tarım, fiyatlar, emlak, istihdam ve yerel iş dünyasındaki gelişmeler.'},
     kultur:{label:'Kültür Sanat',desc:'Balıkesir kültür sanat gündemi: tiyatro, sinema, gastronomi, etkinlikler ve kentin hafızasını yaşatan hikâyeler.'},
     egitim:{label:'Eğitim',desc:'Okullar, üniversiteler, sınavlar ve öğrencilerin gündemindeki gelişmeleri BTMEDYA kaynaklarıyla izleyin.'},
     saglik:{label:'Sağlık',desc:'Sağlık hizmetleri, uzman görüşleri ve günlük yaşamı ilgilendiren sağlık gelişmelerini kaynaklarıyla takip edin.'},
     spor:{label:'Spor',desc:'Balıkesir ve Türkiye sporundan sonuçlar, takımlar, sporcular, karşılaşmalar ve etkinliklerden güncel haberler.'},
-    teknoloji:{label:'Teknoloji',desc:'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetleri anlaşılır haberler ve kaynaklarla takip edin.'}
+    teknoloji:{label:'Teknoloji',desc:'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetleri anlaşılır haberler ve kaynaklarla takip edin.'},
+    yasam:{label:'Yaşam',desc:'Günlük yaşam, aile, moda, etkinlik, insan hikâyeleri ve şehir yaşamına dair haberler.'}
   };
   function htmlKac(s){
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -2116,7 +2119,13 @@ export default { async scheduled(controller, env, ctx){
   function haberKategoriAnahtari(n){
     const metin=String((n?.category||'')+' '+(n?.title||'')+' '+(n?.excerpt||'')).toLocaleLowerCase('tr-TR')
       .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
+    const rawKategori=String(n?.category||'').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i').trim();
+    const explicit={balikesir:'balikesir',turkiye:'turkiye','türkiye':'turkiye',dunya:'dunya','dünya':'dunya',gundem:'gundem',ekonomi:'ekonomi',kultur:'kultur','kültür':'kultur',egitim:'egitim',saglik:'saglik',spor:'spor',teknoloji:'teknoloji',yasam:'yasam','yaşam':'yasam'};
+    if(explicit[rawKategori]) return explicit[rawKategori].replace(/,$/,'');
     const rules=[
+      ['yasam',/(yasam|gundelik|aile|kadin|cocuk|magazin|moda|evlilik|dugun)/],
+      ['dunya',/(dunya|abd|amerika|avrupa|almanya|fransa|ingiltere|rusya|ukrayna|israil|filistin|iran|cina|japonya|nato|birlesmis milletler|dis politika|uluslararasi)/],
+      ['turkiye',/(turkiye|ankara|istanbul|izmir|adana|antalya|bursa|konya|meclis|bakanlik|cumhurbaskani|tbmm|yurt geneli|ulusal)/],
       ['teknoloji',/(yapay zeka|teknoloji|yazilim|dijital|\bai\b|teknofest|uygulama|platform)/],
       ['egitim',/(egitim|universite|okul|sinav|ogrenci|kampus|\byok\b)/],
       ['saglik',/(saglik|beslenme|hastane|doktor|tedavi|epilasyon|obezite|kalp)/],
@@ -2198,7 +2207,7 @@ export default { async scheduled(controller, env, ctx){
     if(HABER_KATEGORILERI[key]) return Response.redirect(new URL('/haberler/'+key+'/',url.origin).toString(),301);
   }
 
-  const temizKatMatch=url.pathname.match(/^\/haberler\/(balikesir|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji)\/$/);
+  const temizKatMatch=url.pathname.match(/^\/haberler\/(balikesir|turkiye|dunya|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|yasam)\/$/);
   if(temizKatMatch) return await temizKategoriSayfasi(request,env,url,temizKatMatch[1]);
 
   /* HABER SAYFASI — once statik dosya, yoksa D1'den uretim.
