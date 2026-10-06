@@ -76,8 +76,10 @@ assert.equal(M.tekrarEdenIfade(iyi.paragraflar), '');
 // Yazım: denetimden kalan ilk taslak, sorunlar geri verilerek yeniden yazdırılır.
 // Kaynak aynı bilgileri farklı sözcük sırasıyla taşır: taslak kopya sayılmasın.
 const kaynak = { baslik: 'Fuar', tarih: '', kaynakAd: 'Balıkesir Büyükşehir Belediyesi', metin: [iyi.spot, ...iyi.paragraflar].map(p => p.split(' ').reverse().join(' ')).join('\n') };
-const cagrilar = [];
+const cagrilar = [], dogrulamalar = [];
 const env = { AI: { run: async (model, girdi) => {
+  // Doğrulayıcı çağrısı ayrı sayılır: yazım denemeleri cagrilar'da kalır.
+  if (girdi.messages[0].content === M.DOGRULAMA_YONERGESI) { dogrulamalar.push(girdi); return { response: '{"desteksiz":[]}' }; }
   cagrilar.push({ model, n: girdi.messages.length });
   if (cagrilar.length === 1) return { choices: [{ message: { content: JSON.stringify({ baslik: 'Okula Uyumu', spot: 'kısa', paragraflar: ['çok kısa bir paragraf burada duruyor.'] }) } }] };
   return { response: JSON.stringify({ ...iyi, paragraflar: iyi.paragraflar, gorsel_anahtar: 'agricultural fair' }) };
@@ -88,6 +90,50 @@ assert.ok(cagrilar[1].n > cagrilar[0].n, 'sorunlar modele geri verilmeli');
 assert.equal(y.deneme, 2);
 assert.equal(y.baslik, iyi.baslik);
 assert.equal(y.denetim.rakam.gecti, true, y.denetim.rakam.eksik.join(','));
+assert.equal(dogrulamalar.length, 1, 'yalnız deterministik denetimden geçen taslak doğrulanmalı');
+assert.equal(y.denetim.iddia.gecti, true);
+
+// İddia doğrulaması (6 Ekim, Fenerbahçe/Ethan Mbappe): ad kaynakta geçtiği
+// için ad denetimi ilişki hatasını göremez; doğrulayıcı yakalar, taslak
+// sorunla birlikte yeniden yazdırılır.
+{
+  const mbKaynak = "Real Madrid'in dünyaca ünlü Fransız yıldızı Kylian Mbappe'nin kardeşi olan 19 yaşındaki futbolcu Ethan Mbappe, Lille formasını giyiyor. Futbola PSG alt yapısında başlayan Mbappe, 2024 yazında bedelsiz olarak Lille'e transfer olmuştu.";
+  const yanlis = 'Ethan Mbappe, 19 yaşında ve Real Madrid altyapısında futbol hayatına başlayan bir oyuncu.';
+  assert.equal(M.adDenetimi(yanlis, mbKaynak).gecti, true, 'ad denetimi bu hatayı tek başına göremez (doğrulayıcının gerekçesi)');
+  const dogru = 'Ethan Mbappe, 19 yaşında ve PSG altyapısında futbol hayatına başlayan bir oyuncu.';
+  const taslak = p => ({ ...iyi, paragraflar: [p + ' ' + iyi.paragraflar[0], ...iyi.paragraflar.slice(1)], gorsel_anahtar: 'football pitch' });
+  const yazimlar = [], dogrulama = [];
+  const e2 = { AI: { run: async (model, girdi) => {
+    if (girdi.messages[0].content === M.DOGRULAMA_YONERGESI) {
+      dogrulama.push(girdi.messages[1].content);
+      const ilk = dogrulama.length === 1;
+      return { response: JSON.stringify({ desteksiz: ilk ? [{ ifade: 'Real Madrid altyapısında', neden: 'kaynakta altyapı PSG; Real Madrid ağabeyin kulübü' }] : [] }) };
+    }
+    yazimlar.push(girdi.messages);
+    return { response: JSON.stringify(taslak(yazimlar.length === 1 ? yanlis : dogru)) };
+  } } };
+  const k = { baslik: 'Fuar', tarih: '', kaynakAd: '', metin: kaynak.metin + '\n' + mbKaynak };
+  const y2 = await M.yaz(e2, { model: '@cf/openai/gpt-oss-120b' }, k, 'Spor');
+  assert.equal(yazimlar.length, 2, 'desteksiz ifade yeniden yazdırmalı');
+  assert.match(yazimlar[1].at(-1).content, /kaynakla desteklenmeyen ifade: "Real Madrid altyapısında"/);
+  assert.ok(dogrulama[0].includes('KAYNAK METİN') && dogrulama[0].includes(yanlis), 'doğrulayıcı kaynağı ve taslağı birlikte görmeli');
+  assert.equal(y2.denetim.iddia.gecti, true);
+  assert.ok(y2.paragraflar[0].includes('PSG'));
+
+  // Doğrulayıcı hata verirse ya da biçimsiz yanıt dönerse haber geçmiş sayılmaz.
+  const e3 = { AI: { run: async (model, girdi) => {
+    if (girdi.messages[0].content === M.DOGRULAMA_YONERGESI) throw new Error('3040 model kapasitesi');
+    return { response: JSON.stringify(taslak(dogru)) };
+  } } };
+  const y3 = await M.yaz(e3, { model: '@cf/openai/gpt-oss-120b' }, k, 'Spor');
+  assert.equal(y3.denetim.iddia.gecti, false);
+  assert.match(y3.denetim.iddia.hata, /doğrulayıcı çalışmadı/);
+  const bicimsiz = await M.iddiaDenetimi({ AI: { run: async () => ({ response: 'Sorun yok.' }) } }, 'm', taslak(dogru), mbKaynak);
+  assert.equal(bicimsiz.gecti, false);
+  // Yayın kararı doğrulamayı da şart koşar.
+  const src = (await import('node:fs')).readFileSync(new URL('../src/sabah-masasi.js', import.meta.url), 'utf8');
+  assert.match(src, /const denetimTamam = [^;]*iddia\.gecti/, 'yayın kararı iddia doğrulamasını içermeli');
+}
 
 // Model ayarlarda saklansa bile koddaki model kullanılır; boş kategori listesi "hepsi" demektir.
 const kv = new Map([['sabah:ayarlar', JSON.stringify({ model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast', kategoriler: [] })]]);
