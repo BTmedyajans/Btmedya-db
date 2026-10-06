@@ -16,7 +16,7 @@
   const kap=mobil?root.querySelector('.mfilm-kare'):root.querySelector('.cinematic-sticky');
   if(!film||!kap)return;
   const azHareket=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const ESIK=2.8;
+  const ESIK=3.6;
   const SECENEKLER=[
     {anahtar:'haber',no:'01',ad:'HABER',alt:'Kaynaklı gündem · Balıkesir ve Türkiye',yol:'/haberler/'},
     {anahtar:'sosyal',no:'02',ad:'SOSYAL MEDYA',alt:'İçerik · hesap yönetimi · reels',yol:'/sosyal-medya/'},
@@ -37,7 +37,10 @@
       '<nav class="fs-liste" aria-label="BTMEDYA hizmetleri">'+
         SECENEKLER.map((s,i)=>'<a class="fs-secenek" href="'+s.yol+'" data-secim="'+s.anahtar+'" style="--s:'+i+'"><span class="fs-no" aria-hidden="true">'+s.no+'</span><span class="fs-ad"><b>'+kac(s.ad)+'</b><small>'+kac(s.alt)+'</small></span><span class="fs-ok" aria-hidden="true">↗</span></a>').join('')+
       '</nav>'+
-      '<button type="button" class="fs-tekrar">↺ Yeniden izle</button>'+
+      '<div class="fs-alt"><button type="button" class="btkm-dugme fs-kategori" aria-expanded="false"><span aria-hidden="true">☰</span> Tüm kategoriler</button><button type="button" class="fs-tekrar">↺ Yeniden izle</button></div>'+
+      // Film başında ekranda yazı yok (kullanıcı isteği); görüntülerin kaynağı
+      // film bitince burada, küçük ve soft yazılır (AGENTS.md: etiket zorunlu).
+      '<p class="fs-not">Film, BTMEDYA gerçek saha arşivi ile AI üretimi planlardan kurgulanmıştır.</p>'+
     '</div>';
   kap.appendChild(katman);
 
@@ -49,13 +52,13 @@
   addEventListener('scroll',()=>acik&&tasmaOlc(),{passive:true});
   const goster=()=>{
     if(acik)return; acik=true; tasmaOlc();
-    katman.hidden=false; root.classList.add('film-secim-acik');
+    katman.hidden=false; root.classList.add('film-secim-acik'); document.body.classList.add('film-bitti');
     // İki kare beklenir: gizliden görünüre geçiş animasyonu atlanmasın.
     requestAnimationFrame(()=>requestAnimationFrame(()=>katman.classList.add('is-acik')));
   };
   const gizle=()=>{
     if(!acik)return; acik=false;
-    katman.classList.remove('is-acik'); root.classList.remove('film-secim-acik');
+    katman.classList.remove('is-acik'); root.classList.remove('film-secim-acik'); document.body.classList.remove('film-bitti');
     setTimeout(()=>{ if(!acik)katman.hidden=true; },500);
   };
   film.addEventListener('timeupdate',()=>{ if(!acik&&film.duration&&film.currentTime>=film.duration-ESIK)goster(); });
