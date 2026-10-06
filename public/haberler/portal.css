@@ -236,6 +236,9 @@
 .hm-cekmece-liste a span::before{content:'';width:10px;height:10px;border-radius:2px;background:var(--kat);transform:rotate(45deg)}
 .hm-cekmece-liste a[aria-current=page] span{color:var(--kat)}
 .hm-cekmece-liste small{color:var(--hm-soluk);font:700 13px/1 'JetBrains Mono',ui-monospace,monospace}
+.hm-katalog-grup{margin-top:18px;padding:0 0 4px;border-top:1px solid var(--hm-cizgi)}
+.hm-katalog-grup strong{display:block;padding:12px 0 5px;color:var(--hm-sari);font:800 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em}
+.hm-katalog-grup a{border-bottom:1px solid rgba(255,255,255,.08)}
 .hm-cekmece-liste a:focus-visible{outline:2px solid var(--hm-sari);outline-offset:-2px}
 /* styles.css body'nin doğrudan çocuklarına position:relative ve z-index:1
    veriyor (gren katmanının üstünde dursunlar diye); çekmece body'ye

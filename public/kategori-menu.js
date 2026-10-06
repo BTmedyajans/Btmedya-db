@@ -28,6 +28,7 @@
     {ad:'Tanıtım',ozet:'Düğün klibi, tanıtım ve reklam filmi; portföy, referans ve teklif.',alt:[['Video prodüksiyon','/video-produksiyon/'],['Balıkesir tanıtım filmi','/hizmetler/balikesir-tanitim-filmi/'],['Balıkesir video prodüksiyon','/hizmetler/balikesir-video-produksiyon/'],['Reklam ve sponsorluk','/reklam-ve-sponsorluk/'],['Portföy','/portfoy/'],['Buse Tuncay','/portfoy/buse-tuncay/'],['Vaka çalışmaları','/vaka-calismalari/'],['Referanslar','/referanslar/'],['Tüm hizmetler','/hizmetler/'],['Hizmet kataloğu','/whatsapp-katalog/'],['Teklif al','/teklif-al/']]}
   ];
   const KURUMSAL=[['Hakkımızda','/hakkimizda/'],['İletişim','/iletisim/'],['Basın kiti','/basin-kiti/'],['Marka kiti','/marka-kiti/'],['Gizlilik','/gizlilik/'],['English','/en/']];
+  const HABER_KATALOG=[['YEREL · Balıkesir','/haberler/balikesir/'],['ULUSAL · Türkiye','/haberler/turkiye/'],['DÜNYA','/haberler/dunya/'],['GÜNDEM','/haberler/gundem/'],['EKONOMİ','/haberler/ekonomi/'],['KÜLTÜR · SANAT','/haberler/kultur/'],['YAŞAM','/haberler/yasam/'],['EĞİTİM','/haberler/egitim/'],['SAĞLIK','/haberler/saglik/'],['SPOR','/haberler/spor/'],['BİLİM · TEKNOLOJİ','/haberler/teknoloji/'],['ÖZEL · Halk Röportajı','/halk-roportaji/'],['ÖZEL · Siyah Oda','/siyah-oda/'],['ARŞİV · Kaynak Masası','/kaynaklar/'],['ARŞİV · Arşiv Merkezi','/arsiv/'],['ARŞİV · Dosyalar','/dosyalar/']];
   const yolu=location.pathname.replace(/index\.html$/,'').replace(/([^/])$/,'$1/');
   // Etkin kategori: sayfanın yolu kategorinin bir bağlantısıyla en uzun eşleşen.
   let etkin=-1,enUzun=0;
@@ -56,8 +57,8 @@
         '<div class="btkm-pano-bas"><p class="btkm-sayac"><b>'+iki(i+1)+'</b> / '+iki(KATEGORILER.length)+'</p>'+
         '<h2 class="btkm-baslik"><span class="btkm-maske"><span>'+kac(k.ad)+'</span></span></h2>'+
         '<p class="btkm-ozet">'+kac(k.ozet)+'</p></div>'+
-        '<ul class="btkm-baglar">'+k.alt.map(([ad,y],j)=>
-          '<li style="--j:'+j+'"><a href="'+y+'"'+(y===yolu?' aria-current="page"':'')+'>'+yuvarla(ad)+'<i aria-hidden="true">↗</i></a></li>').join('')+'</ul>'+
+        '<ul class="btkm-baglar">'+(i===0?HABER_KATALOG:k.alt).map(([ad,y],j)=>
+          '<li style="--j:'+j+'"><a href="'+y+'"'+(y===yolu?' aria-current="page"':'')+'>'+(ad.indexOf(' · ')>0?'<small class="btkm-grup-etiket">'+kac(ad.split(' · ')[0])+'</small>':'')+yuvarla(ad.indexOf(' · ')>0?ad.split(' · ').slice(1).join(' · '):ad)+'<i aria-hidden="true">↗</i></a></li>').join('')+'</ul>'+
       '</section>').join('')+
     '</div>'+
     '<div class="btkm-kayan" aria-hidden="true"><div class="btkm-kayan-iz">'+kayanMetin+kayanMetin+'</div></div>'+
