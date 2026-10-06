@@ -15,7 +15,7 @@ function targetFile(path){
   if(p.startsWith('/api/')||p.startsWith('/media/')||p.startsWith('/pub/')) return null;
   if(p.startsWith('/haberler/')) {
     const slug=p.replace(/^\/haberler\//,'').replace(/\/$/,'');
-    const cleanCategories=new Set(['balikesir','gundem','ekonomi','kultur','egitim','saglik','spor','teknoloji']);
+    const cleanCategories=new Set(['balikesir','turkiye','dunya','gundem','ekonomi','kultur','yasam','egitim','saglik','spor','teknoloji']);
     if(p==='/haberler/' || cleanCategories.has(slug)) return null;
     return haberSlugs.has(slug)||p.endsWith('.html') ? null : '__MISSING_DYNAMIC_NEWS__';
   }
