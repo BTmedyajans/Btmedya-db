@@ -19,3 +19,15 @@ body[data-hero-scene] .cinematic-kicker:before{background:var(--scene-accent,var
    kartta yalnız düğmeler ve ses notu kalır. */
 @media(max-width:720px){.bt-hero-intro{position:static;display:block;background:none;transition:none}.bt-hero-intro[aria-hidden="true"]{display:none}.bt-hero-intro-card{width:auto;margin:0;padding:12px 16px 0;border:0;background:none;box-shadow:none;backdrop-filter:none}.bt-hero-intro-kicker,.bt-hero-intro-card strong,.bt-hero-intro-card p{display:none}.bt-hero-intro-aksiyon{margin-top:0;flex-wrap:nowrap}.bt-hero-start{flex:1 1 auto;font-size:15px}.bt-hero-gec{flex:0 0 auto;font-size:14px}.bt-hero-intro-note{font-size:12px;margin-top:8px;color:rgba(255,255,255,.62)}.cinematic-hero.bt-hero-intro-complete .mfilm-metin{filter:none;opacity:1}}
 @media(prefers-reduced-motion:reduce){.bt-hero-intro,.bt-hero-intro-card,.cinematic-hero.bt-hero-intro-active .cinematic-copy{transition:none}.bt-hero-start:hover{transform:none}}
+
+/* Tek film (6 Ekim): masaüstü hero tek ekran; kaydırmalı beş sahnenin
+   sayacı, ilerleme çubuğu ve "SCROLL TO EXPLORE" etiketi gösterilmez. */
+@media(min-width:721px){.cinematic-hero[data-tek-film]{height:100vh;min-height:620px}}
+.cinematic-hero[data-tek-film] .cinematic-index,.cinematic-hero[data-tek-film] .cinematic-progress,.cinematic-hero[data-tek-film] .cinematic-label{display:none}
+/* Seçim açılınca video ve metin gizlenir (hero-live-hotfix); tek film
+   modunda seçim sahnesi yarım sütunda kalıp sol yarıyı boş bırakıyordu. */
+@media(min-width:721px){
+  .cinematic-hero[data-tek-film] .cinematic-sticky>.secim-sahnesi{left:calc(50% - min(46vw,410px));right:auto;width:min(92vw,820px);border-left:1px solid rgba(255,255,255,.12);border-right:1px solid rgba(255,255,255,.12)}
+  /* Kenarlarda filmin son karesi karartılmış zemin olarak kalır. */
+  .cinematic-hero[data-tek-film].secim-acik .cinematic-video{opacity:.32!important;visibility:visible!important;filter:blur(8px) brightness(.6)}
+}

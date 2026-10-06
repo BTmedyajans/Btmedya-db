@@ -942,142 +942,172 @@
   "category": "portfoy"
  },
  {
-  "path": "media/web/giris-filmi-genis-poster.jpg",
+  "path": "media/web/giris-ai-genis-poster.jpg",
   "id": "static-182",
+  "category": "video"
+ },
+ {
+  "path": "media/web/giris-ai-genis.mp4",
+  "id": "static-183",
+  "category": "video"
+ },
+ {
+  "path": "media/web/giris-ai-genis.webm",
+  "id": "static-184",
+  "category": "video"
+ },
+ {
+  "path": "media/web/giris-ai-poster.jpg",
+  "id": "static-185",
+  "category": "video"
+ },
+ {
+  "path": "media/web/giris-ai.mp4",
+  "id": "static-186",
+  "category": "video"
+ },
+ {
+  "path": "media/web/giris-ai.webm",
+  "id": "static-187",
+  "category": "video"
+ },
+ {
+  "path": "media/web/giris-filmi-genis-poster.jpg",
+  "id": "static-188",
   "category": "video",
   "gercek": true
  },
  {
   "path": "media/web/giris-filmi-genis.mp4",
-  "id": "static-183",
+  "id": "static-189",
   "category": "video",
   "gercek": true
  },
  {
   "path": "media/web/giris-filmi-poster.jpg",
-  "id": "static-184",
+  "id": "static-190",
   "category": "video",
   "gercek": true
  },
  {
   "path": "media/web/giris-filmi.mp4",
-  "id": "static-185",
+  "id": "static-191",
   "category": "video",
   "gercek": true
  },
  {
   "path": "media/web/giris-filmi.webm",
-  "id": "static-186",
+  "id": "static-192",
   "category": "video",
   "gercek": true
  },
  {
   "path": "media/web/hero-story-mobile.mp4",
-  "id": "static-187",
-  "category": "video"
- },
- {
-  "path": "media/web/hero-story.mp4",
-  "id": "static-188",
-  "category": "video"
- },
- {
-  "path": "media/web/secim-karakter.webp",
-  "id": "static-189",
-  "category": "video"
- },
- {
-  "path": "media/web/secim-sahne-zemin.jpg",
-  "id": "static-190",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-07.mp4",
-  "id": "static-191",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-07.webm",
-  "id": "static-192",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-action.mp4",
   "id": "static-193",
   "category": "video"
  },
  {
-  "path": "media/web/showreel-action.webm",
+  "path": "media/web/hero-story.mp4",
   "id": "static-194",
   "category": "video"
  },
  {
-  "path": "media/web/showreel-fantasy.mp4",
+  "path": "media/web/secim-karakter.webp",
   "id": "static-195",
+  "category": "video"
+ },
+ {
+  "path": "media/web/secim-sahne-zemin.jpg",
+  "id": "static-196",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-07.mp4",
+  "id": "static-197",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-07.webm",
+  "id": "static-198",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-action.mp4",
+  "id": "static-199",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-action.webm",
+  "id": "static-200",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-fantasy.mp4",
+  "id": "static-201",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/showreel-fantasy.webm",
-  "id": "static-196",
+  "id": "static-202",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/showreel-flying-reporter.mp4",
-  "id": "static-197",
+  "id": "static-203",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/showreel-flying-reporter.webm",
-  "id": "static-198",
+  "id": "static-204",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/state-haber.mp4",
-  "id": "static-199",
+  "id": "static-205",
   "category": "video"
  },
  {
   "path": "media/web/state-medya.mp4",
-  "id": "static-200",
+  "id": "static-206",
   "category": "video"
  },
  {
   "path": "media/web/state-produksiyon.mp4",
-  "id": "static-201",
+  "id": "static-207",
   "category": "video"
  },
  {
   "path": "sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4",
-  "id": "static-202",
+  "id": "static-208",
   "category": "sosyal"
  },
  {
   "path": "sosyal/balikesir-pazarinda-canli-helva-sovu-dikey.mp4",
-  "id": "static-203",
+  "id": "static-209",
   "category": "sosyal"
  },
  {
   "path": "sosyal/el-emegi-yorganlar-artik-isitmiyor-dikey.mp4",
-  "id": "static-204",
+  "id": "static-210",
   "category": "sosyal"
  },
  {
   "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-1.jpg",
-  "id": "static-205",
+  "id": "static-211",
   "category": "sosyal"
  },
  {
   "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-2.jpg",
-  "id": "static-206",
+  "id": "static-212",
   "category": "sosyal"
  },
  {
   "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-3.jpg",
-  "id": "static-207",
+  "id": "static-213",
   "category": "sosyal"
  }
 ]

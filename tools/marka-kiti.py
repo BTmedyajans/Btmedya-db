@@ -81,7 +81,7 @@ OLCULER = [
     {"ad": "Haber kapağı", "w": 1200, "h": 675, "oran": "16:9", "kaynak": "tools/haber-kapagi.py", "dosya": "haber-kapagi-1200x675.jpg"},
     {"ad": "Sosyal kart (Instagram/Facebook akış)", "w": 1080, "h": 1350, "oran": "4:5", "kaynak": "tools/sosyal-kart.py · PLATFORM_RULES instagram-post", "dosya": "sosyal-kart-1080x1350.jpg"},
     {"ad": "Kare gönderi", "w": 1080, "h": 1080, "oran": "1:1", "kaynak": "PLATFORM_RULES instagram-post", "dosya": "kare-1080x1080.jpg"},
-    {"ad": "Dikey: Reels, TikTok, Shorts, Hikâye", "w": 1080, "h": 1920, "oran": "9:16", "kaynak": "PLATFORM_RULES + SITE_SLOTS kategori-*", "dosya": "dikey-1080x1920.jpg"},
+    {"ad": "Dikey: Reels, TikTok, Shorts, Hikâye", "w": 1080, "h": 1920, "oran": "9:16", "kaynak": "PLATFORM_RULES (Reels, TikTok, Shorts)", "dosya": "dikey-1080x1920.jpg"},
     {"ad": "YouTube kapak", "w": 1280, "h": 720, "oran": "16:9", "kaynak": "PLATFORM_RULES youtube", "dosya": "youtube-1280x720.jpg"},
     {"ad": "Paylaşım görseli (og:image)", "w": 1200, "h": 630, "oran": "1.91:1", "kaynak": "SITE_SLOTS og-image", "dosya": "og-1200x630.jpg"},
     {"ad": "Giriş filmi kapak karesi", "w": 1920, "h": 1080, "oran": "16:9", "kaynak": "SITE_SLOTS hero-poster", "dosya": "hero-1920x1080.jpg"},

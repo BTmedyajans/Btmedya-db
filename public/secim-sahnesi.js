@@ -2,7 +2,7 @@
    Neden: giriş filmi bitince okur "şimdi ne yapayım?" sorusuyla kalıyordu;
    seçenekler ayrı bir menüde, filmin dünyasından kopuktu. Film bitince
    (ya da "Filmi geç" ile) filmin karakteri sahneye gelir, kollarını açar
-   ve üç yolu sırayla eliyle gösterir: Haber, Medya, AI Hizmetleri. Okurun
+   ve üç yolu sırayla eliyle gösterir: Haber, Sosyal Medya, Tanıtım. Okurun
    faresi ya da parmağı karakteri yönlendirir: karakter imlece doğru döner,
    ışık en yakın seçeneğe akar. Seçenekler gerçek bağlantılardır; klavye ve
    ekran okuyucu için sırayla gezilebilir, ışık süs olduğu için gizlidir.
@@ -19,27 +19,29 @@
   const yuva=mobil?root.querySelector('[data-mfilm]'):root.querySelector('.cinematic-sticky');
   if(!film||!yuva)return;
   const azHareket=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const KARAKTERLI_FILMLER=/\/hero-story(-mobile)?\.mp4$/;
+  // 6 Ekim: giriş filmi aynı AI karakterinin kurgusu (giris-ai*).
+  const KARAKTERLI_FILMLER=/\/(hero-story(-mobile)?|giris-ai(-genis)?)\.(mp4|webm)$/;
 
   /* Konumlar sahnenin yüzdesi. Karakter görselinde (1043x614) sol el
      x=0 y=490, sağ el x=1043 y=510, saç tepesi x=511 y=40; sahnede
      görsel tam genişlikte ve alta yaslı. */
   const SECENEKLER=[
+    // 6 Ekim (kullanıcı): üç ana yol; hamburger kategorileri de bu üçü altında.
     {anahtar:'haber',ad:'HABER',alt:'Kaynaklı gündem',yol:'/haberler/',x:18,y:46,kaynak:'solEl',yon:'sol'},
-    {anahtar:'ai',ad:'AI HİZMETLERİ',alt:'Açık etiketli üretim',yol:'/ai-lab/',x:50,y:20,kaynak:'tepe',yon:'ust'},
-    {anahtar:'medya',ad:'MEDYA',alt:'Video · prodüksiyon',yol:'/hizmetler/',x:82,y:46,kaynak:'sagEl',yon:'sag'}
+    {anahtar:'sosyal',ad:'SOSYAL MEDYA',alt:'İçerik · yönetim · reels',yol:'/sosyal-medya/',x:50,y:20,kaynak:'tepe',yon:'ust'},
+    {anahtar:'tanitim',ad:'TANITIM',alt:'Düğün klibi · tanıtım · reklam',yol:'/video-produksiyon/',x:82,y:46,kaynak:'sagEl',yon:'sag'}
   ];
 
   const sahne=document.createElement('section');
   sahne.className='secim-sahnesi';
   sahne.hidden=true;
-  sahne.setAttribute('aria-label','BTMEDYA: ne üretmek istiyorsun?');
+  sahne.setAttribute('aria-label','BTMEDYA: hangi yoldan devam etmek istiyorsun?');
   sahne.innerHTML=
     '<div class="secim-zemin" aria-hidden="true"></div>'+
     '<img class="secim-karakter" src="/assets/media/web/secim-karakter.webp" alt="" aria-hidden="true" width="1043" height="614" decoding="async" loading="lazy">'+
     '<span class="secim-isik" aria-hidden="true"></span>'+
     '<svg class="secim-isin" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="" vector-effect="non-scaling-stroke"/><circle r="1.2"/></svg>'+
-    '<p class="secim-soru">NE ÜRETMEK İSTİYORSUN?</p>'+
+    '<p class="secim-soru">HANGİ YOLDAN DEVAM?</p>'+
     '<nav class="secim-liste" aria-label="BTMEDYA hizmetleri">'+
       SECENEKLER.map((s,i)=>'<a class="secim-secenek" href="'+s.yol+'" data-secim="'+s.anahtar+'" data-yon="'+s.yon+'" style="--x:'+s.x+'%;--y:'+s.y+'%;--sira:'+i+'"><b>'+s.ad+'</b><small>'+s.alt+'</small></a>').join('')+
     '</nav>'+
