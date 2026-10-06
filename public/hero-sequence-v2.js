@@ -15,7 +15,7 @@
   const film=mobile?root.querySelector('.mfilm-video'):root.querySelector('.cinematic-video-1 video');
   if(!film)return;
   const intro= document.createElement('div'); intro.className='bt-hero-intro'; intro.setAttribute('role','region'); intro.setAttribute('aria-label','BTMEDYA giriş filmi');
-  intro.innerHTML='<div class="bt-hero-intro-card"><span class="bt-hero-intro-kicker">BTMEDYA / GİRİŞ FİLMİ</span><strong>SAHADAN<br><em>STÜDYOYA.</em></strong><p>Haber, prodüksiyon ve yayın: BTMEDYA\'nın üretim dünyası.</p><div class="bt-hero-intro-aksiyon"><button type="button" class="bt-hero-start">▶ Sesli izle</button><button type="button" class="bt-hero-gec">Filmi geç</button></div><small class="bt-hero-intro-note">Ses, tarayıcı kuralı gereği yalnız dokunuşunuzla açılır.</small></div>';
+  intro.innerHTML='<div class="bt-hero-intro-card"><span class="bt-hero-intro-kicker">BTMEDYA / GİRİŞ FİLMİ</span><strong>HABER · SOSYAL<br><em>TANITIM.</em></strong><p>12 saniyelik giriş filmi; bitince yolunu seç.</p><div class="bt-hero-intro-aksiyon"><button type="button" class="bt-hero-start">▶ İzle</button><button type="button" class="bt-hero-gec">Filmi geç</button></div></div>';
   // Mobilde kart kare filmin altında durur, böylece posterin kendi başlığı
   // ("SAHADAN STÜDYOYA") örtülmez.
   // Masaüstü hero birkaç ekran boyunda; kart köke eklenince bu yüksekliğin
@@ -58,6 +58,9 @@
   gec.addEventListener('click',e=>{e.preventDefault();unlock();});
   film.addEventListener('click',()=>{if(!started)play(true);});
   film.addEventListener('ended',unlock,{once:true});
+  // Tek AI filmi sessiz ve kendiliğinden başlar (home.js / mobile-motion.js);
+  // kart başlangıç düğmesini beklemeden çekilir.
+  film.addEventListener('play',()=>{started=true;root.classList.add('bt-hero-intro-playing');kartiKaldir();});
   film.addEventListener('error',()=>{if(!unlocked){intro.querySelector('p').textContent='Film yüklenemedi; etkileşimli girişe geçiliyor.';setTimeout(unlock,900);}}, {once:true});
   if(reduced){intro.querySelector('p').textContent='Düşük hareket tercihiniz nedeniyle statik giriş kullanılıyor.';setTimeout(unlock,100);}
   // Okur hero'yu kaydırıp geçerse giriş tamamlanmış sayılır; geri döndüğünde kart beklemez.

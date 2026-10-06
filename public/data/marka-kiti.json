@@ -214,7 +214,7 @@
    "w": 1080,
    "h": 1920,
    "oran": "9:16",
-   "kaynak": "PLATFORM_RULES + SITE_SLOTS kategori-*",
+   "kaynak": "PLATFORM_RULES (Reels, TikTok, Shorts)",
    "dosya": "dikey-1080x1920.jpg"
   },
   {

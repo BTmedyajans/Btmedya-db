@@ -92,7 +92,7 @@ else ok("mobile polish stylesheet is loaded last by homepage UI bootstrap");
    kaydırmaya sabitlenmişti: film ancak okur kaydırınca ilerliyor, 1152x648
    kaynak dikey ekrana kırpılıp büyütüldüğü için bulanık görünüyordu. */
 const motionCss = read("public/mobile-motion.css");
-if (!/<div class="mfilm" data-mfilm>[\s\S]*?<video class="mfilm-video"[^>]*\bmuted\b[^>]*\bplaysinline\b/.test(index))
+if (!/<div class="mfilm\b[^"]*" data-mfilm\b[^>]*>[\s\S]*?<video class="mfilm-video"[^>]*\bmuted\b[^>]*\bplaysinline\b/.test(index))
   fail("mobile intro film block (muted, inline video) missing from homepage");
 else ok("mobile intro film block present (muted inline video)");
 if (/root\.style\.height\s*=/.test(motion) || /position:sticky/.test(motionCss))

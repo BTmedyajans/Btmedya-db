@@ -40,7 +40,8 @@ for (const o of kit.olculer) {
 }
 // Proje ölçüleri: kitteki SITE_SLOTS karşılıkları worker.js ile aynı.
 const worker = oku('src/worker.js');
-for (const [yuva, olcu] of [['hero-poster', '1920x1080'], ['og-image', '1200x630'], ['kategori-haber', '1080x1920']])
+// 6 Ekim: kategori-* yuvaları kalktı; dikey 1080x1920 ölçüsü platform kurallarından gelir.
+for (const [yuva, olcu] of [['hero-poster', '1920x1080'], ['og-image', '1200x630']])
   assert.match(worker, new RegExp(`\\['${yuva}',[^\\]]*'${olcu}'`), `${yuva} ölçüsü worker.js'te ${olcu} değil`);
 
 // Sayfa: ölçüm var, satır içi çalışan betik yok (gerileme kuralları 12-13).

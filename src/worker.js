@@ -1586,14 +1586,13 @@ async function mediaApi(request, env){
 /* 26 Eylul 2026: bes yuva (hizmet-haber, hizmet-belgesel, hizmet-tanitim,
    hizmet-dugun, siyah-oda) eski tasarimdan kalmisti; mevcut sitede yerleri
    yoktu. Panelde "Bu yere bagla" deyince hicbir sey degismiyordu. Kaldirildi.
-   Kalan her yuva anasayfada gercek bir yere baglidir (bkz. data-slot). */
+   Kalan her yuva anasayfada gercek bir yere baglidir (bkz. data-slot).
+   6 Ekim: anasayfa yalniz giris filmini oynatir; kaydirmali sahnelerin
+   kategori-haber / -medya / -prod yuvalari ayni nedenle kaldirildi. */
 const SITE_SLOTS=[
   // slug              bolum                       tur     oran    onerilen      notu
   ['hero-video',      'Giriş filmi',              'video','16:9','1920x1080','Anasayfanın ilk sahnesi. En fazla 30 sn.'],
   ['hero-poster',     'Giriş kapak karesi',       'image','16:9','1920x1080','Film inmeden önce görünen kare.'],
-  ['kategori-haber',  'Giriş filmi: Haber sahnesi','video','9:16','1080x1920','Kaydırınca 2. sahne. Saha görüntüsü.'],
-  ['kategori-medya',  'Giriş filmi: Medya sahnesi','video','9:16','1080x1920','Kaydırınca 3. sahne. Sosyal içerik üretiminden.'],
-  ['kategori-prod',   'Giriş filmi: Prodüksiyon sahnesi','video','9:16','1080x1920','Kaydırınca 4. sahne. Kamera, kurgu, set.'],
   ['saha-buse',       'Sahada çalışırken kare',   'image','16:9','1600x900', '01 / HABER sekmesi. Mikrofonlu, iş başında.'],
   ['portre-buse',     'Buse Tuncay portresi',     'image','4:5', '1200x1500','Kuruluş hikâyesi bölümü. Gerçek fotoğraf.'],
   ['og-image',        'Sosyal paylaşım görseli',  'image','16:9','1200x630', 'Anasayfa WhatsApp, X ve Facebook paylaşım kapağı.'],
@@ -1605,11 +1604,8 @@ const SITE_SLOTS=[
    tools/gerileme-denetimi.mjs bunu denetler. Kaynak (gercek/AI) burada
    yazmaz, medya-listesi.json'daki gercek alanindan turer. */
 const SITE_SLOT_VARSAYILAN={
-  'hero-video':     'media/web/giris-filmi-genis.mp4',
-  'hero-poster':    'media/web/giris-filmi-genis-poster.jpg',
-  'kategori-haber': 'media/web/state-haber.mp4',
-  'kategori-medya': 'media/web/state-medya.mp4',
-  'kategori-prod':  'media/web/state-produksiyon.mp4',
+  'hero-video':     'media/web/giris-ai-genis.mp4',
+  'hero-poster':    'media/web/giris-ai-genis-poster.jpg',
   'saha-buse':      'media/portfoy/buse-tuncay-saha-roportaj.webp',
   'portre-buse':    'media/portfoy/buse-tuncay-portre-01.webp',
   'og-image':       'paylasim/btmedya-og-v2.jpg',

@@ -463,6 +463,22 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   if (!/canPlayType\(\s*['"]video\/mp4[^)]*\)/.test(mm) || !mm.includes('dataset.webm')) bulgular.push('public/mobile-motion.js giriş filminde MP4 desteğini (canPlayType) sorup data-webm yedeğine düşmüyor.');
 }
 
+/* 18) Anasayfada yalniz giris filmi oynar (6 Ekim, kullanici istegi).
+       Kaydirmali sahne videolari ve arsiv kartlarindaki otomatik oynatma
+       sayfayi karisik gosteriyordu. Kural: index.html'de yalniz mobil ve
+       masaustu giris filmi <video> olarak bulunur, hero tek film modundadir
+       ve arsiv kartlari gorunur olunca oynatilmaz. */
+{
+  const ana = readFileSync('public/index.html', 'utf8');
+  const videolar = ana.match(/<video\b[^>]*>/g) || [];
+  const fazla = videolar.filter(v => !/class="mfilm-video"|data-slot="hero-video"/.test(v));
+  if (fazla.length) bulgular.push(`public/index.html giris filmi disinda ${fazla.length} video iceriyor; anasayfada yalniz giris filmi oynar.`);
+  if (!/<section class="cinematic-hero"[^>]*\bdata-tek-film\b/.test(ana)) bulgular.push('public/index.html hero tek film modunda degil (data-tek-film yok); kaydirmali sahneler geri gelir.');
+  const home = readFileSync('public/home.js', 'utf8');
+  const arsiv = (home.match(/grid\.querySelectorAll\('video'\)\.forEach\([\s\S]*?io\.observe\(v\)/) || [''])[0];
+  if (!arsiv || /\.play\(/.test(arsiv)) bulgular.push('public/home.js arsiv kartlarindaki videolari otomatik oynatiyor; anasayfada yalniz giris filmi oynar.');
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
