@@ -50,6 +50,9 @@ jobs:
           node tools/haber-portali-testi.mjs
           node tools/admin-giris-testi.mjs
           node --check public/home.js
+          node --check public/kategori-menu.js
+          node --check public/film-secim.js
+          node --check public/hero-three-choice.js
           python3 tools/validate-assets.py
           node tools/a11y-denetimi.mjs
           node tools/gerileme-denetimi.mjs
@@ -72,6 +75,12 @@ jobs:
           # Admin girişi artık yönetim merkezine (agency-os) yönlendiren kabuk (deploy.yml ile aynı kontrol).
           grep -q '/admin/agency-os/' public/admin/index.html
           grep -q '/kaynak-masasi' wrangler.toml
+          grep -q 'HABER' public/index.html
+          grep -q 'SOSYAL MEDYA' public/index.html
+          grep -q 'TANITIM' public/index.html
+          grep -q '/haberler/balikesir/' public/kategori-menu.js
+          grep -q '/sosyal-medya/' public/kategori-menu.js
+          grep -q 'niyet=dugun' public/kategori-menu.js
 
           test ! -e .github/workflows/media-smoke.yml
           test ! -e .github/workflows/storage-audit.yml
