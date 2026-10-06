@@ -4,9 +4,10 @@
  * their existing editorial gate.
  */
 import { runAutopilot } from "./autopilot.js";
+import { runClientAutopilot } from "./client-autopilot.js";
 
 export async function runHourlyContentPulse(env,{force=false}={}){
-  const result={ok:true,ran:false,reason:"",autopilot:null};
+  const result={ok:true,ran:false,reason:"",autopilot:null,clients:null};
   if(env?.KV){
     const key="autonomous:pulse:last";
     const last=await env.KV.get(key).catch(()=>null);
@@ -16,6 +17,7 @@ export async function runHourlyContentPulse(env,{force=false}={}){
   }
   try{
     result.autopilot=await runAutopilot(env,{force:true,limit:3});
+    result.clients=await runClientAutopilot(env,{force:true,limit:12});
     result.ran=true;
     return result;
   }catch(e){
