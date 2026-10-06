@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>BTMEDYA Native Social</title>
+<link rel="stylesheet" href="/admin/admin-menu.css?v=20261006-native">
+<link rel="stylesheet" href="/admin/native-social/native-social.css?v=20261006-1">
+<script src="/admin/admin-menu.js?v=20261006-native" defer></script>
+</head><body><main class="shell">
+<header class="top"><div><div class="eyebrow">BTMEDYA / NATIVE SOCIAL</div><h1>Doğrudan Sosyal Motor</h1><p>Metricool zorunlu değil. Hesaplar BTMEDYA içinden OAuth ile bağlanır; kimlik bilgileri şifreli olarak D1'de tutulur.</p></div><a class="back" href="/admin/agency-os/">← Agency OS</a></header>
+<section class="hero"><div><b>HEDEF MİMARİ</b><span>Cloudflare Worker + D1 + R2 + Cron → platformların resmi API'leri</span></div><button id="run" class="primary">Kuyruğu şimdi çalıştır</button></section>
+<section class="providers" id="providers"></section>
+<section class="panel"><div class="head"><h2>Hesaplar</h2><button id="refresh">Yenile</button></div><div id="accounts" class="list"></div></section>
+<section class="panel"><h2>Hesap bağla</h2><p class="muted">Önce ilgili platform geliştirici uygulamasını ve gerekli izinleri hazırlayın. Uygulama secretları Worker Secret olarak kalır; buraya token yapıştırmak gerekmez.</p>
+<div class="connect-grid">
+<button class="connect" data-network="instagram"><b>INSTAGRAM</b><span>OAuth ile bağla</span></button><button class="connect" data-network="facebook"><b>FACEBOOK</b><span>OAuth ile bağla</span></button><button class="connect" data-network="tiktok"><b>TIKTOK</b><span>OAuth ile bağla</span></button><button class="connect" data-network="youtube"><b>YOUTUBE</b><span>OAuth ile bağla</span></button><button class="connect" data-network="linkedin"><b>LINKEDIN</b><span>OAuth ile bağla</span></button>
+</div></section>
+<section class="panel"><h2>Teslimat günlüğü</h2><div id="deliveries" class="list"></div></section>
+<footer>Yayın mantığı: planlandi → due → native provider → teslimat logu → yayinlandi. Hatalar otomatik olarak kayda alınır.</footer>
+</main><script src="/admin/native-social/native-social.js?v=20261006-1" defer></script></body></html>
