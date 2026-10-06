@@ -2138,6 +2138,8 @@ export default { async scheduled(controller, env, ctx){
 
     const rcc = await controlCenterApi(request, env, url);
     if(rcc) return audit(rcc);
+    const rkm = await kaynakMasasiApi(request, env, url);
+    if(rkm) return audit(rkm);
     const rap = await autopilotApi(request, env, url);
     if(rap) return audit(rap);
     const r1 = await newsApi(request, env, url, ctx);
