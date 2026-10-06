@@ -8,8 +8,31 @@ cd "$ROOT"
 FF="${FFMPEG:-ffmpeg}"
 mkdir -p public/assets/media/web
 need(){ test -s "$1" || { echo "Eksik medya: $1" >&2; exit 1; }; }
-need public/assets/media/web/giris-ai-genis.mp4
-need public/assets/media/web/giris-ai.mp4
+need public/assets/media/web/giris-filmi-genis.mp4
+need public/assets/media/web/giris-filmi.mp4
+
+echo "▸ desktop REAL 1920x1080 H.264"
+"$FF" -hide_banner -loglevel error -y -i public/assets/media/web/giris-filmi-genis.mp4 \
+  -vf "scale=1920:1080:flags=lanczos,unsharp=5:5:0.24:5:5:0.0,eq=contrast=1.015:saturation=1.015,setsar=1" \
+  -c:v libx264 -preset slow -crf 18 -maxrate 9500k -bufsize 19000k -profile:v high -level 4.2 -pix_fmt yuv420p \
+  -c:a aac -b:a 192k -movflags +faststart \
+  public/assets/media/web/giris-filmi-genis-hq.mp4
+
+echo "▸ mobile REAL 1080x1920 H.264"
+"$FF" -hide_banner -loglevel error -y -i public/assets/media/web/giris-filmi.mp4 \
+  -vf "scale=1080:1920:flags=lanczos,unsharp=5:5:0.22:5:5:0.0,eq=contrast=1.015:saturation=1.015,setsar=1" \
+  -c:v libx264 -preset slow -crf 18 -maxrate 8000k -bufsize 16000k -profile:v high -level 4.2 -pix_fmt yuv420p \
+  -c:a aac -b:a 192k -movflags +faststart \
+  public/assets/media/web/giris-filmi-hq.mp4
+
+echo "▸ REAL WebM"
+"$FF" -hide_banner -loglevel error -y -i public/assets/media/web/giris-filmi-genis-hq.mp4 -c:v libvpx-vp9 -b:v 0 -crf 28 -row-mt 1 -deadline good -cpu-used 2 -c:a libopus -b:a 128k public/assets/media/web/giris-filmi-genis-hq.webm
+"$FF" -hide_banner -loglevel error -y -i public/assets/media/web/giris-filmi-hq.mp4 -c:v libvpx-vp9 -b:v 0 -crf 28 -row-mt 1 -deadline good -cpu-used 2 -c:a libopus -b:a 128k public/assets/media/web/giris-filmi-hq.webm
+
+echo "▸ REAL posters"
+"$FF" -hide_banner -loglevel error -y -i public/assets/media/web/giris-filmi-genis-hq.mp4 -frames:v 1 -q:v 2 public/assets/media/web/giris-filmi-genis-hq-poster.jpg
+"$FF" -hide_banner -loglevel error -y -i public/assets/media/web/giris-filmi-hq.mp4 -frames:v 1 -q:v 2 public/assets/media/web/giris-filmi-hq-poster.jpg
+
 echo "▸ desktop 1920x1080 H.264"
 "$FF" -hide_banner -loglevel error -y -i public/assets/media/web/giris-ai-genis.mp4 \
   -vf "scale=1920:1080:flags=lanczos,unsharp=5:5:0.28:5:5:0.0,eq=contrast=1.02:saturation=1.02,setsar=1" \
