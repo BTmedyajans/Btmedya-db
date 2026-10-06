@@ -23,7 +23,7 @@
   // Mobil kalite kapısı bu sahne kaydını katalogla karşılaştırır: GERÇEK ÇEKİM
   // diyen film medya-ozel.json gercek listesinde olmalı.
   // 6 Ekim: giriş filmi gerçek BTMEDYA arşiv kurgusuna alındı; ses izi korunur.
-  const FILM={source:'AI ÜRETİMİ · BTMEDYA KARAKTER FİLMİ',video:'/assets/media/web/giris-ai.mp4'};
+  const FILM={source:'AI ÜRETİMİ VE SAHA ARŞİVİ · BTMEDYA TANITIM FİLMİ',video:'/assets/media/web/giris-ai.mp4'};
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches, DEFAULT=FILM.video;
   const net=()=>navigator.connection||navigator.mozConnection||navigator.webkitConnection;
   const hqAllowed=()=>{const c=net(); if(!video.dataset.srcHq)return false; if(c?.saveData)return false; if(c?.effectiveType&&/^(slow-2g|2g|3g)$/i.test(c.effectiveType))return false; return !c||!c.effectiveType||c.effectiveType==='4g';};

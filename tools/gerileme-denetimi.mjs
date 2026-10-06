@@ -501,6 +501,18 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   if (!existsSync('public/film-secim.js') || !ana.includes('/film-secim.js')) bulgular.push('public/index.html film sonu seçeneklerini (film-secim.js) yüklemiyor.');
 }
 
+/* 20) Masaüstü filmin WebM yedeği masaüstü kurgusudur (6 Ekim). Bir değişiklik
+       masaüstü videosunun data-webm'ini dikey mobil WebM'e çevirmişti; H.264'süz
+       tarayıcıda 9:16 film 16:9 ekrana büyütülüp kırpılıyordu. Ayrıca codec
+       sormadan MP4'e zorlayan data-src-hq mobil filmi hiç açmıyordu. */
+{
+  const ana = readFileSync('public/index.html', 'utf8');
+  const genis = (ana.match(/<video[^>]*data-slot="hero-video"[^>]*>/) || [''])[0];
+  const webm = (genis.match(/data-webm="([^"]+)"/) || [])[1] || '';
+  if (!/-genis\.webm$/.test(webm)) bulgular.push(`public/index.html masaüstü filmin data-webm'i masaüstü kurgusu değil: ${webm || 'yok'}`);
+  if (/data-src-hq="[^"]+\.mp4"/.test(ana)) bulgular.push('public/index.html data-src-hq MP4 kaynağı codec denetimi olmadan zorlanıyor; H.264 çözemeyen tarayıcıda film açılmaz.');
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));

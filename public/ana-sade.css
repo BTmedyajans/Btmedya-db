@@ -1,0 +1,54 @@
+/* BTMEDYA sade ana sayfa · 2026-10-06 (kullanıcı isteği)
+   Ana sayfada yalnız tam ekran tanıtım filmi ve film sonunda gelen üç yol
+   (Haber / Sosyal Medya / Tanıtım) + tüm kategoriler düğmesi kalır.
+   Film oynarken ekranda başka hiçbir şey görünmez: başlık çubuğu, şeritler,
+   etiket ve kartlar gizlenir; film bitince yalnız logo ve menü geri gelir.
+   Diğer bölümler HTML'de durur (betikler ve testler onlara bağlı) ama
+   gösterilmez; haberler /haberler/ ve hamburger menüden açılır. Sayfanın
+   h1'i ve açıklaması ekran okuyucu ve arama motoru için yerinde kalır. */
+body.ana-sade{background:#06080b;overflow-x:hidden}
+body.ana-sade main#icerik>:not(#hero),
+body.ana-sade>footer,body.ana-sade .mobile-quick-nav,body.ana-sade .floating-whatsapp,
+body.ana-sade .bt-hero-intro,body.ana-sade .film-chapters,body.ana-sade .cinematic-copy,
+body.ana-sade .mfilm-etiket,body.ana-sade .mfilm-ilerleme,body.ana-sade .bt-3d-model,
+body.ana-sade .cinematic-grid,body.ana-sade .cinematic-brand,body.ana-sade .ekran-rozeti,body.ana-sade .cinematic-label,body.ana-sade .ses-dugme{display:none!important}
+/* Ekranda görünmez, erişilebilirlik ağacında ve indekste kalır. */
+body.ana-sade .mfilm-metin{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+/* Tam ekran film. */
+body.ana-sade #hero{position:relative;height:100svh!important;min-height:0!important;margin:0!important}
+body.ana-sade #hero .cinematic-sticky{position:relative!important;top:0!important;height:100svh!important;min-height:0!important}
+body.ana-sade #hero .cinematic-video,body.ana-sade #hero .cinematic-video video{opacity:1!important;visibility:visible!important;filter:none!important}
+body.ana-sade #hero .cinematic-vignette{background:radial-gradient(120% 90% at 50% 45%,transparent 55%,rgba(0,0,0,.35))}
+@media(max-width:720px){
+  body.ana-sade .mfilm,body.ana-sade .mfilm-dikey{margin:0;padding:0}
+  body.ana-sade .mfilm-kare,body.ana-sade .mfilm-dikey .mfilm-kare{width:100vw!important;height:100svh!important;max-height:none!important;margin:0!important;border-radius:0!important}
+  body.ana-sade .mfilm-video{object-fit:cover!important}
+}
+/* Başlık çubuğu filmin üstünde saydam; film oynarken gizli, sonda yalnız logo + menü. */
+body.ana-sade .topbar{position:fixed!important;top:0;left:0;right:0;z-index:60;background:linear-gradient(180deg,rgba(6,8,11,.55),transparent)!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;transition:opacity .6s ease}
+body.ana-sade:not(.film-bitti) .topbar{opacity:0;pointer-events:none}
+body.ana-sade .topbar .top-meta,body.ana-sade .topbar .top-cta,body.ana-sade .topbar .language-switch{display:none!important}
+/* Ses düğmesi: film boyunca küçük ve soluk; üzerine gelince belirginleşir. */
+body.ana-sade .film-ses{top:auto!important;bottom:22px;right:22px;opacity:.42;transition:opacity .3s ease}
+body.ana-sade .film-ses:hover,body.ana-sade .film-ses:focus-visible{opacity:1}
+body.ana-sade .film-ses span{display:none}
+body.ana-sade .film-ses{padding:0 13px}
+/* Seçenekler: modern, soft tipografi ve renk. */
+body.ana-sade .film-secim{--gri-yazi:linear-gradient(180deg,#f6f2ea 0%,#c9ced6 100%);--cam:linear-gradient(135deg,rgba(28,32,40,.44),rgba(10,12,16,.30));--cam-cizgi:rgba(214,222,232,.18);color:#eef0f3}
+body.ana-sade .fs-baslik{font:600 clamp(34px,5.2vw,80px)/.95 Manrope,'Space Grotesk',Inter,Arial,sans-serif;letter-spacing:-.035em}
+body.ana-sade .fs-ust{color:rgba(196,208,222,.7);font-family:Manrope,Inter,Arial,sans-serif;font-weight:600;letter-spacing:.3em}
+body.ana-sade .fs-ad b{font:600 clamp(17px,1.4vw,21px)/1.05 Manrope,Inter,Arial,sans-serif;letter-spacing:.02em}
+body.ana-sade .fs-ad small{color:rgba(196,204,214,.72)}
+body.ana-sade .fs-no{color:rgba(160,184,212,.65)}
+.fs-alt{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;opacity:0;transition:opacity .6s ease 1.9s}
+.film-secim.is-acik .fs-alt{opacity:1}
+.fs-alt .fs-tekrar{margin-top:0;opacity:1;transition:border-color .25s ease}
+.fs-kategori{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid rgba(214,222,232,.26);background:rgba(10,12,16,.4);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#eef0f3;font:600 13px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer}
+.fs-kategori:hover{border-color:rgba(214,222,232,.5)}
+.fs-kategori:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.fs-not{margin:12px 0 0;font:500 11px/1.4 Manrope,Inter,Arial,sans-serif;color:rgba(190,198,208,.55);opacity:0;transition:opacity .6s ease 2.2s}
+.film-secim.is-acik .fs-not{opacity:1}
+@media(max-width:720px){body.ana-sade .fs-baslik{font-size:clamp(30px,9.4vw,42px)}body.ana-sade .film-ses{bottom:16px;right:14px}.fs-not{font-size:10.5px}}
+/* Film bitince ses düğmesi seçeneklerin üstüne binmesin; sayfa kaymasın. */
+body.ana-sade.film-bitti .film-ses{display:none}
+body.ana-sade,body.ana-sade main#icerik{padding-bottom:0!important;margin-bottom:0!important}

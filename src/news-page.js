@@ -210,13 +210,14 @@ ${ldYaz(videoLd)}
 </script>`:''}
 <link rel="stylesheet" href="/mobil-tipografi.css?v=20261006-1">
 <link rel="stylesheet" href="/kategori-menu.css?v=20261006-1">
+<link rel="stylesheet" href="/tipografi-v2.css?v=20261006-1">
 <script src="/kategori-menu.js?v=20261006-1" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">İçeriğe geç</a>
 <div class="noise" aria-hidden="true"></div>
 <header class="topbar">
-  <a class="brand" href="/" aria-label="BTMEDYA ana sayfa"><img class="brand-logo" src="/assets/logo/btmedya-logo-baslik.webp" alt="BTMEDYA" width="154" height="37" decoding="async">
+  <a class="brand" href="/" aria-label="BTMEDYA ana sayfa"><img class="brand-logo" src="/assets/logo/btmedya-logo-v2-negatif.svg?v=1" alt="BTMEDYA" width="172" height="37" decoding="async">
   </a>
   <button class="menu-toggle" type="button" aria-label="Menüyü aç" aria-expanded="false" aria-controls="anaMenu">☰</button>
   <a class="quote" href="/haberler/">HABER ARŞİVİ ↗</a>
@@ -265,7 +266,7 @@ ${relatedHtml}</article>
 </main>
 <footer class="final-footer">
   <div class="footer-brand">
-    <img class="footer-logo" src="/assets/logo/btmedya-logo-imza.webp" alt="BTMEDYA — Hikâyeleri yaşatıyoruz" width="231" height="55" loading="lazy" decoding="async">
+    <img class="footer-logo" src="/assets/logo/btmedya-logo-v2-negatif.svg?v=1" alt="BTMEDYA — Hikâyeleri yaşatıyoruz" width="224" height="48" loading="lazy" decoding="async">
     <div><span>Balıkesir · Haber, prodüksiyon, yapay zekâ</span></div>
   </div>
   <div class="footer-contact"><a href="/iletisim/">İletişim</a><a href="/hakkimizda/">Hakkımızda</a></div>

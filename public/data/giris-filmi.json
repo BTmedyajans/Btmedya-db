@@ -1,41 +1,13 @@
 {
  "dosya": "/assets/media/web/giris-ai.mp4",
- "sure": 28.6,
- "etiket": "AI ÜRETİMİ · BTMEDYA KARAKTER FİLMİ",
- "kaynak": "BTMEDYA AI LAB giriş filmi",
+ "sure": 15.0,
+ "etiket": "AI ÜRETİMİ VE SAHA ARŞİVİ · BTMEDYA TANITIM FİLMİ",
+ "kaynak": "BTMEDYA tanıtım filmi (tools/giris-filmi/tanitim.sh)",
  "bolumler": [
-  {
-   "bolum": "AÇILIŞ",
-   "bas": 0.0
-  },
-  {
-   "bolum": "SAHA",
-   "alt": "GECE ÇEKİMİ",
-   "bas": 2.6
-  },
-  {
-   "bolum": "STÜDYO",
-   "alt": "YEŞİL PERDE ÇEKİMİ",
-   "bas": 6.8
-  },
-  {
-   "bolum": "STÜDYO MASASI",
-   "alt": "SET ÇEKİMİ",
-   "bas": 11.8
-  },
-  {
-   "bolum": "KAMERA ARKASI",
-   "alt": "STÜDYODA ÇEKİM ANI",
-   "bas": 16.8
-  },
-  {
-   "bolum": "PRODÜKSİYON",
-   "alt": "DEFİLE ÇEKİMİ",
-   "bas": 21.4
-  },
-  {
-   "bolum": "KAPANIŞ",
-   "bas": 26.0
-  }
+  {"bolum": "SAHA", "alt": "Gece çekimi", "bas": 0.0, "tur": "gercek"},
+  {"bolum": "STÜDYO", "alt": "Yeşil perde çekimi", "bas": 2.4, "tur": "gercek"},
+  {"bolum": "SOSYAL MEDYA", "bas": 3.6, "tur": "ai"},
+  {"bolum": "STÜDYO / PRODÜKSİYON", "bas": 6.8, "tur": "ai"},
+  {"bolum": "YAPAY ZEKÂ", "bas": 10.8, "tur": "ai"}
  ]
 }
