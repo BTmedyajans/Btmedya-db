@@ -17,6 +17,8 @@ import { WorkerEntrypoint } from "cloudflare:workers";
 import { aiGorunurluk, ICERIK_SINYALI } from "./ai-gorunurluk.js";
 import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu, KATEGORILER, kategoriIsle, yanitMetni, jsonAyikla } from "./sabah-masasi.js";
 import { ayarlariOku, ayarlariYaz, platformSluglari, sonrakiYuva, altyazi, varlikVar, kapakKunyesi, yayinlananlariIsaretle, gecikenleriKaydir } from "./sosyal-otomasyon.js";
+import { nativeSocialApi, processNativeSocialQueue } from "./native-social.js";
+import { runHourlyContentPulse } from "./content-pulse.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
  * 2) Medya Kasası (D1 tablo: media, R2) — /api/media*, /api/public/media, /api/export, /media/*, /api/login, /api/logout
@@ -1828,7 +1830,16 @@ async function hydrateR2FromManifest(env, limit=3){
 
 /* production-reconcile: keep GitHub main as the sole Cloudflare Workers Builds source of truth. */
 export default { async scheduled(controller, env, ctx){
-  /* Sabah Masası: her gün 08:00 İstanbul (05:00 UTC). Diğer 5 dakikalık
+  /* Native Social + saatlik içerik darbesi.
+     Metricool yoksa da sistem çalışır: kaynak keşfi/AI taslağı mevcut
+     Autopilot üzerinden, native sosyal teslimat ayrı kuyruktan yürür. */
+  if(controller && controller.cron==='0 * * * *'){
+    const pulse=runHourlyContentPulse(env,{force:false})
+      .then(r=>console.log('[btmedya] hourly content pulse',JSON.stringify({ok:r.ok,ran:r.ran,reason:r.reason||'',news:r.autopilot?.created_news||0,social:r.autopilot?.social_created||0})))
+      .catch(e=>console.error('[btmedya] hourly content pulse:',e?.message||e));
+    if(ctx?.waitUntil) ctx.waitUntil(pulse); else await pulse;
+    return;
+  }  /* Sabah Masası: her gün 08:00 İstanbul (05:00 UTC). Diğer 5 dakikalık
      işler bu tetikte de çalışır; masa yeni haberleri yayınladığında sosyal
      taslaklar bir sonraki 5 dakikalık turda hazırlanır. */
   if(controller && controller.cron==='0 5 * * *'){
@@ -1893,6 +1904,11 @@ export default { async scheduled(controller, env, ctx){
         .then(x=>console.log('[btmedya] Metricool handoff',JSON.stringify({enabled:x.enabled,processed:x.processed,scheduled:x.scheduled,failed:x.failed,skipped:x.skipped})))
         .catch(e=>console.error('[btmedya] Metricool handoff:',e?.message||e))
     : Promise.resolve(null);
+  const nativeSocial=(controller && controller.cron==='*/5 * * * *')
+    ? processNativeSocialQueue(env,8)
+        .then(x=>console.log('[btmedya] Native Social handoff',JSON.stringify({enabled:x.enabled,processed:x.processed,published:x.published,failed:x.failed})))
+        .catch(e=>console.error('[btmedya] Native Social handoff:',e?.message||e))
+    : Promise.resolve(null);
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
   /* Metricool sosyal tesliminden önce yardımcı kuyruk bakımı: zamanı geçmiş,
      henüz dış servise teslim edilmemiş planları ileri alır; teslim edilmiş
@@ -1913,7 +1929,7 @@ export default { async scheduled(controller, env, ctx){
      yayınlar ve rakip görünürlük sinyalleri taranır. Bu katman yalnız keşif
      kuyruğunu günceller; otomatik yayın için Sabah Masası'nın doğrulama
      zinciri geçerlidir. */
-  const hepsi=Promise.all([task,metricool,archive,drafts,takip,intelligence,autopilot,supervisor]);
+  const hepsi=Promise.all([task,metricool,nativeSocial,archive,drafts,takip,intelligence,autopilot,supervisor]);
   if(ctx?.waitUntil) ctx.waitUntil(hepsi); else await hepsi;
 }, async fetch(request, env, ctx){
   const url = new URL(request.url);
@@ -2065,6 +2081,8 @@ export default { async scheduled(controller, env, ctx){
     if(rSales) return audit(rSales);
     const ras = await agencySupervisorApi(request, env, url);
     if(ras) return audit(ras);
+    const rns = await nativeSocialApi(request, env, url, (req)=>validSession(req, oturumAnahtari(env)));
+    if(rns) return audit(rns);
 
     const rw = await workflowApi(request, env, url);
     if(rw) return audit(rw);
