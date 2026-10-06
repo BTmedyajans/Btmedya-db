@@ -58,7 +58,7 @@
         '<h2 class="btkm-baslik"><span class="btkm-maske"><span>'+kac(k.ad)+'</span></span></h2>'+
         '<p class="btkm-ozet">'+kac(k.ozet)+'</p></div>'+
         '<ul class="btkm-baglar">'+(i===0?HABER_KATALOG:k.alt).map(([ad,y],j)=>
-          '<li style="--j:'+j+'"><a href="'+y+'"'+(y===yolu?' aria-current="page"':'')+'>'+(ad.indexOf(' · ')>0?'<small class="btkm-grup-etiket">'+kac(ad.split(' · ')[0])+'</small>':'')+yuvarla(ad)+'<i aria-hidden="true">↗</i></a></li>').join('')+'</ul>'+
+          '<li style="--j:'+j+'"><a href="'+y+'"'+(y===yolu?' aria-current="page"':'')+'>'+(ad.indexOf(' · ')>0?'<small class="btkm-grup-etiket">'+kac(ad.split(' · ')[0])+'</small>':'')+yuvarla(ad.indexOf(' · ')>0?ad.split(' · ').slice(1).join(' · '):ad)+'<i aria-hidden="true">↗</i></a></li>').join('')+'</ul>'+
       '</section>').join('')+
     '</div>'+
     '<div class="btkm-kayan" aria-hidden="true"><div class="btkm-kayan-iz">'+kayanMetin+kayanMetin+'</div></div>'+
