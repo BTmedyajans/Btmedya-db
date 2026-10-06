@@ -528,42 +528,34 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
      R2'den gelen kayitlarda alan yok; o zaman vitrinde kalirlar. */
   const arsivDisi = o => o && o.vitrin === false;
 
-  const arsivKarti = (o, i) => {
+  /* Kart, sayfadaki yedek ızgarayla aynı işaretlemeyi üretir. Eski kart
+     (article + .archive-media/.archive-copy) mobilde 38 piksellik şeritlere
+     çöküyordu; yedek kartın stili ise her genişlikte sınanmış durumda.
+     Buraya yalnız gerçek çekimler gelir (çağıran taraf AI üretimini eler),
+     bu yüzden etiket GERÇEK ÇEKİM / VIDEO olur. Anasayfada yalnız giriş
+     filmi oynadığı için video kartı poster karesiyle gösterilir. */
+  const arsivKarti = o => {
     const video = arsivVideoMu(o);
+    const gorsel = String(video ? (o.poster || '') : (o.url || ''));
     const baslik = esc(o.title || arsivBaslik(o.key || o.original_name));
-    const kat = esc(String(o.category || 'arşiv').replace(/-/g, ' '));
-    const url = String(o.url || '');
-    const kaynak = String(o.source || '');
-    let detay = '';
-    if (o.category === 'haber') {
-      detay = '<a href="/haberler/' + encodeURIComponent(arsivSlug(o.key || o.original_name)) + '">Haberi aç ↗</a>';
-    } else if (video && url) {
-      detay = '<a href="' + esc(url) + '" target="_blank" rel="noopener">Videoyu aç ↗</a>';
-    }
-    const yt = '<a href="https://www.youtube.com/@BTmedyaAjans" target="_blank" rel="noopener">YouTube ↗</a>';
-    const medya = video
-      /* Poster olmadan kart, video metadata'si gelene kadar siyah duruyordu.
-         Adres data-src'de bekler: bolum sayfanin cok asagisinda ve showreel
-         4,7 MB; sayfa acilir acilmaz on yukleme mobil veriyi harciyordu. */
-      ? '<video class="archive-media" muted loop playsinline preload="none"' +
-        (o.poster ? ' poster="' + esc(String(o.poster)) + '"' : '') +
-        ' data-src="' + esc(url) + '"></video>'
-      : '<img class="archive-media" loading="lazy" src="' + esc(url) + '" alt="' + baslik + '">';
-    return '<article class="archive-live-card ' + (i === 0 ? 'featured' : '') + '">' + medya +
-      '<div class="archive-overlay"></div><div class="archive-copy">' +
-      '<span class="archive-tag">' + (o.ai_generated === false ? 'GERÇEK ÇEKİM' : 'AI ÜRETİMİ') + ' · ' + kat + '</span><h3>' + baslik + '</h3>' +
-      '<p>Kaynak: ' + esc(kaynak === 'github-static' ? 'BTMEDYA arşivi' : 'Media Vault') + '</p>' +
-      '<div class="archive-actions">' + detay + yt + '</div></div></article>';
+    const haber = o.category === 'haber';
+    const adres = haber ? '/haberler/' + encodeURIComponent(arsivSlug(o.key || o.original_name)) : '/portfoy/';
+    return '<a class="archive-live-card" href="' + adres + '" aria-label="' + baslik + '">' +
+      '<img src="' + esc(gorsel) + '" alt="' + baslik + '" loading="lazy" decoding="async">' +
+      '<small>' + (video ? 'VIDEO' : 'GERÇEK ÇEKİM') + '</small><strong>' + baslik + '</strong>' +
+      '<span>GERÇEK ARŞİV · ' + (haber ? 'HABER' : 'PORTFÖY') + ' ↗</span></a>';
   };
 
   const loadArsiv = async () => {
     const grid = d.getElementById('gercekArsivGrid');
     if (!grid) return;
+    /* Sayfada seçilmiş gerçek karelerden oluşan yedek ızgara zaten duruyor.
+       Canlı liste gelmezse ya da boşsa onun üstüne durum kutusu basılmaz:
+       okur dolu bir vitrinin üstünde "yükleniyor" yazısı görmemeli. */
+    const yedekVar = () => !!document.querySelector('[data-fallback="media"]');
+    const durumYaz = metin => { grid.innerHTML = yedekVar() ? '' : '<div class="archive-live-empty">' + metin + '</div>'; grid.setAttribute('aria-busy','false'); };
     let loadingTimer = setTimeout(() => {
-      if (grid.getAttribute('aria-busy') === 'true') {
-        grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv hazırlanıyor. Son doğrulanmış içerikler portföyde açık.</div>';
-        grid.setAttribute('aria-busy','false');
-      }
+      if (grid.getAttribute('aria-busy') === 'true') durumYaz('Gerçek arşiv hazırlanıyor. Son doğrulanmış içerikler portföyde açık.');
     }, 3500);
     try {
       let data=null;
@@ -586,33 +578,34 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       const ogeler=(Array.isArray(data.items)?data.items:[])
         .filter(x=>x && !x.ai_generated && !arsivDisi(x))
         .filter(x=>['saha','haber','video','portfoy','hero','sosyal','arsiv','medya'].includes(String(x.category||'')))
+        // Posteri olmayan video siyah kutu olurdu; görseli olmayan kayıt vitrine girmez.
+        .filter(x=>arsivVideoMu(x)?!!x.poster:!!x.url)
         .sort((a,b)=>{
           const acik=x=>typeof x.sira==='number'?x.sira:999;
           if(acik(a)!==acik(b)) return acik(a)-acik(b);
           const kat=x=>({saha:0,haber:1,video:2,portfoy:3,hero:4}[x.category]??9);
           return kat(a)-kat(b);
         }).slice(0,8);
-      if(!ogeler.length){clearTimeout(loadingTimer);grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv kaydı henüz yayın akışına düşmedi.</div>';grid.setAttribute('aria-busy','false');return;}
+      if(!ogeler.length){clearTimeout(loadingTimer);durumYaz('Gerçek arşiv kaydı henüz yayın akışına düşmedi.');return;}
       clearTimeout(loadingTimer);
       grid.innerHTML=ogeler.map(arsivKarti).join('');
       document.querySelector('[data-fallback="media"]')?.remove();
       grid.setAttribute('aria-busy','false');
-      grid.querySelectorAll('video').forEach(v=>{
-        const io=new IntersectionObserver(es=>es.forEach(e=>{
-          // Anasayfada yalniz giris filmi oynar (6 Ekim): kart ilk karesini
-          // gosterir, video "Videoyu ac" baglantisiyla izlenir.
-          if(e.isIntersecting){if(!v.src&&v.dataset.src){v.preload='metadata';v.src=v.dataset.src+'#t=0.1';v.load();}io.unobserve(v);}
-        }),{rootMargin:'120px'}); io.observe(v);
-      });
     }catch(err){
       clearTimeout(loadingTimer);
-      if(!document.querySelector('[data-fallback="media"]')){
-        grid.innerHTML='<div class="archive-live-empty">Gerçek arşiv geçici olarak güncellenemedi. Son doğrulanmış içerikler portföyde açık.</div>';
-      } else {
-        grid.setAttribute('aria-busy','false');
-      }
+      durumYaz('Gerçek arşiv geçici olarak güncellenemedi. Son doğrulanmış içerikler portföyde açık.');
     }
   };
+  /* 6 Ekim: çizici buraya taşınmış ama hiç çağrılmıyordu; kutu canlıda
+     kalıcı olarak "Arşiv yükleniyor…" gösterdi. Bölüm sayfanın çok aşağısında
+     olduğu için liste ancak okur yaklaşınca istenir. */
+  (() => {
+    const bolum = d.getElementById('gercek-arsiv');
+    if (!bolum) return;
+    if (!('IntersectionObserver' in window)) { loadArsiv(); return; }
+    const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); loadArsiv(); } }, { rootMargin: '800px 0px' });
+    io.observe(bolum);
+  })();
 
   const hero = d.querySelector('.hero');
   if (hero && !reduced) {
@@ -1138,9 +1131,15 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     const haberler=haberApi&&Array.isArray(haberApi.items)?haberApi.items.filter(n=>n.status==='published'):(Array.isArray(haberStatik)?haberStatik.filter(n=>n.status!=='draft'):[]);
     const medya=Array.isArray(medyaApi)?medyaApi:(Array.isArray(medyaStatik)?medyaStatik:[]);
     if(haberler.length) yaz('haber',haberler.length);
-    if(medya.length){yaz('medya',medya.length);yaz('video',medya.filter(m=>/\\.mp4$/i.test(m.path||'')).length);}
-    const kanallar=new Set(['instagram.com/btmedyajans','youtube.com/@BTmedyaAjans','tiktok.com/@btmedya1010']);
-    document.querySelectorAll('a[href*="instagram.com/"],a[href*="youtube.com/@"],a[href*="tiktok.com/@"]').forEach(a=>{try{const u=new URL(a.href);kanallar.add(u.hostname.replace(/^www\\./,'')+u.pathname.split('/').slice(0,2).join('/'));}catch(e){}});
+    if(medya.length){yaz('medya',medya.length);yaz('video',medya.filter(m=>/\.mp4$/i.test(m.path||'')).length);}
+    /* 6 Ekim: buradaki iki regex literalinde nokta çift ters bölüyle
+       kaçırılmıştı; nokta değil ters bölü arıyordu. Video sayısı hep "—" kaldı, www'li ve
+       www'siz aynı hesap iki kez sayıldığı için kanal sayısı 7 göründü.
+       Adresler küçük harfe çevrilir; Facebook tek sayfa olduğu için (paylaşım
+       ve kimlik bağlantıları farklı yol taşır) tek kanal sayılır. */
+    const kanallar=new Set(['instagram.com/btmedyajans','youtube.com/@btmedyaajans','tiktok.com/@btmedya1010']);
+    document.querySelectorAll('a[href*="instagram.com/"],a[href*="youtube.com/@"],a[href*="tiktok.com/@"]').forEach(a=>{try{const u=new URL(a.href);kanallar.add((u.hostname.replace(/^www\./,'')+u.pathname.split('/').slice(0,2).join('/')).toLowerCase());}catch(e){}});
+    if(document.querySelector('a[href*="facebook.com/"]')) kanallar.add('facebook.com');
     yaz('kanal',kanallar.size);
   }
 

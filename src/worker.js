@@ -1268,7 +1268,11 @@ async function mediaApi(request, env){
     const buyut=s=>String(s||'').trim().toLocaleUpperCase('tr-TR');
     const username=buyut(body.username);
     const expectedUsername=buyut(env.ADMIN_USERNAME||'BTMEDYA');
-    const usernameOk=username===expectedUsername;
+    /* 6 Ekim: ADMIN_USERNAME e-posta adresine cevrildi ama giris formu
+       "BTMEDYA" adiyla dolu geliyor; dogru sifre bile "hatali" diye
+       reddediliyordu. Marka adi her zaman gecerli bir kullanici adidir:
+       ad sir degil (yukaridaki not), guvenligi sifre ve deneme siniri tasir. */
+    const usernameOk=username===expectedUsername || username===buyut('BTMEDYA');
     const primaryPassword=env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD;
     const primaryOk=!!primaryPassword && body.password===primaryPassword;
     const recoveryOk=recoveryPasswordValid(body.password,env.ADMIN_RECOVERY_SECRET);

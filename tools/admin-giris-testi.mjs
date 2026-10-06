@@ -62,4 +62,26 @@ const kalip = new RegExp(form.match(/const hedef=\/(.+?)\/i\.test\(sonra\)/)[1],
 assert.ok(kalip.test('/admin/agency-os/?v=1'));
 for (const kotu of ['https://kotu.example/', '//kotu.example/admin/', '/haberler/', '/admin/giris/']) assert.ok(!kalip.test(kotu), `açık yönlendirme: ${kotu}`);
 
+// 6) Canlıda ADMIN_USERNAME e-posta adresi; form ise "BTMEDYA" ile dolu gelir.
+//    Marka adı her yapılandırmada geçerli olmalı, yoksa doğru şifre reddedilir.
+{
+  const eposta = { ...env, ADMIN_USERNAME: 'busetuncay74@gmail.com' };
+  const gir = (username, password) => worker.fetch(new Request('https://btmedya.com.tr/api/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username, password }) }), eposta, { waitUntil() {} });
+  assert.equal((await gir('BTMEDYA', 'test-sifresi')).status, 200, 'formun varsayılan kullanıcı adı girişi açmalı');
+  assert.equal((await gir('busetuncay74@gmail.com', 'test-sifresi')).status, 200, 'yapılandırılmış kullanıcı adı girişi açmalı');
+  assert.equal((await gir('BTMEDYA', 'yanlis')).status, 401);
+  assert.equal((await gir('baskasi', 'test-sifresi')).status, 401, 'tanımsız kullanıcı adı reddedilmeli');
+  assert.match(form, /id="kullanici"[^>]*value="BTMEDYA"/, 'form varsayılanı değişirse bu test de güncellenmeli');
+}
+
+// 7) Kabuk okuru başka bir hosta göndermez: panel btmedya.com.tr/admin altında açılır.
+const kabuk = readFileSync('public/admin/index.html', 'utf8');
+assert.doesNotMatch(kabuk, /https?:\/\/[^"'\s]*\/admin/, 'yönetim kabuğu başka bir hosta yönlendiriyor');
+assert.match(kabuk, /location\.replace\('\/admin\/agency-os\//);
+
+// 8) Yönetim merkezinin taban stili yerinde. 2 Ekim'de dosya yalnız ek
+//    kurallarla değiştirilmiş, merkez dört gün stilsiz açılmıştı.
+const merkezStil = readFileSync('public/admin/agency-os/agency-os.css', 'utf8');
+for (const parca of [':root{', '--lime:', 'body{', '.top{']) assert.ok(merkezStil.includes(parca), `agency-os.css taban kuralı eksik: ${parca}`);
+
 console.log('ADMIN GIRIS TESTI GECTI');

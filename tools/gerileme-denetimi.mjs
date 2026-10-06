@@ -45,6 +45,21 @@ for (const f of readdirSync('src').filter(x => x.endsWith('.js'))) {
       '— bu nokta/egik cizgi degil ters bolu arar (ya da derlemeyi kirar).');
   }
 }
+/* 2b) Ayni hata tarayici betiklerinde de sessizce bozar (6 Ekim): anasayfa
+      sayacinda /\\.mp4$/ video sayisini hep "—" birakti, /^www\\./ ayni hesabi
+      iki kez saydirip kanal sayisini 7 gosterdi; haber akisinda /\\b(...)\\b/
+      hic eslesmedi. public/ kokundeki betiklerde nokta, egik cizgi ve kelime
+      siniri (\\b) kacislari aranir. Yorum satirlari atlanir. */
+for (const f of readdirSync('public').filter(x => x.endsWith('.js'))) {
+  const kod = readFileSync(join('public', f), 'utf8');
+  for (const satir of kod.split('\n')) {
+    if (/^\s*(\/\/|\/\*|\*)/.test(satir)) continue;
+    const dizesiz = satir.replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g, "''");
+    if (!/\/[^/\n]*\\\\[./b][^/\n]*\/[gimsuy]*[.)\],;]/.test(dizesiz)) continue;
+    bulgular.push(`public/${f} regex literalinde cift ters bolu var: ${satir.trim().slice(0, 60)} ` +
+      '— bu nokta/kelime siniri degil ters bolu arar; kural sessizce hic eslesmez.');
+  }
+}
 
 /* 3) Kaynak etiketi ogenin kendi kaydindan turemeli. Sabit 'gercek' /
       ai_generated:false her kareyi GERCEK CEKIM gosterir; AGENTS.md
@@ -475,8 +490,12 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   if (fazla.length) bulgular.push(`public/index.html giris filmi disinda ${fazla.length} video iceriyor; anasayfada yalniz giris filmi oynar.`);
   if (!/<section class="cinematic-hero"[^>]*\bdata-tek-film\b/.test(ana)) bulgular.push('public/index.html hero tek film modunda degil (data-tek-film yok); kaydirmali sahneler geri gelir.');
   const home = readFileSync('public/home.js', 'utf8');
-  const arsiv = (home.match(/grid\.querySelectorAll\('video'\)\.forEach\([\s\S]*?io\.observe\(v\)/) || [''])[0];
-  if (!arsiv || /\.play\(/.test(arsiv)) bulgular.push('public/home.js arsiv kartlarindaki videolari otomatik oynatiyor; anasayfada yalniz giris filmi oynar.');
+  // 6 Ekim: arsiv karti artik <video> basmiyor, poster karesi gosteriyor.
+  // Kart ile yukleyici arasindaki kodda video ogesi ya da oynatma cagrisi
+  // geri gelirse (eski gozlemci blogu dahil) anasayfada ikinci film oynar.
+  const arsivBas = home.indexOf('const arsivKarti'), arsivSon = home.indexOf('io.observe(bolum)', arsivBas);
+  const arsiv = arsivBas < 0 || arsivSon < 0 ? '' : home.slice(arsivBas, arsivSon);
+  if (!arsiv || /\.play\(|<video\b/.test(arsiv)) bulgular.push('public/home.js arsiv kartlarindaki videolari otomatik oynatiyor; anasayfada yalniz giris filmi oynar.');
 }
 
 /* 19) Giriş filmi sesli ve önce sesli denenir (6 Ekim, kullanıcı isteği).
