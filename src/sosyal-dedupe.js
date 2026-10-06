@@ -50,3 +50,9 @@ export async function sosyalTekillemeBagla(env,fingerprint,postId,sourceSlug='')
   await env.DB.prepare('UPDATE sosyal_parmak_izleri SET post_id=?,source_slug=? WHERE fingerprint=?')
     .bind(String(postId),String(sourceSlug||''),fingerprint).run().catch(()=>{});
 }
+
+export async function sosyalTekillemeSil(env,postId){
+  if(!env.DB||!postId) return;
+  await ensureSosyalParmakTablosu(env);
+  await env.DB.prepare('DELETE FROM sosyal_parmak_izleri WHERE post_id=?').bind(String(postId)).run().catch(()=>{});
+}
