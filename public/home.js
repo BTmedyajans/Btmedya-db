@@ -33,7 +33,7 @@
     const kanalKutu = d.getElementById('portfoyKanal');
     let veri;
     try {
-      const r = await fetch('/data/youtube-portfoy.json', {headers:{accept:'application/json'}});
+      const r = await fetch('/data/youtube-portfoy.json?v=20261007-1', {headers:{accept:'application/json','cache-control':'no-cache'}});
       if (!r.ok) throw new Error('HTTP ' + r.status);
       veri = await r.json();
     } catch (err) {
