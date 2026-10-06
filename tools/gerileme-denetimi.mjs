@@ -419,8 +419,12 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   // ürettiği temiz haber kategorisi adresi.
   const menu = readFileSync('public/kategori-menu.js', 'utf8');
   for (const [, yol] of menu.matchAll(/\['[^']+','(\/[^']*)'\]/g)) {
-    if (/^\/haberler\/(balikesir|turkiye|dunya|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|yasam)\/$/.test(yol)) continue;
-    if (!existsSync(join('public', yol, 'index.html'))) bulgular.push(`public/kategori-menu.js menü bağlantısı ${yol} için sayfa yok (public${yol}index.html).`);
+    const clean = yol.split('?')[0].split('#')[0];
+    if (/^\/haberler\/(balikesir|turkiye|dunya|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|yasam)\/$/.test(clean)) continue;
+    const target = clean.endsWith('/') ? join('public', clean, 'index.html') : join('public', clean);
+    if (!existsSync(target) && !existsSync(target + '.html') && !existsSync(join('public', clean, 'index.html'))) {
+      bulgular.push(`public/kategori-menu.js menü bağlantısı ${yol} için sayfa yok (public${clean}index.html).`);
+    }
   }
 }
 
