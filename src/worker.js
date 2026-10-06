@@ -1201,30 +1201,31 @@ async function socialApi(request, env, url, ctx){
     const now=new Date().toISOString();
     const id=String(b.id||'').trim() || crypto.randomUUID();
     const exists=b.id ? await env.DB.prepare('SELECT id FROM social_posts WHERE id=?').bind(id).first() : null;
-
-    if(exists){
-      await env.DB.prepare('UPDATE social_posts SET title=?,body=?,platforms=?,format=?,media_key=?,source_slug=?,status=?,scheduled_at=?,updated_at=? WHERE id=?')
-        .bind(title,body,JSON.stringify(platforms),format,mediaKey,sourceSlug,status,scheduledAt,now,id).run();
-    }else{
-      await env.DB.prepare('INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
-        .bind(id,title,body,JSON.stringify(platforms),format,mediaKey,sourceSlug,status,scheduledAt,now,now).run();
-    }
-    const disId=String(b.metricool_id||'').trim();
-    if(disId) await disTeslimKaydet(env,id,disId);
     const accountScope=String(b.account_scope||'company');
     const brandId=String(b.metricool_brand_id||env.METRICOOL_BRAND_ID||'');
+    let rezerv=null;
     if(!exists){
-      const rezerv=await sosyalTekillemeAyir(env,{post_id:id,source_slug:sourceSlug,title,body,format,platforms,account_scope:accountScope,metricool_brand_id:brandId});
+      rezerv=await sosyalTekillemeAyir(env,{post_id:id,source_slug:sourceSlug,title,body,format,platforms,account_scope:accountScope,metricool_brand_id:brandId});
       if(!rezerv.allowed) return json({ok:false,error:'Aynı sosyal içerik zaten kuyrukta veya daha önce kaydedilmiş.',duplicate_of:rezerv.existing_post_id||null},409);
-      try{
+    }
+
+    try{
+      if(exists){
+        await env.DB.prepare('UPDATE social_posts SET title=?,body=?,platforms=?,format=?,media_key=?,source_slug=?,status=?,scheduled_at=?,updated_at=? WHERE id=?')
+          .bind(title,body,JSON.stringify(platforms),format,mediaKey,sourceSlug,status,scheduledAt,now,id).run();
+      }else{
+        await env.DB.prepare('INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
+          .bind(id,title,body,JSON.stringify(platforms),format,mediaKey,sourceSlug,status,scheduledAt,now,now).run();
         await env.DB.prepare('UPDATE social_posts SET account_scope=?,metricool_brand_id=?,account_label=? WHERE id=?')
           .bind(accountScope,brandId,String(b.account_label||'BTMEDYA Şirket').slice(0,120),id).run();
         await sosyalTekillemeBagla(env,rezerv.fingerprint,id,sourceSlug);
-      }catch(e){
-        await sosyalTekillemeBirak(env,rezerv.fingerprint);
-        throw e;
       }
+    }catch(e){
+      if(rezerv?.fingerprint) await sosyalTekillemeBirak(env,rezerv.fingerprint);
+      throw e;
     }
+    const disId=String(b.metricool_id||'').trim();
+    if(disId) await disTeslimKaydet(env,id,disId);
     if(status==='planlandi' && !disId && ctx?.waitUntil){
       ctx.waitUntil(
         processMetricoolQueue(env,10)
