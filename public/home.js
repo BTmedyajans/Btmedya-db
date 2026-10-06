@@ -834,12 +834,17 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
      oynar; kaydirmali bes sahne ve kategori videolari kalkti. Film bitince
      secim-sahnesi.js uc yolu (Haber, Sosyal Medya, Tanitim) acar. */
   const tekFilm=root.hasAttribute('data-tek-film');
+  const ESKI_AI_FILMI=/\/assets\/media\/web\/hero-story(-mobile)?\.mp4$/;
   if(tekFilm) scenes.splice(1);
   /* Panel atamalari: sahnenin videosunu ve rozetini degistirir. Atama yoksa
      hicbir sey yapilmaz, sayfa kendi varsayilanlariyla kalir. */
   window.btYuvalar && window.btYuvalar.then(y=>{
     scenes.forEach((s,i)=>{
       const a=s.yuva && y[s.yuva]; if(!a || a.tur!=='video') return;
+      // Tek film (6 Ekim): panelde eski AI filmine (hero-story) yapilmis atama
+      // yeni giris filminin parcasidir ve onu gecersiz kilmasin; panelden
+      // baska bir video atanirsa o yine onceliklidir.
+      if(tekFilm && ESKI_AI_FILMI.test(String(a.url||'').split('?')[0])) return;
       s.kaynak=a.gercek?'GERÇEK ÇEKİM':'AI ÜRETİMİ';
       const el=videos[i] && videos[i].querySelector('video'); if(!el) return;
       el.dataset.src=a.url; delete el.dataset.mobile;
