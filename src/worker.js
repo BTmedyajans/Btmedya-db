@@ -416,7 +416,7 @@ async function newsApi(request, env, url, ctx){
      repository içindeki gerçek BTMEDYA arşivi güvenli bir salt-okur
      fallback olarak kullanılır. Böylece canlı site boş kalmaz. */
   if(url.pathname==='/api/news' && request.method==='GET'){
-    const limit=Math.min(Number(url.searchParams.get('limit'))||100,100);
+    const limit=Math.min(Number(url.searchParams.get('limit'))||100,500);
     /* ozet=1: liste sayfalari (haber portali) haber metnini kullanmaz; 100
        haberin govdesi mobilde ~230 KB ek indirme demekti. Govde yalniz bu
        parametreyle dusulur, diger cagiranlar ayni yaniti alir. */
@@ -424,7 +424,7 @@ async function newsApi(request, env, url, ctx){
     const listeJson=(veri,...a)=>json(ozet?{...veri,items:veri.items.map(({body,...n})=>n)}:veri,...a);
     let d1Items=[];
     if(env.DB){
-      const rows=await env.DB.prepare("SELECT id,slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news WHERE status='published' ORDER BY published_at DESC LIMIT 200").all();
+      const rows=await env.DB.prepare("SELECT id,slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news WHERE status='published' ORDER BY COALESCE(published_at,updated_at) DESC LIMIT 500").all();
       const kapaklar=await uretilmisKapaklar(env);
       d1Items=(rows.results||[]).map(n=>({...n,cover_url:kapakSec(n,kapaklar)}));
     }
