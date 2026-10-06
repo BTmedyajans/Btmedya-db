@@ -30,7 +30,7 @@
     // 6 Ekim (kullanıcı): üç ana yol; hamburger kategorileri de bu üçü altında.
     {anahtar:'haber',ad:'HABER',alt:'Kaynaklı gündem',yol:'/haberler/',x:18,y:46,kaynak:'solEl',yon:'sol'},
     {anahtar:'sosyal',ad:'SOSYAL MEDYA',alt:'İçerik · yönetim · reels',yol:'/sosyal-medya/',x:50,y:20,kaynak:'tepe',yon:'ust'},
-    {anahtar:'tanitim',ad:'TANITIM',alt:'Düğün klibi · tanıtım · reklam',yol:'/video-produksiyon/',x:82,y:46,kaynak:'sagEl',yon:'sag'}
+    {anahtar:'tanitim',ad:'TANITIM',alt:'Düğün çekimleri · tanıtım · reklam',yol:'/video-produksiyon/',x:82,y:46,kaynak:'sagEl',yon:'sag'}
   ];
 
   const sahne=document.createElement('section');
