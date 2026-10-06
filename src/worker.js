@@ -2122,8 +2122,12 @@ export default { async scheduled(controller, env, ctx){
     const rawKategori=String(n?.category||'').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i').trim();
     const explicit={balikesir:'balikesir',turkiye:'turkiye','türkiye':'turkiye',dunya:'dunya','dünya':'dunya',gundem:'gundem',ekonomi:'ekonomi',kultur:'kultur','kültür':'kultur',egitim:'egitim',saglik:'saglik',spor:'spor',teknoloji:'teknoloji',yasam:'yasam','yaşam':'yasam'};
     if(explicit[rawKategori]) return explicit[rawKategori].replace(/,$/,'');
+    // Güçlü Balıkesir sinyali, tematik kelimelerden önce değerlendirilir.
+    // Açık kategori adı varsa önce o korunur; otomatik sınıflandırmada yerel haber
+    // ekonomi/teknoloji/gündem kelimeleri yüzünden başka bölüme taşınmaz.
+    const balikesir=/\b(balikesir|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|dursunbey|savastepe|bigadic|ivindi|manyas|havran|gomec|erdek|balya|sindirgi|pazar|altyapi|ulasim|belediye)\b/;
+    if(balikesir.test(metin)) return 'balikesir';
     const rules=[
-      ['yasam',/(yasam|gundelik|aile|kadin|cocuk|magazin|moda|evlilik|dugun)/],
       ['dunya',/(dunya|abd|amerika|avrupa|almanya|fransa|ingiltere|rusya|ukrayna|israil|filistin|iran|cina|japonya|nato|birlesmis milletler|dis politika|uluslararasi)/],
       ['turkiye',/(turkiye|ankara|istanbul|izmir|adana|antalya|bursa|konya|meclis|bakanlik|cumhurbaskani|tbmm|yurt geneli|ulusal)/],
       ['teknoloji',/(yapay zeka|teknoloji|yazilim|dijital|\bai\b|teknofest|uygulama|platform)/],
@@ -2131,9 +2135,9 @@ export default { async scheduled(controller, env, ctx){
       ['saglik',/(saglik|beslenme|hastane|doktor|tedavi|epilasyon|obezite|kalp)/],
       ['spor',/(spor|futbol|basketbol|turnuva|atletizm|pehlivan|muay thai|sporcu)/],
       ['kultur',/(kultur|zanaat|sanat|gastronomi|turizm|insan hikayesi|yasam|moda|etkinlik|tiyatro|sinema|festival)/],
+      ['yasam',/(yasam|gundelik|aile|kadin|cocuk|magazin|moda|evlilik|dugun)/],
       ['ekonomi',/(ekonomi|emlak|esnaf|tarim|ticaret|fiyat|piyasa|maas|istihdam|satis|konut)/],
-      ['gundem',/(gundem|asayis|yangin|afet|guvenlik|trafik|itfaiye|emniyet|polis|kaza|kamu)/],
-      ['balikesir',/(balikesir|yerel|altieylul|karesi|bandirma|edremit|ayvalik|burhaniye|gonen|susurluk|pazar|altyapi|ulasim|belediye)/]
+      ['gundem',/(gundem|asayis|yangin|afet|guvenlik|trafik|itfaiye|emniyet|polis|kaza|kamu)/]
     ];
     for(const [key,re] of rules) if(re.test(metin)) return key;
     return 'gundem';
