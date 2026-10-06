@@ -114,7 +114,7 @@ jobs:
           grep -q "Gerçek arşiv geçici olarak güncellenemedi." public/home.js
           grep -q 'prefers-reduced-motion' public/mobile-fixes.css
           grep -q 'BTMEDYA Yönetim Merkezi' public/admin/index.html
-          grep -q '/api/admin/control-center' public/admin/index.html
+          grep -q '/admin/agency-os/' public/admin/index.html
           grep -q 'btmedya-core' src/worker.js
           grep -q '/api/admin/core' public/admin/agency-os/agency-os.js
           grep -q '/kaynak-masasi' wrangler.toml
