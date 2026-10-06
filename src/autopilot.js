@@ -243,6 +243,31 @@ async function createOrUpdateNews(env,candidate,draft,publish,media){
 
 async function createSocialDraft(env,news,media,policy,runId){
   if(!env.DB || !policy.allowedNetworks.length) return null;
+
+  /* Native-first: Metricool opsiyonel kalır. Bağlı BTMEDYA native hesabı varsa
+     sosyal kuyruğu doğrudan resmi platform API adaptörüne teslim edilir. */
+  const connectedNative=(await env.DB.prepare(
+    "SELECT id,network,handle FROM native_social_accounts WHERE client_id='' AND scope='company' AND status='connected' ORDER BY updated_at DESC"
+  ).all().catch(()=>({results:[]}))).results||[];
+  const nativeAccountRows=connectedNative.filter(x=>policy.allowedNetworks.includes(String(x.network||"").toLowerCase()));
+  if(nativeAccountRows.length){
+    const native=nativeAccountRows[0];
+    const scheduled=policy.autoScheduleSocial ? await sonrakiYuva(env,{aglar:[native.network],otomatikPlanla:true,saatler:["10:00","12:00","18:00"],tazelikSaat:72}) : null;
+    if(policy.autoScheduleSocial && !scheduled) return {created:false,scheduled:false,reason:"Native sosyal yayın yuvası bulunamadı."};
+    const mediaKey=String(media?.social_key||media?.key||"");
+    if(["youtube","tiktok","instagram"].includes(native.network) && !mediaKey)
+      return {created:false,scheduled:false,reason:"Seçilen native ağ için medya gerekli."};
+    const postId=crypto.randomUUID();
+    const socialCopy=String(news.social_caption||news.excerpt||news.title||"").trim();
+    const body=socialCopy+"\n\nHaber: https://btmedya.com.tr/haberler/"+news.slug;
+    const format=["youtube","tiktok"].includes(native.network)?"9:16":"4:5";
+    const status=policy.autoScheduleSocial && scheduled ? "planlandi" : "onayda";
+    await env.DB.prepare("INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,account_scope,metricool_brand_id,account_label,status,scheduled_at,created_at,updated_at,delivery_provider,native_account_id,client_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+      .bind(postId,String(news.title||"").slice(0,240),body,JSON.stringify([native.network]),format,mediaKey,news.slug,"company","",String(native.handle||"BTMEDYA Native"),status,scheduled,nowIso(),nowIso(),"native",String(native.id),"").run();
+    await log(env,runId,"social-create",postId,status,"native sosyal otomasyon",{network:native.network,nativeAccountId:native.id});
+    return {created:true,scheduled:Boolean(scheduled),postId,scheduled_at:scheduled,accountScope:"company",provider:"native",nativeAccountId:native.id,network:native.network};
+  }
+
   const connected=metricoolConnectedNetworks(env);
   const networks=policy.allowedNetworks.filter(n=>connected.has(n));
   if(!networks.length) return {created:false,scheduled:false,reason:"Seçili sosyal ağların Metricool bağlantısı yok."};
@@ -272,9 +297,9 @@ async function createSocialDraft(env,news,media,policy,runId){
   const body=socialCopy+"\n\nHaber: https://btmedya.com.tr/haberler/"+news.slug;
   const format=platformSlugs.some(x=>x==="youtube" || x==="tiktok") ? "9:16" : "4:5";
   const status=policy.autoScheduleSocial && scheduled ? "planlandi" : "onayda";
-  await env.DB.prepare("INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,account_scope,metricool_brand_id,account_label,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+  await env.DB.prepare("INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,account_scope,metricool_brand_id,account_label,status,scheduled_at,created_at,updated_at,delivery_provider,native_account_id,client_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
     .bind(postId,String(news.title||"").slice(0,240),body,JSON.stringify(platformSlugs),format,mediaKey,
-      news.slug,accountScope,metricoolBrandId,"BTMEDYA Şirket",status,scheduled,nowIso(),nowIso()).run().catch(()=>{});
+      news.slug,accountScope,metricoolBrandId,"BTMEDYA Şirket",status,scheduled,nowIso(),nowIso(),"metricool","","").run().catch(()=>{});
   await log(env,runId,"social-create",postId,status,policy.autoScheduleSocial?"otomatik plan":"onay kuyruğu",{
     accountScope,metricoolBrandId,networks:platformSlugs,mediaKey
   });
