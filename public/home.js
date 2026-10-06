@@ -461,10 +461,18 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       if (r.ok) kapakKaynagi = await r.json();
     } catch { kapakKaynagi = {}; }
     try {
-      const r = await fetch('/api/news?limit=100', {headers:{accept:'application/json'}});
+      const r = await fetch('/api/news?limit=500&ozet=1', {headers:{accept:'application/json','cache-control':'no-cache'}});
       if (!r.ok) throw new Error('api');
       const data = await r.json();
-      allNews = data.items || [];
+      const ham = Array.isArray(data.items) ? data.items : [];
+      const damga = n => Date.parse(n?.published_at || n?.updated_at || n?.original_date || '') || 0;
+      const benzersiz = new Map();
+      for(const n of ham){
+        if(!n?.slug) continue;
+        const eski=benzersiz.get(n.slug);
+        if(!eski || damga(n)>damga(eski)) benzersiz.set(n.slug,n);
+      }
+      allNews = [...benzersiz.values()].sort((a,b)=>damga(b)-damga(a));
     } catch {
       try {
         const r = await fetch('/data/haberler.json');
