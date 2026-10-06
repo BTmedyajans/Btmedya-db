@@ -14,6 +14,8 @@ import { runNewsIntelligence } from "./news-intelligence.js";
 import { metricoolConnectedNetworks } from "./social-platforms.js";
 import { sonrakiYuva, altyazi, statikGorselAiMi } from "./sosyal-otomasyon.js";
 import { processMetricoolQueue } from "./metricool-scheduler.js";
+import { kaynakBaglaHaber, kaynakKaydet, kaynakBagla } from "./kaynak-masasi.js";
+import { sosyalTekillemeAyir, sosyalTekillemeBagla, sosyalTekillemeBirak } from "./sosyal-dedupe.js";
 
 const KV_KEY = "autopilot:policy";
 
@@ -238,6 +240,8 @@ async function createOrUpdateNews(env,candidate,draft,publish,media){
     .bind(slug,draft.title,draft.excerpt,draft.body,categoryFor(candidate),"BTMEDYA Otomatik Editör",cover,video,publish?"published":"draft",publish?now:null,
           String(candidate.source_url||candidate.link||"").slice(0,2000),String(candidate.original_date||candidate.date||"").slice(0,64),
           "BTMEDYA Autopilot · kaynak korundu · "+(publish?"otomatik yayın kararı":"editör onayı gerekli"),now).run();
+  const sourceUrl=String(candidate.source_url||candidate.link||'').trim();
+  if(sourceUrl) await kaynakBaglaHaber(env,sourceUrl,slug).catch(()=>{});
   return {slug,status:publish?"published":"draft",cover_url:cover,video_url:video};
 }
 
@@ -272,9 +276,22 @@ async function createSocialDraft(env,news,media,policy,runId){
   const body=socialCopy+"\n\nHaber: https://btmedya.com.tr/haberler/"+news.slug;
   const format=platformSlugs.some(x=>x==="youtube" || x==="tiktok") ? "9:16" : "4:5";
   const status=policy.autoScheduleSocial && scheduled ? "planlandi" : "onayda";
-  await env.DB.prepare("INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,account_scope,metricool_brand_id,account_label,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-    .bind(postId,String(news.title||"").slice(0,240),body,JSON.stringify(platformSlugs),format,mediaKey,
-      news.slug,accountScope,metricoolBrandId,"BTMEDYA Şirket",status,scheduled,nowIso(),nowIso()).run().catch(()=>{});
+  const rezerv=await sosyalTekillemeAyir(env,{post_id:postId,source_slug:news.slug,title:String(news.title||""),body,format,platforms:platformSlugs,account_scope:accountScope,metricool_brand_id:metricoolBrandId});
+  if(!rezerv.allowed) return {created:false,scheduled:false,reason:"Aynı haber için aynı sosyal içeriğin kaydı zaten mevcut.",duplicate_of:rezerv.existing_post_id||null};
+  try{
+    await env.DB.prepare("INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,account_scope,metricool_brand_id,account_label,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+      .bind(postId,String(news.title||"").slice(0,240),body,JSON.stringify(platformSlugs),format,mediaKey,
+        news.slug,accountScope,metricoolBrandId,"BTMEDYA Şirket",status,scheduled,nowIso(),nowIso()).run();
+    await sosyalTekillemeBagla(env,rezerv.fingerprint,postId,news.slug);
+    const sourceUrl=String((await env.DB.prepare('SELECT source_url FROM news WHERE slug=?').bind(String(news.slug)).first().catch(()=>null))?.source_url||'');
+    if(sourceUrl){
+      await kaynakKaydet(env,{url:sourceUrl,tier:'publisher',publisher:'BTMEDYA Haber Merkezi',status:'review'}).catch(()=>{});
+      await kaynakBagla(env,{url:sourceUrl,entityType:'social',entityId:postId,role:'derived-social'}).catch(()=>{});
+    }
+  }catch(e){
+    await sosyalTekillemeBirak(env,rezerv.fingerprint);
+    throw e;
+  }
   await log(env,runId,"social-create",postId,status,policy.autoScheduleSocial?"otomatik plan":"onay kuyruğu",{
     accountScope,metricoolBrandId,networks:platformSlugs,mediaKey
   });
