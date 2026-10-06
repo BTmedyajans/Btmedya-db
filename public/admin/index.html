@@ -9,16 +9,15 @@
 <style>html,body{margin:0;background:#060707;color:#f3f5f4;font:14px system-ui,sans-serif}main{min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center}.box{max-width:560px;border:1px solid #282c2c;border-radius:16px;padding:28px;background:#101212}.pulse{width:8px;height:8px;border-radius:50%;background:#6fe49a;display:inline-block;margin-right:8px}a{color:#d7ff4f}</style>
 </head>
 <body>
-<main><div class="box"><div><span class="pulse"></span><strong>BTMEDYA Yönetim Merkezi</strong></div><p>Yönetim paneli ayrı güvenli Worker adresinde çalışır. Giriş merkezi açılıyor.</p><a id="panel" href="https://btmedya-db.btmedya.com.tr/admin">Panele geç</a></div></main>
+<main><div class="box"><div><span class="pulse"></span><strong>BTMEDYA Yönetim Merkezi</strong></div><p>Yönetim merkezi açılıyor.</p><a id="panel" href="/admin/agency-os/">Panele geç</a></div></main>
 <script>
-/* Site üzerindeki /admin adresi gerçek yönetim Worker'ına bağlanır.
-   Worker hostunda çalışırken aynı adrese yönlendirme yapılmaz, böylece döngü oluşmaz. */
-const ADMIN_ORIGIN='https://btmedya-db.btmedya.com.tr';
-if(location.hostname==='btmedya.com.tr' || location.hostname==='www.btmedya.com.tr'){
-  location.replace(ADMIN_ORIGIN+'/admin');
-}else{
-  location.replace('/admin/agency-os/?v=20261006');
-}
+/* 6 Ekim: bu kabuk oturumlu okuru btmedya-db.btmedya.com.tr adresine
+   gönderiyordu. O host artık Worker'a bağlı değil (wrangler.toml yalnız
+   btmedya.com.tr ve www taşır) ve oturum çerezi host'a özel olduğu için
+   orada geçmez; panel btmedya.com.tr/admin adresinden açılamıyordu.
+   Yönetim merkezi aynı adreste, /admin/agency-os/ altında çalışır.
+   Bu sayfa yalnız oturum varken sunulur (src/worker.js), döngü oluşmaz. */
+location.replace('/admin/agency-os/?v=20261006');
 </script>
 </body>
 </html>

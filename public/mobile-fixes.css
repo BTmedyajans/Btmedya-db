@@ -345,3 +345,14 @@ button,a{touch-action:manipulation}
 @media (prefers-reduced-motion:reduce){
   .mobile-quick-nav a{transition:none!important}
 }
+
+/* Manifesto başlığı · 2026-10-06
+   Mobilde bölüm dikey flex'e dönüyor ama başlık kutusu masaüstü ızgarasından
+   kalan hizayla sağa yaslanıp 9ch'ye sıkışıyordu: blok ~95 px içeriden
+   başladı, "YAYINLAMIYORUZ." ekranın dışına taştı ve kesildi. Kutu tam
+   genişliğe alınır; yazı boyutu en uzun kelime (≈7,9em) kenar boşluklarıyla
+   birlikte her genişlikte sığacak biçimde ekrana göre hesaplanır. */
+@media (max-width:720px){
+  main#icerik>.manifesto>div:not([class]){align-self:stretch;width:100%}
+  main#icerik>.manifesto h2.display{max-width:none!important;font-size:min(60px,calc((100vw - 36px) / 8.1))!important}
+}
