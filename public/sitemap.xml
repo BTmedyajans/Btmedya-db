@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url><loc>https://btmedya.com.tr/</loc><lastmod>2026-10-04</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
+<url><loc>https://btmedya.com.tr/</loc><lastmod>2026-10-07</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
 <url><loc>https://btmedya.com.tr/haberler/</loc><lastmod>2026-10-04</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
 <url><loc>https://btmedya.com.tr/hizmetler/</loc><lastmod>2026-09-26</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
 <url><loc>https://btmedya.com.tr/sosyal-medya/</loc><lastmod>2026-09-29</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
@@ -63,4 +63,8 @@
 <url><loc>https://btmedya.com.tr/hizmetler/balikesir-tanitim-filmi/</loc><lastmod>2026-10-05</lastmod><changefreq>monthly</changefreq><priority>0.85</priority></url>
 <url><loc>https://btmedya.com.tr/hizmetler/balikesir-video-produksiyon/</loc><lastmod>2026-10-05</lastmod><changefreq>monthly</changefreq><priority>0.85</priority></url>
 <url><loc>https://btmedya.com.tr/hizmetler/balikesir-yapay-zeka-ajansi/</loc><lastmod>2026-10-05</lastmod><changefreq>monthly</changefreq><priority>0.85</priority></url>
+<url><loc>https://btmedya.com.tr/siyah-oda/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://btmedya.com.tr/arsiv/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://btmedya.com.tr/dosyalar/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+<url><loc>https://btmedya.com.tr/halk-roportaji/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.75</priority></url>
 </urlset>
