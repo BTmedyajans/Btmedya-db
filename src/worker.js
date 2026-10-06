@@ -1660,7 +1660,6 @@ const SITE_SLOTS=[
   // slug              bolum                       tur     oran    onerilen      notu
   ['hero-video',      'Giriş filmi',              'video','16:9','1920x1080','Anasayfanın ilk sahnesi. En fazla 30 sn.'],
   ['hero-poster',     'Giriş kapak karesi',       'image','16:9','1920x1080','Film inmeden önce görünen kare.'],
-  ['saha-buse',       'Sahada çalışırken kare',   'image','16:9','1600x900', '01 / HABER sekmesi. Mikrofonlu, iş başında.'],
   ['portre-buse',     'Buse Tuncay portresi',     'image','4:5', '1200x1500','Kuruluş hikâyesi bölümü. Gerçek fotoğraf.'],
   ['og-image',        'Sosyal paylaşım görseli',  'image','16:9','1200x630', 'Anasayfa WhatsApp, X ve Facebook paylaşım kapağı.'],
 ];
@@ -1673,7 +1672,6 @@ const SITE_SLOTS=[
 const SITE_SLOT_VARSAYILAN={
   'hero-video':     'media/web/giris-ai-genis.mp4',
   'hero-poster':    'media/web/giris-ai-genis-poster.jpg',
-  'saha-buse':      'media/portfoy/buse-tuncay-saha-roportaj.webp',
   'portre-buse':    'media/portfoy/buse-tuncay-portre-01.webp',
   'og-image':       'paylasim/btmedya-og-v2.jpg',
 };
