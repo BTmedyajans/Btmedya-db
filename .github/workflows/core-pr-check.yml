@@ -6,6 +6,9 @@ on:
     paths:
       - "src/**"
       - "public/admin/agency-os/**"
+      - "public/home.js"
+      - "public/kategori-menu.js"
+      - "public/data/youtube-portfoy.json"
       - "wrangler.toml"
       - ".github/workflows/**"
 
@@ -27,6 +30,10 @@ jobs:
           node --check src/btmedya-core.js
           node --check src/metricool-scheduler.js
           node --check src/sosyal-otomasyon.js
+          node --check src/kaynak-masasi.js
+          node --check src/sosyal-dedupe.js
+          node --check public/home.js
+          node --check public/kategori-menu.js
           node --check public/admin/agency-os/agency-os.js
       - name: Core wiring
         run: |
