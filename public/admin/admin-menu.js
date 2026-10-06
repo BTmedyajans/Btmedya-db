@@ -11,7 +11,7 @@
   if(document.getElementById('btAdminMenu'))return;
   const KATEGORILER=[
     {ad:'Merkez',alt:[['Süpervizör','/admin/agency-os/','Alarm · aksiyon · ölçüm'],['Autopilot','/admin/autopilot/','Haber radarı · trend · yayın']]},
-    {ad:'İçerik',alt:[['Haber editörü','/admin/editor/','Haber · AI taslak · kaynak'],['SEO','/admin/editor/#seo','Teknik SEO · sitemap'],['Yayın ve sosyal medya','/admin/yayin/','Instagram · YouTube · TikTok'],['Halkın Merak Radarı','/admin/merak-radari/','Arama · rakip · haber fırsatı']]},
+    {ad:'İçerik',alt:[['Haber editörü','/admin/editor/','Haber · AI taslak · kaynak'],['Kaynak Masası','/admin/kaynak-masasi/','Araştırma · doğrulama · proje hafızası'],['SEO','/admin/editor/#seo','Teknik SEO · sitemap'],['Yayın ve sosyal medya','/admin/yayin/','Instagram · YouTube · TikTok'],['Halkın Merak Radarı','/admin/merak-radari/','Arama · rakip · haber fırsatı']]},
     {ad:'Müşteri & Satış',alt:[['Müşteri ve içerik merkezi','/admin/client-hub/','Firma · önizleme · onay'],['Satış hunisi','/admin/sales/','Web · WhatsApp · teklif']]},
     {ad:'Medya',alt:[['Medya kasası','/admin/app.html','Fotoğraf · video · gerçek iş arşivi']]},
     {ad:'Canlı Site',alt:[['Anasayfa','/','Yayındaki site'],['Haber merkezi','/haberler/','Yayındaki haberler'],['Reklam ve sponsorluk','/reklam-ve-sponsorluk/','Satış sayfası'],['Siyah Oda','/siyah-oda/','Program sayfası'],['Portföy','/portfoy/','Belgesel · kısa film']]}
