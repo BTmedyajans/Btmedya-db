@@ -83,6 +83,7 @@ required = [
   "ADMIN_PASSWORD_SECRET",
   "ADMIN_SESSION_SECRET_SECRET",
   "MEDIA_SIGNING_SECRET",
+  "SOCIAL_CREDENTIALS_SECRET",
 ]
 
 # Opsiyonel:
@@ -129,4 +130,15 @@ binding = "SURUM"
 
 [triggers]
 # */5: nabız, sosyal kuyruk, R2 köprüsü. 0 5: Sabah Masası (08:00 İstanbul).
-crons = ["*/5 * * * *", "*/15 * * * *", "0 5 * * *"]
+crons = ["*/5 * * * *", "*/15 * * * *", "0 * * * *", "0 5 * * *"]
+
+
+# Native Social (opsiyonel; Metricool'a bağımlı değildir)
+# SOCIAL_CREDENTIALS_SECRET    -> D1 içindeki OAuth tokenlarının AES-GCM şifreleme kökü
+# INSTAGRAM_APP_ID / INSTAGRAM_APP_SECRET
+# META_APP_ID / META_APP_SECRET
+# TIKTOK_CLIENT_KEY / TIKTOK_CLIENT_SECRET
+# GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
+# LINKEDIN_CLIENT_ID / LINKEDIN_CLIENT_SECRET
+# LINKEDIN_VERSION -> YYYYMM formatında aktif LinkedIn API sürümü
+# META_GRAPH_VERSION -> Meta Graph sürümünü gerektiğinde güncellemek için
