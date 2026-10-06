@@ -1,0 +1,49 @@
+name: BTMEDYA Hero Video Quality
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tools/giris-filmi/video-quality-pass.sh"
+      - "public/index.html"
+      - "public/hero-sequence-v2.js"
+      - "public/mobile-motion.js"
+      - "public/hero-video-quality-v1.css"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: btmedya-hero-video-quality
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+      - name: Build HQ hero video variants
+        run: |
+          chmod +x tools/giris-filmi/video-quality-pass.sh
+          tools/giris-filmi/video-quality-pass.sh
+      - name: Commit generated HQ video variants
+        run: |
+          if [ -z "$(git status --porcelain -- public/assets/media/web/*-hq.*)" ]; then
+            echo "No generated HQ media changes."
+            exit 0
+          fi
+          git config user.name "BTMEDYA Hero Video Builder"
+          git config user.email "actions@users.noreply.github.com"
+          git add public/assets/media/web/*-hq.*
+          git commit -m "chore: refresh hero video HQ variants"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main || echo "Protected main: HQ variants remain in the workflow workspace."
