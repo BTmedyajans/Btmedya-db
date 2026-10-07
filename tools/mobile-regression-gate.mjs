@@ -92,7 +92,7 @@ else ok("offer packages use a mobile swipe rail");
 if (!/mobile-polish-v4\.css\?v=20261003-2/.test(metricool)) fail("mobile polish stylesheet is not loaded by homepage UI bootstrap");
 else ok("mobile polish stylesheet is loaded last by homepage UI bootstrap");
 
-/* V6 mobile intro contract. */
+/* V6 mobile intro contract. Branch-local guard: keep the archive-hero merge contract explicit. */
 const motionCss = read("public/mobile-motion.css");
 if (index.includes("data-bt-home-hero-v3")) {
   const vids = [...index.matchAll(/<video\b[^>]*>/g)].map(m => m[0]);
