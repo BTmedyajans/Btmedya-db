@@ -55,6 +55,8 @@
   ];
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const here=location.pathname+location.hash;
+  const CATEGORY_CONTEXT={haber:'HABER',sosyal:'SOSYAL MEDYA',tanitim:'TANITIM'};
+  const pathCategory=p=>p.includes('/social')||p.includes('musteri-sosyal')?'sosyal':p.includes('/app')||p.includes('/sales')||p.includes('client-hub')?'tanitim':'haber';
   // Mobilde menü düğmesi her admin sayfasında görünür; mevcut sayfa özel tetikleyicileri varsa onları da kullanır.
   let active='';
   for(const k of KATEGORILER)for(const g of k.gruplar)for(const[,u]of g.items){
@@ -108,7 +110,18 @@
       if(!isOpen){head.setAttribute('aria-expanded','true');const p=root.querySelector('#'+head.getAttribute('aria-controls'));if(p)p.hidden=false}
       return;
     }
-    if(e.target.closest('.bam-alt a,.bam-sistem a'))close();
+    const link=e.target.closest('.bam-alt a');
+    if(link){
+      try{
+        const raw=link.getAttribute('href')||'';
+        if(raw.startsWith('/admin/') && !raw.includes('kategori=') && !raw.startsWith('/admin/admin')){
+          const u=new URL(raw,location.origin);u.searchParams.set('kategori',pathCategory(raw));link.setAttribute('href',u.pathname+u.search+u.hash);
+          sessionStorage.setItem('btmedya-admin-category',pathCategory(raw));
+        }
+      }catch{}
+      close();return;
+    }
+    if(e.target.closest('.bam-sistem a'))close();
   });
   document.addEventListener('keydown',e=>{
     if(root.hidden)return;
