@@ -107,6 +107,8 @@ async function listR2Media(bucket, source, {q='',cat=''}={}){
          Geçerli prodüksiyon videoları bu boyutun çok üzerinde; bozuk/test
          videoların public arşivde kart olarak görünmesini engelle. */
       if(isVideo && Number(x.size||0) < 10 * 1024) continue;
+      const aiGenerated=/^(ai-video|ai-lab)(?:\/|$)/i.test(key);
+      const originTag=aiGenerated?'ai-uretimi':(source==='r2-legacy'?'r2-arsiv':'gercek');
       out.push({
         id:(source==='r2-legacy'?'legacy-':'r2-')+b64url(new TextEncoder().encode(key)).slice(0,24),
         key,
@@ -114,17 +116,17 @@ async function listR2Media(bucket, source, {q='',cat=''}={}){
         mime:mime || (isVideo?'video/mp4':'image/webp'),
         size:Number(x.size||0),
         category,
-        tags:['BTMEDYA','gercek',source==='r2-legacy'?'r2-arsiv':'r2'],
+        tags:['BTMEDYA',originTag,source==='r2-legacy'?'r2-arsiv':'r2'],
         title:(key.split('/').pop()||key).replace(/\.[^.]+$/,'').replace(/[-_]+/g,' '),
-        description:source==='r2-legacy'?'BTMEDYA gerçek R2 arşiv medyası':'BTMEDYA gerçek R2 medya nesnesi',
-        alt_text:'BTMEDYA gerçek medya',
+        description:aiGenerated?'BTMEDYA AI üretimi medya nesnesi':(source==='r2-legacy'?'BTMEDYA gerçek R2 arşiv medyası':'BTMEDYA gerçek R2 medya nesnesi'),
+        alt_text:aiGenerated?'BTMEDYA AI üretimi medya':'BTMEDYA gerçek medya',
         slot:category==='video'?'medya':category==='portfoy'?'portfoy':category==='haber'?'haber':'',
         sort_order:out.length,
         created_at:x.uploaded?new Date(x.uploaded).toISOString():null,
         updated_at:x.uploaded?new Date(x.uploaded).toISOString():null,
         url:null,
         source,
-        ai_generated:false
+        ai_generated:aiGenerated
       });
       if(out.length>=500) return out;
     }
