@@ -184,6 +184,22 @@ async function clientHubApi(request,env,url){
     }});
   }
 
+  const wp=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/projects$/);
+  if(wp){
+    const clientId=wp[1];
+    if(!(await requireWorkspace(clientId)))return j({ok:false,error:'Müşteri çalışma alanı bulunamadı'},404);
+    if(request.method==='GET'){
+      const q=await env.DB.prepare('SELECT * FROM client_projects WHERE client_id=? ORDER BY updated_at DESC').bind(clientId).all();
+      return j({ok:true,items:q.results||[]});
+    }
+    if(request.method==='POST'){
+      const b=await request.json().catch(()=>({})),name=clean(b.name,240);
+      if(!name)return j({ok:false,error:'Proje adı gerekli'},400);
+      const now=new Date().toISOString(),id=crypto.randomUUID();
+      await env.DB.prepare('INSERT INTO client_projects(id,client_id,name,code,service_type,status,brief,budget,manager,start_date,due_date,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,clientId,name,clean(b.code,60),clean(b.service_type,80),clean(b.status||'active',30),clean(b.brief,5000),clean(b.budget,120),clean(b.manager,160),clean(b.start_date,40)||null,clean(b.due_date,40)||null,now,now).run();
+      return j({ok:true,id},201);
+    }
+  }
   const wc=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/content$/);
   if(wc){const clientId=wc[1];if(!(await requireWorkspace(clientId)))return j({ok:false,error:'Müşteri çalışma alanı bulunamadı'},404);if(request.method==='GET'){const q=await env.DB.prepare('SELECT * FROM client_content WHERE client_id=? ORDER BY updated_at DESC LIMIT 200').bind(clientId).all();return j({ok:true,items:q.results||[]});}
     if(request.method==='POST'){const b=await request.json().catch(()=>({}));const id=crypto.randomUUID(),now=new Date().toISOString();await env.DB.prepare('INSERT INTO client_content(id,client_id,title,content_type,engine,brief,body,media_key,preview_json,status,client_approved,published_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,clientId,clean(b.title,240),clean(b.content_type||'social',40),clean(b.engine||'btmedya',40),clean(b.brief,3000),clean(b.body,20000),clean(b.media_key,500),JSON.stringify(b.preview||{}),'draft',0,null,now,now).run();return j({ok:true,id},201);}
