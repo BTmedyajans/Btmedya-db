@@ -6,15 +6,22 @@ function json(data,status=200){return new Response(JSON.stringify(data),{status,
 function redirect(url){return Response.redirect(url,302)}
 
 async function requireAdmin(request,env){
+  const secret=env.ADMIN_SESSION_SECRET_SECRET||env.ADMIN_SESSION_SECRET||"";
+  if(!secret) return false;
   const cookie=request.headers.get("cookie")||"";
-  const m=cookie.match(/(?:^|;\\s*)btmedya_admin=([^;]+)/);
-  if(!m || !env.ADMIN_SESSION_SECRET) return false;
-  const raw=decodeURIComponent(m[1]);
-  const parts=raw.split(".");
-  if(parts.length!==2) return false;
-  const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(env.ADMIN_SESSION_SECRET),{name:"HMAC",hash:"SHA-256"},false,["verify"]);
-  const ok=await crypto.subtle.verify("HMAC",key,Uint8Array.from(atob(parts[1].replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0)),new TextEncoder().encode(parts[0]));
-  return ok;
+  const m=cookie.match(/(?:^|;\\s*)bt_admin=([^;]+)/);
+  if(!m) return false;
+  const [payload,sig]=m[1].split(".");
+  if(!payload||!sig) return false;
+  const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["verify"]);
+  const expected=await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(payload));
+  const actual=sig.replace(/-/g,"+").replace(/_/g,"/");
+  const padded=actual+"=".repeat((4-actual.length%4)%4);
+  const bytes=Uint8Array.from(atob(padded),ch=>ch.charCodeAt(0));
+  if(bytes.length!==expected.byteLength) return false;
+  let diff=0; const exp=new Uint8Array(expected); for(let i=0;i<exp.length;i++) diff|=exp[i]^bytes[i];
+  if(diff!==0) return false;
+  try{return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(payload.replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-payload.length%4)%4)),ch=>ch.charCodeAt(0)))).exp>Date.now()}catch{return false}
 }
 
 export async function tiktokApi(request,env){
