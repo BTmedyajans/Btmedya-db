@@ -130,6 +130,8 @@ No automatic upgrade or paid API activation.
 
 ## Automatic publishing policy
 
+The admin panel's **Autopilot → Günlük içerik üretim planı** is the single control surface for the daily newsroom. It reads and writes `/api/admin/sabah-masasi`, supports a no-write preview, a manual run, daily enable/disable, maximum daily article count and category selection. The scheduled run remains `0 5 * * *` (08:00 Europe/Istanbul); the manual button does not change the schedule.
+
 As of 5 October 2026, BTMEDYA runs a bounded autopilot on the canonical Worker/D1/R2 stack:
 
 - News autopilot: every 2-hour window, maximum 2 new stories per run; categories rotate across the eight editorial areas.
