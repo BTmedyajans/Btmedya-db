@@ -1,6 +1,25 @@
 const TIKTOK_AUTH="https://www.tiktok.com/v2/auth/authorize/";
 const TIKTOK_TOKEN="https://open.tiktokapis.com/v2/oauth/token/";
 const TIKTOK_API="https://open.tiktokapis.com/v2";
+import { saveOAuthConnection } from "./direct-social.js";
+
+function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8"}})}
+function redirect(url){return Response.redirect(url,302)}
+
+async function requireAdmin(request,env){
+  const base=env.ADMIN_SESSION_SECRET_SECRET||env.ADMIN_SESSION_SECRET||"";
+  const secret=base?(env.MEDIA_SIGNING_SECRET?base+"\u0000"+String(env.MEDIA_SIGNING_SECRET):base):"";
+  if(!secret)return false;
+  const m=(request.headers.get("cookie")||"").match(/(?:^|;\\s*)bt_admin=([^;]+)/);if(!m)return false;
+  const [p,sig]=m[1].split(".");if(!p||!sig)return false;
+  const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+  const sig2=btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(p))))).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/,"");
+  if(sig2!==sig)return false;
+  try{const raw=p.replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-p.length%4)%4);return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(raw),c=>c.charCodeAt(0)))).exp>Date.now()}catch{return false}
+}onst TIKTOK_AUTH="https://www.tiktok.com/v2/auth/authorize/";
+const TIKTOK_TOKEN="https://open.tiktokapis.com/v2/oauth/token/";
+const TIKTOK_API="https://open.tiktokapis.com/v2";
+import { saveOAuthConnection } from "./direct-social.js";
 
 function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8"}})}
 function redirect(url){return Response.redirect(url,302)}
@@ -32,8 +51,8 @@ export async function tiktokApi(request,env){
   const url=new URL(request.url);
   const path=url.pathname.replace("/api/social/direct/tiktok/","");
   if(path==="start"){
-    const state=crypto.randomUUID();
-    if(env.KV) await env.KV.put("tiktok_oauth:"+state,JSON.stringify({createdAt:Date.now()}),{expirationTtl:600});
+    const state=crypto.randomUUID(); const ws={workspace_type:url.searchParams.get("workspace_type")||"company",workspace_id:url.searchParams.get("workspace_id")||"btmedya"};
+    if(env.KV) await env.KV.put("tiktok_oauth:"+state,JSON.stringify({createdAt:Date.now(),...ws}),{expirationTtl:600});
     const redirectUri=env.TIKTOK_REDIRECT_URI||new URL("/api/social/direct/tiktok/callback",url.origin).toString();
     const qs=new URLSearchParams({client_key:env.TIKTOK_CLIENT_KEY,response_type:"code",scope:"user.info.basic,video.publish",redirect_uri:redirectUri,state});
     return redirect(TIKTOK_AUTH+"?"+qs);
@@ -43,12 +62,14 @@ export async function tiktokApi(request,env){
     if(!code||!state) return json({error:"OAuth callback eksik"},400);
     const saved=env.KV?await env.KV.get("tiktok_oauth:"+state):null;
     if(!saved) return json({error:"OAuth state geçersiz veya süresi dolmuş"},400);
+    const savedState=JSON.parse(saved);
     const redirectUri=env.TIKTOK_REDIRECT_URI||new URL("/api/social/direct/tiktok/callback",url.origin).toString();
     const tokenRes=await fetch(TIKTOK_TOKEN,{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_key:env.TIKTOK_CLIENT_KEY,client_secret:env.TIKTOK_CLIENT_SECRET,code,grant_type:"authorization_code",redirect_uri:redirectUri})});
     const token=await tokenRes.json();
     if(!token.access_token) return json({error:"TikTok token alınamadı",details:token},400);
-    if(env.KV) await env.KV.put("tiktok_oauth_token:"+crypto.randomUUID(),JSON.stringify(token),{expirationTtl:86400});
-    return json({ok:true,message:"TikTok OAuth tamamlandı. Token kaydı için Social OS bağlantı katmanı kullanılacak.",open_id:token.open_id,scope:token.scope});
+    let profile={}; try{const pr=await fetch(TIKTOK_API+"/user/info/?fields=open_id,display_name,avatar_url",{headers:{Authorization:"Bearer "+token.access_token}}); profile=(await pr.json())?.data?.user||{};}catch{}
+    const saved=await saveOAuthConnection(env,{workspace_type:savedState.workspace_type,workspace_id:savedState.workspace_id,provider:"tiktok",external_id:token.open_id||profile.open_id,account_name:profile.display_name||"TikTok hesabı",handle:profile.display_name||"",profile_url:profile.avatar_url||"",token:{access_token:token.access_token,refresh_token:token.refresh_token},scopes:String(token.scope||"").split(/[ ,]+/).filter(Boolean),token_expires_at:new Date(Date.now()+Number(token.expires_in||86400)*1000).toISOString()});
+    return Response.redirect(new URL("/admin/connect/?tiktok=ok&connection="+encodeURIComponent(saved),url.origin),302);
   }
   if(path==="creator"){
     const token=request.headers.get("x-tiktok-access-token");
