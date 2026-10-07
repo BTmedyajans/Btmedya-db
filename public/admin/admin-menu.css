@@ -27,3 +27,9 @@ html.bam-acik{overflow:hidden}
 .bam-dugme{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 14px;border:1px solid rgba(127,127,127,.45);border-radius:999px;background:#070a0e;color:#fff;font-weight:800;cursor:pointer;margin-left:auto}
 @media(max-width:720px){.bam-panel{width:100%}header:has(>.bam-dugme)>a:not(.brand){display:none}}
 @media(prefers-reduced-motion:reduce){.bam-perde,.bam-panel{transition:none}}
+
+.bam-alt{display:grid;gap:12px;padding:4px 0 8px 12px}
+.bam-alt-grup{padding:2px 0 6px}
+.bam-alt-grup h3{margin:7px 8px 6px;color:#d9ff3f;font:800 10px/1.2 ui-monospace,monospace;letter-spacing:.12em}
+.bam-alt-grup a{margin:0 0 6px}
+.bam-alt-grup a:last-child{margin-bottom:0}
