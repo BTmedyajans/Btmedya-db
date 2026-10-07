@@ -1,3 +1,5 @@
+<!-- CI merge-ref refresh: unified admin audit 2026-10-08 -->
+
 # BTMEDYA Canonical Taxonomy
 
 ## Amaç
