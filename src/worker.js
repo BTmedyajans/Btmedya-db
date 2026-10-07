@@ -17,6 +17,8 @@ import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlar
 import { processDirectSocialQueue, directSocialApi } from "./direct-social.js";
 import { tiktokApi } from "./tiktok-direct.js";
 import { youtubeApi } from "./youtube-direct.js";
+import { xApi } from "./x-direct.js";
+import { whatsappApi } from "./whatsapp-cloud.js";
 import { WorkerEntrypoint } from "cloudflare:workers";
 import { aiGorunurluk, ICERIK_SINYALI } from "./ai-gorunurluk.js";
 import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu, KATEGORILER, kategoriIsle, yanitMetni, jsonAyikla } from "./sabah-masasi.js";
@@ -2156,6 +2158,8 @@ export default { async scheduled(controller, env, ctx){
     if(command) return audit(command);
     const rTikTok = await tiktokApi(request, env); if(rTikTok) return rTikTok;
     const rYouTube = await youtubeApi(request, env); if(rYouTube) return rYouTube;
+    const rX = await xApi(request, env); if(rX) return rX;
+    const rWhatsApp = await whatsappApi(request, env); if(rWhatsApp) return rWhatsApp;
     const rDirectSocial = await directSocialApi(request, env, url);
     if(rDirectSocial) return rDirectSocial;
     const rSales = await salesApi(request, env, url, ctx);
