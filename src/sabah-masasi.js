@@ -20,6 +20,7 @@
  */
 
 import { ayarlariOku as sosyalAyarlari } from './sosyal-otomasyon.js';
+import { normalizeContentTaxonomy, saveContentTaxonomy } from './content-taxonomy.js';
 
 const AYAR = 'sabah:ayarlar';
 const RAPOR = 'sabah:son';
@@ -850,6 +851,7 @@ async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit, son = [] }, denem
     await env.DB.prepare(
       'INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     ).bind(slug, y.baslik, y.spot, govde, kat.kategori, 'BTMEDYA Sabah Masası', gorsel ? gorsel.url : `/assets/kategori-kapak/${kat.anahtar}.webp`, '', yayinla ? 'published' : 'draft', yayinla ? simdi : null, o.link, kaynak.tarih || null, not, simdi).run();
+    await saveContentTaxonomy(env,'news',slug,normalizeContentTaxonomy({},kat.kategori));
     await env.DB.prepare('INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) VALUES(?,?)').bind(o.link, simdi).run();
     Object.assign(kayit, { slug, durum: yayinla ? 'yayinlandi' : 'taslak', gorsel: Boolean(gorsel) });
     if (yayinla) rapor.yayinlanan++; else rapor.taslak++;
