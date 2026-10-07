@@ -159,10 +159,12 @@
   }
 
   function manset(liste) {
-    var tr = liste.filter(function (n) { return n._kat !== 'balikesir'; }).slice(0, 5);
+    // Editoryal öncelik: Balıkesir ana manşet, Türkiye seçilmiş 3 haber.
     var bal = liste.filter(function (n) { return n._kat === 'balikesir'; }).slice(0, 5);
-    mansetGrubu(kok.querySelector('[data-hm-manset-turkiye]'), tr);
+    var trAday = liste.filter(function (n) { return n._kat !== 'balikesir' && n._kat !== 'dunya'; });
+    var tr = trAday.slice(0, 3);
     mansetGrubu(kok.querySelector('[data-hm-manset-balikesir]'), bal);
+    mansetGrubu(kok.querySelector('[data-hm-manset-turkiye]'), tr);
   }
 
   // Masaüstünde manşetin yanındaki saatli akış (mobilde gizli; şerit aynı işi görür).
@@ -341,7 +343,7 @@
 
     // Manşet iki ayrı yayın masasıdır: Türkiye + Balıkesir.
     // Her gruptan ilk 5 haber manşete alınır; aşağıdaki akışta tekrar edilmez.
-    var trManset = guncel.filter(function (n) { return n._kat !== 'balikesir'; }).slice(0, 5);
+    var trManset = guncel.filter(function (n) { return n._kat !== 'balikesir' && n._kat !== 'dunya'; }).slice(0, 3);
     var balManset = guncel.filter(function (n) { return n._kat === 'balikesir'; }).slice(0, 5);
     var mansetler = trManset.concat(balManset);
     var kalan = guncel.filter(function (n) { return mansetler.indexOf(n) < 0; });
