@@ -16,6 +16,7 @@ import { sonrakiYuva, altyazi, statikGorselAiMi } from "./sosyal-otomasyon.js";
 import { processMetricoolQueue } from "./metricool-scheduler.js";
 import { kaynakBaglaHaber, kaynakKaydet, kaynakBagla } from "./kaynak-masasi.js";
 import { sosyalTekillemeAyir, sosyalTekillemeBagla, sosyalTekillemeBirak } from "./sosyal-dedupe.js";
+import { normalizeContentTaxonomy, saveContentTaxonomy } from "./content-taxonomy.js";
 
 const KV_KEY = "autopilot:policy";
 
@@ -231,15 +232,18 @@ async function createOrUpdateNews(env,candidate,draft,publish,media){
   const now=nowIso();
   const cover=media?.cover_url||"";
   const video=media?.social_mime && String(media.social_mime).startsWith("video/") ? media.social_url : "";
+  const category=categoryFor(candidate);
+  const taxonomy=normalizeContentTaxonomy({},category);
   await env.DB.prepare(`INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at)
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON CONFLICT(slug) DO UPDATE SET
       title=excluded.title,excerpt=excluded.excerpt,body=excluded.body,category=excluded.category,author=excluded.author,
       cover_url=excluded.cover_url,video_url=excluded.video_url,status=excluded.status,published_at=excluded.published_at,
       source_url=excluded.source_url,original_date=excluded.original_date,archive_note=excluded.archive_note,updated_at=excluded.updated_at`)
-    .bind(slug,draft.title,draft.excerpt,draft.body,categoryFor(candidate),"BTMEDYA Otomatik Editör",cover,video,publish?"published":"draft",publish?now:null,
+    .bind(slug,draft.title,draft.excerpt,draft.body,category,"BTMEDYA Otomatik Editör",cover,video,publish?"published":"draft",publish?now:null,
           String(candidate.source_url||candidate.link||"").slice(0,2000),String(candidate.original_date||candidate.date||"").slice(0,64),
           "BTMEDYA Autopilot · kaynak korundu · "+(publish?"otomatik yayın kararı":"editör onayı gerekli"),now).run();
+  await saveContentTaxonomy(env,'news',slug,taxonomy);
   const sourceUrl=String(candidate.source_url||candidate.link||'').trim();
   if(sourceUrl) await kaynakBaglaHaber(env,sourceUrl,slug).catch(()=>{});
   return {slug,status:publish?"published":"draft",cover_url:cover,video_url:video};
