@@ -200,6 +200,18 @@ async function clientHubApi(request,env,url){
       return j({ok:true,id},201);
     }
   }
+  const wpo=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/project\/([^/]+)$/);
+  if(wpo && (request.method==='PATCH'||request.method==='DELETE')){
+    const clientId=wpo[1],projectId=wpo[2];
+    if(!(await env.DB.prepare('SELECT id FROM client_projects WHERE id=? AND client_id=?').bind(projectId,clientId).first()))return j({ok:false,error:'Proje bulunamadı'},404);
+    if(request.method==='DELETE'){await env.DB.prepare("UPDATE client_projects SET status='archived',updated_at=? WHERE id=? AND client_id=?").bind(new Date().toISOString(),projectId,clientId).run();return j({ok:true,id:projectId});}
+    const b=await request.json().catch(()=>({})),fields=[],vals=[],map={name:240,code:60,service_type:80,status:30,brief:5000,budget:120,manager:160,start_date:40,due_date:40};
+    for(const[k,n]of Object.entries(map))if(k in b){fields.push(k+'=?');vals.push(clean(b[k],n)||null);}
+    if(!fields.length)return j({ok:false,error:'Değişiklik yok'},400);
+    fields.push('updated_at=?');vals.push(new Date().toISOString(),projectId,clientId);
+    await env.DB.prepare('UPDATE client_projects SET '+fields.join(',')+' WHERE id=? AND client_id=?').bind(...vals).run();
+    return j({ok:true,id:projectId});
+  }
   const wc=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/content$/);
   if(wc){const clientId=wc[1];if(!(await requireWorkspace(clientId)))return j({ok:false,error:'Müşteri çalışma alanı bulunamadı'},404);if(request.method==='GET'){const q=await env.DB.prepare('SELECT * FROM client_content WHERE client_id=? ORDER BY updated_at DESC LIMIT 200').bind(clientId).all();return j({ok:true,items:q.results||[]});}
     if(request.method==='POST'){const b=await request.json().catch(()=>({}));const id=crypto.randomUUID(),now=new Date().toISOString();await env.DB.prepare('INSERT INTO client_content(id,client_id,title,content_type,engine,brief,body,media_key,preview_json,status,client_approved,published_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,clientId,clean(b.title,240),clean(b.content_type||'social',40),clean(b.engine||'btmedya',40),clean(b.brief,3000),clean(b.body,20000),clean(b.media_key,500),JSON.stringify(b.preview||{}),'draft',0,null,now,now).run();return j({ok:true,id},201);}
