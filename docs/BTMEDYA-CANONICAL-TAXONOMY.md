@@ -14,6 +14,7 @@ Müşterinin aradığı: haber, röportaj, özel dosya, arşiv veya medya içeri
 
 Alt kırılımlar:
 - **HABERİ BUL:** Balıkesir, Türkiye, Dünya
+- **KONU:** Gündem, Ekonomi, Eğitim, Sağlık, Spor, Kültür · Sanat, Yaşam, Teknoloji · AI
 - **DERİNLEŞTİR:** Röportaj, Özel Dosya, Siyah Oda / YouTube
 - **ARŞİV & KANIT:** Haber Arşivi, Gerçek Medya Arşivi, Dosyalar
 
