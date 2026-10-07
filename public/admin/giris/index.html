@@ -9,7 +9,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="/admin/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="apple-touch-icon" href="/assets/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png">
 <title>BTMEDYA Yönetim · Giriş</title>
 <link rel="icon" href="/assets/logo/bt-amblem-128.webp">
 <style>
@@ -54,6 +55,7 @@ button[disabled]{opacity:.6;cursor:wait}
     <button id="gonder" type="submit">Giriş yap</button>
     <p class="mesaj" id="mesaj" role="status" aria-live="polite"></p>
   </form>
+  <section id="pwaInstall" hidden style="margin-top:12px;padding:14px;border:1px solid rgba(217,255,63,.28);border-radius:14px;background:rgba(217,255,63,.05)"><strong>BTMEDYA uygulamasını telefona kur</strong><p style="margin:6px 0 10px;color:var(--soluk);font-size:13px">Chrome destekliyorsa aşağıdaki düğmeyle doğrudan yükleyin.</p><button id="pwaInstallButton" type="button" style="margin-top:0">Uygulamayı yükle</button><small id="pwaInstallHint" style="display:block;margin-top:8px;color:var(--soluk)">Düğme görünmezse Chrome menüsü → “Uygulamayı yükle” seçeneğini kullanın.</small></section>
   <div class="alt"><a href="/">← Siteye dön</a><a href="/iletisim/">Yardım</a></div>
 </main>
 <script>
