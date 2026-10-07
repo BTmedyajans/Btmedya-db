@@ -5,7 +5,7 @@
 <section class="grid">
 <div class="card"><div class="row"><b>Meta Direct</b><span id="metaBadge" class="badge">Kontrol ediliyor</span></div><div id="metaText" class="status">Facebook Page + Instagram Professional</div><div class="actions"><button id="meta">Meta hesabını bağla</button></div></div>
 <div class="card"><div class="row"><b>TikTok</b><span id="ttBadge" class="badge">Kontrol ediliyor</span></div><div id="ttText" class="status">BTMEDYA native Content Posting API</div><div class="actions"><button id="tt">TikTok ile bağla</button></div></div>
-<div class="card"><div class="row"><b>YouTube</b><span id="ytBadge" class="badge">Kontrol ediliyor</span></div><div id="ytText" class="status">BTMEDYA native YouTube Data API</div><div class="actions"><button id="yt">YouTube ile bağla</button></div></div>
+<div class="card"><div class="row"><b>YouTube</b><span id="ytBadge" class="badge">Kontrol ediliyor</span></div><div id="ytText" class="status">BTMEDYA native YouTube Data API</div><div class="actions"><button id="yt">YouTube ile bağla</button></div></div><div class="card"><div class="row"><b>X</b><span id="xBadge" class="badge">Kontrol ediliyor</span></div><div id="xText" class="status">BTMEDYA native X API</div><div class="actions"><button id="x">X ile bağla</button></div></div><div class="card"><div class="row"><b>WhatsApp</b><span id="waBadge" class="badge">Kontrol ediliyor</span></div><div id="waText" class="status">Meta WhatsApp Cloud API</div><div class="actions"><a class="btn" href="/admin/connect/#whatsapp">Yapılandırma durumu</a></div></div>
 <div class="card"><div class="row"><b>Metricool</b><span id="mkBadge" class="badge">Kontrol ediliyor</span></div><div id="mkText" class="status">Yalnızca fallback/legacy dağıtım için tutulur.</div><div class="actions"><a class="btn" href="/admin/social-os/">Social OS'a git</a></div></div>
 <div class="card wide"><div class="ey">SENİN YAPMAN GEREKENLER</div><div id="steps" class="steps"><div class="step">Durum okunuyor…</div></div></div>
 </section>
@@ -22,7 +22,7 @@ async function load(){
  setState('meta',meta,meta?'Meta Direct hazır. Bağlı hesaplar Social OS içinde yönetilir.':'Worker secret/Meta OAuth kurulumu bekliyor.');
  const tt=find('tiktok'); const yt=find('youtube');
  setState('tt',!!tt.ready,'TikTok: '+(tt.requirement||'Content Posting API + OAuth'));
- setState('yt',!!yt.ready,'YouTube: '+(yt.requirement||'OAuth + youtube.upload'));
+ setState('yt',!!yt.ready,'YouTube: '+(yt.requirement||'OAuth + youtube.upload')); const xx=find('x'); setState('x',!!xx.ready,'X: '+(xx.requirement||'OAuth 2.0 PKCE')); const ww=find('whatsapp'); setState('wa',!!ww.ready,'WhatsApp: '+(ww.requirement||'Meta Business + WhatsApp Business Account'));
  const m=c.data.metricool; setState('mk',!!(m&&m.yapilandirildi),'Metricool '+(m&&m.yapilandirildi?'aktif':'kurulum bekliyor')+'; native yol önceliklidir.');
  const needs=[]; if(!meta)needs.push('Meta: Facebook Page / Instagram Professional OAuth bağlantısını bu panelden yap.');
  if(!tt.ready)needs.push('TikTok: BTMEDYA geliştirici uygulaması kimlik bilgileri eklenmeli; sonra tek tık OAuth.');
@@ -34,5 +34,6 @@ async function load(){
 $('#meta').onclick=()=>location.href='/api/social/direct/meta/start?return_to=%2Fadmin%2Fconnect%2F';
 $('#tt').onclick=()=>location.href='/api/social/direct/tiktok/start?workspace_type=company&workspace_id=btmedya';
 $('#yt').onclick=()=>location.href='/api/social/direct/youtube/start?workspace_type=company&workspace_id=btmedya';
-$('#refresh').onclick=load;const q=new URLSearchParams(location.search);if(q.get('tiktok')==='ok'||q.get('youtube')==='ok')document.querySelector('.sub').textContent=(q.get('tiktok')==='ok'?'TikTok':'YouTube')+' bağlantısı tamamlandı. Hesap çalışma alanına kaydedildi.';load().catch(e=>$('#steps').innerHTML='<div class="step bad">'+esc(e.message)+'</div>');
+$('#x').onclick=()=>location.href='/api/social/direct/x/start?workspace_type=company&workspace_id=btmedya';
+$('#refresh').onclick=load;const q=new URLSearchParams(location.search);if(q.get('tiktok')==='ok'||q.get('youtube')==='ok'||q.get('x')==='ok')document.querySelector('.sub').textContent=(q.get('tiktok')==='ok'?'TikTok':q.get('youtube')==='ok'?'YouTube':'X')+' bağlantısı tamamlandı. Hesap çalışma alanına kaydedildi.';load().catch(e=>$('#steps').innerHTML='<div class="step bad">'+esc(e.message)+'</div>');
 </script></body></html>
