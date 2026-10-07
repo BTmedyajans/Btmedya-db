@@ -10,6 +10,7 @@ import { runAutopilot, autopilotPolicy, setAutopilotPolicy, autopilotStatus, con
 import { salesApi, satisOzeti } from "./sales-router.js";
 import { agencySupervisorApi, runAgencySupervisor } from "./agency-supervisor.js";
 import { ensureBtmedyaCore, btmedyaCoreApi } from "./btmedya-core.js";
+import { siteOsApi } from "./site-os.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
@@ -2007,6 +2008,7 @@ export default { async scheduled(controller, env, ctx){
     }
   }
   const coreApi=await btmedyaCoreApi(request,env,url,validSession); if(coreApi) return coreApi;
+  const siteOs=await siteOsApi(request,env,url); if(siteOs) return siteOs;
 
   const hedefHost = kanonikHedef(url.hostname);
   if(hedefHost){
