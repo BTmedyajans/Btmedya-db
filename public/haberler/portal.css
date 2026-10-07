@@ -254,3 +254,32 @@ body>.hm-cekmece{position:fixed!important;inset:0;z-index:2147483000!important}
 .hm-kat-kaynak{margin-top:36px}
 @media(max-width:900px){.hm-kat-sunucu-izgara{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){.hm-kat-sunucu-izgara{grid-template-columns:1fr;gap:24px}.hm-kat-kaynak{display:grid!important;grid-template-columns:1fr!important;gap:14px!important}}
+
+
+/* BTMEDYA NEWSROOM 2026-10-08 */
+:root{--hm-news-red:#e30613;--hm-news-red-dark:#b9040f;--hm-news-black:#090a0c;--hm-news-white:#fff;--hm-news-paper:#f4f5f7;--hm-news-ink:#101317;--hm-news-blue:#0b4fa8;--hm-news-yellow:#ffd400}
+.hm-anasayfa{display:grid;gap:0}
+.hm-reklam{position:relative;display:flex;align-items:center;justify-content:center;gap:14px;min-height:90px;margin:0 0 18px;background:#eceff2;border:1px solid #d9dde1;color:#7a8086;font:700 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;text-align:center}
+.hm-reklam span{position:absolute;left:10px;top:7px;font-size:9px;color:#9aa0a6}.hm-reklam div{font:600 13px/1.2 Manrope,Inter,Arial,sans-serif;letter-spacing:.02em;text-transform:none;color:#8d9399}
+.hm-reklam-ust{min-height:110px;margin-top:8px}.hm-reklam-ara{min-height:76px;margin:4px 0 32px}.hm-reklam-alt{min-height:130px;margin:42px 0 10px}.hm-reklam-yan{min-height:250px;margin:20px 0 0}
+.hm-manset-bolum{margin:0 0 34px;background:var(--hm-news-white);border-top:5px solid var(--hm-news-red);border-bottom:1px solid #dfe2e5;color:var(--hm-news-ink)}
+.hm-manset-bolum-balik{border-top-color:var(--hm-news-blue)}
+.hm-manset-bolum-bas{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;padding:12px 0 10px;border-bottom:1px solid #dfe2e5}
+.hm-manset-bolum-bas>div{display:flex;align-items:center;gap:12px;min-width:0}
+.hm-manset-bolum-bas h2{margin:0;font:400 clamp(27px,5vw,48px)/.96 Anton,Impact,sans-serif;letter-spacing:.015em;color:#121418}
+.hm-manset-no{font:400 clamp(29px,5vw,48px)/1 Anton,Impact,sans-serif;color:transparent;-webkit-text-stroke:1px var(--hm-news-red);opacity:.75}.hm-manset-bolum-balik .hm-manset-no{-webkit-text-stroke-color:var(--hm-news-blue)}
+.hm-manset-canli{width:9px;height:9px;border-radius:50%;background:var(--hm-news-red);box-shadow:0 0 0 5px rgba(227,6,19,.10)}
+.hm-manset-tarih{flex:none;color:#7b838b;font:800 10px/1.2 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.10em}
+.hm-manset-desk{padding:18px 0 20px}.hm-manset-grid{display:grid;grid-template-columns:minmax(0,2.02fr) minmax(300px,.98fr);gap:22px}
+.hm-manset-buyuk{display:block;background:#101318;color:#fff}.hm-manset-buyuk figure{position:relative;margin:0;overflow:hidden;aspect-ratio:16/9;background:#111}.hm-manset-buyuk img{width:100%;height:100%;object-fit:cover;transition:transform .55s ease}.hm-manset-buyuk:hover img{transform:scale(1.025)}
+.hm-manset-karartma{position:absolute;inset:30% 0 0;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.16) 22%,rgba(0,0,0,.88) 100%)}
+.hm-manset-etiket{position:absolute;top:12px;left:12px;padding:6px 9px;background:var(--hm-news-red);color:#fff;font:800 10px/1 Manrope,Inter,Arial,sans-serif;letter-spacing:.10em;text-transform:uppercase}.hm-manset-bolum-balik .hm-manset-etiket{background:var(--hm-news-blue)}
+.hm-manset-buyuk figcaption{position:absolute;left:0;right:0;bottom:0;padding:18px 20px 18px}.hm-manset-buyuk figcaption small{display:block;margin-bottom:8px;color:#d6dce2;font:800 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase}
+.hm-manset-buyuk h3{margin:0;color:#fff;font:800 clamp(27px,4vw,44px)/1.06 Manrope,Inter,Arial,sans-serif;letter-spacing:-.025em}.hm-manset-buyuk p{margin:9px 0 0;max-width:62ch;color:#e2e7eb;font:500 14px/1.42 Manrope,Inter,Arial,sans-serif;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hm-manset-yan{display:grid;align-content:start}.hm-manset-yan-kart{display:grid;grid-template-columns:112px minmax(0,1fr);gap:12px;padding:11px 0;border-bottom:1px solid #dfe2e5;color:#111418}.hm-manset-yan-kart:first-child{padding-top:0}.hm-manset-yan-kart:last-child{border-bottom:0}
+.hm-manset-yan-kart figure{margin:0;width:112px;height:84px;overflow:hidden;background:#edf0f3}.hm-manset-yan-kart img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease}.hm-manset-yan-kart:hover img{transform:scale(1.04)}
+.hm-manset-yan-kart>span{display:grid;align-content:start;gap:4px;min-width:0}.hm-manset-yan-kart .hm-kat{font-size:9px;color:var(--hm-news-red)}.hm-manset-bolum-balik .hm-manset-yan-kart .hm-kat{color:var(--hm-news-blue)}.hm-manset-yan-kart .hm-zaman{color:#8a9199;font-size:10px}
+.hm-manset-yan-kart h3{margin:0;font:800 15px/1.28 Manrope,Inter,Arial,sans-serif;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.hm-manset-yan-kart:hover h3{color:var(--hm-news-red)}.hm-manset-bolum-balik .hm-manset-yan-kart:hover h3{color:var(--hm-news-blue)}
+.hm-haber-yardimci{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(300px,.75fr);gap:28px;align-items:start;margin-bottom:34px}.hm-haber-yardimci .hm-sur{margin:0}.hm-haber-yardimci .hm-akis{display:block;position:static;padding:16px 18px;border:1px solid #dde1e5;border-radius:8px;background:var(--hm-news-paper);color:#111418}.hm-haber-yardimci .hm-akis h2{color:var(--hm-news-red)}
+@media(max-width:1000px){.hm-manset-grid,.hm-haber-yardimci{grid-template-columns:1fr}.hm-haber-yardimci .hm-akis{display:block}}
+@media(max-width:720px){.hm-reklam-ust{min-height:72px}.hm-reklam-ust div{font-size:11px}.hm-reklam-ara{min-height:62px;margin-bottom:24px}.hm-reklam-alt{min-height:90px}.hm-manset-bolum{margin-bottom:26px}.hm-manset-bolum-bas{align-items:flex-start;flex-direction:column;gap:5px}.hm-manset-bolum-bas h2{font-size:clamp(25px,8vw,34px)}.hm-manset-tarih{font-size:8px;padding-left:50px}.hm-manset-desk{padding-top:12px}.hm-manset-grid{gap:10px}.hm-manset-buyuk figure{aspect-ratio:4/3}.hm-manset-buyuk figcaption{padding:15px 13px 14px}.hm-manset-buyuk h3{font-size:clamp(22px,7.2vw,30px);line-height:1.08}.hm-manset-buyuk p{font-size:12px;-webkit-line-clamp:2}.hm-manset-yan-kart{grid-template-columns:96px minmax(0,1fr);gap:10px;padding:10px 0}.hm-manset-yan-kart figure{width:96px;height:72px}.hm-manset-yan-kart h3{font-size:14px;-webkit-line-clamp:3}.hm-manset-yan-kart .hm-kat{font-size:8px}.hm-haber-yardimci{gap:18px}}
