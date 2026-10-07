@@ -53,3 +53,10 @@ html.bam-acik{overflow:hidden}
 .bam-foot{margin:8px 20px 30px;border-radius:7px;font-size:9px;letter-spacing:.04em}
 .bam-dugme{min-height:38px;height:38px;padding:0 11px;border-radius:7px;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
 .bam-dugme small{color:#8a989f;font-size:8px;margin-left:2px}
+
+/* Sistem satırı (2026-10-07): ana ekran, sağlık, canlı site, çıkış. */
+.bam-sistem{display:flex;flex-wrap:wrap;gap:8px;margin:14px 18px 4px}
+.bam-sistem a,.bam-sistem button{display:inline-flex;align-items:center;min-height:44px;padding:0 15px;border:1px solid #2a363d;border-radius:999px;background:transparent;color:#e6edf2;font:600 13px/1 Manrope,system-ui,sans-serif;text-decoration:none;cursor:pointer}
+.bam-sistem a:hover,.bam-sistem button:hover{border-color:#5f717b}
+.bam-sistem :focus-visible{outline:2px solid #a6d9ea;outline-offset:2px}
+.bam a{text-decoration:none}

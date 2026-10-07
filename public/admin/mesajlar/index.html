@@ -1,0 +1,64 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>BTMEDYA · Gelen Mesajlar</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#0b0f14"><style>
+/* Gelen Mesajlar: sitedeki iletişim formundan düşen kayıtlar (D1 contact_messages).
+   API (/api/admin/contact) 2026-09'dan beri vardı ama panelde ekranı yoktu;
+   mesajlar yalnız e-posta bildirimiyle görülebiliyordu. Renk ve yazı, film
+   sonu paneliyle aynı yumuşak dil: tek vurgu, Manrope. */
+:root{color-scheme:dark;--bg:#0b0f14;--panel:#141a22;--line:rgba(214,224,236,.13);--text:#eef1f4;--muted:#a9b4c0;--accent:#a6d9ea}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Manrope,'Segoe UI',system-ui,Arial,sans-serif}
+main{max-width:900px;margin:auto;padding:28px 16px 80px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.k{color:var(--accent);font-size:13px;font-weight:600}h1{margin:4px 0 0;font-size:clamp(26px,5vw,38px);font-weight:600;letter-spacing:-.02em}
+.arac{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+button,.btn,input{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid rgba(214,224,236,.22);background:transparent;color:var(--text);font:600 14px/1 inherit;font-family:inherit;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+input{flex:1 1 200px;cursor:text;font-weight:400}button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#0b1a20}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.durum{color:var(--muted);margin:14px 0}
+.mesaj{margin-top:10px;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
+.mesaj.yeni{border-color:rgba(166,217,234,.5)}
+.ust{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}.ust b{font-size:16px;font-weight:600}
+.meta{color:var(--muted);font-size:13px}.konu{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:999px;background:rgba(166,217,234,.13);font-size:12.5px}
+.govde{margin:10px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.islem{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.islem a,.islem button{min-height:44px;font-size:13.5px}.sil{color:#f0b4b4;border-color:rgba(240,180,180,.3)}
+.uyari{color:#f3d08a;font-size:12.5px;margin-top:6px}
+</style><link rel="stylesheet" href="/admin/admin-menu.css?v=20261007-3"><script src="/admin/admin-menu.js?v=20261007-3" defer></script></head><body><main>
+<header><div><div class="k">BTMEDYA · Yönetim</div><h1>Gelen mesajlar</h1></div><a class="btn" href="/admin/agency-os/">← Süpervizör</a></header>
+<div class="arac"><input id="q" type="search" placeholder="Ad, e-posta, konu ya da mesajda ara" aria-label="Mesajlarda ara"><button id="yalnizYeni" type="button" aria-pressed="false">Yalnız okunmamış</button><button id="yenile" type="button">Yenile</button></div>
+<div class="durum" id="durum" role="status">Mesajlar okunuyor…</div><div id="liste"></div>
+</main><script>
+(()=>{
+  const $=s=>document.querySelector(s);
+  const kac=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  let kayitlar=[];
+  const tarih=t=>{const d=new Date(String(t||'').replace(' ','T')+(/[zZ]|[+-]\d\d:?\d\d$/.test(t||'')?'':'Z'));return isNaN(d)?kac(t||''):d.toLocaleString('tr-TR',{dateStyle:'medium',timeStyle:'short'});};
+  const istek=async(yol,ayar)=>{const r=await fetch(yol,{credentials:'same-origin',...ayar});if(r.status===401){location.href='/admin/';throw new Error('Oturum gerekli');}const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false)throw new Error(d.error||('Hata '+r.status));return d;};
+  const ciz=()=>{
+    const q=$('#q').value.trim().toLocaleLowerCase('tr'), yeni=$('#yalnizYeni').getAttribute('aria-pressed')==='true';
+    const sec=kayitlar.filter(m=>(!yeni||!m.read)&&(!q||[m.name,m.email,m.phone,m.subject,m.message].join(' ').toLocaleLowerCase('tr').includes(q)));
+    const okunmamis=kayitlar.filter(m=>!m.read).length;
+    $('#durum').textContent=kayitlar.length?`${kayitlar.length} mesaj · ${okunmamis} okunmamış`+(sec.length!==kayitlar.length?` · ${sec.length} gösteriliyor`:''):'Henüz mesaj yok.';
+    // Telefon numarası yalnız rakam ve + ile bağlantıya girer (form serbest metin kabul ediyor).
+    $('#liste').innerHTML=sec.map(m=>{const tel=String(m.phone||'').replace(/[^\d+]/g,'');return `<article class="mesaj${m.read?'':' yeni'}" data-id="${Number(m.id)}">
+      <div class="ust"><b>${kac(m.name||'Adsız')}</b><span class="meta">${tarih(m.created_at)}</span></div>
+      <div class="meta">${kac(m.email||'')}${m.phone?' · '+kac(m.phone):''}</div>
+      ${m.subject?`<span class="konu">${kac(m.subject)}</span>`:''}
+      <p class="govde">${kac(m.message||'')}</p>
+      ${m.email_failed?'<div class="uyari">Bu mesajın e-posta bildirimi gönderilemedi; yalnız burada görünüyor.</div>':''}
+      <div class="islem">${m.email?`<a class="btn" href="mailto:${encodeURIComponent(m.email)}?subject=${encodeURIComponent('BTMEDYA: '+(m.subject||'mesajınız'))}">E-postayla yanıtla</a>`:''}${tel.length>=10?`<a class="btn" href="tel:${tel}">Ara</a>`:''}${m.read?'':'<button type="button" data-is="oku">Okundu işaretle</button>'}<button type="button" class="sil" data-is="sil">Sil</button></div>
+    </article>`;}).join('');
+  };
+  const yukle=async()=>{$('#durum').textContent='Mesajlar okunuyor…';try{kayitlar=(await istek('/api/admin/contact')).items||[];ciz();}catch(e){$('#durum').textContent='Mesajlar okunamadı: '+e.message;}};
+  $('#liste').addEventListener('click',async e=>{
+    const b=e.target.closest('button[data-is]'); if(!b)return;
+    const id=Number(b.closest('.mesaj').dataset.id), m=kayitlar.find(x=>Number(x.id)===id); if(!m)return;
+    try{
+      if(b.dataset.is==='oku'){await istek('/api/admin/contact/'+id,{method:'PATCH'});m.read=1;}
+      else{ if(!confirm((m.name||'Bu kişi')+' adlı kişinin mesajı kalıcı olarak silinsin mi?'))return; await istek('/api/admin/contact/'+id,{method:'DELETE'});kayitlar=kayitlar.filter(x=>x!==m);}
+      ciz();
+    }catch(err){$('#durum').textContent='İşlem yapılamadı: '+err.message;}
+  });
+  $('#q').addEventListener('input',ciz);
+  $('#yalnizYeni').addEventListener('click',e=>{const b=e.currentTarget;b.setAttribute('aria-pressed',String(b.getAttribute('aria-pressed')!=='true'));ciz();});
+  $('#yenile').addEventListener('click',yukle);
+  yukle();
+})();
+</script></body></html>
