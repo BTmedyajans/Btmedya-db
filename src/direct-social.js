@@ -268,15 +268,64 @@ async function publishInstagram(env,conn,job,token){
   return String(pub.id||"");
 }
 
+async function refreshTikTokToken(env,conn,obj){
+  if(!obj?.refresh_token||!env.TIKTOK_CLIENT_KEY||!env.TIKTOK_CLIENT_SECRET)return obj;
+  const r=await fetch("https://open.tiktokapis.com/v2/oauth/token/",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_key:env.TIKTOK_CLIENT_KEY,client_secret:env.TIKTOK_CLIENT_SECRET,grant_type:"refresh_token",refresh_token:obj.refresh_token})});
+  const x=await r.json(); if(!x.access_token)throw new Error("TikTok erişim anahtarı yenilenemedi");
+  const merged={...obj,...x}; await env.DB.prepare("UPDATE social_direct_connections SET access_token_cipher=?,token_expires_at=?,updated_at=? WHERE id=?").bind(await encryptSecret(env,JSON.stringify(merged)),new Date(Date.now()+Number(x.expires_in||86400)*1000).toISOString(),new Date().toISOString(),conn.id).run(); return merged;
+}
+async function publishTikTok(env,conn,job,obj){
+  let token=obj;
+  if(conn.token_expires_at && new Date(conn.token_expires_at).getTime()<Date.now()+300000)token=await refreshTikTokToken(env,conn,obj);
+  const videoUrl=mediaPublicUrl(env,job.media_key); if(!videoUrl||!isVideoKey(job.media_key))throw new Error("TikTok Direct Post için video dosyası gerekli.");
+  const cr=await fetch("https://open.tiktokapis.com/v2/post/publish/creator_info/query/",{method:"POST",headers:{Authorization:"Bearer "+token.access_token,"content-type":"application/json"}});
+  const ci=await cr.json(); const options=ci?.data?.privacy_level_options||[]; if(!options.length)throw new Error("TikTok creator izinleri okunamadı.");
+  const privacy=options.includes("PUBLIC_TO_EVERYONE")?"PUBLIC_TO_EVERYONE":options[0];
+  const rr=await fetch("https://open.tiktokapis.com/v2/post/publish/video/init/",{method:"POST",headers:{Authorization:"Bearer "+token.access_token,"content-type":"application/json"},body:JSON.stringify({post_info:{title:String(job.title||"").slice(0,150),privacy_level:privacy,disable_duet:false,disable_comment:false,disable_stitch:false},source_info:{source:"PULL_FROM_URL",video_url:videoUrl}})});
+  const init=await rr.json(); if(!rr.ok||!init?.data?.publish_id)throw new Error("TikTok yayın başlatılamadı");
+  const publishId=init.data.publish_id;
+  for(let i=0;i<12;i++){await new Promise(r=>setTimeout(r,3000));const sr=await fetch("https://open.tiktokapis.com/v2/post/publish/status/fetch/",{method:"POST",headers:{Authorization:"Bearer "+token.access_token,"content-type":"application/json"},body:JSON.stringify({publish_id:publishId})});const st=await sr.json();const status=String(st?.data?.status||"").toUpperCase();if(status==="PUBLISH_COMPLETE")return publishId;if(["FAILED","CANCELED"].includes(status))throw new Error("TikTok yayın durumu: "+status);}
+  throw new Error("TikTok yayın durumunun tamamlanması zaman aşımına uğradı.");
+}
+async function refreshGoogleToken(env,conn,obj){
+  if(!obj?.refresh_token||!env.YOUTUBE_CLIENT_ID)return obj;
+  const r=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:env.YOUTUBE_CLIENT_ID,client_secret:env.YOUTUBE_CLIENT_SECRET,refresh_token:obj.refresh_token,grant_type:"refresh_token"})});
+  const x=await r.json(); if(!x.access_token)throw new Error("YouTube erişim anahtarı yenilenemedi");
+  const merged={...obj,access_token:x.access_token,expires_in:x.expires_in}; await env.DB.prepare("UPDATE social_direct_connections SET access_token_cipher=?,token_expires_at=?,updated_at=? WHERE id=?").bind(await encryptSecret(env,JSON.stringify(merged)),new Date(Date.now()+Number(x.expires_in||3600)*1000).toISOString(),new Date().toISOString(),conn.id).run(); return merged;
+}
+async function publishYouTube(env,conn,job,obj){
+  let token=obj;if(conn.token_expires_at&&new Date(conn.token_expires_at).getTime()<Date.now()+300000)token=await refreshGoogleToken(env,conn,obj);
+  if(!env.MEDIA)throw new Error("R2 medya kasası bağlı değil"); const object=await env.MEDIA.get(job.media_key);if(!object?.body)throw new Error("YouTube medya dosyası bulunamadı.");
+  const bytes=String(object.size||""); const mime=object.httpMetadata?.contentType||"video/mp4";
+  const metadata={snippet:{title:String(job.title||"BTMEDYA video").slice(0,100),description:String(job.body||"").slice(0,5000),categoryId:"22"},status:{privacyStatus:String(env.YOUTUBE_DEFAULT_PRIVACY_STATUS||"private")}};
+  const init=await fetch("https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status",{method:"POST",headers:{Authorization:"Bearer "+token.access_token,"Content-Type":"application/json","X-Upload-Content-Type":mime,...(bytes?{"X-Upload-Content-Length":bytes}: {})},body:JSON.stringify(metadata)});
+  if(!init.ok)throw new Error("YouTube yükleme oturumu oluşturulamadı");
+  const location=init.headers.get("location");if(!location)throw new Error("YouTube upload URL dönmedi");
+  const up=await fetch(location,{method:"PUT",headers:{"Content-Type":mime},body:object.body});const out=await up.json().catch(()=>({}));if(!up.ok)throw new Error("YouTube video yüklenemedi");
+  return String(out.id||"");
+}
+async function refreshXToken(env,conn,obj){
+  if(!obj?.refresh_token||!env.X_CLIENT_ID)return obj;
+  const r=await fetch("https://api.x.com/2/oauth2/token",{method:"POST",headers:{Authorization:"Basic "+btoa(String(env.X_CLIENT_ID)+":"+String(env.X_CLIENT_SECRET||"")),"content-type":"application/x-www-form-urlencoded"},body:new URLSearchParams({refresh_token:obj.refresh_token,grant_type:"refresh_token",client_id:env.X_CLIENT_ID})});
+  const x=await r.json();if(!x.access_token)throw new Error("X erişim anahtarı yenilenemedi");const merged={...obj,...x};await env.DB.prepare("UPDATE social_direct_connections SET access_token_cipher=?,token_expires_at=?,updated_at=? WHERE id=?").bind(await encryptSecret(env,JSON.stringify(merged)),new Date(Date.now()+Number(x.expires_in||7200)*1000).toISOString(),new Date().toISOString(),conn.id).run();return merged;
+}
+async function publishX(env,conn,job,obj){
+  let token=obj;if(conn.token_expires_at&&new Date(conn.token_expires_at).getTime()<Date.now()+300000)token=await refreshXToken(env,conn,obj);
+  const textValue=String(job.body||job.title||"").trim().slice(0,280);if(!textValue)throw new Error("X paylaşımı için metin gerekli.");
+  const rr=await fetch("https://api.x.com/2/tweets",{method:"POST",headers:{Authorization:"Bearer "+token.access_token,"content-type":"application/json"},body:JSON.stringify({text:textValue})});const out=await rr.json();if(!rr.ok)throw new Error("X yayın hatası");return String(out?.data?.id||"");
+}
 async function publishJob(env,conn,job){
-  const token=await decryptSecret(env,conn.access_token_cipher);
-  if(conn.provider==="facebook")return publishFacebook(env,conn,job,token);
-  if(conn.provider==="instagram")return publishInstagram(env,conn,job,token);
+  const raw=await decryptSecret(env,conn.access_token_cipher);
+  if(conn.provider==="facebook")return publishFacebook(env,conn,job,raw);
+  if(conn.provider==="instagram")return publishInstagram(env,conn,job,raw);
+  if(conn.provider==="tiktok")return publishTikTok(env,conn,job,JSON.parse(raw));
+  if(conn.provider==="youtube")return publishYouTube(env,conn,job,JSON.parse(raw));
+  if(conn.provider==="x")return publishX(env,conn,job,JSON.parse(raw));
   throw new Error("Desteklenmeyen sağlayıcı: "+conn.provider);
 }
 
 export async function processDirectSocialQueue(env,limit=10){
-  if(!env.DB||!env.META_APP_ID||!env.META_APP_SECRET||!secret(env))return {enabled:false,processed:0,published:0,failed:0};
+  if(!env.DB||!secret(env))return {enabled:false,processed:0,published:0,failed:0};
   await ensureDirectTables(env);
   const now=new Date().toISOString();
   const rows=(await env.DB.prepare(`SELECT j.*,c.provider,c.external_id,c.account_name,c.page_id,c.ig_user_id,c.access_token_cipher,c.status AS connection_status
