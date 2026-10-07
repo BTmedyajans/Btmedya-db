@@ -64,7 +64,7 @@
 <style id="bt-home-hero-v3">
 .bt-home-hero{position:relative;width:100%;height:100svh;min-height:560px;background:#050505;overflow:hidden;isolation:isolate}
 .bt-home-hero-video{position:absolute;inset:0;background:#050505}
-.bt-home-hero-layer{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:center;opacity:0;transition:opacity .9s ease;filter:saturate(.94) contrast(1.04);background:#050505}
+.bt-home-hero-layer{position:absolute;pointer-events:none;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:center;opacity:0;transition:opacity .9s ease;filter:saturate(.94) contrast(1.04);background:#050505}
 .bt-home-hero-layer.is-active{opacity:1}
 .bt-home-hero-scrim{position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.08),transparent 34%,rgba(0,0,0,.16));mix-blend-mode:multiply}
 @media(max-width:720px){.bt-home-hero{height:100svh;min-height:0}.bt-home-hero-layer{object-fit:cover}.bt-home-hero-scrim{background:linear-gradient(180deg,rgba(0,0,0,.05),transparent 40%,rgba(0,0,0,.12))}}
