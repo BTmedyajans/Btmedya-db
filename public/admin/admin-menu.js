@@ -115,10 +115,13 @@
     e.preventDefault();e.stopImmediatePropagation();root.hidden?open(t):close();
   },true);
   document.querySelectorAll(allTriggers).forEach(x=>{x.setAttribute('aria-controls','btAdminMenu');x.setAttribute('aria-haspopup','dialog')});
+  document.addEventListener('keydown',e=>{
+    if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();const t=document.querySelector(allTriggers);if(root.hidden)open(t);else close()}
+  });
   if(!document.querySelector(allTriggers)){
     const b=document.createElement('button');b.type='button';b.className='bam-dugme';
     b.setAttribute('aria-expanded','false');b.setAttribute('aria-controls','btAdminMenu');b.setAttribute('aria-haspopup','dialog');
-    b.innerHTML='<span aria-hidden="true">☰</span> Menü';
+    b.innerHTML='<span aria-hidden="true">☰</span> Menü <small>⌘K</small>';
     const h=document.querySelector('header');if(h)h.appendChild(b);else document.body.appendChild(b);
   }
 })();
