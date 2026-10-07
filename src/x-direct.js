@@ -1,7 +1,7 @@
 const AUTH="https://twitter.com/i/oauth2/authorize";
 const TOKEN="https://api.x.com/2/oauth2/token";
 const API="https://api.x.com/2";
-import { validSession, saveOAuthConnection } from "./direct-social.js";
+import { validSession, saveOAuthConnection, validWorkspaceType, workspaceExists } from "./direct-social.js";
 const j=(d,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
 function b64url(bytes){return btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
 async function pkce(){const b=new Uint8Array(32);crypto.getRandomValues(b);const verifier=b64url(b);const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(verifier));return {verifier,challenge:b64url(digest)}}
@@ -12,7 +12,8 @@ export async function xApi(request,env){
  const action=url.pathname.replace("/api/social/direct/x/","");
  if(action==="start"){
   if(!env.KV)return j({error:"KV bağlantısı yok"},503);
-  const state=crypto.randomUUID(),p=await pkce();const ws={workspace_type:url.searchParams.get("workspace_type")||"company",workspace_id:url.searchParams.get("workspace_id")||"btmedya"};
+  const state=crypto.randomUUID(),p=await pkce();const ws={workspace_type:validWorkspaceType(url.searchParams.get("workspace_type"))?url.searchParams.get("workspace_type"):"agency",workspace_id:url.searchParams.get("workspace_id")||"btmedya"};
+  if(!(await workspaceExists(env,ws.workspace_type,ws.workspace_id)))return j({error:"Çalışma alanı bulunamadı"},404);
   await env.KV.put("x_oauth:"+state,JSON.stringify({...ws,verifier:p.verifier}),{expirationTtl:600});
   const redirectUri=env.X_REDIRECT_URI||new URL("/api/social/direct/x/callback",url.origin).toString();
   const q=new URLSearchParams({response_type:"code",client_id:env.X_CLIENT_ID,redirect_uri:redirectUri,scope:"tweet.read tweet.write users.read offline.access",state,code_challenge:p.challenge,code_challenge_method:"S256"});
@@ -31,7 +32,9 @@ export async function xApi(request,env){
  }
  if(action==="post"&&request.method==="POST"){
   const body=await request.json().catch(()=>({}));const connectionId=body.connection_id;
-  const row=await env.DB.prepare("SELECT * FROM social_direct_connections WHERE id=? AND provider='x' LIMIT 1").bind(connectionId).first();if(!row)return j({error:"X bağlantısı bulunamadı"},404);
+  const workspace_type=validWorkspaceType(body.workspace_type)?body.workspace_type:"agency";const workspace_id=String(body.workspace_id||"btmedya").slice(0,120);
+  if(!(await workspaceExists(env,workspace_type,workspace_id)))return j({error:"Çalışma alanı bulunamadı"},404);
+  const row=await env.DB.prepare("SELECT * FROM social_direct_connections WHERE id=? AND provider='x' AND workspace_type=? AND workspace_id=? LIMIT 1").bind(connectionId,workspace_type,workspace_id).first();if(!row)return j({error:"X bağlantısı bulunamadı"},404);
   const raw=JSON.parse(await (await import("./direct-social.js")).decryptSecret(env,row.access_token_cipher));const text=String(body.text||"").trim();if(!text)return j({error:"text gerekli"},400);
   const rr=await fetch(API+"/tweets",{method:"POST",headers:{Authorization:"Bearer "+raw.access_token,"content-type":"application/json"},body:JSON.stringify({text})});
   const out=await rr.json();return new Response(JSON.stringify(out),{status:rr.status,headers:{"content-type":"application/json"}});
