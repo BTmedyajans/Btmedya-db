@@ -33,7 +33,8 @@ async function hmac(secretValue,message){
   return base64url(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(message)));
 }
 async function validSession(request,env){
-  const s=String(env.ADMIN_SESSION_SECRET_SECRET||env.ADMIN_SESSION_SECRET||"");
+  const base=String(env.ADMIN_SESSION_SECRET_SECRET||env.ADMIN_SESSION_SECRET||"");
+  const s=base ? (env.MEDIA_SIGNING_SECRET ? base+"\u0000"+String(env.MEDIA_SIGNING_SECRET) : base) : "";
   if(!s)return false;
   const c=request.headers.get("cookie")||"";
   const m=c.match(/bt_admin=([^;]+)/);if(!m)return false;
