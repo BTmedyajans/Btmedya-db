@@ -57,6 +57,7 @@ jobs:
           grep -q 'related-news' src/news-page.js
           grep -q 'ilgiliHaberler' src/worker.js
           node --check src/metricool-scheduler.js
+          node --check src/direct-social.js
           node --check src/news-intelligence.js
           node --check src/autopilot.js
           node --check src/agency-supervisor.js
@@ -145,6 +146,11 @@ jobs:
           test -s public/admin/yayin/yayin.css
           test -s public/admin/yayin/yayin.js
           node --check public/admin/yayin/yayin.js
+          test -s public/admin/social-os/index.html
+          test -s migrations/0023_direct_social.sql
+          grep -q 'directSocialApi' src/worker.js
+          grep -q 'processDirectSocialQueue' src/worker.js
+          grep -q 'BTMEDYA Social OS' public/admin/social-os/index.html
           test -s public/admin/agency-os/agency-os.css
           test -s public/admin/agency-os/agency-os.js
           test -s public/admin/client-hub/index.html
