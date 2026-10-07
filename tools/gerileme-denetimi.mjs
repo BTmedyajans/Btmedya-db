@@ -477,7 +477,7 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   const vid = (ana.match(/<video class="mfilm-video"[^>]*>/) || [''])[0];
   const webm = (vid.match(/data-webm="([^"]+)"/) || [])[1];
   if (!webm) bulgular.push('public/index.html .mfilm-video data-webm taşımıyor; H.264 çözemeyen tarayıcıda giriş filmi açılmaz.');
-  else if (!existsSync(join('public', webm))) bulgular.push(`public/index.html .mfilm-video data-webm dosyası yok: ${webm}`);
+  else if (!existsSync(join('public', webm.split('?')[0]))) bulgular.push(`public/index.html .mfilm-video data-webm dosyası yok: ${webm}`);
   const mm = readFileSync('public/mobile-motion.js', 'utf8');
   if (!/canPlayType\(\s*['"]video\/mp4[^)]*\)/.test(mm) || !mm.includes('dataset.webm')) bulgular.push('public/mobile-motion.js giriş filminde MP4 desteğini (canPlayType) sorup data-webm yedeğine düşmüyor.');
 }
@@ -532,7 +532,7 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   const ana = readFileSync('public/index.html', 'utf8');
   const genis = (ana.match(/<video[^>]*data-slot="hero-video"[^>]*>/) || [''])[0];
   const webm = (genis.match(/data-webm="([^"]+)"/) || [])[1] || '';
-  if (!/-genis\.webm$/.test(webm)) bulgular.push(`public/index.html masaüstü filmin data-webm'i masaüstü kurgusu değil: ${webm || 'yok'}`);
+  if (!/-genis\.webm(\?.*)?$/.test(webm)) bulgular.push(`public/index.html masaüstü filmin data-webm'i masaüstü kurgusu değil: ${webm || 'yok'}`);
   if (/data-src-hq="[^"]+\.mp4"/.test(ana)) bulgular.push('public/index.html data-src-hq MP4 kaynağı codec denetimi olmadan zorlanıyor; H.264 çözemeyen tarayıcıda film açılmaz.');
 }
 

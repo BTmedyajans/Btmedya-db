@@ -11,7 +11,7 @@
   main#icerik>.vitrine-status:first-child{display:none!important}
 
   .mfilm{display:block;color:#eef3f7;background:#05080c}
-  .mfilm-kare{position:relative;width:100%;aspect-ratio:var(--mfilm-oran,1 / 1);max-height:72svh;background:#000 url('/assets/media/web/giris-filmi-poster.jpg') center/cover no-repeat;overflow:hidden}
+  .mfilm-kare{position:relative;width:100%;aspect-ratio:var(--mfilm-oran,1 / 1);max-height:72svh;background:#000 url('/assets/media/web/giris-filmi-poster.jpg?v=20261007') center/cover no-repeat;overflow:hidden}
   .mfilm-dikey .mfilm-kare{margin:0 auto;width:auto;height:72svh}
   .mfilm-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;display:block;filter:none!important}
   .mfilm-etiket{position:absolute;left:12px;top:12px;padding:6px 9px;border-radius:4px;background:rgba(0,0,0,.72);color:#fff;font:700 11px/1.2 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.08em;pointer-events:none}
