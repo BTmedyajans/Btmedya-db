@@ -66,12 +66,26 @@ async function encryptSecret(env,value){
   const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,new TextEncoder().encode(String(value)));
   return base64url(iv)+":"+base64url(ct);
 }
-async function decryptSecret(env,value){
+export async function decryptSecret(env,value){
   const raw=String(value||"");if(!raw)return "";
   const [ivS,ctS]=raw.split(":");if(!ivS||!ctS)throw new Error("Şifreli token biçimi geçersiz");
   const key=await keyFromSecret(env);
   const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(ivS)},key,unb64(ctS));
   return new TextDecoder().decode(pt);
+}
+
+export async function saveOAuthConnection(env,{workspace_type="company",workspace_id="btmedya",provider,external_id,account_name="",handle="",profile_url="",token,scopes=[],token_expires_at=null}){ 
+  await ensureDirectTables(env);
+  if(!env.DB) throw new Error("D1 bağlantısı yok");
+  const cipher=await encryptSecret(env,JSON.stringify(token||{}));
+  const id=crypto.randomUUID(); const now=new Date().toISOString();
+  const existing=await env.DB.prepare("SELECT id FROM social_direct_connections WHERE workspace_type=? AND workspace_id=? AND provider=? AND external_id=? LIMIT 1").bind(workspace_type,workspace_id,provider,external_id).first();
+  if(existing?.id){
+    await env.DB.prepare("UPDATE social_direct_connections SET account_name=?,handle=?,profile_url=?,access_token_cipher=?,token_expires_at=?,scopes_json=?,status='active',last_error='',updated_at=? WHERE id=?").bind(account_name,handle,profile_url,cipher,token_expires_at,JSON.stringify(scopes||[]),now,existing.id).run();
+    return existing.id;
+  }
+  await env.DB.prepare("INSERT INTO social_direct_connections(id,workspace_type,workspace_id,provider,external_id,account_name,handle,profile_url,access_token_cipher,token_expires_at,scopes_json,status,last_error,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)").bind(id,workspace_type,workspace_id,provider,external_id,account_name,handle,profile_url,cipher,token_expires_at,JSON.stringify(scopes||[]),"active","",now,now).run();
+  return id;
 }
 
 async function ensureDirectTables(env){
@@ -338,14 +352,16 @@ async function apiJobs(request,env,url){
 async function apiProviders(request,env){
   if(!(await validSession(request,env)))return j({ok:false,error:"Yetkisiz"},401);
   const metaMissing=[];
+  const ttMissing=[]; if(!String(env.TIKTOK_CLIENT_KEY||"").trim())ttMissing.push("TIKTOK_CLIENT_KEY"); if(!String(env.TIKTOK_CLIENT_SECRET||"").trim())ttMissing.push("TIKTOK_CLIENT_SECRET");
+  const ytMissing=[]; if(!String(env.YOUTUBE_CLIENT_ID||"").trim())ytMissing.push("YOUTUBE_CLIENT_ID"); if(!String(env.YOUTUBE_CLIENT_SECRET||"").trim())ytMissing.push("YOUTUBE_CLIENT_SECRET");
   if(!String(env.META_APP_ID||"").trim())metaMissing.push("META_APP_ID");
   if(!String(env.META_APP_SECRET||"").trim())metaMissing.push("META_APP_SECRET");
   if(!secret(env))metaMissing.push("SOCIAL_TOKEN_ENCRYPTION_KEY");
   if(!env.KV)metaMissing.push("KV");
   return j({ok:true,providers:Object.entries(BTMEDYA_SOCIAL_PROVIDERS).map(([id,p])=>({
     id,...p,
-    ready:id==="facebook"||id==="instagram"?metaMissing.length===0:false,
-    missing:id==="facebook"||id==="instagram"?metaMissing:[]
+    ready:id==="facebook"||id==="instagram"?metaMissing.length===0:id==="tiktok"?ttMissing.length===0:id==="youtube"?ytMissing.length===0:false,
+    missing:id==="facebook"||id==="instagram"?metaMissing:id==="tiktok"?ttMissing:id==="youtube"?ytMissing:[]
   }))});
 }
 
