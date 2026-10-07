@@ -143,7 +143,7 @@ async function upsertConnection(env,row){
   await env.DB.prepare(`INSERT INTO social_direct_connections
     (id,workspace_type,workspace_id,provider,external_id,account_name,handle,profile_url,page_id,ig_user_id,access_token_cipher,token_expires_at,scopes_json,status,last_error,created_at,updated_at)
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    ON CONFLICT(provider,external_id) DO UPDATE SET
+    ON CONFLICT(workspace_type,workspace_id,provider,external_id) DO UPDATE SET
       workspace_type=excluded.workspace_type,workspace_id=excluded.workspace_id,account_name=excluded.account_name,
       handle=excluded.handle,profile_url=excluded.profile_url,page_id=excluded.page_id,ig_user_id=excluded.ig_user_id,
       access_token_cipher=excluded.access_token_cipher,token_expires_at=excluded.token_expires_at,
