@@ -1920,6 +1920,7 @@ async function hydrateR2FromManifest(env, limit=3){
 
 /* production-reconcile: keep GitHub main as the sole Cloudflare Workers Builds source of truth. */
 export default { async scheduled(controller, env, ctx){
+  await ensureContentTaxonomy(env).catch(e=>console.error("[taxonomy] bootstrap:",e?.message||e));
   /* Sabah Masası: her gün 08:00 İstanbul (05:00 UTC). Diğer 5 dakikalık
      işler bu tetikte de çalışır; masa yeni haberleri yayınladığında sosyal
      taslaklar bir sonraki 5 dakikalık turda hazırlanır. */
