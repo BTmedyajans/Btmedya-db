@@ -238,7 +238,7 @@ jobs:
             return 1
           }
 
-          # Cloudflare Workers Builds deploys the same main push asynchronously.
+          # Cloudflare Workers Builds publishes the same main push asynchronously.
           # Wait before the first live probe so the verification job does not race the production build.
           sleep 90
 

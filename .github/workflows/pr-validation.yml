@@ -69,7 +69,7 @@ jobs:
           # /^static\\/.../ regex'i node'dan gecti ama Workers Builds'in
           # esbuild'i reddetti ve 6 commit canliya cikmadi. Ayni paketleyiciyle
           # kuru derleme yapilir; hicbir sey yuklenmez.
-          npx --yes wrangler@4.142.0 deploy --dry-run --outdir "$RUNNER_TEMP/kuru-derleme"
+          npx --yes wrangler@4.142.0 versions upload --dry-run --outdir "$RUNNER_TEMP/kuru-derleme"
 
           grep -q 'mobile-fixes.css' public/index.html
           grep -q 'prefers-reduced-motion' public/mobile-fixes.css

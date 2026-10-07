@@ -184,6 +184,58 @@ async function clientHubApi(request,env,url){
     }});
   }
 
+  const wp=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/projects$/);
+  if(wp){
+    const clientId=wp[1];
+    if(!(await requireWorkspace(clientId)))return j({ok:false,error:'Müşteri çalışma alanı bulunamadı'},404);
+    if(request.method==='GET'){
+      const q=await env.DB.prepare('SELECT * FROM client_projects WHERE client_id=? ORDER BY updated_at DESC').bind(clientId).all();
+      return j({ok:true,items:q.results||[]});
+    }
+    if(request.method==='POST'){
+      const b=await request.json().catch(()=>({})),name=clean(b.name,240);
+      if(!name)return j({ok:false,error:'Proje adı gerekli'},400);
+      const now=new Date().toISOString(),id=crypto.randomUUID();
+      await env.DB.prepare('INSERT INTO client_projects(id,client_id,name,code,service_type,status,brief,budget,manager,start_date,due_date,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,clientId,name,clean(b.code,60),clean(b.service_type,80),clean(b.status||'active',30),clean(b.brief,5000),clean(b.budget,120),clean(b.manager,160),clean(b.start_date,40)||null,clean(b.due_date,40)||null,now,now).run();
+      return j({ok:true,id},201);
+    }
+  }
+  const wpo=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/project\/([^/]+)$/);
+  if(wpo && (request.method==='PATCH'||request.method==='DELETE')){
+    const clientId=wpo[1],projectId=wpo[2];
+    if(!(await env.DB.prepare('SELECT id FROM client_projects WHERE id=? AND client_id=?').bind(projectId,clientId).first()))return j({ok:false,error:'Proje bulunamadı'},404);
+    if(request.method==='DELETE'){await env.DB.prepare("UPDATE client_projects SET status='archived',updated_at=? WHERE id=? AND client_id=?").bind(new Date().toISOString(),projectId,clientId).run();return j({ok:true,id:projectId});}
+    const b=await request.json().catch(()=>({})),fields=[],vals=[],map={name:240,code:60,service_type:80,status:30,brief:5000,budget:120,manager:160,start_date:40,due_date:40};
+    for(const[k,n]of Object.entries(map))if(k in b){fields.push(k+'=?');vals.push(clean(b[k],n)||null);}
+    if(!fields.length)return j({ok:false,error:'Değişiklik yok'},400);
+    fields.push('updated_at=?');vals.push(new Date().toISOString(),projectId,clientId);
+    await env.DB.prepare('UPDATE client_projects SET '+fields.join(',')+' WHERE id=? AND client_id=?').bind(...vals).run();
+    return j({ok:true,id:projectId});
+  }
+  const wpub=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/publications$/);
+  if(wpub && request.method==='GET'){
+    const clientId=wpub[1];
+    if(!(await requireWorkspace(clientId)))return j({ok:false,error:'Müşteri çalışma alanı bulunamadı'},404);
+    const q=await env.DB.prepare('SELECT p.*,c.title content_title,pr.name project_name FROM client_publications p JOIN client_content c ON c.id=p.content_id LEFT JOIN client_projects pr ON pr.id=p.project_id WHERE p.client_id=? ORDER BY COALESCE(p.scheduled_at,p.updated_at) DESC LIMIT 200').bind(clientId).all();
+    return j({ok:true,items:q.results||[]});
+  }
+
+  const wrep=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/report$/);
+  if(wrep && request.method==='GET'){
+    const clientId=wrep[1];
+    if(!(await requireWorkspace(clientId)))return j({ok:false,error:'Müşteri çalışma alanı bulunamadı'},404);
+    const projectId=clean(url.searchParams.get('project_id'),120);
+    const cQ=projectId?env.DB.prepare('SELECT COUNT(*) total FROM client_content WHERE client_id=? AND project_id=?').bind(clientId,projectId):env.DB.prepare('SELECT COUNT(*) total FROM client_content WHERE client_id=?').bind(clientId);
+    const aQ=projectId?env.DB.prepare('SELECT COUNT(*) total FROM client_content WHERE client_id=? AND project_id=? AND client_approved=1').bind(clientId,projectId):env.DB.prepare('SELECT COUNT(*) total FROM client_content WHERE client_id=? AND client_approved=1').bind(clientId);
+    const pubQ=projectId?env.DB.prepare('SELECT COUNT(*) total FROM client_publications WHERE client_id=? AND project_id=?').bind(clientId,projectId):env.DB.prepare('SELECT COUNT(*) total FROM client_publications WHERE client_id=?').bind(clientId);
+    const pQ=projectId?env.DB.prepare("SELECT COUNT(*) total FROM client_content WHERE client_id=? AND project_id=? AND status IN ('published','yayinlandi')").bind(clientId,projectId):env.DB.prepare("SELECT COUNT(*) total FROM client_content WHERE client_id=? AND status IN ('published','yayinlandi')").bind(clientId);
+    const [projects,contents,approved,pubs,published,social]=await Promise.all([
+      env.DB.prepare("SELECT COUNT(*) total FROM client_projects WHERE client_id=? AND status!='archived'").bind(clientId).first(),cQ.first(),aQ.first(),pubQ.first(),pQ.first(),
+      env.DB.prepare('SELECT network,COUNT(*) total FROM client_social_accounts WHERE client_id=? AND active=1 GROUP BY network').bind(clientId).all()
+    ]);
+    const socialItems=social.results||[]; const metrics={projects:Number(projects?.total||0),contents:Number(contents?.total||0),approved:Number(approved?.total||0),publications:Number(pubs?.total||0),published:Number(published?.total||0),social_accounts:socialItems};
+    return j({ok:true,scope:projectId?'project':'client',metrics,summary:'Proje: '+metrics.projects+' · İçerik: '+metrics.contents+' · Onaylı: '+metrics.approved+' · Yayın: '+metrics.published+' · Sosyal ağ: '+socialItems.reduce((n,x)=>n+Number(x.total||0),0),generated_at:new Date().toISOString()});
+  }
   const wc=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/content$/);
   if(wc){const clientId=wc[1];if(!(await requireWorkspace(clientId)))return j({ok:false,error:'Müşteri çalışma alanı bulunamadı'},404);if(request.method==='GET'){const q=await env.DB.prepare('SELECT * FROM client_content WHERE client_id=? ORDER BY updated_at DESC LIMIT 200').bind(clientId).all();return j({ok:true,items:q.results||[]});}
     if(request.method==='POST'){const b=await request.json().catch(()=>({}));const id=crypto.randomUUID(),now=new Date().toISOString();await env.DB.prepare('INSERT INTO client_content(id,client_id,title,content_type,engine,brief,body,media_key,preview_json,status,client_approved,published_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,clientId,clean(b.title,240),clean(b.content_type||'social',40),clean(b.engine||'btmedya',40),clean(b.brief,3000),clean(b.body,20000),clean(b.media_key,500),JSON.stringify(b.preview||{}),'draft',0,null,now,now).run();return j({ok:true,id},201);}
@@ -288,6 +340,15 @@ async function clientHubApi(request,env,url){
     return j({ok:true,decision,status,message:decision==='approved'?'İçerik müşteri tarafından onaylandı.':decision==='revision'?'Revizyon talebi kaydedildi.':'İçerik reddedildi.'});
   }
 
+  const cp=url.pathname.match(/^\/api\/client-hub\/content\/([^/]+)\/project$/);
+  if(cp && request.method==='POST'){
+    const contentId=cp[1],owner=await requireContent(contentId);
+    if(!owner)return j({ok:false,error:'İçerik bulunamadı'},404);
+    const b=await request.json().catch(()=>({})),projectId=clean(b.project_id,120);
+    if(projectId && !(await env.DB.prepare('SELECT id FROM client_projects WHERE id=? AND client_id=?').bind(projectId,owner.client_id).first()))return j({ok:false,error:'Proje bu müşteri çalışma alanına ait değil'},400);
+    await env.DB.prepare('UPDATE client_content SET project_id=?,updated_at=? WHERE id=? AND client_id=?').bind(projectId||null,new Date().toISOString(),contentId,owner.client_id).run();
+    return j({ok:true,id:contentId,project_id:projectId||null});
+  }
   const cm=url.pathname.match(/^\/api\/client-hub\/content\/([^/]+)$/);
   if(cm&&request.method==='PATCH'){const id=cm[1];const owner=await requireContent(id);if(!owner)return j({ok:false,error:'İçerik bulunamadı'},404);const b=await request.json().catch(()=>({}));const fields=[],vals=[];for(const k of ['title','content_type','engine','brief','body','media_key','status'])if(k in b){fields.push(k+'=?');vals.push(clean(b[k],k==='body'?20000:k==='brief'?3000:500));}if('preview' in b){fields.push('preview_json=?');vals.push(JSON.stringify(b.preview||{}));}if('client_approved' in b){fields.push('client_approved=?');vals.push(b.client_approved?1:0);}if('published_at' in b){fields.push('published_at=?');vals.push(b.published_at||null);}if(!fields.length)return j({ok:false,error:'Değişiklik yok'},400);fields.push('updated_at=?');vals.push(new Date().toISOString(),id);await env.DB.prepare('UPDATE client_content SET '+fields.join(',')+' WHERE id=?').bind(...vals).run();return j({ok:true,id});}
   const cr=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/reference$/);
