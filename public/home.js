@@ -812,6 +812,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
   const label=root.querySelector('[data-cinematic-label]');
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const mobile=()=>window.innerWidth<=720;
+  const approvedHeroUrl=url=>! /\/giris-ai(?:-genis)?\.(?:mp4|webm)$/i.test(String(url||'').split('?')[0]);
   /* Kompakt mod: sahne CSS'te sabitlenmiyorsa (mobil, cinematic-overrides.css)
      kaydirma ilerlemesi sahne secemez; kapsayici tek ekran oldugu icin hafif
      bir kaydirma bile son sahneye atlatirdi. Bu modda sahneler zamanla doner.
@@ -846,6 +847,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       // yeni giris filminin parcasidir ve onu gecersiz kilmasin; panelden
       // baska bir video atanirsa o yine onceliklidir.
       if(tekFilm && ESKI_AI_FILMI.test(String(a.url||'').split('?')[0])) return;
+      if(i===0 && !approvedHeroUrl(a.url)) return;
       s.kaynak=a.gercek?'GERÇEK ÇEKİM':'AI ÜRETİMİ';
       const el=videos[i] && videos[i].querySelector('video'); if(!el) return;
       el.dataset.src=a.url; delete el.dataset.mobile;

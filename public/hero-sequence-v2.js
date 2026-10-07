@@ -27,9 +27,10 @@
      varsayılan AI ÜRETİMİ). Panel ataması yoksa sayfanın varsayılan filmi
      oynar; o arşiv kurgusu medya-ozel.json gercek listesindedir. */
   const ARSIV_FILMI=/\/giris-filmi(-genis)?(-hq)?\.(mp4|webm)$/;
+  const APPROVED_HERO=url=>! /\/giris-ai(?:-genis)?\.(?:mp4|webm)$/i.test(String(url||'').split('?')[0]);
   Promise.resolve(window.btYuvalar).then(y=>{
     // Eski AI filmine (hero-story) yapılmış panel ataması tek filmde yok sayılır (home.js ile aynı kural).
-    const a0=y&&y['hero-video'], a=a0&&!(root.hasAttribute('data-tek-film')&&/\/(hero-story(-mobile)?|giris-ai(-genis)?)\.mp4$/.test(String(a0.url||'').split('?')[0]))?a0:null, atanmis=a&&a.tur==='video'&&a.url;
+    const a0=y&&y['hero-video'], a=a0&&APPROVED_HERO(a0.url)&&!(root.hasAttribute('data-tek-film')&&/\/(hero-story(-mobile)?|giris-ai(-genis)?)\.mp4$/.test(String(a0.url||'').split('?')[0]))?a0:null, atanmis=a&&a.tur==='video'&&a.url;
     const url=String(atanmis?a.url:(film.dataset.src||'')).split('?')[0];
     const gercek=atanmis?a.gercek===true:ARSIV_FILMI.test(url);
     intro.querySelector('.bt-hero-intro-kicker').textContent='BTMEDYA / GİRİŞ FİLMİ · '+(gercek?'GERÇEK ÇEKİM':'AI ÜRETİMİ');
