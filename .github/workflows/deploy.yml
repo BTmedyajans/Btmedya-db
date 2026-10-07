@@ -118,6 +118,9 @@ jobs:
           grep -q 'prefers-reduced-motion' public/mobile-fixes.css
           grep -q 'BTMEDYA Yönetim Merkezi' public/admin/index.html
           grep -q '/admin/agency-os/' public/admin/index.html
+          test -s public/admin/site-os/index.html
+          grep -q '/admin/site-os/' public/admin/index.html
+          grep -q 'href="/admin/"' public/index.html
           grep -q 'btmedya-core' src/worker.js
           grep -q 'site-os.js' src/worker.js
           grep -q '/api/admin/core' public/admin/agency-os/agency-os.js
