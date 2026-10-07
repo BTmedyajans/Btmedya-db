@@ -209,7 +209,7 @@ jobs:
           grep -q '/admin/giris/?source=pwa' public/admin/manifest.webmanifest
           grep -q 'HABER' public/admin/admin-menu.js
           grep -q 'SOSYAL & DİJİTAL' public/admin/admin-menu.js
-          grep -q 'TANITIM' public/admin/admin-menu.js
+          grep -q 'MARKA & PRODÜKSİYON' public/admin/admin-menu.js
           ! grep -q '<nav class="admin-menu"' public/admin/agency-os/index.html
           test -s public/admin/mobile-admin.css
           test ! -e .github/workflows/media-smoke.yml
