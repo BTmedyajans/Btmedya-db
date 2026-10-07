@@ -76,7 +76,7 @@
   // gerçek arşiv çekimidir (medya-ozel.json); panelden başka film atanırsa
   // AGENTS.md gereği varsayılan etiket AI üretimidir.
   const notYaz=()=>{ const u=String(film.currentSrc||film.dataset.src||'').split('?')[0];
-    katman.querySelector('.fs-not').textContent=/\/giris-filmi(-genis)?\.(mp4|webm)$/.test(u)?'Film, BTMEDYA’nın gerçek çekim arşivinden kurgulanmıştır.':'Film, BTMEDYA gerçek saha arşivi ile AI üretimi planlardan kurgulanmıştır.'; };
+    katman.querySelector('.fs-not').textContent=/\/giris-filmi(-genis)?\.(mp4|webm)$/.test(u)?'Film, BTMEDYA arşivi ve AI showreel görüntülerinin sinematik kurgusudur.':'Film, BTMEDYA gerçek saha arşivi ile AI üretimi planlardan kurgulanmıştır.'; };
   notYaz(); film.addEventListener('loadedmetadata',notYaz);
 
   // Dallanma: bir anda tek ana başlık ve onun altında tek alt başlık açıktır.
