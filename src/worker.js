@@ -1452,7 +1452,7 @@ async function mediaApi(request, env){
                url:m.published?medyaAdresi(m.key):null};
       }else if(vars){
         kaynak='site';
-        dosya={id:null,ad:(vk&&vk.baslik)||vars.split('/').pop(),yapayZeka:!(vk&&vk.gercek),url:/^https?:\\/\\//.test(vars)?vars:'/assets/'+vars};
+        dosya={id:null,ad:(vk&&vk.baslik)||vars.split('/').pop(),yapayZeka:!(vk&&vk.gercek),url:/^https?:\/\//.test(vars)?vars:'/assets/'+vars};
       }
       return {slug,bolum,tur,oran,onerilenOlcu:olcu,not,dolu:!!dosya,kaynak,dosya};
     });
