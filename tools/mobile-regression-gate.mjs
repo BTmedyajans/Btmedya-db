@@ -95,7 +95,7 @@ else ok("mobile polish stylesheet is loaded last by homepage UI bootstrap");
 /* V6 mobile intro contract. */
 const motionCss = read("public/mobile-motion.css");
 if (index.includes("data-bt-home-hero-v3")) {
-  const vids = [...index.matchAll(/<video\b[^>]*>/g)].map(m=>m[0]);
+  const vids = [...index.matchAll(/<video\b[^>]*>/g)].map(m => m[0]);
   if (vids.length !== 2 || vids.some(v => !/bt-home-hero-layer/.test(v) || !/muted/.test(v) || !/playsinline/.test(v)))
     fail("new archive hero must expose two muted inline video layers");
   else ok("new archive hero has two muted inline video layers");
@@ -103,21 +103,26 @@ if (index.includes("data-bt-home-hero-v3")) {
     fail("new archive hero viewport sizing contract missing");
   else ok("new archive hero uses full viewport sizing");
 } else {
-display:none!important\}/.test(motionCss))
-  fail("desktop scroll stage is not hidden on mobile");
-else ok("desktop scroll stage hidden on mobile");
-if (!/\.play\(/.test(motion) || !/IntersectionObserver/.test(motion) || !/visibilitychange/.test(motion))
-  fail("mobile intro film does not autoplay / pause off-screen");
-else ok("mobile intro film autoplays, pauses off-screen and in background tabs");
-if (/filter:(?!none)[a-z]/.test((motionCss.match(/\.mfilm-video\{[^}]*\}/)||[""])[0]) || !/object-fit:contain/.test(motionCss))
-  fail("mobile intro film is cropped or filtered (blur/scale)");
-else ok("mobile intro film shown uncropped and unfiltered");
-const filmEtiket = (index.match(/data-mfilm-etiket>([^<]*)</)||[])[1]||"";
-const filmKaynak = ((index.match(/class="mfilm-video"[^>]*data-src="\/assets\/([^"?]+)/)||[])[1])||"";
-if (/^GERÇEK ÇEKİM/.test(filmEtiket) !== gercekler.has(filmKaynak))
-  fail(`mobile intro label "${filmEtiket}" does not match catalog for ${filmKaynak}`);
-else ok("mobile intro label matches catalog provenance");
-
+  if (!/<div class="mfilm\b[^"]*" data-mfilm\b[^>]*>[\s\S]*?<video class="mfilm-video"[^>]*\bmuted\b[^>]*\bplaysinline\b/.test(index))
+    fail("mobile intro film block (muted, inline video) missing from homepage");
+  else ok("mobile intro film block present (muted inline video)");
+  if (/root\.style\.height\s*=/.test(motion) || /position:sticky/.test(motionCss))
+    fail("mobile intro is scroll-pinned again (root height / sticky)");
+  else ok("mobile intro is not scroll-pinned");
+  if (!/section#hero\.cinematic-hero>\.cinematic-sticky\{display:none!important\}/.test(motionCss))
+    fail("desktop scroll stage is not hidden on mobile");
+  else ok("desktop scroll stage hidden on mobile");
+  if (!/\.play\(/.test(motion) || !/IntersectionObserver/.test(motion) || !/visibilitychange/.test(motion))
+    fail("mobile intro film does not autoplay / pause off-screen");
+  else ok("mobile intro film autoplays, pauses off-screen and in background tabs");
+  if (/filter:(?!none)[a-z]/.test((motionCss.match(/\.mfilm-video\{[^}]*\}/) || [""])[0]) || !/object-fit:contain/.test(motionCss))
+    fail("mobile intro film is cropped or filtered (blur/scale)");
+  else ok("mobile intro film shown uncropped and unfiltered");
+  const filmEtiket = (index.match(/data-mfilm-etiket>([^<]*)</) || [])[1] || "";
+  const filmKaynak = ((index.match(/class="mfilm-video"[^>]*data-src="\/assets\/([^"?]+)/) || [])[1]) || "";
+  if (/^GERÇEK ÇEKİM/.test(filmEtiket) !== gercekler.has(filmKaynak))
+    fail(`mobile intro label "${filmEtiket}" does not match catalog for ${filmKaynak}`);
+  else ok("mobile intro label matches catalog provenance");
 }
 if (!/#news \.news-card:not\(\.featured\)[^{]*\{[^}]*grid-template-columns:104px/.test(motionCss))
   fail("homepage news list is not compact on mobile");
