@@ -1,0 +1,10 @@
+/* BTMEDYA 2026-10-08 · navigation simplification
+   The hamburger taxonomy is the primary navigation. Keep the homepage
+   focused on the hero, live status and content; remove repeated path menus. */
+.hero-paths-static{display:none!important}
+.vitrine-status-links[aria-label="Üç ana yol"]{display:none!important}
+.mobile-quick-nav{display:none!important}
+@media(max-width:720px){
+  .topbar-right .top-cta[href="/iletisim/"]{display:none}
+  .hamburger{min-height:42px}
+}
