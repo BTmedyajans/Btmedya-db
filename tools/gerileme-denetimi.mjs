@@ -474,13 +474,14 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
        sonucuna göre seçer. */
 {
   const ana = readFileSync('public/index.html', 'utf8');
-  if (ana.includes('data-bt-home-hero-v3')) return;
+  if (!ana.includes('data-bt-home-hero-v3')) {
   const vid = (ana.match(/<video class="mfilm-video"[^>]*>/) || [''])[0];
   const webm = (vid.match(/data-webm="([^"]+)"/) || [])[1];
   if (!webm) bulgular.push('public/index.html .mfilm-video data-webm taşımıyor; H.264 çözemeyen tarayıcıda giriş filmi açılmaz.');
   else if (!existsSync(join('public', webm.split('?')[0]))) bulgular.push(`public/index.html .mfilm-video data-webm dosyası yok: ${webm}`);
   const mm = readFileSync('public/mobile-motion.js', 'utf8');
   if (!/canPlayType\(\s*['"]video\/mp4[^)]*\)/.test(mm) || !mm.includes('dataset.webm')) bulgular.push('public/mobile-motion.js giriş filminde MP4 desteğini (canPlayType) sorup data-webm yedeğine düşmüyor.');
+  }
 }
 
 /* 18) Anasayfada yalniz giris filmi oynar. Yeni BTMEDYA hero V3 iki
@@ -506,7 +507,6 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   if (!arsiv || /\.play\(|<video\b/.test(arsiv)) bulgular.push('public/home.js arsiv kartlarindaki videolari otomatik oynatiyor; anasayfada yalniz giris filmi oynar.');
 }
 
-/usr/bin/env node
 /* =====================================================================
  * GERILEME DENETIMI
  *
