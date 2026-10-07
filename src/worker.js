@@ -1452,7 +1452,7 @@ async function mediaApi(request, env){
                url:m.published?medyaAdresi(m.key):null};
       }else if(vars){
         kaynak='site';
-        dosya={id:null,ad:(vk&&vk.baslik)||vars.split('/').pop(),yapayZeka:!(vk&&vk.gercek),url:'/assets/'+vars};
+        dosya={id:null,ad:(vk&&vk.baslik)||vars.split('/').pop(),yapayZeka:!(vk&&vk.gercek),url:/^https?:\\/\\//.test(vars)?vars:'/assets/'+vars};
       }
       return {slug,bolum,tur,oran,onerilenOlcu:olcu,not,dolu:!!dosya,kaynak,dosya};
     });
@@ -1684,8 +1684,8 @@ const SITE_SLOTS=[
    tools/gerileme-denetimi.mjs bunu denetler. Kaynak (gercek/AI) burada
    yazmaz, medya-listesi.json'daki gercek alanindan turer. */
 const SITE_SLOT_VARSAYILAN={
-  'hero-video':     'media/web/giris-filmi-genis.mp4',
-  'hero-poster':    'media/web/giris-filmi-genis-poster.jpg',
+  'hero-video':     'https://cdn.jsdelivr.net/gh/BTmedyajans/Btmedya-db@f46098aa43e8fdc27970d1e4a9220312d0ae0814/tools/giris-kaynak/saha-gece.mp4',
+  'hero-poster':    'media/portfoy/buse-tuncay-saha-roportaj.webp',
   'portre-buse':    'media/portfoy/buse-tuncay-portre-01.webp',
   'og-image':       'paylasim/btmedya-og-v2.jpg',
 };
