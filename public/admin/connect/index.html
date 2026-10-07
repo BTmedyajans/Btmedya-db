@@ -1,13 +1,28 @@
 <!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BTMEDYA Connect</title><style>
 :root{--bg:#08090c;--panel:#11131a;--line:#242936;--text:#f4f6f8;--muted:#9ca3af;--ok:#57d38c;--warn:#f2bd5c;--bad:#ef767a;--accent:#79a9ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#161b26,#08090c 52%);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}.wrap{max-width:1100px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:18px}.ey{font-size:11px;letter-spacing:.14em;color:var(--muted)}h1{margin:3px 0;font-size:30px}.sub{color:var(--muted);max-width:720px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.card{background:rgba(17,19,26,.94);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 10px 30px #0004}.wide{grid-column:1/-1}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}.status{font-size:12px;margin-top:8px;color:var(--muted)}.badge{border:1px solid var(--line);border-radius:999px;padding:4px 8px;font-size:11px}.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}button,a.btn{border:1px solid #394252;background:#171b24;color:var(--text);border-radius:10px;padding:9px 12px;cursor:pointer;text-decoration:none;display:inline-flex;gap:7px;align-items:center}button.primary,a.primary{background:#dfe7ff;color:#111827;border-color:#dfe7ff}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}.steps{display:grid;gap:9px;margin-top:10px}.step{padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#0e1117}.step b{display:block}.small{font-size:12px;color:var(--muted)}code{color:#c9d7ff}#refresh{margin-top:10px}.foot{margin-top:14px;color:var(--muted);font-size:12px}@media(max-width:800px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.top{align-items:start;flex-direction:column}}
-</style></head><body><main class="wrap">
+.manual{grid-column:1/-1;border:1px solid #354052;background:linear-gradient(180deg,#111722,#0c0f15);border-radius:16px;padding:16px}.manual h2{margin:4px 0 6px;font-size:20px}.manual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.manual-grid label{display:grid;gap:5px;font-size:11px;color:var(--muted)}.manual-grid input{width:100%;box-sizing:border-box;border:1px solid #303847;border-radius:10px;background:#080b10;color:var(--text);padding:11px}.manual-grid .full{grid-column:1/-1}.manual-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.manual-status{margin-top:10px;padding:9px 11px;border-radius:10px;background:#0b0f15;color:var(--muted);font-size:12px}.manual-status.ok{color:var(--ok)}.manual-status.bad{color:var(--bad)}.manual-note{font-size:11px;color:var(--muted);margin-top:8px}@media(max-width:800px){.manual-grid{grid-template-columns:1fr}.manual-grid .full{grid-column:auto}}</style></head><body><main class="wrap">
 <div class="top"><div><div class="ey">BTMEDYA · PLATFORM CONTROL</div><h1>Connect Merkezi</h1><div class="sub">Teknik kurulumu BTMEDYA yönetir. Bu ekran yalnızca platformun gerçekten kullanıcı onayı istediği adımları sana bırakır.</div></div><button id="refresh">↻ Yenile</button></div>
 <section class="grid">
 <div class="card"><div class="row"><b>Meta Direct</b><span id="metaBadge" class="badge">Kontrol ediliyor</span></div><div id="metaText" class="status">Facebook Page + Instagram Professional</div><div class="actions"><button id="meta">Meta hesabını bağla</button></div></div>
 <div class="card"><div class="row"><b>TikTok</b><span id="ttBadge" class="badge">Kontrol ediliyor</span></div><div id="ttText" class="status">BTMEDYA native Content Posting API</div><div class="actions"><button id="tt">TikTok ile bağla</button></div></div>
 <div class="card"><div class="row"><b>YouTube</b><span id="ytBadge" class="badge">Kontrol ediliyor</span></div><div id="ytText" class="status">BTMEDYA native YouTube Data API</div><div class="actions"><button id="yt">YouTube ile bağla</button></div></div><div class="card"><div class="row"><b>X</b><span id="xBadge" class="badge">Kontrol ediliyor</span></div><div id="xText" class="status">BTMEDYA native X API</div><div class="actions"><button id="x">X ile bağla</button></div></div><div class="card"><div class="row"><b>WhatsApp</b><span id="waBadge" class="badge">Kontrol ediliyor</span></div><div id="waText" class="status">Meta WhatsApp Cloud API</div><div class="actions"><a class="btn" href="/admin/connect/#whatsapp">Yapılandırma durumu</a></div></div>
 <div class="card"><div class="row"><b>Metricool</b><span id="mkBadge" class="badge">Kontrol ediliyor</span></div><div id="mkText" class="status">Yalnızca fallback/legacy dağıtım için tutulur.</div><div class="actions"><a class="btn" href="/admin/social-os/">Social OS'a git</a></div></div>
-<div class="card wide"><div class="ey">SENİN YAPMAN GEREKENLER</div><div id="steps" class="steps"><div class="step">Durum okunuyor…</div></div></div>
+<section class="manual">
+<div class="ey">MANUEL PLATFORM YAPILANDIRMASI</div>
+<h2>Cloudflare API bağlantısı</h2>
+<div class="sub">Cloudflare hesabı, API adresi ve token bilgilerini panelden manuel girebilirsin. Token doğrulanır; düz metin olarak geri gösterilmez ve şifreli saklanır.</div>
+<div class="manual-grid">
+<label>Etiket<input id="cfLabel" value="BTMEDYA Cloudflare" autocomplete="off"></label>
+<label>API adresi<input id="cfBase" value="https://api.cloudflare.com/client/v4" autocomplete="url"></label>
+<label>Account ID<input id="cfAccount" autocomplete="off" placeholder="Cloudflare Account ID"></label>
+<label>Zone ID<input id="cfZone" autocomplete="off" placeholder="İsteğe bağlı"></label>
+<label>Worker / kaynak adı<input id="cfResource" value="btmedya-db" autocomplete="off"></label>
+<label>API Token<input id="cfToken" type="password" autocomplete="new-password" placeholder="Tokenı buraya yapıştır"></label>
+</div>
+<div class="manual-actions"><button class="primary" id="cfSave" type="button">Doğrula ve kaydet</button><button id="cfDelete" type="button">Kayıtlı bağlantıyı kaldır</button></div>
+<div id="cfStatus" class="manual-status">Durum okunuyor…</div>
+<div class="manual-note">Güvenlik: Token hiçbir API yanıtında gösterilmez. Cloudflare tarafında yalnız gerekli izinlere sahip, mümkünse hesap/Worker kapsamı daraltılmış bir API token kullan.</div>
+</section><div class="card wide"><div class="ey">SENİN YAPMAN GEREKENLER</div><div id="steps" class="steps"><div class="step">Durum okunuyor…</div></div></div>
 </section>
 <div class="foot">Token, secret ve şifreler bu ekranda gösterilmez. OAuth sonrasında tokenlar sunucu tarafında şifreli tutulur.</div>
 </main><script>
@@ -35,5 +50,48 @@ $('#meta').onclick=()=>location.href='/api/social/direct/meta/start?return_to=%2
 $('#tt').onclick=()=>location.href='/api/social/direct/tiktok/start?workspace_type=company&workspace_id=btmedya';
 $('#yt').onclick=()=>location.href='/api/social/direct/youtube/start?workspace_type=company&workspace_id=btmedya';
 $('#x').onclick=()=>location.href='/api/social/direct/x/start?workspace_type=company&workspace_id=btmedya';
-$('#refresh').onclick=load;const q=new URLSearchParams(location.search);if(q.get('tiktok')==='ok'||q.get('youtube')==='ok'||q.get('x')==='ok')document.querySelector('.sub').textContent=(q.get('tiktok')==='ok'?'TikTok':q.get('youtube')==='ok'?'YouTube':'X')+' bağlantısı tamamlandı. Hesap çalışma alanına kaydedildi.';load().catch(e=>$('#steps').innerHTML='<div class="step bad">'+esc(e.message)+'</div>');
+
+// Manual Cloudflare configuration
+async function loadManualCloudflare(){
+  const r=await api('/api/admin/manual-integrations');
+  const d=r.data||{};
+  const x=d.item;
+  if(x){
+    $('#cfLabel').value=x.label||'BTMEDYA Cloudflare';
+    $('#cfBase').value=x.api_base_url||'https://api.cloudflare.com/client/v4';
+    $('#cfAccount').value=x.account_id||'';
+    $('#cfZone').value=x.zone_id||'';
+    $('#cfResource').value=x.resource_name||'btmedya-db';
+    $('#cfToken').value='';
+    $('#cfStatus').textContent='✓ Bağlı ve doğrulanmış · token kayıtlı';
+    $('#cfStatus').className='manual-status ok';
+  }else{
+    $('#cfStatus').textContent='Henüz manuel Cloudflare bağlantısı yok.';
+    $('#cfStatus').className='manual-status';
+  }
+}
+$('#cfSave').onclick=async()=>{
+  const b=$('#cfSave');b.disabled=true;b.textContent='Doğrulanıyor…';
+  try{
+    const token=$('#cfToken').value.trim();
+    if(!token)throw new Error('Yeni token girmelisin.');
+    const r=await api('/api/admin/manual-integrations',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
+      label:$('#cfLabel').value.trim(),api_base_url:$('#cfBase').value.trim(),account_id:$('#cfAccount').value.trim(),
+      zone_id:$('#cfZone').value.trim(),resource_name:$('#cfResource').value.trim(),api_token:token
+    })});
+    if(!r.ok)throw new Error(r.data?.error||'Cloudflare bağlantısı kaydedilemedi.');
+    $('#cfToken').value='';
+    $('#cfStatus').textContent='✓ Token doğrulandı ve güvenli şekilde kaydedildi.';
+    $('#cfStatus').className='manual-status ok';
+    await load();
+  }catch(e){$('#cfStatus').textContent='Hata: '+e.message;$('#cfStatus').className='manual-status bad'}
+  finally{b.disabled=false;b.textContent='Doğrula ve kaydet'}
+};
+$('#cfDelete').onclick=async()=>{
+  if(!confirm('Kayıtlı Cloudflare bağlantısı kaldırılsın mı?'))return;
+  const r=await api('/api/admin/manual-integrations',{method:'DELETE'});
+  if(r.ok){$('#cfToken').value='';$('#cfStatus').textContent='Manuel bağlantı kaldırıldı.';$('#cfStatus').className='manual-status';}
+};
+loadManualCloudflare().catch(()=>{});
+\n$('#refresh').onclick=load;const q=new URLSearchParams(location.search);if(q.get('tiktok')==='ok'||q.get('youtube')==='ok'||q.get('x')==='ok')document.querySelector('.sub').textContent=(q.get('tiktok')==='ok'?'TikTok':q.get('youtube')==='ok'?'YouTube':'X')+' bağlantısı tamamlandı. Hesap çalışma alanına kaydedildi.';load().catch(e=>$('#steps').innerHTML='<div class="step bad">'+esc(e.message)+'</div>');
 </script></body></html>
