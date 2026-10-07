@@ -13,7 +13,23 @@
 <link rel="stylesheet" href="./agency-os.css?v=20261007-2">
 <link rel="stylesheet" href="../mobile-admin.css">
 <link rel="stylesheet" href="./agency-social-v1.css?v=20261002-1">
-<link rel="stylesheet" href="/admin/admin-menu.css?v=20261007-tax"><script src="/admin/admin-menu.js?v=20261007-3" defer></script></head>
+<link rel="stylesheet" href="/admin/admin-menu.css?v=20261007-tax"><script src="/admin/admin-menu.js?v=20261007-3" defer></script><style>
+.autonomous-command-center{margin-top:18px;padding:18px;border:1px solid #29332f;border-radius:18px;background:linear-gradient(180deg,rgba(16,22,20,.96),rgba(8,12,12,.96))}
+.autonomous-command-center .mut{max-width:980px}
+.autonomous-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-top:14px}
+.auto-action{appearance:none;border:1px solid #303b36;border-radius:13px;background:#0a0f0f;color:#f4f7f5;text-align:left;padding:14px;cursor:pointer;min-height:128px;display:flex;flex-direction:column;gap:7px}
+.auto-action:hover,.auto-action:focus-visible{border-color:#91a95d;outline:none;transform:translateY(-1px)}
+.auto-action.primary{background:#d9ff4f;color:#081008;border-color:#d9ff4f}
+.auto-action small{font:800 10px ui-monospace,monospace;opacity:.75}
+.auto-action b{font-size:14px;line-height:1.25}
+.auto-action span{font-size:11px;line-height:1.35;opacity:.72}
+.auto-action:disabled{opacity:.55;cursor:wait;transform:none}
+.autonomous-status{display:flex;gap:10px;align-items:center;margin-top:10px;padding:10px 12px;border-radius:10px;background:#0a0f0f;border:1px solid #26302c;font-size:12px}
+.autonomous-status.ok{border-color:#365c43}.autonomous-status.warn{border-color:#725c2c}
+.autonomous-status b{color:#d9ff4f}
+@media(max-width:1050px){.autonomous-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.autonomous-grid{grid-template-columns:1fr}.autonomous-status{align-items:flex-start;flex-direction:column;gap:2px}}
+</style></head>
 <style>
 .admin-category-system{margin-top:18px;padding:16px;border:1px solid #28322f;border-radius:18px;background:rgba(10,14,14,.82)}
 .category-system-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
@@ -95,6 +111,34 @@ let saved='haber';try{saved=sessionStorage.getItem('btmedya-admin-category')||'h
     <b>BTMEDYA’yı telefona kur</b>
     <span>Bu yönetim merkezini uygulama gibi açmak için ana ekrana ekleyin.</span>
     <button class="btn" id="pwaInstallButton" type="button">Uygulamayı kur</button>
+  </section>
+
+  <section class="autonomous-command-center" aria-labelledby="autonomousTitle">
+    <div class="panel-head">
+      <div><div class="eyebrow">00.2 · OTONOM AJANS MOTORU</div><h2 id="autonomousTitle">BTMEDYA kendi işini takip etsin</h2></div>
+      <span id="automationModePill" class="pill">OTONOM MOD</span>
+    </div>
+    <p class="mut">Radar, AI içerik üretimi, kalite kapıları, sosyal taslak, yayın kuyruğu, site sağlığı ve süpervizör aynı Worker otomasyon zincirinden çalışır. Buradaki komutlar güvenli allowlist üzerinden çalıştırılır ve audit kaydı oluşturur.</p>
+    <div class="autonomous-grid">
+      <button class="auto-action primary" data-auto-command="all">
+        <small>01 · SÜPER VİZÖR</small><b>Tüm güvenli otomasyonları çalıştır</b><span>Radar → içerik → sosyal → sağlık → denetim</span>
+      </button>
+      <button class="auto-action" data-auto-command="news-intelligence">
+        <small>02 · RADAR</small><b>Trendleri tara</b><span>Balıkesir + Türkiye + kaynak sinyalleri</span>
+      </button>
+      <button class="auto-action" data-auto-command="sabah-preview">
+        <small>03 · AI EDİTÖR</small><b>Sabah Masası'nı çalıştır</b><span>Kaynak → doğrulama → haber taslağı/yayın</span>
+      </button>
+      <button class="auto-action" data-auto-command="social-drafts">
+        <small>04 · SOSYAL</small><b>Sosyal kuyruğu hazırla</b><span>Yeni haberleri platform formatlarına ayır</span>
+      </button>
+      <button class="auto-action" data-auto-command="automation-heartbeat">
+        <small>05 · SAĞLIK</small><b>Otomasyon kalbini kontrol et</b><span>Kuyruk, gecikme ve Worker heartbeat</span>
+      </button>
+    </div>
+    <div id="autonomousStatus" class="autonomous-status" role="status" aria-live="polite">
+      <b>Hazır.</b><span>Otomasyonlar zamanlanmış şekilde çalışıyor.</span>
+    </div>
   </section>
 
   <section class="quick-actions" aria-label="Hızlı işlemler">
