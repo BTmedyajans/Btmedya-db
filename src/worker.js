@@ -15,6 +15,7 @@ import { siteOsApi, runSiteOsChecks } from "./site-os.js";
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
 import { processDirectSocialQueue, directSocialApi } from "./direct-social.js";
+import { tiktokApi } from "./tiktok-direct.js";
 import { WorkerEntrypoint } from "cloudflare:workers";
 import { aiGorunurluk, ICERIK_SINYALI } from "./ai-gorunurluk.js";
 import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu, KATEGORILER, kategoriIsle, yanitMetni, jsonAyikla } from "./sabah-masasi.js";
@@ -2152,6 +2153,7 @@ export default { async scheduled(controller, env, ctx){
     if(aiCommand) return audit(aiCommand);
     const command = await adminCommandApi(request, env, url);
     if(command) return audit(command);
+    const rTikTok = await tiktokApi(request, env); if(rTikTok) return rTikTok;
     const rDirectSocial = await directSocialApi(request, env, url);
     if(rDirectSocial) return rDirectSocial;
     const rSales = await salesApi(request, env, url, ctx);
