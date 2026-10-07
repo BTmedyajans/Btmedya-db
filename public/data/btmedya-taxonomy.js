@@ -20,8 +20,24 @@ window.BTMEDYA_TAXONOMY = {
           adminLabel: "EDİTORYAL",
           items: [
             {key:"balikesir",label:"Balıkesir",short:"Şehir ve ilçe gündemi",href:"/haberler/balikesir/",type:"news",automation:["news-intelligence","sabah-masasi","seo-aeo"]},
+            {key:"marmara",label:"Marmara",short:"Bölgesel gelişmeler",href:"/haberler/marmara/",type:"news",automation:["news-intelligence","seo-aeo"]},
             {key:"turkiye",label:"Türkiye",short:"Ulusal gündem",href:"/haberler/turkiye/",type:"news",automation:["news-intelligence","seo-aeo"]},
             {key:"dunya",label:"Dünya",short:"Uluslararası gelişmeler",href:"/haberler/dunya/",type:"news",automation:["news-intelligence","seo-aeo"]}
+          ]
+        },
+        {
+          key: "topic",
+          label: "KONU",
+          adminLabel: "KONU",
+          items: [
+            {key:"gundem",label:"Gündem",short:"Güncel olaylar ve kamu",href:"/haberler/gundem/",type:"news",automation:["news-intelligence","source-desk","seo-aeo"]},
+            {key:"ekonomi",label:"Ekonomi",short:"Para, piyasa ve iş dünyası",href:"/haberler/ekonomi/",type:"news",automation:["news-intelligence","source-desk","seo-aeo"]},
+            {key:"egitim",label:"Eğitim",short:"Okul, üniversite ve sınav",href:"/haberler/egitim/",type:"news",automation:["source-desk","seo-aeo"]},
+            {key:"saglik",label:"Sağlık",short:"Sağlık ve yaşam bilgileri",href:"/haberler/saglik/",type:"news",automation:["source-desk","seo-aeo"]},
+            {key:"spor",label:"Spor",short:"Takımlar, maçlar ve spor",href:"/haberler/spor/",type:"news",automation:["news-intelligence","seo-aeo"]},
+            {key:"kultur-sanat",label:"Kültür · Sanat",short:"Kültür, sanat ve etkinlik",href:"/haberler/kultur/",type:"news",automation:["source-desk","seo-aeo"]},
+            {key:"yasam",label:"Yaşam",short:"Günlük yaşam ve insan hikâyeleri",href:"/haberler/yasam/",type:"news",automation:["merak-radari","seo-aeo"]},
+            {key:"teknoloji-ai",label:"Teknoloji · AI",short:"Dijital dünya ve yapay zekâ",href:"/haberler/teknoloji/",type:"news",automation:["news-intelligence","ai-editor","seo-aeo"]}
           ]
         },
         {
