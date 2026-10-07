@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><title>BTMEDYA Social OS</title>
+<link rel="stylesheet" href="/admin/admin-menu.css?v=20261007-4">
+<script src="/admin/admin-menu.js?v=20261007-4" defer></script>
+<style>
+:root{color-scheme:dark;--bg:#060708;--panel:#101417;--line:#273238;--txt:#f4f7f8;--muted:#91a0a8;--lime:#d9ff3f;--ok:#72e19a;--warn:#ffd166;--bad:#ff7b72}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 85% 0,#15241e 0,#060708 48%);color:var(--txt);font:14px/1.5 Inter,system-ui,sans-serif}
+.wrap{max-width:1500px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.ey{color:var(--lime);font:800 11px ui-monospace,monospace;letter-spacing:.14em}h1{font-size:clamp(36px,6vw,68px);line-height:.95;letter-spacing:-.05em;margin:8px 0}.muted{color:var(--muted)}.btn{border:1px solid var(--line);background:#11171a;color:var(--txt);border-radius:10px;padding:10px 13px;font-weight:800;cursor:pointer}.btn.primary{background:var(--lime);color:#071008;border-color:var(--lime)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.panel{background:rgba(16,20,23,.96);border:1px solid var(--line);border-radius:16px;padding:16px}.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.cardlist{display:grid;gap:8px;margin-top:10px}.card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#0a0e10}.badge{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:3px 8px;font:700 10px ui-monospace,monospace}.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}input,textarea,select{width:100%;background:#080b0d;border:1px solid #263238;color:var(--txt);border-radius:10px;padding:10px;font:inherit}textarea{min-height:130px;resize:vertical}.field{margin-top:8px}.account{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}.account input{width:auto}.mini{font-size:12px;color:var(--muted)}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.status{margin-top:9px;color:var(--muted);min-height:22px}.note{margin-top:10px;padding:10px;border:1px solid #30414a;border-radius:10px;background:#0b1114;color:#b8c5ca;font-size:12px}.danger{border-color:#6b3c3c}.limit{font:800 12px ui-monospace,monospace}@media(max-width:900px){.grid{grid-template-columns:1fr}.top{display:block}.top .btn{width:100%;margin-top:10px}.account{grid-template-columns:auto 1fr}.account .badge{grid-column:2;grid-row:2;justify-self:start}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top">
+<div><div class="ey">BTMEDYA / SOCIAL OS</div><h1>Hesaplarını tek merkezden yönet.</h1><p class="muted">BTMEDYA hesabın ve müşterilerin Facebook Page + Instagram Professional hesaplarını doğrudan bağla. Zorunlu Metricool aboneliği yok.</p></div>
+<a class="btn" href="/admin/">← Yönetim Merkezi</a>
+</header>
+
+<section class="panel">
+<div class="row"><div><div class="ey">01 · HESAP BAĞLANTILARI</div><h2>Çalışma alanı</h2><p class="muted">Önce BTMEDYA veya bir müşteri çalışma alanı seç.</p></div><button class="btn" id="refresh">Yenile</button></div>
+<select id="workspace" class="field"><option value="agency:btmedya">BTMEDYA</option></select>
+<div class="toolbar"><button class="btn primary" id="connect">Meta / Facebook + Instagram bağla</button><a class="btn" href="https://developers.facebook.com/" target="_blank" rel="noopener">Meta Developer</a></div>
+<div id="health" class="note">Bağlantı yapılandırması kontrol ediliyor…</div>
+<div id="accounts" class="cardlist"></div>
+<div class="status" id="s1"></div>
+</section>
+
+<div class="grid">
+<section class="panel"><div class="ey">02 · YAYIN OLUŞTUR</div><h2>Tek seferde birden çok hesap</h2>
+<input id="title" class="field" placeholder="Başlık / içerik adı">
+<textarea id="body" class="field" placeholder="Açıklama / gönderi metni"></textarea>
+<input id="media" class="field" placeholder="Medya anahtarı (ör. reels/video.mp4)">
+<input id="when" class="field" type="datetime-local">
+<div class="toolbar"><button class="btn primary" id="schedule">Planla</button><button class="btn" id="now">Şimdi + 10 dk</button></div>
+<div class="status" id="s2"></div>
+</section>
+
+<section class="panel"><div class="ey">03 · KUYRUK</div><h2>Otomatik yayın durumu</h2><div id="jobs" class="cardlist"></div><div class="note">Planlı işler Cloudflare Cron üzerinden doğrudan Meta'ya teslim edilir. Hesap sayısı için uygulama içi abonelik sınırı yoktur; Meta'nın kendi API/rate-limit ve hesap yetkileri geçerlidir.</div></section>
+</div>
+
+<section class="panel" style="margin-top:12px"><div class="ey">04 · SINIRLAR</div><div class="note danger"><b>Önemli:</b> Facebook kişisel profilini ve normal (consumer) Instagram hesabını resmi API ile otomatik yayınlayamayız. Facebook tarafında Page, Instagram tarafında Professional Business/Creator hesap gerekir.</div><div class="mini" style="margin-top:10px">TikTok ve YouTube doğrudan modülleri ayrı sağlayıcı yetkilendirmeleri gerektirir; mevcut Metricool bağlantısı ayrıca kullanılabilir.</div></section>
+</main>
+<script>
+const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let accounts=[];
+async function api(u,o={}){const r=await fetch(u,{credentials:'same-origin',...o});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}
+function selectedIds(){return [...document.querySelectorAll('#accounts input[data-id]:checked')].map(x=>x.dataset.id)}
+async function workspaces(){const d=await api('/api/client-hub/workspaces');for(const x of d.items||[]){const o=document.createElement('option');o.value='client:'+x.id;o.textContent=x.name;$('#workspace').appendChild(o)}}
+async function load(){const v=$('#workspace').value.split(':');const q='/api/social/direct/accounts?workspace_type='+encodeURIComponent(v[0])+'&workspace_id='+encodeURIComponent(v.slice(1).join(':'));const [a,h,j]=await Promise.all([api(q),api('/api/social/direct/health'),api('/api/social/direct/jobs')]);accounts=a.items||[];$('#health').innerHTML=h.configured?'<span class="ok">Hazır.</span> Meta Direct çekirdeği yapılandırılmış.':'<span class="warn">Meta uygulama sırları henüz eklenmemiş.</span> Önce META_APP_ID, META_APP_SECRET ve SOCIAL_TOKEN_ENCRYPTION_KEY tanımlanmalı.';renderAccounts();renderJobs(j.items||[])}
+function renderAccounts(){const names={facebook:'Facebook Page',instagram:'Instagram Professional'};$('#accounts').innerHTML=accounts.length?accounts.map(a=>'<label class="card account"><input type="checkbox" data-id="'+esc(a.id)+'"><div><b>'+esc(names[a.provider]||a.provider)+' · '+esc(a.account_name)+'</b><div class="mini">@'+esc(String(a.handle||'').replace(/^@/,''))+'</div><div class="mini">'+esc(a.profile_url||'')+'</div></div><span class="badge '+(a.status==='active'?'ok':'bad')+'">'+esc(a.status)+'</span></label>').join(''):'<div class="card">Bu çalışma alanına bağlı hesap yok.</div>'}
+function renderJobs(items){$('#jobs').innerHTML=items.length?items.slice(0,30).map(j=>'<div class="card"><b>'+esc(j.provider)+' · '+esc(j.account_name)+'</b><div class="mini">'+esc(j.title||j.body||'')+'</div><div class="mini">'+esc(new Date(j.scheduled_at).toLocaleString('tr-TR'))+' · '+esc(j.status)+(j.last_error?' · '+esc(j.last_error):'')+'</div></div>').join(''):'<div class="card">Henüz planlı iş yok.</div>'}
+$('#workspace').onchange=load;$('#refresh').onclick=load;
+$('#connect').onclick=()=>{const v=$('#workspace').value.split(':');location.href='/api/social/direct/meta/start?workspace_type='+encodeURIComponent(v[0])+'&workspace_id='+encodeURIComponent(v.slice(1).join(':'))+'&return_to='+encodeURIComponent('/admin/social-os/')};
+$('#schedule').onclick=async()=>{try{const ids=selectedIds();if(!ids.length)throw new Error('En az bir hesap seç.');const when=$('#when').value?new Date($('#when').value).toISOString():new Date(Date.now()+10*60000).toISOString();await api('/api/social/direct/schedule',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({connection_ids:ids,title:$('#title').value,body:$('#body').value,media_key:$('#media').value,scheduled_at:when})});$('#s2').textContent='Yayın kuyruğa alındı.';await load()}catch(e){$('#s2').textContent=e.message;$('#s2').className='status bad'}};
+$('#now').onclick=()=>{$('#when').value=new Date(Date.now()+10*60000-Date.now()%60000).toISOString().slice(0,16)};
+workspaces().then(load).catch(e=>$('#s1').textContent=e.message);
+</script>
+</body></html>
