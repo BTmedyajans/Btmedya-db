@@ -148,3 +148,12 @@ html.btkm-acik{overflow:hidden}
 @media(prefers-reduced-motion:reduce){
   .btkm-yol-baslik>i{transition:none}
 }
+
+/* 2026-10-07 · Yumuşak tema (kullanıcı isteği): menü, film sonu paneliyle
+   (film-secim.css) aynı dili konuşur. Parlak sarı-yeşil ve ikinci başlık
+   ailesi yerine tek vurgu (yumuşak camgöbeği) ve sitenin gövde yazısı. */
+.btkm{--btkm-yesil:#a6d9ea;--btkm-mavi:#a6d9ea;--btkm-zemin:#0b0f14;--btkm-soluk:#a9b4c0;color:#eef1f4}
+.btkm :is(.btkm-marka,.btkm-baslik,.btkm-yol-baslik strong){font-family:var(--bt-yazi,Manrope,'Segoe UI',system-ui,Arial,sans-serif)!important;font-weight:600!important;letter-spacing:-.015em}
+.btkm :is(.btkm-sayac,.btkm-grup-etiket,.btkm-cip small,.btkm-yol-no,.btkm-altgrup h3){font-family:var(--bt-yazi,Manrope,'Segoe UI',system-ui,Arial,sans-serif)!important;font-weight:600;letter-spacing:.04em}
+.btkm-panel{background:var(--btkm-zemin)!important}
+.btkm-imlec{box-shadow:none}

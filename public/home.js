@@ -859,7 +859,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     // Atama yoksa sayfanin varsayilan arsiv filmi oynar; o dosya
     // medya-ozel.json gercek listesinde oldugu icin rozeti gercek cekimdir.
     const hv0=videos[0] && videos[0].querySelector('video');
-    if(!y['hero-video'] && hv0 && /\/giris-filmi-genis\.mp4$/.test(hv0.dataset.src||'')){
+    if(!y['hero-video'] && hv0 && /\/giris-filmi-genis\.mp4$/.test(String(hv0.dataset.src||'').split('?')[0])){
       scenes[0].kaynak='GERÇEK ÇEKİM · BTMEDYA ARŞİVİ';
       if(active===0 && kaynakEl) kaynakEl.textContent=scenes[0].kaynak;
     }
@@ -966,7 +966,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     if(!src) return;
     // H.264 cozemeyen tarayicida (codec'siz Chromium/Firefox) varsayilan
     // giris filminin WebM kopyasi oynar; panel atamasina dokunulmaz.
-    if(el.dataset.webm && /\/giris-ai(-genis)?\.mp4$/.test(src) && !el.canPlayType('video/mp4; codecs="avc1.42E01E"')) src=el.dataset.webm;
+    if(el.dataset.webm && /\/giris-(ai|filmi)(-genis)?\.mp4$/.test(String(src).split('?')[0]) && !(mobile() && el.dataset.mobile) && !el.canPlayType('video/mp4; codecs="avc1.42E01E"')) src=el.dataset.webm;
     el.dataset.loaded='1';
     el.addEventListener('error',()=>{
       el.dataset.loaded='';

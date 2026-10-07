@@ -33,22 +33,8 @@ body.ana-sade .film-ses{top:auto!important;bottom:22px;right:22px;opacity:.42;tr
 body.ana-sade .film-ses:hover,body.ana-sade .film-ses:focus-visible{opacity:1}
 body.ana-sade .film-ses span{display:none}
 body.ana-sade .film-ses{padding:0 13px}
-/* Seçenekler: modern, soft tipografi ve renk. */
-body.ana-sade .film-secim{--gri-yazi:linear-gradient(180deg,#f6f2ea 0%,#c9ced6 100%);--cam:linear-gradient(135deg,rgba(28,32,40,.44),rgba(10,12,16,.30));--cam-cizgi:rgba(214,222,232,.18);color:#eef0f3}
-body.ana-sade .fs-baslik{font:600 clamp(34px,5.2vw,80px)/.95 Manrope,'Space Grotesk',Inter,Arial,sans-serif;letter-spacing:-.035em}
-body.ana-sade .fs-ust{color:rgba(196,208,222,.7);font-family:Manrope,Inter,Arial,sans-serif;font-weight:600;letter-spacing:.3em}
-body.ana-sade .fs-ad b{font:600 clamp(17px,1.4vw,21px)/1.05 Manrope,Inter,Arial,sans-serif;letter-spacing:.02em}
-body.ana-sade .fs-ad small{color:rgba(196,204,214,.72)}
-body.ana-sade .fs-no{color:rgba(160,184,212,.65)}
-.fs-alt{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;opacity:0;transition:opacity .6s ease 1.9s}
-.film-secim.is-acik .fs-alt{opacity:1}
-.fs-alt .fs-tekrar{margin-top:0;opacity:1;transition:border-color .25s ease}
-.fs-kategori{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid rgba(214,222,232,.26);background:rgba(10,12,16,.4);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#eef0f3;font:600 13px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer}
-.fs-kategori:hover{border-color:rgba(214,222,232,.5)}
-.fs-kategori:focus-visible{outline:2px solid #fff;outline-offset:2px}
-.fs-not{margin:12px 0 0;font:500 11px/1.4 Manrope,Inter,Arial,sans-serif;color:rgba(190,198,208,.55);opacity:0;transition:opacity .6s ease 2.2s}
-.film-secim.is-acik .fs-not{opacity:1}
-@media(max-width:720px){body.ana-sade .fs-baslik{font-size:clamp(30px,9.4vw,42px)}body.ana-sade .film-ses{bottom:16px;right:14px}.fs-not{font-size:10.5px}}
+/* Film sonu panelinin yazı ve renkleri film-secim.css'te (tek yer). */
+@media(max-width:720px){body.ana-sade .film-ses{bottom:16px;right:14px}}
 /* Film bitince ses düğmesi seçeneklerin üstüne binmesin; sayfa kaymasın. */
 body.ana-sade.film-bitti .film-ses{display:none}
 body.ana-sade,body.ana-sade main#icerik{padding-bottom:0!important;margin-bottom:0!important}

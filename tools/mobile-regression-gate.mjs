@@ -55,7 +55,11 @@ else ok("desktop cinematic hero controller is gated on mobile");
 const katalog = JSON.parse(read("public/data/medya-listesi.json"));
 const gercekler = new Set((katalog.items || katalog).filter(x => x && x.gercek === true).map(x => x.path));
 const sahneler = [...motion.matchAll(/source:'([^']*)'[^}]*?video:'([^']*)'/g)].map(m => ({ etiket: m[1], video: m[2] }));
-if (!sahneler.length) fail("mobile hero scene list not found");
+// V12 (7 Ekim): film artık betikte sabit yazılı değil, index.html'deki
+// data-src'ten okunuyor; o kaynağın etiketi aşağıda katalogla karşılaştırılır.
+const isaretlemeden = /video:video\.dataset\.src/.test(motion);
+if (!sahneler.length && !isaretlemeden) fail("mobile hero scene list not found");
+if (isaretlemeden) ok("mobile hero film is read from homepage markup (single source)");
 let sahneHata = 0;
 for (const s of sahneler) {
   if (!fs.existsSync(path.join(root, "public", s.video))) { fail(`mobile hero scene video missing: ${s.video}`); sahneHata++; }
@@ -108,7 +112,7 @@ if (/filter:(?!none)[a-z]/.test((motionCss.match(/\.mfilm-video\{[^}]*\}/)||[""]
   fail("mobile intro film is cropped or filtered (blur/scale)");
 else ok("mobile intro film shown uncropped and unfiltered");
 const filmEtiket = (index.match(/data-mfilm-etiket>([^<]*)</)||[])[1]||"";
-const filmKaynak = ((index.match(/class="mfilm-video"[^>]*data-src="\/assets\/([^"]+)"/)||[])[1])||"";
+const filmKaynak = ((index.match(/class="mfilm-video"[^>]*data-src="\/assets\/([^"?]+)/)||[])[1])||"";
 if (/^GERÇEK ÇEKİM/.test(filmEtiket) !== gercekler.has(filmKaynak))
   fail(`mobile intro label "${filmEtiket}" does not match catalog for ${filmKaynak}`);
 else ok("mobile intro label matches catalog provenance");
