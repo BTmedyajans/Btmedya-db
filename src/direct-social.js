@@ -386,8 +386,14 @@ async function apiSchedule(request,env){
   const now=new Date().toISOString(),jobs=[];
   for(const c of rows){
     const id=crypto.randomUUID();
-    await env.DB.prepare("INSERT INTO social_direct_jobs(id,connection_id,title,body,media_key,scheduled_at,status,attempts,external_id,last_error,source_slug,content_hash,kind,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-      .bind(id,c.id,title,body,mediaKey,scheduled.toISOString(),"queued",0,"","",sourceSlug,contentHash,kind,now,now).run();
+    try{
+      await env.DB.prepare("INSERT INTO social_direct_jobs(id,connection_id,title,body,media_key,scheduled_at,status,attempts,external_id,last_error,source_slug,content_hash,kind,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+        .bind(id,c.id,title,body,mediaKey,scheduled.toISOString(),"queued",0,"","",sourceSlug,contentHash,kind,now,now).run();
+    }catch(e){
+      // 0025 uygulanana kadar eski production şemasıyla geriye uyumlu kal.
+      await env.DB.prepare("INSERT INTO social_direct_jobs(id,connection_id,title,body,media_key,scheduled_at,status,attempts,external_id,last_error,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)")
+        .bind(id,c.id,title,body,mediaKey,scheduled.toISOString(),"queued",0,"","",now,now).run();
+    }
     jobs.push({id,connection_id:c.id,provider:c.provider,account_name:c.account_name,scheduled_at:scheduled.toISOString()});
   }
   return j({ok:true,items:jobs},201);
@@ -400,9 +406,17 @@ async function apiJobs(request,env,url){
   const wid=clean(url.searchParams.get("workspace_id"),120);
   const binds=[];let where="";
   if(type&&wid){where=" WHERE c.workspace_type=? AND c.workspace_id=?";binds.push(type,wid);}
-  const q=await env.DB.prepare(`SELECT j.id,j.connection_id,j.title,j.body,j.media_key,j.scheduled_at,j.status,j.attempts,j.external_id,j.last_error,j.source_slug,j.content_hash,j.kind,j.created_at,j.updated_at,
-    c.provider,c.account_name,c.handle
-    FROM social_direct_jobs j JOIN social_direct_connections c ON c.id=j.connection_id`+where+` ORDER BY j.scheduled_at DESC LIMIT 200`).bind(...binds).all();
+  let q;
+  try{
+    q=await env.DB.prepare(`SELECT j.id,j.connection_id,j.title,j.body,j.media_key,j.scheduled_at,j.status,j.attempts,j.external_id,j.last_error,j.source_slug,j.content_hash,j.kind,j.created_at,j.updated_at,
+      c.provider,c.account_name,c.handle
+      FROM social_direct_jobs j JOIN social_direct_connections c ON c.id=j.connection_id`+where+` ORDER BY j.scheduled_at DESC LIMIT 200`).bind(...binds).all();
+  }catch{
+    q=await env.DB.prepare(`SELECT j.id,j.connection_id,j.title,j.body,j.media_key,j.scheduled_at,j.status,j.attempts,j.external_id,j.last_error,j.created_at,j.updated_at,
+      c.provider,c.account_name,c.handle
+      FROM social_direct_jobs j JOIN social_direct_connections c ON c.id=j.connection_id`+where+` ORDER BY j.scheduled_at DESC LIMIT 200`).bind(...binds).all();
+    q.results=(q.results||[]).map(x=>({...x,source_slug:"",content_hash:"",kind:"legacy"}));
+  }
   return j({ok:true,items:q.results||[]});
 }
 
