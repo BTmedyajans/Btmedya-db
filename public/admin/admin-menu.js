@@ -4,6 +4,7 @@
   const KATEGORILER=[
     {ad:'HABER',ikon:'01',aciklama:'Haber üretimi, araştırma, SEO ve yayın.',gruplar:[
       {ad:'ÜRET',items:[
+        ['Kategori Merkezi','/admin/kategori/','Site kategorileri · ölçütler · içerik akışı'],
         ['Haber Odası','/admin/editor/','AI editör · kaynak · önizleme'],
         ['Yayın & Taslaklar','/admin/yayin/','Onay ve yayın kuyruğu']
       ]},
