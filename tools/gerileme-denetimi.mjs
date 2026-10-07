@@ -474,33 +474,36 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
        sonucuna göre seçer. */
 {
   const ana = readFileSync('public/index.html', 'utf8');
-  if (ana.includes('data-bt-home-hero-v3')) { /* yeni hero MP4 kaynaklarını doğrudan CDN'den alır */ } else {
+  if (ana.includes('data-bt-home-hero-v3')) return;
   const vid = (ana.match(/<video class="mfilm-video"[^>]*>/) || [''])[0];
   const webm = (vid.match(/data-webm="([^"]+)"/) || [])[1];
   if (!webm) bulgular.push('public/index.html .mfilm-video data-webm taşımıyor; H.264 çözemeyen tarayıcıda giriş filmi açılmaz.');
   else if (!existsSync(join('public', webm.split('?')[0]))) bulgular.push(`public/index.html .mfilm-video data-webm dosyası yok: ${webm}`);
   const mm = readFileSync('public/mobile-motion.js', 'utf8');
   if (!/canPlayType\(\s*['"]video\/mp4[^)]*\)/.test(mm) || !mm.includes('dataset.webm')) bulgular.push('public/mobile-motion.js giriş filminde MP4 desteğini (canPlayType) sorup data-webm yedeğine düşmüyor.');
-  }
-}/* 18) Anasayfada yalniz giris filmi oynar (6 Ekim, kullanici istegi).
-       Kaydirmali sahne videolari ve arsiv kartlarindaki otomatik oynatma
-       sayfayi karisik gosteriyordu. Kural: index.html'de yalniz mobil ve
-       masaustu giris filmi <video> olarak bulunur, hero tek film modundadir
-       ve arsiv kartlari gorunur olunca oynatilmaz. */
+}
+
+/* 18) Anasayfada yalniz giris filmi oynar. Yeni BTMEDYA hero V3 iki
+       katmanli, yazisiz arsiv oynaticisi kullanir; eski tek-film kontrati
+       korunur ama eski mfilm yuvalari zorunlu degildir. */
 {
   const ana = readFileSync('public/index.html', 'utf8');
   const videolar = ana.match(/<video\b[^>]*>/g) || [];
+  if (ana.includes('data-bt-home-hero-v3')) {
+    if (videolar.length !== 2 || videolar.some(v => !/bt-home-hero-layer/.test(v)))
+      bulgular.push('BTMEDYA yeni hero iki katmanli video yapisini korumuyor.');
+    if (!/<section[^>]*cinematic-hero[^>]*\bdata-tek-film\b/.test(ana))
+      bulgular.push('BTMEDYA yeni hero data-tek-film isaretini tasimiyor.');
+  } else {
     const fazla = videolar.filter(v => !/class="mfilm-video"|data-slot="hero-video"/.test(v));
     if (fazla.length) bulgular.push(`public/index.html giris filmi disinda ${fazla.length} video iceriyor; anasayfada yalniz giris filmi oynar.`);
-    if (!/<section class="cinematic-hero"[^>]*\bdata-tek-film\b/.test(ana)) bulgular.push('public/index.html hero tek film modunda degil (data-tek-film yok); kaydirmali sahneler geri gelir.');
+    if (!/<section class="cinematic-hero"[^>]*\bdata-tek-film\b/.test(ana))
+      bulgular.push('public/index.html hero tek film modunda degil (data-tek-film yok); kaydirmali sahneler geri gelir.');
+  }
   const home = readFileSync('public/home.js', 'utf8');
-  // 6 Ekim: arsiv karti artik <video> basmiyor, poster karesi gosteriyor.
-  // Kart ile yukleyici arasindaki kodda video ogesi ya da oynatma cagrisi
-  // geri gelirse (eski gozlemci blogu dahil) anasayfada ikinci film oynar.
   const arsivBas = home.indexOf('const arsivKarti'), arsivSon = home.indexOf('io.observe(bolum)', arsivBas);
   const arsiv = arsivBas < 0 || arsivSon < 0 ? '' : home.slice(arsivBas, arsivSon);
   if (!arsiv || /\.play\(|<video\b/.test(arsiv)) bulgular.push('public/home.js arsiv kartlarindaki videolari otomatik oynatiyor; anasayfada yalniz giris filmi oynar.');
-  }
 }
 
 /usr/bin/env node
@@ -776,7 +779,7 @@ tara('public'); tara('src');
   }
   const varsBlok = (worker.match(/const SITE_SLOT_VARSAYILAN=\{([\s\S]*?)\};/) || [, ''])[1];
   for (const [, slug, yol] of varsBlok.matchAll(/'([a-z0-9-]+)':\s*'([^']+)'/g)) {
-    if (!index.includes('/assets/' + yol) && !/^https?:\\/\\//.test(yol)) {
+    if (!index.includes('/assets/' + yol) && !String(yol).startsWith('http')) {
       bulgular.push(`SITE_SLOT_VARSAYILAN["${slug}"] = ${yol} ama index.html bu dosyayi kullanmiyor; panel yanlis "su an" gosterir.`);
     }
   }
@@ -979,33 +982,36 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
        sonucuna göre seçer. */
 {
   const ana = readFileSync('public/index.html', 'utf8');
-  if (ana.includes('data-bt-home-hero-v3')) { /* yeni hero MP4 kaynaklarını doğrudan CDN'den alır */ } else {
+  if (ana.includes('data-bt-home-hero-v3')) return;
   const vid = (ana.match(/<video class="mfilm-video"[^>]*>/) || [''])[0];
   const webm = (vid.match(/data-webm="([^"]+)"/) || [])[1];
   if (!webm) bulgular.push('public/index.html .mfilm-video data-webm taşımıyor; H.264 çözemeyen tarayıcıda giriş filmi açılmaz.');
   else if (!existsSync(join('public', webm.split('?')[0]))) bulgular.push(`public/index.html .mfilm-video data-webm dosyası yok: ${webm}`);
   const mm = readFileSync('public/mobile-motion.js', 'utf8');
   if (!/canPlayType\(\s*['"]video\/mp4[^)]*\)/.test(mm) || !mm.includes('dataset.webm')) bulgular.push('public/mobile-motion.js giriş filminde MP4 desteğini (canPlayType) sorup data-webm yedeğine düşmüyor.');
-  }
-}/* 18) Anasayfada yalniz giris filmi oynar (6 Ekim, kullanici istegi).
-       Kaydirmali sahne videolari ve arsiv kartlarindaki otomatik oynatma
-       sayfayi karisik gosteriyordu. Kural: index.html'de yalniz mobil ve
-       masaustu giris filmi <video> olarak bulunur, hero tek film modundadir
-       ve arsiv kartlari gorunur olunca oynatilmaz. */
+}
+
+/* 18) Anasayfada yalniz giris filmi oynar. Yeni BTMEDYA hero V3 iki
+       katmanli, yazisiz arsiv oynaticisi kullanir; eski tek-film kontrati
+       korunur ama eski mfilm yuvalari zorunlu degildir. */
 {
   const ana = readFileSync('public/index.html', 'utf8');
   const videolar = ana.match(/<video\b[^>]*>/g) || [];
+  if (ana.includes('data-bt-home-hero-v3')) {
+    if (videolar.length !== 2 || videolar.some(v => !/bt-home-hero-layer/.test(v)))
+      bulgular.push('BTMEDYA yeni hero iki katmanli video yapisini korumuyor.');
+    if (!/<section[^>]*cinematic-hero[^>]*\bdata-tek-film\b/.test(ana))
+      bulgular.push('BTMEDYA yeni hero data-tek-film isaretini tasimiyor.');
+  } else {
     const fazla = videolar.filter(v => !/class="mfilm-video"|data-slot="hero-video"/.test(v));
     if (fazla.length) bulgular.push(`public/index.html giris filmi disinda ${fazla.length} video iceriyor; anasayfada yalniz giris filmi oynar.`);
-    if (!/<section class="cinematic-hero"[^>]*\bdata-tek-film\b/.test(ana)) bulgular.push('public/index.html hero tek film modunda degil (data-tek-film yok); kaydirmali sahneler geri gelir.');
+    if (!/<section class="cinematic-hero"[^>]*\bdata-tek-film\b/.test(ana))
+      bulgular.push('public/index.html hero tek film modunda degil (data-tek-film yok); kaydirmali sahneler geri gelir.');
+  }
   const home = readFileSync('public/home.js', 'utf8');
-  // 6 Ekim: arsiv karti artik <video> basmiyor, poster karesi gosteriyor.
-  // Kart ile yukleyici arasindaki kodda video ogesi ya da oynatma cagrisi
-  // geri gelirse (eski gozlemci blogu dahil) anasayfada ikinci film oynar.
   const arsivBas = home.indexOf('const arsivKarti'), arsivSon = home.indexOf('io.observe(bolum)', arsivBas);
   const arsiv = arsivBas < 0 || arsivSon < 0 ? '' : home.slice(arsivBas, arsivSon);
   if (!arsiv || /\.play\(|<video\b/.test(arsiv)) bulgular.push('public/home.js arsiv kartlarindaki videolari otomatik oynatiyor; anasayfada yalniz giris filmi oynar.');
-  }
 }
 
 /* 19) Giriş filmi sesli ve önce sesli denenir (6 Ekim, kullanıcı isteği).
