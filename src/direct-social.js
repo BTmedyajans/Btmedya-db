@@ -74,7 +74,7 @@ export async function decryptSecret(env,value){
   return new TextDecoder().decode(pt);
 }
 
-export async function saveOAuthConnection(env,{workspace_type="company",workspace_id="btmedya",provider,external_id,account_name="",handle="",profile_url="",token,scopes=[],token_expires_at=null}){ 
+export async function saveOAuthConnection(env,{workspace_type="agency",workspace_id="btmedya",provider,external_id,account_name="",handle="",profile_url="",token,scopes=[],token_expires_at=null}){ 
   await ensureDirectTables(env);
   if(!env.DB) throw new Error("D1 bağlantısı yok");
   const cipher=await encryptSecret(env,JSON.stringify(token||{}));
@@ -97,11 +97,12 @@ async function ensureDirectTables(env){
     ig_user_id TEXT NOT NULL DEFAULT '',access_token_cipher TEXT NOT NULL DEFAULT '',
     token_expires_at TEXT,scopes_json TEXT NOT NULL DEFAULT '[]',status TEXT NOT NULL DEFAULT 'active',
     last_error TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL,updated_at TEXT NOT NULL,
-    UNIQUE(provider,external_id))`).run().catch(()=>{});
+    UNIQUE(workspace_type,workspace_id,provider,external_id))`).run().catch(()=>{});
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS social_direct_jobs (
     id TEXT PRIMARY KEY,connection_id TEXT NOT NULL,title TEXT NOT NULL DEFAULT '',body TEXT NOT NULL DEFAULT '',
     media_key TEXT NOT NULL DEFAULT '',scheduled_at TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'queued',
     attempts INTEGER NOT NULL DEFAULT 0,external_id TEXT NOT NULL DEFAULT '',last_error TEXT NOT NULL DEFAULT '',
+    source_slug TEXT NOT NULL DEFAULT '',content_hash TEXT NOT NULL DEFAULT '',kind TEXT NOT NULL DEFAULT 'manual',
     created_at TEXT NOT NULL,updated_at TEXT NOT NULL,
     FOREIGN KEY(connection_id) REFERENCES social_direct_connections(id) ON DELETE CASCADE)`).run().catch(()=>{});
 }
@@ -123,10 +124,10 @@ function metaRedirect(env,request){
   const redirect=String(env.META_OAUTH_REDIRECT_URI||originFrom(request,env)+"/api/social/direct/meta/callback");
   return redirect;
 }
-function validWorkspaceType(x){return x==="agency"||x==="client";}
-async function workspaceExists(env,type,id){
+export function validWorkspaceType(x){return x==="agency"||x==="client";}
+export async function workspaceExists(env,type,id){
   if(type==="agency")return id==="btmedya";
-  return Boolean(await env.DB.prepare("SELECT id FROM client_workspaces WHERE id=? AND status='active'").bind(id).first().catch(()=>null));
+  return Boolean(env.DB && await env.DB.prepare("SELECT id FROM client_workspaces WHERE id=? AND status='active'").bind(id).first().catch(()=>null));
 }
 
 async function startMeta(request,env,url){
@@ -328,7 +329,7 @@ export async function processDirectSocialQueue(env,limit=10){
   if(!env.DB||!secret(env))return {enabled:false,processed:0,published:0,failed:0};
   await ensureDirectTables(env);
   const now=new Date().toISOString();
-  const rows=(await env.DB.prepare(`SELECT j.*,c.provider,c.external_id,c.account_name,c.page_id,c.ig_user_id,c.access_token_cipher,c.status AS connection_status
+  const rows=(await env.DB.prepare(`SELECT j.*,c.provider,c.external_id,c.account_name,c.page_id,c.ig_user_id,c.access_token_cipher,c.token_expires_at,c.status AS connection_status
     FROM social_direct_jobs j JOIN social_direct_connections c ON c.id=j.connection_id
     WHERE j.status='queued' AND j.scheduled_at<=? AND c.status='active'
     ORDER BY j.scheduled_at ASC LIMIT ?`).bind(now,Math.max(1,Number(limit)||10)).all()).results||[];
@@ -338,7 +339,8 @@ export async function processDirectSocialQueue(env,limit=10){
     const attempts=Number(job.attempts||0)+1;
     await env.DB.prepare("UPDATE social_direct_jobs SET status='publishing',attempts=?,updated_at=? WHERE id=?").bind(attempts,new Date().toISOString(),job.id).run();
     try{
-      const externalId=await publishJob(env,job,job);
+      const connection={id:job.connection_id,provider:job.provider,external_id:job.external_id,account_name:job.account_name,page_id:job.page_id,ig_user_id:job.ig_user_id,access_token_cipher:job.access_token_cipher,token_expires_at:job.token_expires_at};
+      const externalId=await publishJob(env,connection,job);
       await env.DB.prepare("UPDATE social_direct_jobs SET status='published',external_id=?,last_error='',updated_at=? WHERE id=?").bind(externalId,new Date().toISOString(),job.id).run();
       await env.DB.prepare("UPDATE social_direct_connections SET last_error='',updated_at=? WHERE id=?").bind(new Date().toISOString(),job.connection_id).run();
       result.published++;result.items.push({id:job.id,status:"published",externalId});
@@ -372,9 +374,10 @@ async function apiSchedule(request,env){
   const b=await request.json().catch(()=>({}));
   const ids=Array.isArray(b.connection_ids)?[...new Set(b.connection_ids.map(x=>clean(x,120)).filter(Boolean))]:[];
   if(!ids.length)return j({ok:false,error:"En az bir hesap seçin"},400);
-  const title=clean(b.title,240),body=clean(b.body||title,63206),mediaKey=clean(b.media_key,500);
-  const workspace_type=validWorkspaceType(b.workspace_type)?b.workspace_type:"company";
+  const title=clean(b.title,240),body=clean(b.body||title,63206),mediaKey=clean(b.media_key,500),sourceSlug=clean(b.source_slug,240),contentHash=clean(b.content_hash,128),kind=clean(b.kind||"manual",40);
+  const workspace_type=validWorkspaceType(b.workspace_type)?b.workspace_type:"agency";
   const workspace_id=clean(b.workspace_id,120)||"btmedya";
+  if(!(await workspaceExists(env,workspace_type,workspace_id)))return j({ok:false,error:"Çalışma alanı bulunamadı"},404);
   let scheduled=new Date(b.scheduled_at||Date.now()+10*60*1000);
   if(Number.isNaN(scheduled.getTime()))return j({ok:false,error:"Geçersiz yayın zamanı"},400);
   if(scheduled.getTime()<Date.now()+30000)scheduled=new Date(Date.now()+30000);
@@ -383,8 +386,8 @@ async function apiSchedule(request,env){
   const now=new Date().toISOString(),jobs=[];
   for(const c of rows){
     const id=crypto.randomUUID();
-    await env.DB.prepare("INSERT INTO social_direct_jobs(id,connection_id,title,body,media_key,scheduled_at,status,attempts,external_id,last_error,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)")
-      .bind(id,c.id,title,body,mediaKey,scheduled.toISOString(),"queued",0,"","",now,now).run();
+    await env.DB.prepare("INSERT INTO social_direct_jobs(id,connection_id,title,body,media_key,scheduled_at,status,attempts,external_id,last_error,source_slug,content_hash,kind,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+      .bind(id,c.id,title,body,mediaKey,scheduled.toISOString(),"queued",0,"","",sourceSlug,contentHash,kind,now,now).run();
     jobs.push({id,connection_id:c.id,provider:c.provider,account_name:c.account_name,scheduled_at:scheduled.toISOString()});
   }
   return j({ok:true,items:jobs},201);
@@ -397,12 +400,24 @@ async function apiJobs(request,env,url){
   const wid=clean(url.searchParams.get("workspace_id"),120);
   const binds=[];let where="";
   if(type&&wid){where=" WHERE c.workspace_type=? AND c.workspace_id=?";binds.push(type,wid);}
-  const q=await env.DB.prepare(`SELECT j.id,j.connection_id,j.title,j.body,j.media_key,j.scheduled_at,j.status,j.attempts,j.external_id,j.last_error,j.created_at,j.updated_at,
+  const q=await env.DB.prepare(`SELECT j.id,j.connection_id,j.title,j.body,j.media_key,j.scheduled_at,j.status,j.attempts,j.external_id,j.last_error,j.source_slug,j.content_hash,j.kind,j.created_at,j.updated_at,
     c.provider,c.account_name,c.handle
     FROM social_direct_jobs j JOIN social_direct_connections c ON c.id=j.connection_id`+where+` ORDER BY j.scheduled_at DESC LIMIT 200`).bind(...binds).all();
   return j({ok:true,items:q.results||[]});
 }
 
+async function apiAutomation(request,env){
+  if(!(await validSession(request,env)))return j({ok:false,error:"Yetkisiz"},401);
+  await ensureDirectTables(env);
+  const u=new URL(request.url);
+  const type=validWorkspaceType(u.searchParams.get("workspace_type"))?u.searchParams.get("workspace_type"):"agency";
+  const wid=clean(u.searchParams.get("workspace_id")||"btmedya",120);
+  if(!(await workspaceExists(env,type,wid)))return j({ok:false,error:"Çalışma alanı bulunamadı"},404);
+  const now=new Date().toISOString();
+  const summary=await env.DB.prepare("SELECT SUM(CASE WHEN j.status='queued' THEN 1 ELSE 0 END) AS queued, SUM(CASE WHEN j.status='publishing' THEN 1 ELSE 0 END) AS publishing, SUM(CASE WHEN j.status='published' THEN 1 ELSE 0 END) AS published, SUM(CASE WHEN j.status='error' THEN 1 ELSE 0 END) AS errors, SUM(CASE WHEN j.status='queued' AND j.scheduled_at<=? THEN 1 ELSE 0 END) AS due, MIN(CASE WHEN j.status='queued' THEN j.scheduled_at END) AS next_at FROM social_direct_jobs j JOIN social_direct_connections c ON c.id=j.connection_id WHERE c.workspace_type=? AND c.workspace_id=?").bind(now,type,wid).first().catch(()=>({}));
+  const connections=(await env.DB.prepare("SELECT provider,COUNT(*) AS total,SUM(CASE WHEN status='active' THEN 1 ELSE 0 END) AS active FROM social_direct_connections WHERE workspace_type=? AND workspace_id=? GROUP BY provider ORDER BY provider").bind(type,wid).all().catch(()=>({results:[]}))).results||[];
+  return j({ok:true,workspace:{type,id:wid},automation:{queue:Number(summary?.queued||0),publishing:Number(summary?.publishing||0),published:Number(summary?.published||0),errors:Number(summary?.errors||0),due:Number(summary?.due||0),next_at:summary?.next_at||null},connections,cron:"*/5 * * * *",mode:"BTMEDYA native queue"});
+}
 async function apiProviders(request,env){
   if(!(await validSession(request,env)))return j({ok:false,error:"Yetkisiz"},401);
   const metaMissing=[];
@@ -429,6 +444,8 @@ export async function directSocialApi(request,env,url){
   if(url.pathname==="/api/social/direct/accounts" && request.method==="GET")return apiAccounts(request,env,url);
   if(url.pathname==="/api/social/direct/schedule" && request.method==="POST")return apiSchedule(request,env);
   if(url.pathname==="/api/social/direct/jobs" && request.method==="GET")return apiJobs(request,env,url);
+  if(url.pathname==="/api/social/direct/automation" && request.method==="GET")return apiAutomation(request,env);
+  if(url.pathname==="/api/social/direct/automation/run" && request.method==="POST"){if(!(await validSession(request,env)))return j({ok:false,error:"Yetkisiz"},401);return j(await processDirectSocialQueue(env,20));}
   if(url.pathname==="/api/social/direct/health" && request.method==="GET"){
     const missing=[];
     if(!String(env.META_APP_ID||"").trim()) missing.push("META_APP_ID");
