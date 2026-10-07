@@ -34,6 +34,22 @@ body{min-height:100vh}a{color:inherit;text-decoration:none}button,input,textarea
 .cat-help{display:block;margin-top:4px;color:#7f8d96;font:600 10px/1.3 Manrope,Inter,sans-serif}
 .cat-note{margin:12px 0 0}.cat-groups section{min-height:100%}
 @media(max-width:680px){.top-meta{padding-top:10px}.path-guide{grid-template-columns:1fr}.path-card{min-height:62px}}
+</style><style>
+.cat-tree{max-width:900px;margin:14px auto;display:grid;gap:9px}
+.cat-branch{border:1px solid var(--line);border-radius:15px;background:#0b1013;overflow:hidden}
+.cat-branch.open{border-color:#33443a}
+.cat-branch-head{width:100%;border:0;background:#0d1417;color:#eef3f5;display:flex;align-items:center;justify-content:space-between;text-align:left;padding:13px 14px;min-height:68px}
+.cat-branch-head:hover{background:#11191d}.cat-branch-head>span{display:grid;grid-template-columns:32px 1fr;column-gap:10px;align-items:center}
+.cat-branch-head em{grid-row:1/3;font:800 10px/32px ui-monospace,monospace;text-align:center;color:var(--lime);border:1px solid #33413a;border-radius:8px;height:32px}
+.cat-branch-head b{font-size:13px;letter-spacing:.04em}.cat-branch-head small{grid-column:2;color:#829099;font-size:10px;margin-top:2px}
+.cat-branch-head i{font-style:normal;font-size:19px;color:#8a999f}
+.cat-branch-head[aria-expanded=true]{color:var(--lime)}
+.cat-children{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;padding:9px;border-top:1px solid #202a2f}
+.cat-children[hidden]{display:none}
+.cat-children button{min-height:58px;text-align:left;background:#10171b;color:#edf3f5;border:1px solid #26323a;border-radius:10px;padding:9px 11px}
+.cat-children button:hover,.cat-children button:focus{border-color:var(--lime);background:#131c20}
+.cat-children button b{display:block;font-size:12px}.cat-children button small{display:block;color:#84939c;font-size:10px;margin-top:3px}
+@media(max-width:680px){.cat-children{grid-template-columns:1fr}}
 </style></head>
 <body>
 <header class="top">
@@ -62,13 +78,42 @@ body{min-height:100vh}a{color:inherit;text-decoration:none}button,input,textarea
 </section>
 
 <div id="catMenu" class="cat-drawer" hidden role="dialog" aria-modal="true" aria-label="Haber kategori kataloğu">
-  <div class="cat-drawer-head"><div><b>HABER KATEGORİSİ</b><span class="cat-help">1 bölge → 2 konu → 3 format</span></div><button type="button" class="btn" id="catMenuClose">Kapat ×</button></div>
-  <div class="cat-groups">
-    <section><b>01 · BÖLGE</b><button data-cat="Balıkesir">Balıkesir</button><button data-cat="Marmara">Marmara</button><button data-cat="Türkiye">Türkiye</button><button data-cat="Dünya">Dünya</button></section>
-    <section><b>02 · KONU</b><button data-cat="Gündem">Gündem</button><button data-cat="Ekonomi">Ekonomi</button><button data-cat="Eğitim">Eğitim</button><button data-cat="Sağlık">Sağlık</button><button data-cat="Spor">Spor</button><button data-cat="Kültür · Sanat">Kültür · Sanat</button><button data-cat="Yaşam">Yaşam</button><button data-cat="Teknoloji · AI">Teknoloji · AI</button></section>
-    <section><b>03 · FORMAT</b><button data-cat="Röportaj">Röportaj</button><button data-cat="Özel Dosya">Özel Dosya</button><button data-cat="AI LAB">AI LAB</button><button data-cat="Prodüksiyon">Prodüksiyon</button><button data-cat="Medya">Medya</button></section>
+  <div class="cat-drawer-head"><div><b>HABER KATEGORİSİ</b><span class="cat-help">Başlığın altındaki seçeneklerden doğrudan ilgili kategoriyi seç.</span></div><button type="button" class="btn" id="catMenuClose">Kapat ×</button></div>
+  <div class="cat-tree" aria-label="Haber kategori ağacı">
+    <section class="cat-branch open">
+      <button type="button" class="cat-branch-head" aria-expanded="true" aria-controls="cat-branch-1"><span><em>01</em><b>YEREL → ULUSAL</b><small>Haberin kapsadığı bölge</small></span><i>−</i></button>
+      <div id="cat-branch-1" class="cat-children">
+        <button data-cat="Balıkesir"><b>Balıkesir</b><small>İl ve ilçe gündemi</small></button>
+        <button data-cat="Marmara"><b>Marmara</b><small>Bölgesel gelişmeler</small></button>
+        <button data-cat="Türkiye"><b>Türkiye</b><small>Ulusal gündem</small></button>
+        <button data-cat="Dünya"><b>Dünya</b><small>Uluslararası gelişmeler</small></button>
+      </div>
+    </section>
+    <section class="cat-branch">
+      <button type="button" class="cat-branch-head" aria-expanded="false" aria-controls="cat-branch-2"><span><em>02</em><b>GÜNDEM → YAŞAM</b><small>Haberin konusu</small></span><i>＋</i></button>
+      <div id="cat-branch-2" class="cat-children" hidden>
+        <button data-cat="Gündem"><b>Gündem</b><small>Güncel olaylar ve kamu</small></button>
+        <button data-cat="Ekonomi"><b>Ekonomi</b><small>Para, piyasa ve iş dünyası</small></button>
+        <button data-cat="Eğitim"><b>Eğitim</b><small>Okul, üniversite ve sınav</small></button>
+        <button data-cat="Sağlık"><b>Sağlık</b><small>Sağlık ve yaşam bilgileri</small></button>
+        <button data-cat="Spor"><b>Spor</b><small>Takımlar, maçlar ve spor</small></button>
+        <button data-cat="Kültür · Sanat"><b>Kültür · Sanat</b><small>Kültür, sanat ve etkinlik</small></button>
+        <button data-cat="Yaşam"><b>Yaşam</b><small>Günlük yaşam ve insan hikâyeleri</small></button>
+        <button data-cat="Teknoloji · AI"><b>Teknoloji · AI</b><small>Dijital dünya ve yapay zekâ</small></button>
+      </div>
+    </section>
+    <section class="cat-branch">
+      <button type="button" class="cat-branch-head" aria-expanded="false" aria-controls="cat-branch-3"><span><em>03</em><b>MEDYA / ÜRETİM</b><small>Özel içerik ve üretim türü</small></span><i>＋</i></button>
+      <div id="cat-branch-3" class="cat-children" hidden>
+        <button data-cat="Röportaj"><b>Röportaj</b><small>Soru-cevap ve saha görüşmesi</small></button>
+        <button data-cat="Özel Dosya"><b>Özel Dosya</b><small>Derinlemesine haber</small></button>
+        <button data-cat="AI LAB"><b>AI LAB</b><small>Yapay zekâ odaklı içerik</small></button>
+        <button data-cat="Prodüksiyon"><b>Prodüksiyon</b><small>Video ve görsel üretim</small></button>
+        <button data-cat="Medya"><b>Medya</b><small>Medya sektörü ve içerik</small></button>
+      </div>
+    </section>
   </div>
-  <p class="muted cat-note">Tek bir kategori seçmen yeterli. Önce haberin kapsadığı bölgeyi, sonra konuyu; özel üretimse formatı kullan.</p>
+  <p class="muted cat-note">Önce ilgili ana başlığı aç, sonra onun içindeki alt kategoriyi seç. Tek tıklama yeterli.</p>
 </div>
 
 <div class="grid">
@@ -145,7 +190,7 @@ body{min-height:100vh}a{color:inherit;text-decoration:none}button,input,textarea
 <div class="footer">BTMEDYA Haber Odası · ulusal yayın için editoryal kontrol merkezi · 2026</div>
 </main>
 <script>
-const $=s=>document.querySelector(s),catMenu=$('#catMenu'),catBtn=$('#catMenuBtn'),catClose=$('#catMenuClose'),catCurrent=$('#catCurrent');function openCat(){catMenu.hidden=false;catBtn.setAttribute('aria-expanded','true');}function closeCat(){catMenu.hidden=true;catBtn.setAttribute('aria-expanded','false');catBtn.focus()}catBtn.onclick=openCat;catClose.onclick=closeCat;catMenu.addEventListener('click',e=>{const b=e.target.closest('[data-cat]');if(!b)return;$('#category').value=b.dataset.cat;catCurrent.textContent=b.dataset.cat;closeCat();scheduleLive()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!catMenu.hidden)closeCat()});esc=s=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),val=id=>String($(id).value||'').trim();
+const $=s=>document.querySelector(s),catMenu=$('#catMenu'),catBtn=$('#catMenuBtn'),catClose=$('#catMenuClose'),catCurrent=$('#catCurrent');function openCat(){catMenu.hidden=false;catBtn.setAttribute('aria-expanded','true');}function closeCat(){catMenu.hidden=true;catBtn.setAttribute('aria-expanded','false');catBtn.focus()}catBtn.onclick=openCat;catClose.onclick=closeCat;catMenu.addEventListener('click',e=>{const head=e.target.closest('.cat-branch-head');if(head){const panel=$('#'+head.getAttribute('aria-controls'));const open=head.getAttribute('aria-expanded')==='true';catMenu.querySelectorAll('.cat-branch-head').forEach(x=>{x.setAttribute('aria-expanded','false');const p=$('#'+x.getAttribute('aria-controls'));if(p)p.hidden=true;});if(!open){head.setAttribute('aria-expanded','true');panel.hidden=false;}return}const b=e.target.closest('[data-cat]');if(!b)return;$('#category').value=b.dataset.cat;catCurrent.textContent=b.dataset.cat;closeCat();scheduleLive()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!catMenu.hidden)closeCat()});esc=s=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),val=id=>String($(id).value||'').trim();
 function setStatus(t,c=''){const x=$('#status');x.textContent=t;x.className='status '+c}
 function slugify(s){return String(s||'haber').toLocaleLowerCase('tr-TR').replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,120)}
 async function req(url,opt={}){const r=await fetch(url,{credentials:'same-origin',...opt});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j}
