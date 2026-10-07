@@ -33,3 +33,23 @@ html.bam-acik{overflow:hidden}
 .bam-alt-grup h3{margin:7px 8px 6px;color:#d9ff3f;font:800 10px/1.2 ui-monospace,monospace;letter-spacing:.12em}
 .bam-alt-grup a{margin:0 0 6px}
 .bam-alt-grup a:last-child{margin-bottom:0}
+
+/* Award-editorial navigation refinement */
+.bam{font-size:13px}.bam-perde{background:rgba(2,4,5,.82);backdrop-filter:blur(18px)}
+.bam-panel{width:min(760px,100%);background:
+ radial-gradient(600px 260px at 70% 0,rgba(217,255,63,.07),transparent 65%),#050708;
+ border-right:1px solid #243139}
+.bam-ust{height:72px;padding:0 20px;background:rgba(5,7,8,.82);backdrop-filter:blur(14px)}
+.bam-marka{font-size:18px;letter-spacing:.08em}.bam-kapat{height:40px;min-height:40px;border-radius:8px;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.bam-rehber{padding:18px 20px;background:linear-gradient(90deg,rgba(217,255,63,.07),transparent 70%);border-bottom-color:#202b31}
+.bam-rehber b{font-size:9px;letter-spacing:.18em}.bam-rehber span{font-size:11px}
+.bam-kategoriler{padding:8px 18px 28px}.bam-kategori{padding:9px 0 14px}
+.bam-kat-baslik{min-height:72px;padding:8px 4px}.bam-kat-baslik b{font-size:16px;letter-spacing:.06em}.bam-kat-baslik small{border-radius:7px}
+.bam-kat-aciklama{margin-left:54px;font-size:10px}
+.bam-alt{padding-left:14px;gap:14px}.bam-alt-grup h3{font-size:9px;letter-spacing:.18em}
+.bam-alt a{min-height:58px;border-radius:8px;background:#080d10;border-color:#1c282e}.bam-alt a:hover{background:#0d1519;border-color:#52636b}
+.bam-alt a[aria-current=page]{border-color:var(--lime,#d9ff3f)}
+.bam-adim b{font-size:12px}.bam-adim small{font-size:9px}
+.bam-foot{margin:8px 20px 30px;border-radius:7px;font-size:9px;letter-spacing:.04em}
+.bam-dugme{min-height:38px;height:38px;padding:0 11px;border-radius:7px;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.bam-dugme small{color:#8a989f;font-size:8px;margin-left:2px}
