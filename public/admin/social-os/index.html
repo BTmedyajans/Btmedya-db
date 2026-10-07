@@ -44,9 +44,8 @@
 <section class="panel" style="margin-top:12px"><div class="ey">04 · SINIRLAR</div><div class="note danger"><b>Önemli:</b> Facebook kişisel profilini ve normal (consumer) Instagram hesabını resmi API ile otomatik yayınlayamayız. Facebook tarafında Page, Instagram tarafında Professional Business/Creator hesap gerekir.</div><div class="mini" style="margin-top:10px">TikTok ve YouTube doğrudan modülleri ayrı sağlayıcı yetkilendirmeleri gerektirir; mevcut Metricool bağlantısı ayrıca kullanılabilir.</div></section>
 </main>
 <script>
-const $=s=>document.querySelector(s),esc=
+const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function renderCategoryContext(){const k=sessionStorage.getItem('btmedya-admin-category')||'sosyal';const m={haber:['HABER','Editoryal içerik ve haber yayın akışı'],sosyal:['SOSYAL MEDYA','Platform, müşteri hesabı ve yayın akışı'],tanitim:['TANITIM','Portföy, kampanya ve proje görünürlüğü']};const x=m[k]||m.sosyal;$('#categoryContext').innerHTML='<div class="ey">AKTİF YÖNETİM MODU</div><b style="font-size:18px">'+x[0]+'</b><div class="mini">'+x[1]+'</div>'}
-v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let accounts=[];renderCategoryContext();
 const PLATFORM_META={
  facebook:{name:'Facebook',type:'Meta Direct',state:'available',note:'Facebook Page doğrudan yayın destekli.'},
