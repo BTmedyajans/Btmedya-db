@@ -60,6 +60,16 @@
 <link rel="stylesheet" href="/site-motion-v2.css?v=20261005-1"><link rel="stylesheet" href="/mobil-tipografi.css?v=20261006-1"><link rel="stylesheet" href="/kategori-menu.css?v=20261007-2"><link rel="stylesheet" href="/tipografi-v2.css?v=20261006-1"><script src="/kategori-menu.js?v=20261007-2" defer></script><link rel="stylesheet" href="/hero-sequence-v2.css?v=20261006-2"><link rel="stylesheet" href="/hero-video-quality-v1.css?v=20261006-1"><link rel="stylesheet" href="/secim-sahnesi.css?v=20261006-2"><link rel="stylesheet" href="/film-secim.css?v=20261007-2"><link rel="stylesheet" href="/mobile-touch-v2.css?v=20261007-1"><link rel="stylesheet" href="/hero-live-hotfix-20261005.css?v=1">
 <!-- Production supervisor reconciliation: canonical news routes + Metricool identity 2026-10-06 -->
 <link rel="stylesheet" href="/ana-sade.css?v=20261007-2">
+
+<style id="bt-home-hero-v3">
+.bt-home-hero{position:relative;width:100%;height:100svh;min-height:560px;background:#050505;overflow:hidden;isolation:isolate}
+.bt-home-hero-video{position:absolute;inset:0;background:#050505}
+.bt-home-hero-layer{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:center;opacity:0;transition:opacity .9s ease;filter:saturate(.94) contrast(1.04);background:#050505}
+.bt-home-hero-layer.is-active{opacity:1}
+.bt-home-hero-scrim{position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.08),transparent 34%,rgba(0,0,0,.16));mix-blend-mode:multiply}
+@media(max-width:720px){.bt-home-hero{height:100svh;min-height:0}.bt-home-hero-layer{object-fit:cover}.bt-home-hero-scrim{background:linear-gradient(180deg,rgba(0,0,0,.05),transparent 40%,rgba(0,0,0,.12))}}
+@media(prefers-reduced-motion:reduce){.bt-home-hero-layer{transition:none}.bt-home-hero-layer:nth-child(2){display:none}}
+</style>
 </head>
 <!-- BTMEDYA accessibility/link guard verified: 2026-09-28 -->
 <!-- BTMEDYA accessibility/link guard verified: 2026-09-28-r2 -->
@@ -83,46 +93,12 @@
 <section class="bt-breaking" aria-label="Haber akışına hızlı erişim">
   <div class="bt-breaking-inner"><b>SAHADAN HABERLER</b><a href="/haberler/">Balıkesir, Türkiye ve dünya gündemini kaynak + tarih + görsel kaynağıyla takip et ↗</a></div>
 </section>
-<section class="cinematic-hero" id="hero" data-tek-film aria-label="BTMEDYA giriş filmi">
-  <div class="mfilm mfilm-dikey" data-mfilm style="--mfilm-oran:6 / 13">
-    <div class="mfilm-kare">
-      <video class="mfilm-video" muted playsinline preload="none" poster="/assets/media/web/giris-filmi-poster.jpg?v=20261007" data-src="/assets/media/web/giris-filmi.mp4?v=20261007" data-webm="/assets/media/web/giris-filmi.webm?v=20261007" aria-label="BTMEDYA giriş filmi: sahadan stüdyoya, gerçek çekim"></video>
-      <span class="mfilm-etiket" data-mfilm-etiket>GERÇEK ÇEKİM · BTMEDYA ARŞİVİ · TANITIM FİLMİ</span>
-      <div class="mfilm-ilerleme" aria-hidden="true"><i data-mfilm-dolu></i></div>
-      <button class="mfilm-oynat" type="button" data-mfilm-oynat hidden>▶ Filmi oynat</button>
-    </div>
-    <div class="mfilm-metin">
-      <h1 class="mfilm-baslik"><small class="mfilm-ust">BTMEDYA · BALIKESİR HABER VE PRODÜKSİYON</small>SAHADAN <span>EKRANA.</span></h1>
-      <p class="mfilm-spot">Sahadan stüdyoya, kameranın arkasından yayına: BTMEDYA’nın gerçek üretim dünyası. Film bitince yolunu seç.</p>
-      <div class="mfilm-aksiyon"><a class="mfilm-btn mfilm-btn-ana" href="/haberler/">Haberleri oku</a><a class="mfilm-btn" href="/teklif-al/?kaynak=/">Teklif al ↗</a></div>
-    </div>
+<section class="cinematic-hero bt-home-hero" id="hero" data-tek-film data-bt-home-hero-v3 aria-label="BTMEDYA giriş filmi">
+  <div class="bt-home-hero-video" aria-hidden="true">
+    <video class="bt-home-hero-layer mfilm-video is-active" data-slot="hero-video" muted autoplay playsinline preload="auto" poster="/assets/media/portfoy/buse-tuncay-saha-roportaj.webp"></video>
+    <video class="bt-home-hero-layer mfilm-video" muted playsinline preload="metadata"></video>
   </div>
-  <div class="cinematic-sticky">
-    <div class="cinematic-noise"></div>
-    <div class="bt-3d-model" aria-hidden="true" data-bt-parallax style="--bt-depth:14px"><i class="bt-orbit"></i><i class="bt-orbit"></i><i class="bt-orbit"></i><i class="bt-core"></i></div>
-    <div class="cinematic-video cinematic-video-1 is-active" data-video="hero">
-      <video muted playsinline preload="metadata" data-slot="hero-video" data-slot-poster="hero-poster" poster="/assets/media/web/giris-filmi-genis-poster.jpg?v=20261007" data-src="/assets/media/web/giris-filmi-genis.mp4?v=20261007" data-webm="/assets/media/web/giris-filmi-genis.webm?v=20261007" data-mobile="/assets/media/web/giris-filmi.mp4?v=20261007" aria-label="BTMEDYA giriş filmi: sahadan stüdyoya, gerçek çekim"></video>
-    </div>
-    <div class="cinematic-vignette"></div>
-    <div class="cinematic-grid"></div>
-    <div class="cinematic-copy">
-      <p class="cinematic-kicker" data-cinematic-kicker>01 / GİRİŞ</p>
-      <p class="cinematic-kaynak" data-cinematic-kaynak>AI ÜRETİMİ VE SAHA ARŞİVİ · BTMEDYA TANITIM FİLMİ</p>
-      <h2 class="display cinematic-title" data-cinematic-title aria-live="polite">YENİ NESİL<br><span>ÜRETİM.</span></h2>
-      <p class="cinematic-lead" data-cinematic-lead>Haber, sosyal medya ve tanıtım filmi tek ekipten. Film bitince yolunu seç: kaynak ve etiket her zaman görünür.</p>
-      <div class="cinematic-actions" aria-label="Hızlı içerik geçişleri">
-        <a class="button button-dark" href="#news">SAHADAN HABERLER ↘</a>
-        <a class="button button-light" href="#portfoy">VİDEO ARŞİVİ ↘</a>
-        <a class="text-link cinematic-contact-link" href="/iletisim/">PROJENİZİ ANLATIN ↗</a>
-      </div>
-
-    </div>
-    <div class="cinematic-brand ekran-rozeti" aria-hidden="true"><img src="/assets/logo/bt-amblem-128.webp" alt="BTMEDYA amblemi" width="64" height="64" decoding="async"><span>BTMEDYA</span></div>
-    <div class="cinematic-index"><span data-cinematic-index>01</span><i></i><b>05</b></div>
-    <div class="cinematic-progress" role="progressbar" aria-label="Sinematik giriş ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i data-cinematic-progress></i></div>
-    <button class="ses-dugme" type="button" aria-pressed="false" data-hero-ses hidden><i aria-hidden="true"></i><span>SESİ AÇ</span></button><div class="cinematic-label" data-cinematic-label>SCROLL TO EXPLORE</div>
-    <div class="cinematic-cursor" data-cinematic-cursor>BT</div>
-  </div>
+  <div class="bt-home-hero-scrim" aria-hidden="true"></div><span data-slot="hero-poster" data-hero-source="/assets/media/portfoy/buse-tuncay-saha-roportaj.webp" hidden></span>
 </section>
 <section class="hero-paths-static" aria-labelledby="hero-paths-title">
   <div class="hero-paths-head"><p class="kicker">ÜÇ ANA YOL</p><h2 id="hero-paths-title">ARADIĞINI<br><span>HIZLICA BUL.</span></h2><p>BTMEDYA'da önce amacını seç; içerik, portföy ve teklif akışı otomatik olarak doğru kapıya yönlensin.</p></div>
@@ -268,5 +244,7 @@
   <a class="mobile-quick-cta" href="/teklif-al/?kaynak=mobile-nav" data-mobile-nav="contact" data-accent="#d9ff3f" aria-label="Teklif al"><span aria-hidden="true">↗</span><small>TEKLİF</small></a>
 </nav>
 <script src="/film-ses.js?v=20261006-1" defer></script><script src="/home.js?v=20261007-2" defer></script><script src="/mobile-motion.js?v=20261007-2" defer></script><script src="/mobile-ux-v4.js?v=20261007-1" defer></script><link rel="stylesheet" href="/editorial-cover-system.css?v=20261003-1"><script src="/editorial-cover-system.js?v=20261004-1" defer></script><script src="/olcum.js?v=20261003-2" defer></script><script src="/site-motion-v2.js?v=20261005-2" defer></script><script src="/hero-sequence-v2.js?v=20261006-4" defer></script><script src="/secim-sahnesi.js?v=20261006-3" defer></script><script src="/film-secim.js?v=20261007-2" defer></script><script src="/mobile-touch-v2.js?v=20261007-1" defer></script>
+
+<script src="/home-hero-v3.js?v=20261007-1" defer></script>
 </body>
 </html>

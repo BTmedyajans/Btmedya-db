@@ -1,0 +1,12 @@
+(()=>{const hero=document.getElementById('hero');if(!hero||!hero.hasAttribute('data-bt-home-hero-v3'))return;
+const vids=[...hero.querySelectorAll('.bt-home-hero-layer')];
+const base='https://cdn.jsdelivr.net/gh/BTmedyajans/Btmedya-db@f46098aa43e8fdc27970d1e4a9220312d0ae0814/tools/giris-kaynak/';
+const clips=['saha-gece.mp4','kamera-arkasi.mp4','studyo-masa.mp4','studyo-program.mp4','defile.mp4'].map(x=>base+x);
+let i=0,active=0;
+const load=(v,n)=>{v.src=clips[n];v.load()};
+const show=n=>{const cur=vids[active],next=vids[1-active];load(next,n);next.muted=true;next.currentTime=0;next.classList.add('is-active');active=1-active;i=n;next.play().catch(()=>{});cur.pause();cur.classList.remove('is-active')};
+vids.forEach(v=>v.addEventListener('ended',()=>show((i+1)%clips.length)));
+load(vids[0],0);
+vids[0].addEventListener('loadeddata',()=>vids[0].play().catch(()=>{}),{once:true});
+window.addEventListener('resize',()=>{const n=window.matchMedia('(max-width:720px)').matches?i:i;if(!vids[active].src.includes(base))load(vids[active],n)},{passive:true});
+})();
