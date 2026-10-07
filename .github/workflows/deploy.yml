@@ -182,6 +182,18 @@ jobs:
           grep -q "buse-tuncay-yesil-perde-studyo.webp" public/sosyal-medya-kit/index.html
           grep -q "YAPAY ZEKÂ ÜRETİMİ" public/sosyal-medya-kit/index.html
           test -s public/admin/sw.js
+          test -s public/admin/manifest.webmanifest
+          test -s public/admin/pwa-install.js
+          test -s public/admin/admin-menu.js
+          test -s public/admin/admin-menu.css
+          node --check public/admin/admin-menu.js
+          grep -q '/assets/logo/bt-amblem-256.png' public/admin/manifest.webmanifest
+          grep -q '/assets/favicon.png' public/admin/manifest.webmanifest
+          grep -q '/admin/giris/?source=pwa' public/admin/manifest.webmanifest
+          grep -q 'HABER' public/admin/admin-menu.js
+          grep -q 'SOSYAL MEDYA' public/admin/admin-menu.js
+          grep -q 'TANITIM' public/admin/admin-menu.js
+          ! grep -q '<nav class="admin-menu"' public/admin/agency-os/index.html
           test -s public/admin/mobile-admin.css
           test ! -e .github/workflows/media-smoke.yml
           test ! -e .github/workflows/storage-audit.yml
