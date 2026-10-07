@@ -212,6 +212,30 @@ async function clientHubApi(request,env,url){
     await env.DB.prepare('UPDATE client_projects SET '+fields.join(',')+' WHERE id=? AND client_id=?').bind(...vals).run();
     return j({ok:true,id:projectId});
   }
+  const wpub=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/publications$/);
+  if(wpub && request.method==='GET'){
+    const clientId=wpub[1];
+    if(!(await requireWorkspace(clientId)))return j({ok:false,error:'Müşteri çalışma alanı bulunamadı'},404);
+    const q=await env.DB.prepare('SELECT p.*,c.title content_title,pr.name project_name FROM client_publications p JOIN client_content c ON c.id=p.content_id LEFT JOIN client_projects pr ON pr.id=p.project_id WHERE p.client_id=? ORDER BY COALESCE(p.scheduled_at,p.updated_at) DESC LIMIT 200').bind(clientId).all();
+    return j({ok:true,items:q.results||[]});
+  }
+
+  const wrep=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/report$/);
+  if(wrep && request.method==='GET'){
+    const clientId=wrep[1];
+    if(!(await requireWorkspace(clientId)))return j({ok:false,error:'Müşteri çalışma alanı bulunamadı'},404);
+    const projectId=clean(url.searchParams.get('project_id'),120);
+    const cQ=projectId?env.DB.prepare('SELECT COUNT(*) total FROM client_content WHERE client_id=? AND project_id=?').bind(clientId,projectId):env.DB.prepare('SELECT COUNT(*) total FROM client_content WHERE client_id=?').bind(clientId);
+    const aQ=projectId?env.DB.prepare('SELECT COUNT(*) total FROM client_content WHERE client_id=? AND project_id=? AND client_approved=1').bind(clientId,projectId):env.DB.prepare('SELECT COUNT(*) total FROM client_content WHERE client_id=? AND client_approved=1').bind(clientId);
+    const pubQ=projectId?env.DB.prepare('SELECT COUNT(*) total FROM client_publications WHERE client_id=? AND project_id=?').bind(clientId,projectId):env.DB.prepare('SELECT COUNT(*) total FROM client_publications WHERE client_id=?').bind(clientId);
+    const pQ=projectId?env.DB.prepare("SELECT COUNT(*) total FROM client_content WHERE client_id=? AND project_id=? AND status IN ('published','yayinlandi')").bind(clientId,projectId):env.DB.prepare("SELECT COUNT(*) total FROM client_content WHERE client_id=? AND status IN ('published','yayinlandi')").bind(clientId);
+    const [projects,contents,approved,pubs,published,social]=await Promise.all([
+      env.DB.prepare("SELECT COUNT(*) total FROM client_projects WHERE client_id=? AND status!='archived'").bind(clientId).first(),cQ.first(),aQ.first(),pubQ.first(),pQ.first(),
+      env.DB.prepare('SELECT network,COUNT(*) total FROM client_social_accounts WHERE client_id=? AND active=1 GROUP BY network').bind(clientId).all()
+    ]);
+    const socialItems=social.results||[]; const metrics={projects:Number(projects?.total||0),contents:Number(contents?.total||0),approved:Number(approved?.total||0),publications:Number(pubs?.total||0),published:Number(published?.total||0),social_accounts:socialItems};
+    return j({ok:true,scope:projectId?'project':'client',metrics,summary:'Proje: '+metrics.projects+' · İçerik: '+metrics.contents+' · Onaylı: '+metrics.approved+' · Yayın: '+metrics.published+' · Sosyal ağ: '+socialItems.reduce((n,x)=>n+Number(x.total||0),0),generated_at:new Date().toISOString()});
+  }
   const wc=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/content$/);
   if(wc){const clientId=wc[1];if(!(await requireWorkspace(clientId)))return j({ok:false,error:'Müşteri çalışma alanı bulunamadı'},404);if(request.method==='GET'){const q=await env.DB.prepare('SELECT * FROM client_content WHERE client_id=? ORDER BY updated_at DESC LIMIT 200').bind(clientId).all();return j({ok:true,items:q.results||[]});}
     if(request.method==='POST'){const b=await request.json().catch(()=>({}));const id=crypto.randomUUID(),now=new Date().toISOString();await env.DB.prepare('INSERT INTO client_content(id,client_id,title,content_type,engine,brief,body,media_key,preview_json,status,client_approved,published_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').bind(id,clientId,clean(b.title,240),clean(b.content_type||'social',40),clean(b.engine||'btmedya',40),clean(b.brief,3000),clean(b.body,20000),clean(b.media_key,500),JSON.stringify(b.preview||{}),'draft',0,null,now,now).run();return j({ok:true,id},201);}
