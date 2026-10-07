@@ -93,12 +93,12 @@
 <section class="bt-breaking" aria-label="Haber akışına hızlı erişim">
   <div class="bt-breaking-inner"><b>SAHADAN HABERLER</b><a href="/haberler/">Balıkesir, Türkiye ve dünya gündemini kaynak + tarih + görsel kaynağıyla takip et ↗</a></div>
 </section>
-<section class="bt-home-hero" id="hero" aria-label="BTMEDYA giriş filmi">
+<section class="cinematic-hero bt-home-hero" id="hero" data-tek-film data-bt-home-hero-v3 aria-label="BTMEDYA giriş filmi">
   <div class="bt-home-hero-video" aria-hidden="true">
-    <video class="bt-home-hero-layer is-active" muted autoplay playsinline preload="auto" poster="/assets/media/portfoy/buse-tuncay-saha-roportaj.webp"></video>
-    <video class="bt-home-hero-layer" muted playsinline preload="metadata"></video>
+    <video class="bt-home-hero-layer mfilm-video is-active" data-slot="hero-video" muted autoplay playsinline preload="auto" poster="/assets/media/portfoy/buse-tuncay-saha-roportaj.webp"></video>
+    <video class="bt-home-hero-layer mfilm-video" muted playsinline preload="metadata"></video>
   </div>
-  <div class="bt-home-hero-scrim" aria-hidden="true"></div>
+  <div class="bt-home-hero-scrim" aria-hidden="true"></div><span data-slot="hero-poster" data-hero-source="/assets/media/portfoy/buse-tuncay-saha-roportaj.webp" hidden></span>
 </section>
 <section class="hero-paths-static" aria-labelledby="hero-paths-title">
   <div class="hero-paths-head"><p class="kicker">ÜÇ ANA YOL</p><h2 id="hero-paths-title">ARADIĞINI<br><span>HIZLICA BUL.</span></h2><p>BTMEDYA'da önce amacını seç; içerik, portföy ve teklif akışı otomatik olarak doğru kapıya yönlensin.</p></div>
@@ -245,19 +245,6 @@
 </nav>
 <script src="/film-ses.js?v=20261006-1" defer></script><script src="/home.js?v=20261007-2" defer></script><script src="/mobile-motion.js?v=20261007-2" defer></script><script src="/mobile-ux-v4.js?v=20261007-1" defer></script><link rel="stylesheet" href="/editorial-cover-system.css?v=20261003-1"><script src="/editorial-cover-system.js?v=20261004-1" defer></script><script src="/olcum.js?v=20261003-2" defer></script><script src="/site-motion-v2.js?v=20261005-2" defer></script><script src="/hero-sequence-v2.js?v=20261006-4" defer></script><script src="/secim-sahnesi.js?v=20261006-3" defer></script><script src="/film-secim.js?v=20261007-2" defer></script><script src="/mobile-touch-v2.js?v=20261007-1" defer></script>
 
-<script id="bt-home-hero-v3-js">
-(()=>{const hero=document.getElementById('hero');if(!hero)return;
-const vids=[...hero.querySelectorAll('.bt-home-hero-layer')];
-const base='https://cdn.jsdelivr.net/gh/BTmedyajans/Btmedya-db@f46098aa43e8fdc27970d1e4a9220312d0ae0814/tools/giris-kaynak/';
-const clips=['saha-gece.mp4','kamera-arkasi.mp4','studyo-masa.mp4','studyo-program.mp4','defile.mp4'].map(x=>base+x);
-let i=0,active=0;
-const load=(v,n)=>{v.src=clips[n];v.load();};
-const show=(n)=>{const cur=vids[active],next=vids[1-active];load(next,n);next.muted=true;next.currentTime=0;next.classList.add('is-active');active=1-active;i=n;next.play().catch(()=>{});cur.pause();cur.classList.remove('is-active');};
-vids.forEach(v=>v.addEventListener('ended',()=>show((i+1)%clips.length)));
-load(vids[0],0);
-vids[0].addEventListener('loadeddata',()=>vids[0].play().catch(()=>{}),{once:true});
-window.addEventListener('resize',()=>{const nextBase='https://cdn.jsdelivr.net/gh/BTmedyajans/Btmedya-db@f46098aa43e8fdc27970d1e4a9220312d0ae0814/tools/giris-kaynak/';if(!vids[active].src.includes(nextBase))load(vids[active],i);},{passive:true});
-})();
-</script>
+<script src="/home-hero-v3.js?v=20261007-1" defer></script>
 </body>
 </html>
