@@ -1683,8 +1683,8 @@ const SITE_SLOTS=[
    tools/gerileme-denetimi.mjs bunu denetler. Kaynak (gercek/AI) burada
    yazmaz, medya-listesi.json'daki gercek alanindan turer. */
 const SITE_SLOT_VARSAYILAN={
-  'hero-video':     'media/web/giris-ai-genis.mp4',
-  'hero-poster':    'media/web/giris-ai-genis-poster.jpg',
+  'hero-video':     'media/web/giris-filmi-genis.mp4',
+  'hero-poster':    'media/web/giris-filmi-genis-poster.jpg',
   'portre-buse':    'media/portfoy/buse-tuncay-portre-01.webp',
   'og-image':       'paylasim/btmedya-og-v2.jpg',
 };
