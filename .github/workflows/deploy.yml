@@ -107,7 +107,8 @@ jobs:
           test -s public/mobile-motion.css
           test -s public/mobile-motion.js
           grep -q 'mobile-quick-nav' public/index.html
-          test "$(grep -o 'data-mobile-nav=' public/index.html | wc -l)" -ge 5
+          # mobile-regression-gate.mjs canonicalizes the thumb-safe nav to four links.
+          test "$(grep -o 'data-mobile-nav=' public/index.html | wc -l)" -eq 4
           grep -q 'data-fallback="social"' public/index.html
           grep -q 'data-fallback="media"' public/index.html
           grep -q 'preserve verified fallbacks' public/home.js
@@ -319,4 +320,3 @@ jobs:
           done
 
           test "$live_ok" = "1"
-
