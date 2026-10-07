@@ -255,6 +255,58 @@ async function workflowApi(request, env, url) {
   return json({ok:false,error:'Workflow endpoint bulunamadı'},404);
 }
 
+
+const CONTENT_TAXONOMY_FALLBACK={
+  'Balıkesir':{path_key:'haber',group_key:'haber-bul',item_key:'balikesir'},
+  'Marmara':{path_key:'haber',group_key:'haber-bul',item_key:'marmara'},
+  'Türkiye':{path_key:'haber',group_key:'haber-bul',item_key:'turkiye'},
+  'Dünya':{path_key:'haber',group_key:'haber-bul',item_key:'dunya'},
+  'Gündem':{path_key:'haber',group_key:'haber-bul',item_key:'gundem'},
+  'Ekonomi':{path_key:'haber',group_key:'haber-bul',item_key:'ekonomi'},
+  'Eğitim':{path_key:'haber',group_key:'haber-bul',item_key:'egitim'},
+  'Sağlık':{path_key:'haber',group_key:'haber-bul',item_key:'saglik'},
+  'Spor':{path_key:'haber',group_key:'haber-bul',item_key:'spor'},
+  'Kültür · Sanat':{path_key:'haber',group_key:'haber-bul',item_key:'kultur-sanat'},
+  'Yaşam':{path_key:'haber',group_key:'haber-bul',item_key:'yasam'},
+  'Teknoloji · AI':{path_key:'sosyal',group_key:'digital-growth',item_key:'ai-automation'},
+  'Röportaj':{path_key:'haber',group_key:'derinles',item_key:'roportaj'},
+  'Özel Dosya':{path_key:'haber',group_key:'derinles',item_key:'ozel-dosya'},
+  'AI LAB':{path_key:'sosyal',group_key:'digital-growth',item_key:'ai-automation'},
+  'Prodüksiyon':{path_key:'tanitim',group_key:'production',item_key:'foto-video'},
+  'Medya':{path_key:'tanitim',group_key:'production',item_key:'foto-video'}
+};
+async function ensureContentTaxonomy(env){
+  if(!env.DB)return;
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS content_taxonomy (
+    entity_type TEXT NOT NULL,entity_id TEXT NOT NULL,path_key TEXT NOT NULL,
+    group_key TEXT NOT NULL DEFAULT '',item_key TEXT NOT NULL DEFAULT '',
+    secondary_json TEXT NOT NULL DEFAULT '[]',created_at TEXT NOT NULL,updated_at TEXT NOT NULL,
+    PRIMARY KEY(entity_type,entity_id)
+  )`).run().catch(()=>{});
+  await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_content_taxonomy_path ON content_taxonomy(path_key,group_key,item_key)').run().catch(()=>{});
+  await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_content_taxonomy_item ON content_taxonomy(item_key)').run().catch(()=>{});
+}
+function normalizeTaxonomy(body,category){
+  const fallback=CONTENT_TAXONOMY_FALLBACK[String(category||'')]||{path_key:'haber',group_key:'haber-bul',item_key:'gundem'};
+  return {
+    path_key:String(body?.taxonomy_path||fallback.path_key||'').slice(0,60),
+    group_key:String(body?.taxonomy_group||fallback.group_key||'').slice(0,80),
+    item_key:String(body?.taxonomy_item||fallback.item_key||'').slice(0,100),
+    secondary_json:Array.isArray(body?.taxonomy_secondary)?JSON.stringify(body.taxonomy_secondary.slice(0,12)):'[]'
+  };
+}
+async function saveContentTaxonomy(env,entityType,entityId,meta){
+  if(!env.DB)return;
+  await ensureContentTaxonomy(env);
+  const now=new Date().toISOString();
+  await env.DB.prepare(`INSERT INTO content_taxonomy(entity_type,entity_id,path_key,group_key,item_key,secondary_json,created_at,updated_at)
+    VALUES(?,?,?,?,?,?,?,?)
+    ON CONFLICT(entity_type,entity_id) DO UPDATE SET
+      path_key=excluded.path_key,group_key=excluded.group_key,item_key=excluded.item_key,
+      secondary_json=excluded.secondary_json,updated_at=excluded.updated_at`)
+    .bind(entityType,String(entityId),meta.path_key,meta.group_key,meta.item_key,meta.secondary_json,now,now).run().catch(()=>{});
+}
+
 /* ---------- Haber CMS API ---------- */
 /* IndexNow: yayinlanan haberin adresini Bing, Yandex ve IndexNow'u kullanan
    diger arama motorlarina aninda bildirir; tarayicinin site haritasini bir
@@ -498,6 +550,7 @@ async function newsApi(request, env, url, ctx){
     const sourceUrl=String(b.source_url||'').trim().slice(0,2000);
     const originalDate=String(b.original_date||'').trim().slice(0,64);
     const archiveNote=String(b.archive_note||'').trim().slice(0,2000);
+    const taxonomy=normalizeTaxonomy(b,b.category);
     try{
       await env.DB.prepare(`INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at)
         VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(slug) DO UPDATE SET title=excluded.title,excerpt=excluded.excerpt,body=excluded.body,category=excluded.category,author=excluded.author,cover_url=excluded.cover_url,video_url=excluded.video_url,status=excluded.status,published_at=excluded.published_at,source_url=excluded.source_url,original_date=excluded.original_date,archive_note=excluded.archive_note,updated_at=excluded.updated_at`)
@@ -507,9 +560,10 @@ async function newsApi(request, env, url, ctx){
         VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(slug) DO UPDATE SET title=excluded.title,excerpt=excluded.excerpt,body=excluded.body,category=excluded.category,author=excluded.author,cover_url=excluded.cover_url,video_url=excluded.video_url,status=excluded.status,published_at=excluded.published_at,updated_at=excluded.updated_at`)
         .bind(slug,title,String(b.excerpt||'').slice(0,1000),String(b.body||'').slice(0,200000),String(b.category||'').slice(0,100),String(b.author||'').slice(0,160),String(b.cover_url||'').slice(0,2000),String(b.video_url||'').slice(0,2000),status,status==='published'?(b.published_at||now):null,now).run();
     }
+    await saveContentTaxonomy(env,'news',slug,taxonomy);
     if(sourceUrl) await kaynakBaglaHaber(env,sourceUrl,slug).catch(()=>{});
     if(status==='published') indexNowBildir(ctx, url.origin, slug);
-    return json({ok:true,slug,status});
+    return json({ok:true,slug,status,taxonomy});
   }
 
   /* Admin: haber güncelle / sil (ID ile) */
@@ -527,7 +581,7 @@ async function newsApi(request, env, url, ctx){
       const b=await request.json();
       const now=new Date().toISOString();
       const status=b.status==='published'?'published':'draft';
-      const values=[b.title||'',b.excerpt||'',b.body||'',b.category||'',b.author||'',b.cover_url||'',b.video_url||'',status,status==='published'?(b.published_at||now):null,String(b.source_url||'').trim().slice(0,2000),String(b.original_date||'').trim().slice(0,64),String(b.archive_note||'').trim().slice(0,2000),now,id];
+      const taxonomy=normalizeTaxonomy(b,b.category); const values=[b.title||'',b.excerpt||'',b.body||'',b.category||'',b.author||'',b.cover_url||'',b.video_url||'',status,status==='published'?(b.published_at||now):null,String(b.source_url||'').trim().slice(0,2000),String(b.original_date||'').trim().slice(0,64),String(b.archive_note||'').trim().slice(0,2000),now,id];
       try{
         await env.DB.prepare('UPDATE news SET title=?,excerpt=?,body=?,category=?,author=?,cover_url=?,video_url=?,status=?,published_at=?,source_url=?,original_date=?,archive_note=?,updated_at=? WHERE id=?').bind(...values).run();
       }catch(e){
@@ -535,7 +589,9 @@ async function newsApi(request, env, url, ctx){
           .bind(...values.slice(0,9),now,id).run();
       }
       if(status==='published'){
-        const r=await env.DB.prepare('SELECT slug,source_url FROM news WHERE id=?').bind(id).first().catch(()=>null);
+        const current=await env.DB.prepare('SELECT slug,source_url FROM news WHERE id=?').bind(id).first().catch(()=>null);
+        if(current?.slug) await saveContentTaxonomy(env,'news',current.slug,taxonomy);
+        const r=current;
         if(r?.source_url) await kaynakBaglaHaber(env,r.source_url,r.slug).catch(()=>{});
         indexNowBildir(ctx, url.origin, r?.slug);
       }
