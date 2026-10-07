@@ -258,7 +258,28 @@
   // Üst çubuk kendi katmanında; çekmece body'ye taşınınca her şeyin üstünde açılır.
   if (cekmece) {
     document.body.appendChild(cekmece);
-    cekmece.addEventListener('click', function (e) { if (e.target.closest('[data-hm-kapat]') || e.target === cekmece) { cekmeceKapat(); return; } kategoriTik(e); });
+    cekmece.addEventListener('click', function (e) {
+      if (e.target.closest('[data-hm-kapat]') || e.target === cekmece) { cekmeceKapat(); return; }
+      var baslik = e.target.closest('.hm-3yol-baslik');
+      if (baslik) {
+        var grup = baslik.closest('.hm-3yol-grup');
+        var alt = grup && grup.querySelector('.hm-3yol-alt');
+        var acik = baslik.getAttribute('aria-expanded') === 'true';
+        cekmece.querySelectorAll('.hm-3yol-baslik').forEach(function (b) {
+          b.setAttribute('aria-expanded', 'false');
+          var a = b.closest('.hm-3yol-grup') && b.closest('.hm-3yol-grup').querySelector('.hm-3yol-alt');
+          if (a) a.hidden = true;
+          var i = b.querySelector('i'); if (i) i.textContent = '＋';
+        });
+        if (!acik && alt) {
+          baslik.setAttribute('aria-expanded', 'true');
+          alt.hidden = false;
+          var i2 = baslik.querySelector('i'); if (i2) i2.textContent = '−';
+        }
+        return;
+      }
+      kategoriTik(e);
+    });
   }
   function cekmeceAc() {
     if (!cekmece) return;
