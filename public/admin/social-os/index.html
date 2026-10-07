@@ -48,22 +48,22 @@ const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>
 function renderCategoryContext(){const k=sessionStorage.getItem('btmedya-admin-category')||'sosyal';const m={haber:['HABER','Editoryal içerik ve haber yayın akışı'],sosyal:['SOSYAL MEDYA','Platform, müşteri hesabı ve yayın akışı'],tanitim:['TANITIM','Portföy, kampanya ve proje görünürlüğü']};const x=m[k]||m.sosyal;$('#categoryContext').innerHTML='<div class="ey">AKTİF YÖNETİM MODU</div><b style="font-size:18px">'+x[0]+'</b><div class="mini">'+x[1]+'</div>'}
 let accounts=[];renderCategoryContext();
 const PLATFORM_META={
- facebook:{name:'Facebook',type:'Meta Direct',state:'available',note:'Facebook Page doğrudan yayın destekli.'},
- instagram:{name:'Instagram',type:'Meta Direct',state:'available',note:'Instagram Professional hesap gerekir.'},
+ facebook:{name:'Facebook',type:'Meta Direct',state:'meta',note:'Facebook Page doğrudan yayın destekli.'},
+ instagram:{name:'Instagram',type:'Meta Direct',state:'meta',note:'Instagram Professional hesap gerekir.'},
  tiktok:{name:'TikTok',type:'Direct API',state:'planned',note:'Content Posting API + uygulama onayı gerekir.'},
  youtube:{name:'YouTube',type:'YouTube API',state:'planned',note:'OAuth + youtube.upload kapsamı gerekir.'},
  x:{name:'X',type:'X API',state:'cost',note:'API kullanımı tüketime dayalı olabilir; tamamen ücretsiz kabul edilmez.'},
  whatsapp:{name:'WhatsApp',type:'Cloud API',state:'cost',note:'Meta Business + WABA gerekir; mesaj ücretleri uygulanabilir.'}
 };
-function renderPlatformMatrix(){
- const labels={available:['HAZIR','ok'],planned:['BAĞLANTI BEKLENİYOR','warn'],cost:['PLATFORM MALİYETİ','warn']};
- $('#platformMatrix').innerHTML=Object.entries(PLATFORM_META).map(([id,p])=>{const [label,cls]=labels[p.state]||labels.planned;return '<div class="card"><div class="row"><b>'+p.name+'</b><span class="badge '+cls+'">'+label+'</span></div><div class="mini">'+p.type+'</div><div class="mini" style="margin-top:5px">'+p.note+'</div></div>'}).join('');
+function renderPlatformMatrix(metaReady=false){
+ const labels={meta:['META MOTORU','ok'],planned:['API / OAUTH GEREKİYOR','warn'],cost:['PLATFORM MALİYETİ','warn']};
+ $('#platformMatrix').innerHTML=Object.entries(PLATFORM_META).map(([id,p])=>{const state=(p.state==='meta'&&!metaReady)?'planned':p.state; const [label,cls]=labels[state]||labels.planned;return '<div class="card"><div class="row"><b>'+p.name+'</b><span class="badge '+cls+'">'+label+'</span></div><div class="mini">'+p.type+'</div><div class="mini" style="margin-top:5px">'+p.note+'</div></div>'}).join('');
 }
-renderPlatformMatrix();
+renderPlatformMatrix(false);
 async function api(u,o={}){const r=await fetch(u,{credentials:'same-origin',...o});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}
 function selectedIds(){return [...document.querySelectorAll('#accounts input[data-id]:checked')].map(x=>x.dataset.id)}
 async function workspaces(){const d=await api('/api/client-hub/workspaces');for(const x of d.items||[]){const o=document.createElement('option');o.value='client:'+x.id;o.textContent=x.name;$('#workspace').appendChild(o)}}
-async function load(){const v=$('#workspace').value.split(':');const q='/api/social/direct/accounts?workspace_type='+encodeURIComponent(v[0])+'&workspace_id='+encodeURIComponent(v.slice(1).join(':'));const [a,h,j]=await Promise.all([api(q),api('/api/social/direct/health'),api('/api/social/direct/jobs')]);accounts=a.items||[];$('#health').innerHTML=h.configured?'<span class="ok">Hazır.</span> Meta Direct çekirdeği yapılandırılmış.':'<span class="warn">Meta uygulama sırları henüz eklenmemiş.</span> Önce META_APP_ID, META_APP_SECRET ve SOCIAL_TOKEN_ENCRYPTION_KEY tanımlanmalı.';renderAccounts();renderJobs(j.items||[])}
+async function load(){const v=$('#workspace').value.split(':');const q='/api/social/direct/accounts?workspace_type='+encodeURIComponent(v[0])+'&workspace_id='+encodeURIComponent(v.slice(1).join(':'));const [a,h,j]=await Promise.all([api(q),api('/api/social/direct/health'),api('/api/social/direct/jobs')]);accounts=a.items||[];$('#health').innerHTML=h.configured?'<span class="ok">Meta Direct çekirdeği hazır.</span> Hesap bağlantıları kullanılabilir.':'<span class="warn">Meta Direct çekirdeği yapılandırılmamış.</span> Meta uygulama sırları ve token şifreleme anahtarı gerekli.';renderPlatformMatrix(!!h.configured);renderAccounts();renderJobs(j.items||[])}
 function renderAccounts(){const names={facebook:'Facebook Page',instagram:'Instagram Professional'};$('#accounts').innerHTML=accounts.length?accounts.map(a=>'<label class="card account"><input type="checkbox" data-id="'+esc(a.id)+'"><div><b>'+esc(names[a.provider]||a.provider)+' · '+esc(a.account_name)+'</b><div class="mini">@'+esc(String(a.handle||'').replace(/^@/,''))+'</div><div class="mini">'+esc(a.profile_url||'')+'</div></div><span class="badge '+(a.status==='active'?'ok':'bad')+'">'+esc(a.status)+'</span></label>').join(''):'<div class="card">Bu çalışma alanına bağlı hesap yok.</div>'}
 function renderJobs(items){$('#jobs').innerHTML=items.length?items.slice(0,30).map(j=>'<div class="card"><b>'+esc(j.provider)+' · '+esc(j.account_name)+'</b><div class="mini">'+esc(j.title||j.body||'')+'</div><div class="mini">'+esc(new Date(j.scheduled_at).toLocaleString('tr-TR'))+' · '+esc(j.status)+(j.last_error?' · '+esc(j.last_error):'')+'</div></div>').join(''):'<div class="card">Henüz planlı iş yok.</div>'}
 $('#workspace').onchange=load;$('#refresh').onclick=load;
