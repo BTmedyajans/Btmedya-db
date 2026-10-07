@@ -49,10 +49,10 @@ jobs:
           BTMEDYA_DATE: ${{ github.event.pull_request.updated_at }}
         run: node tools/hyperframes-release.mjs
 
-      - name: Check HyperFrames composition
+      - name: Lint HyperFrames composition
         run: |
           set -euo pipefail
-          npx --yes hyperframes@latest check video/hyperframes/release
+          npx --yes hyperframes@latest lint video/hyperframes/release --json
 
       - name: Verify composition output
         run: |
@@ -84,7 +84,7 @@ jobs:
       - name: Render HyperFrames MP4
         run: |
           set -euo pipefail
-          npx --yes hyperframes@latest check video/hyperframes/release
+          npx --yes hyperframes@latest lint video/hyperframes/release --json
           mkdir -p artifacts
           npx --yes hyperframes@latest render -c video/hyperframes/release/index.html -o artifacts/btmedya-release.mp4
           test -s artifacts/btmedya-release.mp4
@@ -117,10 +117,10 @@ jobs:
           cat > artifacts/btmedya-release.json <<EOF
           {
             "title": $(node -p 'JSON.stringify(process.env.BTMEDYA_VIDEO_TITLE)'),
-            "commit": "${GITHUB_SHA}",
-            "key": "${R2_KEY}",
+            "commit": "$GITHUB_SHA",
+            "key": "$R2_KEY",
             "source": "hyperframes",
             "generated_at": $(node -p 'JSON.stringify(process.env.BTMEDYA_VIDEO_DATE)')
           }
           EOF
-          wrangler r2 object put "btmedya-media/ai-video/releases/${GITHUB_SHA}.json" --file artifacts/btmedya-release.json --content-type application/json --cache-control "public, max-age=300" --remote --force
+          wrangler r2 object put "btmedya-media/ai-video/releases/$GITHUB_SHA.json" --file artifacts/btmedya-release.json --content-type application/json --cache-control "public, max-age=300" --remote --force
