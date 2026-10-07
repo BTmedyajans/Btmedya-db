@@ -246,32 +246,17 @@
 <script src="/film-ses.js?v=20261006-1" defer></script><script src="/home.js?v=20261007-2" defer></script><script src="/mobile-motion.js?v=20261007-2" defer></script><script src="/mobile-ux-v4.js?v=20261007-1" defer></script><link rel="stylesheet" href="/editorial-cover-system.css?v=20261003-1"><script src="/editorial-cover-system.js?v=20261004-1" defer></script><script src="/olcum.js?v=20261003-2" defer></script><script src="/site-motion-v2.js?v=20261005-2" defer></script><script src="/hero-sequence-v2.js?v=20261006-4" defer></script><script src="/secim-sahnesi.js?v=20261006-3" defer></script><script src="/film-secim.js?v=20261007-2" defer></script><script src="/mobile-touch-v2.js?v=20261007-1" defer></script>
 
 <script id="bt-home-hero-v3-js">
-(()=>{
-  const hero=document.getElementById('hero');
-  if(!hero||!hero.classList.contains('bt-home-hero')) return;
-  const vids=[...hero.querySelectorAll('.bt-home-hero-layer')];
-  const desktop='/assets/media/web/btmedya-home-hero-hd.mp4?v=20261007-1';
-  const mobile='/assets/media/web/btmedya-home-hero-mobile-hd.mp4?v=20261007-1';
-  const src=()=>matchMedia('(max-width:720px)').matches?mobile:desktop;
-  let active=0,started=false;
-  const prime=(v)=>{v.muted=true;v.playsInline=true;v.src=src();v.load();};
-  const play=(v)=>v.play().catch(()=>{});
-  const swap=()=>{
-    const current=vids[active], next=vids[1-active];
-    next.currentTime=0; next.muted=true;
-    next.classList.add('is-active'); current.classList.remove('is-active');
-    active=1-active; play(next);
-    current.pause();
-  };
-  vids.forEach(v=>v.addEventListener('ended',swap));
-  vids[0].addEventListener('loadeddata',()=>{started=true;play(vids[0]);},{once:true});
-  prime(vids[0]);
-  window.addEventListener('resize',()=>{
-    if(!started) return;
-    const want=src();
-    vids.forEach(v=>{if(v.src && !v.src.includes(want.split('?')[0])){v.pause();v.src=want;v.load();}});
-    play(vids[active]);
-  },{passive:true});
+(()=>{const hero=document.getElementById('hero');if(!hero)return;
+const vids=[...hero.querySelectorAll('.bt-home-hero-layer')];
+const base='https://cdn.jsdelivr.net/gh/BTmedyajans/Btmedya-db@f46098aa43e8fdc27970d1e4a9220312d0ae0814/tools/giris-kaynak/';
+const clips=['saha-gece.mp4','kamera-arkasi.mp4','studyo-masa.mp4','studyo-program.mp4','defile.mp4'].map(x=>base+x);
+let i=0,active=0;
+const load=(v,n)=>{v.src=clips[n];v.load();};
+const show=(n)=>{const cur=vids[active],next=vids[1-active];load(next,n);next.muted=true;next.currentTime=0;next.classList.add('is-active');active=1-active;i=n;next.play().catch(()=>{});cur.pause();cur.classList.remove('is-active');};
+vids.forEach(v=>v.addEventListener('ended',()=>show((i+1)%clips.length)));
+load(vids[0],0);
+vids[0].addEventListener('loadeddata',()=>vids[0].play().catch(()=>{}),{once:true});
+window.addEventListener('resize',()=>{const nextBase='https://cdn.jsdelivr.net/gh/BTmedyajans/Btmedya-db@f46098aa43e8fdc27970d1e4a9220312d0ae0814/tools/giris-kaynak/';if(!vids[active].src.includes(nextBase))load(vids[active],i);},{passive:true});
 })();
 </script>
 </body>
