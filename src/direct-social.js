@@ -98,6 +98,27 @@ async function ensureDirectTables(env){
     token_expires_at TEXT,scopes_json TEXT NOT NULL DEFAULT '[]',status TEXT NOT NULL DEFAULT 'active',
     last_error TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL,updated_at TEXT NOT NULL,
     UNIQUE(workspace_type,workspace_id,provider,external_id))`).run().catch(()=>{});
+  const connDef=await env.DB.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='social_direct_connections'").first().catch(()=>null);
+  if(connDef?.sql && !/UNIQUE\s*\(\s*workspace_type\s*,\s*workspace_id\s*,\s*provider\s*,\s*external_id\s*\)/i.test(String(connDef.sql))){
+    await env.DB.prepare("PRAGMA foreign_keys=OFF").run().catch(()=>{});
+    await env.DB.prepare(`CREATE TABLE IF NOT EXISTS social_direct_connections_v2 (
+      id TEXT PRIMARY KEY,workspace_type TEXT NOT NULL DEFAULT 'client',workspace_id TEXT NOT NULL,
+      provider TEXT NOT NULL,external_id TEXT NOT NULL,account_name TEXT NOT NULL DEFAULT '',
+      handle TEXT NOT NULL DEFAULT '',profile_url TEXT NOT NULL DEFAULT '',page_id TEXT NOT NULL DEFAULT '',
+      ig_user_id TEXT NOT NULL DEFAULT '',access_token_cipher TEXT NOT NULL DEFAULT '',
+      token_expires_at TEXT,scopes_json TEXT NOT NULL DEFAULT '[]',status TEXT NOT NULL DEFAULT 'active',
+      last_error TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL,updated_at TEXT NOT NULL,
+      UNIQUE(workspace_type,workspace_id,provider,external_id))`).run();
+    await env.DB.prepare(`INSERT OR IGNORE INTO social_direct_connections_v2
+      SELECT id,workspace_type,workspace_id,provider,external_id,account_name,handle,profile_url,page_id,ig_user_id,access_token_cipher,token_expires_at,scopes_json,status,last_error,created_at,updated_at
+      FROM social_direct_connections`).run();
+    await env.DB.prepare("DROP TABLE social_direct_connections").run();
+    await env.DB.prepare("ALTER TABLE social_direct_connections_v2 RENAME TO social_direct_connections").run();
+    await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_social_direct_workspace ON social_direct_connections(workspace_type,workspace_id)").run();
+    await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_social_direct_provider ON social_direct_connections(provider,status)").run();
+    await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_social_direct_workspace_provider ON social_direct_connections(workspace_type,workspace_id,provider,status)").run();
+    await env.DB.prepare("PRAGMA foreign_keys=ON").run().catch(()=>{});
+  }
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS social_direct_jobs (
     id TEXT PRIMARY KEY,connection_id TEXT NOT NULL,title TEXT NOT NULL DEFAULT '',body TEXT NOT NULL DEFAULT '',
     media_key TEXT NOT NULL DEFAULT '',scheduled_at TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'queued',
@@ -105,8 +126,15 @@ async function ensureDirectTables(env){
     source_slug TEXT NOT NULL DEFAULT '',content_hash TEXT NOT NULL DEFAULT '',kind TEXT NOT NULL DEFAULT 'manual',
     created_at TEXT NOT NULL,updated_at TEXT NOT NULL,
     FOREIGN KEY(connection_id) REFERENCES social_direct_connections(id) ON DELETE CASCADE)`).run().catch(()=>{});
+  const jobCols=(await env.DB.prepare("PRAGMA table_info(social_direct_jobs)").all().catch(()=>({results:[]}))).results||[];
+  const names=new Set(jobCols.map(x=>String(x.name)));
+  for(const [name,type] of [["source_slug","TEXT NOT NULL DEFAULT ''"],["content_hash","TEXT NOT NULL DEFAULT ''"],["kind","TEXT NOT NULL DEFAULT 'manual'"]]){
+    if(!names.has(name)) await env.DB.prepare("ALTER TABLE social_direct_jobs ADD COLUMN "+name+" "+type).run().catch(()=>{});
+  }
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_social_direct_jobs_due ON social_direct_jobs(status,scheduled_at)").run().catch(()=>{});
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_social_direct_jobs_connection ON social_direct_jobs(connection_id)").run().catch(()=>{});
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_social_direct_jobs_source ON social_direct_jobs(connection_id,source_slug,content_hash)").run().catch(()=>{});
 }
-
 async function graph(env,path,opts={}){
   const url="https://graph.facebook.com/"+graphVersion(env)+path;
   const method=opts.method||"GET";
