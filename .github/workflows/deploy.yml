@@ -119,6 +119,7 @@ jobs:
           grep -q 'BTMEDYA Yönetim Merkezi' public/admin/index.html
           grep -q '/admin/agency-os/' public/admin/index.html
           test -s public/admin/site-os/index.html
+          test -s public/admin/musteri-sosyal/index.html
           grep -q '/admin/site-os/' public/admin/index.html
           grep -q 'href="/admin/"' public/index.html
           grep -q 'btmedya-core' src/worker.js
