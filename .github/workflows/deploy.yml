@@ -49,6 +49,7 @@ jobs:
           test -s public/sitemap.xml
           test -s package.json
           node --check src/worker.js
+          node --check src/content-taxonomy.js
           node --check src/sales-router.js
           grep -q 'WHERE client_id=? AND id IN' src/sales-router.js
           node --check public/editorial-cover-system.js
@@ -147,6 +148,13 @@ jobs:
           test -s public/admin/yayin/yayin.js
           node --check public/admin/yayin/yayin.js
           test -s public/admin/social-os/index.html
+          test -s public/data/btmedya-taxonomy.js
+          grep -q "HABER & MEDYA" public/data/btmedya-taxonomy.js
+          grep -q "SOSYAL & DİJİTAL" public/data/btmedya-taxonomy.js
+          grep -q "MARKA & PRODÜKSİYON" public/data/btmedya-taxonomy.js
+          grep -q "BTMEDYA-CANONICAL-TAXONOMY" docs/BTMEDYA-CANONICAL-TAXONOMY.md || grep -q "Canonical Taxonomy" docs/BTMEDYA-CANONICAL-TAXONOMY.md
+          node --check public/kategori-menu.js
+          node --check public/admin/admin-menu.js
           test -s migrations/0023_direct_social.sql
           grep -q 'directSocialApi' src/worker.js
           grep -q 'processDirectSocialQueue' src/worker.js
