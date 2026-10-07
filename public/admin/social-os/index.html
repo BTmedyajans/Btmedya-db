@@ -20,6 +20,7 @@
 
 <section class="panel">
 <div class="row"><div><div class="ey">01 · HESAP BAĞLANTILARI</div><h2>Çalışma alanı</h2><p class="muted">Önce BTMEDYA veya bir müşteri çalışma alanı seç.</p></div><button class="btn" id="refresh">Yenile</button></div>
+<div id="platformMatrix" class="cardlist" style="grid-template-columns:repeat(3,minmax(0,1fr));margin:14px 0"></div>
 <select id="workspace" class="field"><option value="agency:btmedya">BTMEDYA</option></select>
 <div class="toolbar"><button class="btn primary" id="connect">Meta / Facebook + Instagram bağla</button><a class="btn" href="https://developers.facebook.com/" target="_blank" rel="noopener">Meta Developer</a></div>
 <div id="health" class="note">Bağlantı yapılandırması kontrol ediliyor…</div>
@@ -47,6 +48,19 @@ const $=s=>document.querySelector(s),esc=
 function renderCategoryContext(){const k=sessionStorage.getItem('btmedya-admin-category')||'sosyal';const m={haber:['HABER','Editoryal içerik ve haber yayın akışı'],sosyal:['SOSYAL MEDYA','Platform, müşteri hesabı ve yayın akışı'],tanitim:['TANITIM','Portföy, kampanya ve proje görünürlüğü']};const x=m[k]||m.sosyal;$('#categoryContext').innerHTML='<div class="ey">AKTİF YÖNETİM MODU</div><b style="font-size:18px">'+x[0]+'</b><div class="mini">'+x[1]+'</div>'}
 v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let accounts=[];renderCategoryContext();
+const PLATFORM_META={
+ facebook:{name:'Facebook',type:'Meta Direct',state:'available',note:'Facebook Page doğrudan yayın destekli.'},
+ instagram:{name:'Instagram',type:'Meta Direct',state:'available',note:'Instagram Professional hesap gerekir.'},
+ tiktok:{name:'TikTok',type:'Direct API',state:'planned',note:'Content Posting API + uygulama onayı gerekir.'},
+ youtube:{name:'YouTube',type:'YouTube API',state:'planned',note:'OAuth + youtube.upload kapsamı gerekir.'},
+ x:{name:'X',type:'X API',state:'cost',note:'API kullanımı tüketime dayalı olabilir; tamamen ücretsiz kabul edilmez.'},
+ whatsapp:{name:'WhatsApp',type:'Cloud API',state:'cost',note:'Meta Business + WABA gerekir; mesaj ücretleri uygulanabilir.'}
+};
+function renderPlatformMatrix(){
+ const labels={available:['HAZIR','ok'],planned:['BAĞLANTI BEKLENİYOR','warn'],cost:['PLATFORM MALİYETİ','warn']};
+ $('#platformMatrix').innerHTML=Object.entries(PLATFORM_META).map(([id,p])=>{const [label,cls]=labels[p.state]||labels.planned;return '<div class="card"><div class="row"><b>'+p.name+'</b><span class="badge '+cls+'">'+label+'</span></div><div class="mini">'+p.type+'</div><div class="mini" style="margin-top:5px">'+p.note+'</div></div>'}).join('');
+}
+renderPlatformMatrix();
 async function api(u,o={}){const r=await fetch(u,{credentials:'same-origin',...o});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}
 function selectedIds(){return [...document.querySelectorAll('#accounts input[data-id]:checked')].map(x=>x.dataset.id)}
 async function workspaces(){const d=await api('/api/client-hub/workspaces');for(const x of d.items||[]){const o=document.createElement('option');o.value='client:'+x.id;o.textContent=x.name;$('#workspace').appendChild(o)}}
