@@ -271,7 +271,7 @@ tara('public'); tara('src');
   }
   const varsBlok = (worker.match(/const SITE_SLOT_VARSAYILAN=\{([\s\S]*?)\};/) || [, ''])[1];
   for (const [, slug, yol] of varsBlok.matchAll(/'([a-z0-9-]+)':\s*'([^']+)'/g)) {
-    if (!index.includes('/assets/' + yol) && !/^https?:\\/\\//.test(yol)) {
+    if (!index.includes('/assets/' + yol) && !String(yol).startsWith('http')) {
       bulgular.push(`SITE_SLOT_VARSAYILAN["${slug}"] = ${yol} ama index.html bu dosyayi kullanmiyor; panel yanlis "su an" gosterir.`);
     }
   }
