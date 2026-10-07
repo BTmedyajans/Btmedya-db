@@ -43,6 +43,7 @@ jobs:
           node tools/sabah-masasi-testi.mjs
           node --check src/ai-gorunurluk.js
           node tools/ai-gorunurluk-testi.mjs
+          node tools/ai-draft-guardrail-testi.mjs
           node --check src/sales-router.js
           node tools/teklif-testi.mjs
           node tools/temas-testi.mjs

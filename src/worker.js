@@ -608,6 +608,16 @@ async function newsFinderApi(request,env,url){
   const found=await scanNewsSources(env,feedIds);
   return json({ok:true,count:found.length,items:found});
 }
+function normalizeAiDraft(value, fallback){
+  const o=value && typeof value==='object' && !Array.isArray(value) ? value : {};
+  const clean=(v,max)=>typeof v==='string'?v.trim().slice(0,max):'';
+  const title=clean(o.title,500);
+  const excerpt=clean(o.excerpt,1200);
+  const body=clean(o.body,16000);
+  const social_caption=clean(o.social_caption,2500);
+  if(!title && !excerpt && !body && !social_caption) return null;
+  return {title:title||fallback.title,excerpt,body,social_caption};
+}
 async function aiDraftApi(request,env,url){
   if(url.pathname!=='/api/admin/ai-draft') return null;
   if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
@@ -618,8 +628,11 @@ async function aiDraftApi(request,env,url){
   const prompt='BTMEDYA için editoryal TASLAK hazırla. Kaynak metni kopyalama. Yalnızca verilen bilgilerden hareket et, yeni olgu uydurma. Türkçe JSON üret: title, excerpt, body, social_caption. Kaynak linkini ve belirsizliği koru. Otomatik yayın yapma.\n\nBaşlık: '+title+'\nKaynak: '+source+'\nMetin: '+textIn;
   const r=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+env.OPENAI_API_KEY},body:JSON.stringify({model:'gpt-5.6-luna',input:prompt,store:false})});
   if(!r.ok) return json({ok:false,error:'AI servisi yanıt vermedi'},502); const data=await r.json();
-  const output=String(data.output_text||data.output?.flatMap(x=>x.content||[]).map(x=>x.text||'').join('')||'').trim(); let parsed=null; try{parsed=JSON.parse(output.replace(/^```json|```$/g,'').trim())}catch{}
-  return json({ok:true,draft:parsed||{title,excerpt:'',body:output,social_caption:''}});
+  const output=String(data.output_text||data.output?.flatMap(x=>x.content||[]).map(x=>x.text||'').join('')||'').trim();
+  let parsed=null; try{parsed=JSON.parse(output.replace(/^```json|```$/g,'').trim());}catch{}
+  const draft=normalizeAiDraft(parsed,{title});
+  if(draft) return json({ok:true,draft});
+  return json({ok:true,draft:{title,excerpt:'',body:'',social_caption:''},guardrail:'invalid-ai-output'});
 }
 /* ---------- Statik arşiv -> R2 eşitleme ---------- */
 async function mediaSyncApi(request, env, url){
