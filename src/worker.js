@@ -2408,7 +2408,7 @@ function cspKur(pathname, nonce) {
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
     "img-src 'self' data: blob: https://i.ytimg.com https://tracker.metricool.com",
-    "media-src 'self' blob:",
+    "media-src 'self' blob: https://cdn.jsdelivr.net",
     "frame-src https://www.youtube-nocookie.com",
     `connect-src 'self' ${CF_ANALYTICS_UC} https://tracker.metricool.com`,
     "form-action 'self'",
