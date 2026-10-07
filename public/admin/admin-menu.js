@@ -25,6 +25,7 @@
         ['Müşteri Merkezi','/admin/client-hub/','Firma · proje · onay']
       ]},
       {ad:'YAYIN',items:[
+        ['BTMEDYA Connect','/admin/connect/','Meta · TikTok · YouTube · fallback durumu'],
         ['BTMEDYA Social OS','/admin/social-os/','Meta Direct · müşteri + kişisel çalışma alanları'],
         ['Sosyal Yayın','/admin/yayin/#social','Dağıtım ve yayın kuyruğu'],
         ['Instagram / Facebook','/admin/musteri-sosyal/','Hesap bağlantıları'],
