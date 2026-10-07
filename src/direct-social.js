@@ -373,10 +373,12 @@ async function apiSchedule(request,env){
   const ids=Array.isArray(b.connection_ids)?[...new Set(b.connection_ids.map(x=>clean(x,120)).filter(Boolean))]:[];
   if(!ids.length)return j({ok:false,error:"En az bir hesap seçin"},400);
   const title=clean(b.title,240),body=clean(b.body||title,63206),mediaKey=clean(b.media_key,500);
+  const workspace_type=validWorkspaceType(b.workspace_type)?b.workspace_type:"company";
+  const workspace_id=clean(b.workspace_id,120)||"btmedya";
   let scheduled=new Date(b.scheduled_at||Date.now()+10*60*1000);
   if(Number.isNaN(scheduled.getTime()))return j({ok:false,error:"Geçersiz yayın zamanı"},400);
   if(scheduled.getTime()<Date.now()+30000)scheduled=new Date(Date.now()+30000);
-  const q=await env.DB.prepare(`SELECT * FROM social_direct_connections WHERE id IN (${ids.map(()=>"?").join(",")}) AND status='active'`).bind(...ids).all();
+  const q=await env.DB.prepare(`SELECT * FROM social_direct_connections WHERE id IN (${ids.map(()=>"?").join(",")}) AND workspace_type=? AND workspace_id=? AND status='active'`).bind(...ids,workspace_type,workspace_id).all();
   const rows=q.results||[];if(!rows.length)return j({ok:false,error:"Seçili hesap bulunamadı"},404);
   const now=new Date().toISOString(),jobs=[];
   for(const c of rows){
@@ -391,10 +393,13 @@ async function apiSchedule(request,env){
 async function apiJobs(request,env,url){
   if(!(await validSession(request,env)))return j({ok:false,error:"Yetkisiz"},401);
   await ensureDirectTables(env);
+  const type=validWorkspaceType(url.searchParams.get("workspace_type"))?url.searchParams.get("workspace_type"):"";
+  const wid=clean(url.searchParams.get("workspace_id"),120);
+  const binds=[];let where="";
+  if(type&&wid){where=" WHERE c.workspace_type=? AND c.workspace_id=?";binds.push(type,wid);}
   const q=await env.DB.prepare(`SELECT j.id,j.connection_id,j.title,j.body,j.media_key,j.scheduled_at,j.status,j.attempts,j.external_id,j.last_error,j.created_at,j.updated_at,
     c.provider,c.account_name,c.handle
-    FROM social_direct_jobs j JOIN social_direct_connections c ON c.id=j.connection_id
-    ORDER BY j.scheduled_at DESC LIMIT 200`).all();
+    FROM social_direct_jobs j JOIN social_direct_connections c ON c.id=j.connection_id`+where+` ORDER BY j.scheduled_at DESC LIMIT 200`).bind(...binds).all();
   return j({ok:true,items:q.results||[]});
 }
 
