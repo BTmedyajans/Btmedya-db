@@ -13,12 +13,50 @@ on:
         required: false
         type: string
         default: "BTMEDYA yeni üretim"
+  pull_request:
+    paths:
+      - "video/hyperframes/**"
+      - "tools/hyperframes-release.mjs"
+      - ".github/workflows/hyperframes-release-video.yml"
 
 permissions:
   contents: read
 
 jobs:
+  validate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Prepare composition metadata
+        env:
+          BTMEDYA_VIDEO_TITLE: "BTMEDYA PR doğrulaması"
+          BTMEDYA_COMMIT: ${{ github.event.pull_request.head.sha }}
+          BTMEDYA_DATE: ${{ github.event.pull_request.updated_at }}
+        run: node tools/hyperframes-release.mjs
+
+      - name: Check HyperFrames composition
+        run: |
+          set -euo pipefail
+          npx --yes hyperframes@latest check -c video/hyperframes/release/index.html
+
+      - name: Verify composition output
+        run: |
+          set -euo pipefail
+          test -s video/hyperframes/release/index.html
+          grep -q 'data-composition-id="main"' video/hyperframes/release/index.html
+          grep -q 'data-duration="8"' video/hyperframes/release/index.html
+
   render:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
