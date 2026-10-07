@@ -12,7 +12,7 @@
 </style>
 </head>
 <body>
-<main class="wrap">
+<main class="wrap"><div id="categoryContext" class="panel" style="margin-bottom:12px;border-color:#3a4932"></div>
 <header class="top">
 <div><div class="ey">BTMEDYA / SOCIAL OS</div><h1>Hesaplarını tek merkezden yönet.</h1><p class="muted">BTMEDYA hesabın ve müşterilerin Facebook Page + Instagram Professional hesaplarını doğrudan bağla. Zorunlu Metricool aboneliği yok.</p></div>
 <a class="btn" href="/admin/">← Yönetim Merkezi</a>
@@ -43,8 +43,10 @@
 <section class="panel" style="margin-top:12px"><div class="ey">04 · SINIRLAR</div><div class="note danger"><b>Önemli:</b> Facebook kişisel profilini ve normal (consumer) Instagram hesabını resmi API ile otomatik yayınlayamayız. Facebook tarafında Page, Instagram tarafında Professional Business/Creator hesap gerekir.</div><div class="mini" style="margin-top:10px">TikTok ve YouTube doğrudan modülleri ayrı sağlayıcı yetkilendirmeleri gerektirir; mevcut Metricool bağlantısı ayrıca kullanılabilir.</div></section>
 </main>
 <script>
-const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let accounts=[];
+const $=s=>document.querySelector(s),esc=
+function renderCategoryContext(){const k=sessionStorage.getItem('btmedya-admin-category')||'sosyal';const m={haber:['HABER','Editoryal içerik ve haber yayın akışı'],sosyal:['SOSYAL MEDYA','Platform, müşteri hesabı ve yayın akışı'],tanitim:['TANITIM','Portföy, kampanya ve proje görünürlüğü']};const x=m[k]||m.sosyal;$('#categoryContext').innerHTML='<div class="ey">AKTİF YÖNETİM MODU</div><b style="font-size:18px">'+x[0]+'</b><div class="mini">'+x[1]+'</div>'}
+v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let accounts=[];renderCategoryContext();
 async function api(u,o={}){const r=await fetch(u,{credentials:'same-origin',...o});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}
 function selectedIds(){return [...document.querySelectorAll('#accounts input[data-id]:checked')].map(x=>x.dataset.id)}
 async function workspaces(){const d=await api('/api/client-hub/workspaces');for(const x of d.items||[]){const o=document.createElement('option');o.value='client:'+x.id;o.textContent=x.name;$('#workspace').appendChild(o)}}
