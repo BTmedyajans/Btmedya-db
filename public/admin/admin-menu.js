@@ -54,6 +54,7 @@
   ];
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const here=location.pathname+location.hash;
+  // Mobilde menü düğmesi her admin sayfasında görünür; mevcut sayfa özel tetikleyicileri varsa onları da kullanır.
   let active='';
   for(const k of KATEGORILER)for(const g of k.gruplar)for(const[,u]of g.items){
     const p=u.split('#')[0];
