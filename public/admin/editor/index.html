@@ -25,12 +25,21 @@ body{min-height:100vh}a{color:inherit;text-decoration:none}button,input,textarea
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
 <link rel="stylesheet" href="/admin/admin-menu.css?v=20261007-2"><script src="/admin/admin-menu.js?v=20261007-2" defer></script>
-</head>
+<style>
+.top-meta{font:800 11px/1.2 ui-monospace,monospace;letter-spacing:.12em;color:#9caab2;padding-top:8px}
+.path-guide{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.path-card{position:relative;display:grid;grid-template-columns:auto 1fr auto;column-gap:10px;align-items:center;min-height:70px;padding:10px 12px;border:1px solid #263137;border-radius:13px;background:#0a1013;text-decoration:none;color:#eef4f6}
+.path-card:hover{border-color:#465a62}.path-card.is-active{border-color:#d9ff3f;background:rgba(217,255,63,.07);box-shadow:inset 3px 0 0 #d9ff3f}
+.path-card span{font:800 9px/1 ui-monospace,monospace;color:#d9ff3f}.path-card b{font-size:13px}.path-card small{grid-column:2;color:#85949d;font-size:10px;margin-top:2px}.path-card i{grid-column:3;grid-row:1/3;font-style:normal;color:#64e4ff}
+.cat-help{display:block;margin-top:4px;color:#7f8d96;font:600 10px/1.3 Manrope,Inter,sans-serif}
+.cat-note{margin:12px 0 0}.cat-groups section{min-height:100%}
+@media(max-width:680px){.top-meta{padding-top:10px}.path-guide{grid-template-columns:1fr}.path-card{min-height:62px}}
+</style></head>
 <body>
 <header class="top">
   <div class="brand">BT<span>MEDYA</span> / HABER ODASI</div>
   <div class="live"><i class="dot"></i> canlı editoryal çalışma alanı</div>
-  <a class="btn" href="/admin/">Kontrol Merkezi</a>
+  <div class="top-meta">BALIKESİR · TÜRKİYE</div>
 </header>
 
 <main class="shell">
@@ -43,20 +52,23 @@ body{min-height:100vh}a{color:inherit;text-decoration:none}button,input,textarea
     <button class="btn blue" id="draft">AI taslak üret</button>
     <button class="btn" id="save">Taslak kaydet</button>
     <button class="btn primary" id="publish">Yayınla</button>
-    <a class="btn warn" href="/admin/autopilot/">Radar / Otomasyon ↗</a>
-    <a class="btn" href="/admin/musteri-sosyal/">Müşteri Sosyal OS ↗</a>
   </div>
-  <div id="status" class="status">Kaynak doğrulama ve içerik akışı hazır.</div>
+  <div id="status" class="status">1. Yolu seç → 2. kaynağı doğrula → 3. üret → 4. kontrol et → 5. yayınla.</div>
+  <section class="path-guide" aria-label="BTMEDYA üç ana yol">
+    <a class="path-card is-active" href="/admin/editor/"><span>01</span><b>HABER</b><small>Kaynaklı içerik · SEO · yayın</small><i>↗</i></a>
+    <a class="path-card" href="/admin/musteri-sosyal/"><span>02</span><b>SOSYAL MEDYA</b><small>AI içerik · hesap · planlama</small><i>↗</i></a>
+    <a class="path-card" href="/admin/app.html"><span>03</span><b>TANITIM</b><small>Video · medya · proje</small><i>↗</i></a>
+  </section>
 </section>
 
 <div id="catMenu" class="cat-drawer" hidden role="dialog" aria-modal="true" aria-label="Haber kategori kataloğu">
-  <div class="cat-drawer-head"><b>HABER KATALOĞU</b><button type="button" class="btn" id="catMenuClose">Kapat ×</button></div>
-  <p class="muted">Önce ana alanı, sonra alt kategoriyi seç. Kategori değişince SEO ve yayın önizlemesi yeniden hesaplanır.</p>
+  <div class="cat-drawer-head"><div><b>HABER KATEGORİSİ</b><span class="cat-help">1 bölge → 2 konu → 3 format</span></div><button type="button" class="btn" id="catMenuClose">Kapat ×</button></div>
   <div class="cat-groups">
-    <section><b>YEREL → ULUSAL</b><button data-cat="Balıkesir">Balıkesir</button><button data-cat="Marmara">Marmara</button><button data-cat="Türkiye">Türkiye</button><button data-cat="Dünya">Dünya</button></section>
-    <section><b>GÜNDEM → YAŞAM</b><button data-cat="Gündem">Gündem</button><button data-cat="Ekonomi">Ekonomi</button><button data-cat="Kültür · Sanat">Kültür · Sanat</button><button data-cat="Eğitim">Eğitim</button><button data-cat="Sağlık">Sağlık</button><button data-cat="Spor">Spor</button><button data-cat="Teknoloji · AI">Teknoloji · AI</button><button data-cat="Yaşam">Yaşam</button></section>
-    <section><b>MEDYA / ÜRETİM</b><button data-cat="AI LAB">AI LAB</button><button data-cat="Prodüksiyon">Prodüksiyon</button><button data-cat="Medya">Medya</button><button data-cat="Röportaj">Röportaj</button><button data-cat="Özel Dosya">Özel Dosya</button></section>
+    <section><b>01 · BÖLGE</b><button data-cat="Balıkesir">Balıkesir</button><button data-cat="Marmara">Marmara</button><button data-cat="Türkiye">Türkiye</button><button data-cat="Dünya">Dünya</button></section>
+    <section><b>02 · KONU</b><button data-cat="Gündem">Gündem</button><button data-cat="Ekonomi">Ekonomi</button><button data-cat="Eğitim">Eğitim</button><button data-cat="Sağlık">Sağlık</button><button data-cat="Spor">Spor</button><button data-cat="Kültür · Sanat">Kültür · Sanat</button><button data-cat="Yaşam">Yaşam</button><button data-cat="Teknoloji · AI">Teknoloji · AI</button></section>
+    <section><b>03 · FORMAT</b><button data-cat="Röportaj">Röportaj</button><button data-cat="Özel Dosya">Özel Dosya</button><button data-cat="AI LAB">AI LAB</button><button data-cat="Prodüksiyon">Prodüksiyon</button><button data-cat="Medya">Medya</button></section>
   </div>
+  <p class="muted cat-note">Tek bir kategori seçmen yeterli. Önce haberin kapsadığı bölgeyi, sonra konuyu; özel üretimse formatı kullan.</p>
 </div>
 
 <div class="grid">
@@ -64,7 +76,7 @@ body{min-height:100vh}a{color:inherit;text-decoration:none}button,input,textarea
 <div class="panel">
   <div class="panel-head"><div><div class="eyebrow">01 · HİKÂYE ÇEKİRDEĞİ</div><h2>İçerik çalışma alanı</h2></div><span class="badge">ÖNCE KAYNAK</span></div>
   <div class="row">
-    <div><label class="label">KATEGORİ</label><div class="cat-pick"><button type="button" class="btn" id="catMenuBtn" aria-controls="catMenu" aria-expanded="false">☰ Kategori seç</button><span class="badge" id="catCurrent">Balıkesir</span></div><select id="category" class="field" style="margin-top:8px"><option>Balıkesir</option><option>Marmara</option><option>Türkiye</option><option>Dünya</option><option>Gündem</option><option>Ekonomi</option><option>Kültür · Sanat</option><option>Eğitim</option><option>Sağlık</option><option>Spor</option><option>Teknoloji · AI</option><option>Yaşam</option><option>AI LAB</option><option>Prodüksiyon</option><option>Medya</option><option>Röportaj</option><option>Özel Dosya</option></select></div>
+    <div><label class="label">KATEGORİ</label><div class="cat-pick"><button type="button" class="btn" id="catMenuBtn" aria-controls="catMenu" aria-expanded="false">Kategoriyi seç</button><span class="badge" id="catCurrent">Balıkesir</span></div><select id="category" class="field" style="display:none"><option>Balıkesir</option><option>Marmara</option><option>Türkiye</option><option>Dünya</option><option>Gündem</option><option>Ekonomi</option><option>Kültür · Sanat</option><option>Eğitim</option><option>Sağlık</option><option>Spor</option><option>Teknoloji · AI</option><option>Yaşam</option><option>AI LAB</option><option>Prodüksiyon</option><option>Medya</option><option>Röportaj</option><option>Özel Dosya</option></select></div>
     <div><label class="label">YAYIN DURUMU</label><select id="state" class="field"><option value="draft">Taslak</option><option value="published">Yayın</option></select></div>
   </div>
   <label class="label">BAŞLIK / HOOK</label><input id="title" class="field" placeholder="Okuru ilk 2 saniyede durduracak başlık">
