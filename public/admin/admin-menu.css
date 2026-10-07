@@ -60,3 +60,7 @@ html.bam-acik{overflow:hidden}
 .bam-sistem a:hover,.bam-sistem button:hover{border-color:#5f717b}
 .bam-sistem :focus-visible{outline:2px solid #a6d9ea;outline-offset:2px}
 .bam a{text-decoration:none}
+
+/* 2026-10-07 single-source admin navigation */
+.bam-sistem{border-top:1px solid rgba(255,255,255,.08);padding-top:14px}
+@media(max-width:720px){.bam-panel{width:100%;max-width:none}.bam-kat-baslik{min-height:64px}.bam-alt a{min-height:60px}.bam-sistem a,.bam-sistem button{flex:1;justify-content:center;min-width:120px}}
