@@ -1,7 +1,7 @@
 const AUTH="https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN="https://oauth2.googleapis.com/token";
 const API="https://www.googleapis.com/youtube/v3";
-import { validSession, saveOAuthConnection } from "./direct-social.js";
+import { validSession, saveOAuthConnection, validWorkspaceType, workspaceExists } from "./direct-social.js";
 
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
 
@@ -14,8 +14,9 @@ export async function youtubeApi(request,env){
   if(action==="start"){
     if(!env.KV)return json({error:"KV bağlantısı yok"},503);
     const state=crypto.randomUUID();
-    const workspace_type=url.searchParams.get("workspace_type")||"company";
+    const workspace_type=validWorkspaceType(url.searchParams.get("workspace_type"))?url.searchParams.get("workspace_type"):"agency";
     const workspace_id=url.searchParams.get("workspace_id")||"btmedya";
+    if(!(await workspaceExists(env,workspace_type,workspace_id)))return json({error:"Çalışma alanı bulunamadı"},404);
     await env.KV.put("youtube_oauth:"+state,JSON.stringify({workspace_type,workspace_id}),{expirationTtl:600});
     const redirectUri=env.YOUTUBE_REDIRECT_URI||new URL("/api/social/direct/youtube/callback",url.origin).toString();
     const q=new URLSearchParams({client_id:env.YOUTUBE_CLIENT_ID,redirect_uri:redirectUri,response_type:"code",access_type:"offline",prompt:"consent",scope:"https://www.googleapis.com/auth/youtube.upload",state});
