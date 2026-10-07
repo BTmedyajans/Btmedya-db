@@ -156,7 +156,6 @@ async function metaCallback(request,env,url){
       redirect_uri,code
     }});
     if(!short.access_token)throw new Error("Meta erişim anahtarı alınamadı");
-    const long=await graph(env,"/oauth/access_token",{method:"GET"});
     let userToken=short.access_token;
     try{
       const r=await fetch("https://graph.facebook.com/"+graphVersion(env)+"/oauth/access_token?grant_type=fb_exchange_token&client_id="+encodeURIComponent(String(env.META_APP_ID))+"&client_secret="+encodeURIComponent(String(env.META_APP_SECRET||""))+"&fb_exchange_token="+encodeURIComponent(short.access_token));
