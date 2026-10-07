@@ -10,6 +10,8 @@
   ];
   let selectedId='';
   let selectedServices=[];
+  let projects=[];
+  let selectedProjectId='';
   let strategy={approval_required:true,autopublish_enabled:false};
 
   async function api(url,opts){
@@ -24,8 +26,8 @@
     const panel=document.createElement('section');
     panel.id='btClientV3Panel';panel.className='panel bt-client-v3-panel';
     panel.innerHTML=`<div class="eyebrow">BTMEDYA / MÜŞTERİ OPERASYON MERKEZİ</div>
-      <div class="v3-head"><div><h2>Hizmet · Sosyal Radar · Marka AI</h2><p class="mut">Müşteriyi tanımla, hesaplarını izle, rakipleri karşılaştır ve onaylı içerik üret.</p></div><button class="btn primary" id="clientAiGenerate" type="button">✦ AI ile üret</button></div>
-      <div class="v3-block"><div class="v3-label">HİZMET KAPSAMI</div><div id="servicePicker" class="service-picker"></div></div>
+      <div class="v3-head"><div><h2>Hizmet · Proje · Sosyal · Marka AI</h2><p class="mut">Müşteriyi tanımla, işi projeye bağla, içeriği üret ve yayın/rapor akışını aynı çalışma alanında tut.</p></div><button class="btn primary" id="clientAiGenerate" type="button">✦ AI ile üret</button></div>
+      <div class="v3-block"><div class="v3-label">PROJE BAĞLAMI</div><select id="v3ProjectSelect"><option value="">Genel müşteri işi</option></select></div><div class="v3-block"><div class="v3-label">HİZMET KAPSAMI</div><div id="servicePicker" class="service-picker"></div></div>
       <div class="v3-grid"><div class="v3-block"><div class="v3-label">SOSYAL HESAPLAR</div><div id="socialAccounts" class="v3-stack"></div><div class="v3-form"><select id="sNetwork"><option value="instagram">Instagram</option><option value="facebook">Facebook</option><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="linkedin">LinkedIn</option></select><input id="sHandle" placeholder="@kullanici / kanal"><input id="sUrl" placeholder="Profil URL"><input id="sBrand" placeholder="Metricool Brand ID"><input id="sCompetitors" placeholder="Rakipler: rakip1, rakip2"><input id="sQueries" placeholder="Trend takibi: konu1, konu2"><button class="btn" id="addSocialBtn" type="button">Hesabı ekle</button></div></div>
       <div class="v3-block"><div class="v3-label">RADAR</div><div id="radarBox" class="v3-radar">Müşteri seçildiğinde radar açılır.</div></div></div>
       <div class="v3-block"><div class="v3-label">MARKA STRATEJİSİ</div><div class="v3-form"><input id="sPositioning" placeholder="Marka konumlandırması"><input id="sPillars" placeholder="İçerik sütunları: haber, vaka, ürün"><textarea id="sVisual" rows="4" placeholder='Görsel kuralları JSON'></textarea><textarea id="sPublish" rows="4" placeholder='Yayın kuralları JSON'></textarea><textarea id="sTemplate" rows="5" placeholder='Filtrelenmiş AI şablonu JSON'></textarea></div><div class="v3-actions"><button class="btn" id="sApproval" type="button">✓ Müşteri onayı zorunlu</button><button class="btn" id="sAutopublish" type="button">○ Onaylı içerikte otomatik yayın</button><button class="btn primary" id="saveStrategyBtn" type="button">Stratejiyi kaydet</button></div></div>`;
@@ -63,6 +65,29 @@
   function renderAccounts(items){
     const root=$('#socialAccounts');if(!root)return;
     root.innerHTML=items.map(x=>'<div class="social-account-row"><b>'+esc(String(x.network||'').toUpperCase())+'</b><div><strong>'+esc(x.handle||'profil')+'</strong><small>'+esc(x.profile_url||'')+(x.metricool_brand_id?' · Metricool #'+esc(x.metricool_brand_id):' · Public radar')+'</small></div><button type="button" class="btn" data-social-delete="'+esc(x.id)+'">Sil</button></div>').join('')||'<div class="empty">Müşterinin sosyal hesapları henüz eklenmedi.</div>';
+  }
+  async function loadProjects(){
+    if(!selectedId)return;
+    const d=await api('/api/client-hub/workspace/'+selectedId+'/projects'); projects=d.items||[];
+    const sel=$('#v3ProjectSelect'); if(sel)sel.innerHTML='<option value="">Genel müşteri işi</option>'+projects.filter(x=>x.status!=='archived').map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join(''); if(sel)sel.value=selectedProjectId||'';
+    await renderProjectOps();
+  }
+  async function renderProjectOps(){
+    if(!selectedId)return;
+    const root=$('#projectList'),sum=$('#projectSummary'),pub=$('#publicationList'); if(!root||!sum)return;
+    try{
+      const [r,p]=await Promise.all([api('/api/client-hub/workspace/'+selectedId+'/report'+(selectedProjectId?'?project_id='+encodeURIComponent(selectedProjectId):'')),api('/api/client-hub/workspace/'+selectedId+'/publications')]);
+      const m=r.metrics||{}; sum.innerHTML='<b>Operasyon özeti</b><p class="mut" style="margin:6px 0">'+esc(r.summary||'')+'</p><div class="integration"><span class="chip">Proje '+m.projects+'</span><span class="chip">İçerik '+m.contents+'</span><span class="chip">Onaylı '+m.approved+'</span><span class="chip">Yayın '+m.published+'</span><span class="chip">Kuyruk '+m.publications+'</span></div>';
+      root.innerHTML=projects.filter(x=>x.status!=='archived').map(x=>'<div class="card"><b>'+esc(x.name)+'</b><small class="mut">'+esc(x.service_type||'Genel proje')+' · '+esc(x.status)+'</small><p class="mut">'+esc(x.brief||'Brief girilmedi.')+'</p><button class="btn" data-project-select="'+esc(x.id)+'">Projeyi aç</button></div>').join('')||'<div class="empty">Henüz proje yok. İlk işi proje olarak aç.</div>';
+      pub.innerHTML='<div class="card"><b>Yayın kayıtları</b>'+((p.items||[]).slice(0,12).map(x=>'<div class="social-account-row"><div><strong>'+esc(x.content_title||'İçerik')+'</strong><small>'+esc(x.project_name||'Genel')+' · '+esc(x.network||'')+' · '+esc(x.status||'queued')+'</small></div></div>').join('')||'<p class="mut">Henüz yayın kaydı yok.</p>')+'</div>';
+    }catch(e){sum.innerHTML='<b>Rapor okunamadı</b><p class="mut">'+esc(e.message)+'</p>';}
+  }
+  async function createProject(){
+    if(!selectedId)return;
+    const name=prompt('Proje adı:'); if(!name)return;
+    const brief=prompt('Kısa proje briefi:')||'';
+    await api('/api/client-hub/workspace/'+selectedId+'/projects',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name,brief,service_type:$('#cType')?.value||'social',status:'active'})});
+    await loadProjects();
   }
   async function loadAccounts(){
     if(!selectedId)return;
@@ -125,7 +150,7 @@
     const type=$('#cType')?.value||'social';
     const platform=type==='youtube'?'youtube':type==='reel'?'instagram':type==='ads'?'facebook':'instagram';
     const d=await api('/api/client-hub/workspace/'+selectedId+'/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({brief,content_type:type,platform})});
-    if(d?.id && window.loadContents)await window.loadContents();
+    if(d?.id){ if(selectedProjectId)await api('/api/client-hub/content/'+d.id+'/project',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({project_id:selectedProjectId})}); if(window.loadContents)await window.loadContents(); }
     alert('AI içerik taslağı oluşturuldu. Müşteri onayı gelmeden dış yayına gönderilmez.');
   }
   function injectAiButton(){ensureV3Panel()}
@@ -158,7 +183,7 @@
       const d=await api('/api/client-hub/workspaces');const c=(d.items||[]).find(x=>x.id===id);
       selectedServices=Array.isArray(c?.services)?c.services:[];
       renderServices();
-      await Promise.all([loadAccounts(),loadStrategy(),loadRadar()]);
+      await Promise.all([loadAccounts(),loadStrategy(),loadRadar(),loadProjects()]);
       injectContentTypes();
     }catch(e){console.warn('BTMEDYA client v3',e)}
   }
@@ -171,12 +196,15 @@
   };
   window.saveClient=saveWorkspace;window.newClient=openNewClient;window.addSocialAccount=addAccount;window.removeSocialAccount=removeAccount;window.saveStrategy=saveStrategy;window.loadSocialAccounts=loadAccounts;window.loadRadar=loadRadar;window.toggleStrategyFlag=toggleStrategyFlag;
   document.addEventListener('click',e=>{
+    const project=e.target.closest('[data-project-select]'); if(project){selectedProjectId=project.dataset.projectSelect; const sel=$('#v3ProjectSelect'); if(sel)sel.value=selectedProjectId; renderProjectOps(); return;}
     const service=e.target.closest('[data-service]');
     if(service){selectedServices=selectedServices.includes(service.dataset.service)?selectedServices.filter(x=>x!==service.dataset.service):[...selectedServices,service.dataset.service];renderServices();return}
     const del=e.target.closest('[data-social-delete]');
     if(del)removeAccount(del.dataset.socialDelete).catch(err=>alert(err.message));
   });
-  document.querySelectorAll('.tabs .tab').forEach(t=>t.addEventListener('click',()=>{if(t.dataset.tab==='social'){ensureV3Panel();loadAccounts();loadStrategy();loadRadar()}}));
+  document.querySelectorAll('.tabs .tab').forEach(t=>t.addEventListener('click',()=>{if(t.dataset.tab==='social'){ensureV3Panel();loadAccounts();loadStrategy();loadRadar()} if(t.dataset.tab==='projects'){loadProjects()}}));
+  document.addEventListener('change',e=>{if(e.target.id==='v3ProjectSelect'){selectedProjectId=e.target.value;renderProjectOps()}});
+  document.addEventListener('click',e=>{if(e.target.id==='projectNewBtn')createProject().catch(err=>alert(err.message));if(e.target.id==='projectRefreshBtn')loadProjects().catch(err=>alert(err.message));});
   const clientsRoot=$('#clients');
   if(clientsRoot)new MutationObserver(()=>{clientsRoot.querySelectorAll('.client').forEach(btn=>{if(!btn.dataset.v3hook){btn.dataset.v3hook='1';btn.addEventListener('click',()=>syncSelection(clientIdFromButton(btn)))}})}).observe(clientsRoot,{childList:true,subtree:true});
   setTimeout(()=>{ensureV3Panel();injectContentTypes();clientsRoot?.querySelectorAll('.client').forEach(btn=>{btn.addEventListener('click',()=>syncSelection(clientIdFromButton(btn)))})},250);
