@@ -1,0 +1,38 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BTMEDYA Connect</title><style>
+:root{--bg:#08090c;--panel:#11131a;--line:#242936;--text:#f4f6f8;--muted:#9ca3af;--ok:#57d38c;--warn:#f2bd5c;--bad:#ef767a;--accent:#79a9ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#161b26,#08090c 52%);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}.wrap{max-width:1100px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:18px}.ey{font-size:11px;letter-spacing:.14em;color:var(--muted)}h1{margin:3px 0;font-size:30px}.sub{color:var(--muted);max-width:720px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.card{background:rgba(17,19,26,.94);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 10px 30px #0004}.wide{grid-column:1/-1}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}.status{font-size:12px;margin-top:8px;color:var(--muted)}.badge{border:1px solid var(--line);border-radius:999px;padding:4px 8px;font-size:11px}.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}button,a.btn{border:1px solid #394252;background:#171b24;color:var(--text);border-radius:10px;padding:9px 12px;cursor:pointer;text-decoration:none;display:inline-flex;gap:7px;align-items:center}button.primary,a.primary{background:#dfe7ff;color:#111827;border-color:#dfe7ff}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}.steps{display:grid;gap:9px;margin-top:10px}.step{padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#0e1117}.step b{display:block}.small{font-size:12px;color:var(--muted)}code{color:#c9d7ff}#refresh{margin-top:10px}.foot{margin-top:14px;color:var(--muted);font-size:12px}@media(max-width:800px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.top{align-items:start;flex-direction:column}}
+</style></head><body><main class="wrap">
+<div class="top"><div><div class="ey">BTMEDYA · PLATFORM CONTROL</div><h1>Connect Merkezi</h1><div class="sub">Teknik kurulumu BTMEDYA yönetir. Bu ekran yalnızca platformun gerçekten kullanıcı onayı istediği adımları sana bırakır.</div></div><button id="refresh">↻ Yenile</button></div>
+<section class="grid">
+<div class="card"><div class="row"><b>Meta Direct</b><span id="metaBadge" class="badge">Kontrol ediliyor</span></div><div id="metaText" class="status">Facebook Page + Instagram Professional</div><div class="actions"><button id="meta">Meta hesabını bağla</button></div></div>
+<div class="card"><div class="row"><b>TikTok</b><span id="ttBadge" class="badge">Kontrol ediliyor</span></div><div id="ttText" class="status">BTMEDYA native Content Posting API</div><div class="actions"><button id="tt">TikTok ile bağla</button></div></div>
+<div class="card"><div class="row"><b>YouTube</b><span id="ytBadge" class="badge">Kontrol ediliyor</span></div><div id="ytText" class="status">BTMEDYA native YouTube Data API</div><div class="actions"><button id="yt">YouTube ile bağla</button></div></div>
+<div class="card"><div class="row"><b>Metricool</b><span id="mkBadge" class="badge">Kontrol ediliyor</span></div><div id="mkText" class="status">Yalnızca fallback/legacy dağıtım için tutulur.</div><div class="actions"><a class="btn" href="/admin/social-os/">Social OS'a git</a></div></div>
+<div class="card wide"><div class="ey">SENİN YAPMAN GEREKENLER</div><div id="steps" class="steps"><div class="step">Durum okunuyor…</div></div></div>
+</section>
+<div class="foot">Token, secret ve şifreler bu ekranda gösterilmez. OAuth sonrasında tokenlar sunucu tarafında şifreli tutulur.</div>
+</main><script>
+const $=s=>document.querySelector(s); const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function api(u,o={}){const r=await fetch(u,{credentials:'same-origin',...o});const d=await r.json().catch(()=>({}));return {ok:r.ok,data:d}}
+function setState(id,ok,text){$(id+'Badge').textContent=ok?'HAZIR':'İŞLEM GEREKİYOR';$(id+'Badge').className='badge '+(ok?'ok':'warn');$(id+'Text').innerHTML=esc(text)}
+async function load(){
+ const [p,h,c]=await Promise.all([api('/api/social/direct/providers'),api('/api/social/direct/health'),api('/api/admin/control-center')]);
+ const providers=p.data.providers||[];
+ const find=id=>providers.find(x=>x.id===id)||{};
+ const meta=h.data.configured===true;
+ setState('meta',meta,meta?'Meta Direct hazır. Bağlı hesaplar Social OS içinde yönetilir.':'Worker secret/Meta OAuth kurulumu bekliyor.');
+ const tt=find('tiktok'); const yt=find('youtube');
+ setState('tt',!!tt.ready,'TikTok: '+(tt.requirement||'Content Posting API + OAuth'));
+ setState('yt',!!yt.ready,'YouTube: '+(yt.requirement||'OAuth + youtube.upload'));
+ const m=c.data.metricool; setState('mk',!!(m&&m.yapilandirildi),'Metricool '+(m&&m.yapilandirildi?'aktif':'kurulum bekliyor')+'; native yol önceliklidir.');
+ const needs=[]; if(!meta)needs.push('Meta: Facebook Page / Instagram Professional OAuth bağlantısını bu panelden yap.');
+ if(!tt.ready)needs.push('TikTok: BTMEDYA geliştirici uygulaması kimlik bilgileri eklenmeli; sonra tek tık OAuth.');
+ if(!yt.ready)needs.push('YouTube: Google OAuth uygulaması kimlik bilgileri eklenmeli; sonra tek tık OAuth.');
+ if(!m?.yapilandirildi)needs.push('Metricool: opsiyonel fallback; native yayın için zorunlu değil.');
+ if(!needs.length)needs.push('Teknik bağlantılar hazır. Sonraki adım hesapları seçip ilk test yayınını yapmak.');
+ $('#steps').innerHTML=needs.map((x,i)=>'<div class="step"><b>'+String(i+1).padStart(2,'0')+'</b>'+esc(x)+'</div>').join('');
+}
+$('#meta').onclick=()=>location.href='/api/social/direct/meta/start?return_to=%2Fadmin%2Fconnect%2F';
+$('#tt').onclick=()=>location.href='/api/social/direct/tiktok/start';
+$('#yt').onclick=()=>location.href='/api/social/direct/youtube/start';
+$('#refresh').onclick=load;load().catch(e=>$('#steps').innerHTML='<div class="step bad">'+esc(e.message)+'</div>');
+</script></body></html>
