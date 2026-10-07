@@ -354,14 +354,16 @@ async function apiProviders(request,env){
   const metaMissing=[];
   const ttMissing=[]; if(!String(env.TIKTOK_CLIENT_KEY||"").trim())ttMissing.push("TIKTOK_CLIENT_KEY"); if(!String(env.TIKTOK_CLIENT_SECRET||"").trim())ttMissing.push("TIKTOK_CLIENT_SECRET");
   const ytMissing=[]; if(!String(env.YOUTUBE_CLIENT_ID||"").trim())ytMissing.push("YOUTUBE_CLIENT_ID"); if(!String(env.YOUTUBE_CLIENT_SECRET||"").trim())ytMissing.push("YOUTUBE_CLIENT_SECRET");
+  const xMissing=[]; if(!String(env.X_CLIENT_ID||"").trim())xMissing.push("X_CLIENT_ID");
+  const waMissing=[]; if(!String(env.WHATSAPP_ACCESS_TOKEN||"").trim())waMissing.push("WHATSAPP_ACCESS_TOKEN"); if(!String(env.WHATSAPP_PHONE_NUMBER_ID||"").trim())waMissing.push("WHATSAPP_PHONE_NUMBER_ID");
   if(!String(env.META_APP_ID||"").trim())metaMissing.push("META_APP_ID");
   if(!String(env.META_APP_SECRET||"").trim())metaMissing.push("META_APP_SECRET");
   if(!secret(env))metaMissing.push("SOCIAL_TOKEN_ENCRYPTION_KEY");
   if(!env.KV)metaMissing.push("KV");
   return j({ok:true,providers:Object.entries(BTMEDYA_SOCIAL_PROVIDERS).map(([id,p])=>({
     id,...p,
-    ready:id==="facebook"||id==="instagram"?metaMissing.length===0:id==="tiktok"?ttMissing.length===0:id==="youtube"?ytMissing.length===0:false,
-    missing:id==="facebook"||id==="instagram"?metaMissing:id==="tiktok"?ttMissing:id==="youtube"?ytMissing:[]
+    ready:id==="facebook"||id==="instagram"?metaMissing.length===0:id==="tiktok"?ttMissing.length===0:id==="youtube"?ytMissing.length===0:id==="x"?xMissing.length===0:id==="whatsapp"?waMissing.length===0:false,
+    missing:id==="facebook"||id==="instagram"?metaMissing:id==="tiktok"?ttMissing:id==="youtube"?ytMissing:id==="x"?xMissing:id==="whatsapp"?waMissing:[]
   }))});
 }
 
