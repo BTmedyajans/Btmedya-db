@@ -60,7 +60,7 @@ function renderPlatformMatrix(items=[]){
  $('#platformMatrix').innerHTML=local.map(p=>{
    const label=p.ready?'BAĞLANMAYA HAZIR':(p.id==='facebook'||p.id==='instagram'?'YAPILANDIRMA BEKLİYOR':'API / OAUTH GEREKİYOR');
    const cls=p.ready?'ok':'warn';
-   const action=(p.ready||p.id==='facebook'||p.id==='instagram')?'<button class="btn" data-provider="'+esc(p.id)+'">Bağla</button>':'<span class="badge '+cls+'">FAZ 2</span>';
+   const action=(p.id==='facebook'||p.id==='instagram'||p.id==='tiktok'||p.id==='youtube')?'<button class="btn" data-provider="'+esc(p.id)+'">'+((p.id==='tiktok'||p.id==='youtube')?'OAuth ile bağla':'Bağla')+'</button>':'<span class="badge '+cls+'">FAZ 2</span>';
    return '<div class="card"><div class="row"><b>'+esc(p.label||p.name)+'</b><span class="badge '+cls+'">'+label+'</span></div><div class="mini">'+esc(p.mode||p.type||'')+'</div><div class="mini" style="margin-top:5px">'+esc(p.requirement||p.note||'')+'</div><div style="margin-top:9px">'+action+'</div></div>';
  }).join('');
  document.querySelectorAll('[data-provider]').forEach(b=>b.onclick=()=>connectProvider(b.dataset.provider));
@@ -68,6 +68,7 @@ function renderPlatformMatrix(items=[]){
 renderPlatformMatrix([]);
 async function connectProvider(provider){
  const v=$('#workspace').value.split(':');
+ if(provider==='tiktok'||provider==='youtube'){ location.href='/api/social/direct/'+provider+'/start'; return; }
  if(provider==='facebook'||provider==='instagram'){
    location.href='/api/social/direct/meta/start?workspace_type='+encodeURIComponent(v[0])+'&workspace_id='+encodeURIComponent(v.slice(1).join(':'))+'&return_to='+encodeURIComponent('/admin/social-os/');
    return;
