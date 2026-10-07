@@ -16,3 +16,5 @@ CREATE INDEX IF NOT EXISTS idx_content_taxonomy_path
   ON content_taxonomy(path_key, group_key, item_key);
 CREATE INDEX IF NOT EXISTS idx_content_taxonomy_item
   ON content_taxonomy(item_key);
+
+-- 2026-10-07 migration revalidation trigger: apply all pending native/taxonomy migrations.
