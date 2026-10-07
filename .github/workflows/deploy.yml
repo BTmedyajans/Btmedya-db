@@ -156,6 +156,9 @@ jobs:
           node --check public/kategori-menu.js
           node --check public/admin/admin-menu.js
           test -s migrations/0023_direct_social.sql
+          test -s migrations/0024_social_workspace_scope.sql
+          test -s migrations/0025_native_social_job_metadata.sql
+          test -s migrations/0026_content_taxonomy.sql
           grep -q 'directSocialApi' src/worker.js
           grep -q 'processDirectSocialQueue' src/worker.js
           grep -q 'BTMEDYA Social OS' public/admin/social-os/index.html
