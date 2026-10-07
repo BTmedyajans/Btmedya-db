@@ -12,6 +12,7 @@ import { salesApi, satisOzeti } from "./sales-router.js";
 import { agencySupervisorApi, runAgencySupervisor } from "./agency-supervisor.js";
 import { ensureBtmedyaCore, btmedyaCoreApi } from "./btmedya-core.js";
 import { siteOsApi, runSiteOsChecks } from "./site-os.js";
+import { manualIntegrationApi } from "./manual-integrations.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
@@ -2170,7 +2171,7 @@ export default { async scheduled(controller, env, ctx){
     const rYouTube = await youtubeApi(request, env); if(rYouTube) return rYouTube;
     const rX = await xApi(request, env); if(rX) return rX;
     const rWhatsApp = await whatsappApi(request, env); if(rWhatsApp) return rWhatsApp;
-    const rDirectSocial = await directSocialApi(request, env, url);
+    const rManualIntegrations = await manualIntegrationApi(request, env, url);\n    if(rManualIntegrations) return audit(rManualIntegrations);\n    const rDirectSocial = await directSocialApi(request, env, url);
     if(rDirectSocial) return rDirectSocial;
     const rSales = await salesApi(request, env, url, ctx);
     if(rSales) return audit(rSales);
