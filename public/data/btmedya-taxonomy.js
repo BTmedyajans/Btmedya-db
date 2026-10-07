@@ -20,7 +20,6 @@ window.BTMEDYA_TAXONOMY = {
           adminLabel: "EDİTORYAL",
           items: [
             {key:"balikesir",label:"Balıkesir",short:"Şehir ve ilçe gündemi",href:"/haberler/balikesir/",type:"news",automation:["news-intelligence","sabah-masasi","seo-aeo"]},
-            {key:"marmara",label:"Marmara",short:"Bölgesel gelişmeler",href:"/haberler/marmara/",type:"news",automation:["news-intelligence","seo-aeo"]},
             {key:"turkiye",label:"Türkiye",short:"Ulusal gündem",href:"/haberler/turkiye/",type:"news",automation:["news-intelligence","seo-aeo"]},
             {key:"dunya",label:"Dünya",short:"Uluslararası gelişmeler",href:"/haberler/dunya/",type:"news",automation:["news-intelligence","seo-aeo"]}
           ]
