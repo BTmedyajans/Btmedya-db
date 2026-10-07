@@ -24,6 +24,7 @@
         ['Müşteri Merkezi','/admin/client-hub/','Firma · proje · onay']
       ]},
       {ad:'YAYIN',items:[
+        ['BTMEDYA Social OS','/admin/social-os/','Meta Direct · müşteri + kişisel çalışma alanları'],
         ['Sosyal Yayın','/admin/yayin/#social','Dağıtım ve yayın kuyruğu'],
         ['Instagram / Facebook','/admin/musteri-sosyal/','Hesap bağlantıları'],
         ['TikTok / YouTube','/admin/musteri-sosyal/','Hesap bağlantıları']
