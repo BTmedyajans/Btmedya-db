@@ -26,7 +26,7 @@ function renderClients(items){
  const rows=items.filter(c=>!q||String(c.name||'').toLocaleLowerCase('tr-TR').includes(q)||String(c.sector||'').toLocaleLowerCase('tr-TR').includes(q));
  $('#clients').innerHTML=rows.map(c=>'<article class="client-row"><div class="topline"><b>'+esc(c.name)+'</b><span class="badge">'+esc(c.status)+'</span></div><div class="meta">'+esc(c.sector||'Sektör belirtilmedi')+'</div><div class="bars"><span class="bar">'+num(c.content_count)+' içerik</span><span class="bar '+(num(c.draft_count)?'warn':'ok')+'">'+num(c.draft_count)+' taslak</span><span class="bar">'+(c.last_content_at?'Son: '+new Date(c.last_content_at).toLocaleDateString('tr-TR'):'Henüz içerik yok')+'</span></div></article>').join('')||'<div class="rec"><b>Firma bulunamadı.</b></div>';
 }
-async function load(){try{state=await api('/api/admin/agency-supervisor');render();await loadSystemSnapshot();await loadSocialSnapshot()}catch(e){$('#heartbeat').textContent=e.message}}
+async function load(){try{state=await api('/api/admin/agency-supervisor');render();await loadSystemSnapshot();await loadAutomationSnapshot();await loadSocialSnapshot()}catch(e){$('#heartbeat').textContent=e.message}}
 async function loadSystemSnapshot(){
  const el=$('#systemSnapshot'); if(!el)return;
  try{
@@ -39,6 +39,18 @@ async function loadSystemSnapshot(){
  }catch(e){el.innerHTML='<div class="rec"><b>Sistem sağlık verisi okunamadı.</b><span class="meta">'+esc(e.message)+'</span></div>'}
 }
 
+async function loadAutomationSnapshot(){
+ const el=$('#automationCommand');if(!el)return;
+ try{
+  const [m,a]=await Promise.all([api('/api/admin/sabah-masasi'),api('/api/admin/autopilot')]);
+  const x=m.ayarlar||{},r=m.rapor||{},p=a.policy||{};
+  const status=x.etkin?'AKTİF':'KAPALI',mode=x.otomatikYayin?'GÜVENLİ OTOMATİK YAYIN':'TASLAK / ONAY';
+  el.innerHTML='<div class="rule"><b>GÜNLÜK PLAN</b><span class="'+(x.etkin?'ok':'warn')+'">08:00 Europe/Istanbul · '+status+' · '+mode+'</span></div>'+
+   '<div class="rule"><b>SAATLİK RADAR</b><span>'+(p.enabled?'aktif':'kapalı')+' · Balıkesir + trend kaynakları · max '+num(p.maxItemsPerRun||2)+' haber/tur</span></div>'+
+   '<div class="rule"><b>SON RAPOR</b><span>'+num(r.yayinlanan)+' yayın · '+num(r.taslak)+' taslak · '+num((r.hatalar||[]).length)+' hata</span></div>'+
+   '<div class="rule"><b>GÜVENLİK</b><span>hassas · tanıtım · tekrar · doğrulama hatası otomatik yayın dışı</span></div>';
+ }catch(e){el.innerHTML='<div class="rec"><b>Günlük otomasyon durumu okunamadı.</b><span class="meta">'+esc(e.message)+'</span></div>'}
+}
 async function loadSocialSnapshot(){
  const el=$('#socialCommand'); if(!el)return;
  try{
