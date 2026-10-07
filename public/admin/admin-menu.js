@@ -2,53 +2,52 @@
 (()=>{
   if(document.getElementById('btAdminMenu'))return;
   const KATEGORILER=[
-    {ad:'HABER',ikon:'01',aciklama:'Haber üretiminin tamamı burada.',gruplar:[
-      {ad:'HABER ODASI',items:[
-        ['Haber Odası','/admin/editor/','Kaynak → AI → SEO → yayın'],
+    {ad:'HABER',ikon:'01',aciklama:'Haber üretimi, araştırma, SEO ve yayın.',gruplar:[
+      {ad:'ÜRET',items:[
+        ['Haber Odası','/admin/editor/','AI editör · kaynak · önizleme'],
         ['Yayın & Taslaklar','/admin/yayin/','Onay ve yayın kuyruğu']
       ]},
-      {ad:'GÜNDEM',items:[
-        ['Trend & Radar','/admin/autopilot/','Gündem ve haber adayları'],
+      {ad:'ARAŞTIR',items:[
+        ['Trend & Radar','/admin/autopilot/','Gündem ve otomasyon'],
         ['Kaynak Masası','/admin/kaynak-masasi/','Kaynak ve doğrulama'],
-        ['Halkın Merak Radarı','/admin/merak-radari/','Arama sinyali ve özel haber fırsatı'],
-        ['Gelen Mesajlar','/admin/mesajlar/','Haber ihbarı ve iletişim formu']
+        ['Halkın Merak Radarı','/admin/merak-radari/','Arama ve özel haber fırsatı']
       ]},
-      {ad:'HABER KATEGORİLERİ',items:[
-        ['Bölge: Balıkesir / Marmara / Türkiye / Dünya','/admin/editor/#category','Bölge seçimi'],
-        ['Konu: Gündem / Ekonomi / Eğitim / Sağlık','/admin/editor/#category','Ana konu seçimi'],
-        ['Konu: Spor / Kültür-Sanat / Yaşam / Teknoloji-AI','/admin/editor/#category','Diğer konu seçenekleri'],
-        ['Format: Röportaj / Özel Dosya / AI LAB','/admin/editor/#category','Özel haber formatları']
+      {ad:'YÖNET',items:[
+        ['Gelen Mesajlar','/admin/mesajlar/','İhbar ve iletişim'],
+        ['SEO & Google','/admin/editor/#seo','SEO · AEO · yayın sinyalleri'],
+        ['Haberler','/haberler/','Canlı haber merkezi']
       ]}
     ]},
-    {ad:'SOSYAL MEDYA',ikon:'02',aciklama:'Müşteri hesapları, içerik ve yayın burada.',gruplar:[
-      {ad:'İÇERİK',items:[
-        ['Müşteri Sosyal OS','/admin/musteri-sosyal/','AI içerik ve marka stratejisi'],
-        ['Müşteri Merkezi','/admin/client-hub/','Firma, içerik ve onay']
-      ]},
-      {ad:'PLATFORMLAR',items:[
-        ['Instagram / Facebook','/admin/musteri-sosyal/','Hesap ve yayın bağlantıları'],
-        ['TikTok / YouTube','/admin/musteri-sosyal/','Hesap ve yayın bağlantıları'],
-        ['LinkedIn','/admin/musteri-sosyal/','Hesap ve yayın bağlantısı']
+    {ad:'SOSYAL MEDYA',ikon:'02',aciklama:'Müşteri hesapları, içerik, planlama ve dağıtım.',gruplar:[
+      {ad:'MÜŞTERİ',items:[
+        ['Müşteri Sosyal OS','/admin/musteri-sosyal/','Marka stratejisi ve AI içerik'],
+        ['Müşteri Merkezi','/admin/client-hub/','Firma · proje · onay']
       ]},
       {ad:'YAYIN',items:[
         ['Sosyal Yayın','/admin/yayin/#social','Dağıtım ve yayın kuyruğu'],
-        ['Sosyal medya sitesi','/sosyal-medya/','Canlı hizmet alanı']
+        ['Instagram / Facebook','/admin/musteri-sosyal/','Hesap bağlantıları'],
+        ['TikTok / YouTube','/admin/musteri-sosyal/','Hesap bağlantıları']
+      ]},
+      {ad:'ÖLÇ',items:[
+        ['Sosyal Site','/sosyal-medya/','Canlı hizmet alanı'],
+        ['Hesap / marka ayrımı','/admin/autopilot/#social','Şirket ve müşteri hesapları']
       ]}
     ]},
-    {ad:'TANITIM',ikon:'03',aciklama:'Proje, video, medya ve teklif işleri burada.',gruplar:[
-      {ad:'ÜRETİM',items:[
-        ['Medya Kasası','/admin/app.html','Fotoğraf, video ve arşiv'],
-        ['Portföy','/portfoy/','Gerçek işler ve örnekler']
+    {ad:'TANITIM',ikon:'03',aciklama:'Medya, video, proje, teklif ve AI üretimi.',gruplar:[
+      {ad:'MEDYA',items:[
+        ['Medya Kasası','/admin/app.html','Fotoğraf · video · arşiv'],
+        ['AI LAB','/ai-lab/','AI üretimleri ve deneyler'],
+        ['Video Prodüksiyon','/video-produksiyon/','Video ve prodüksiyon']
       ]},
-      {ad:'MÜŞTERİ / PROJE',items:[
+      {ad:'PROJE',items:[
         ['Proje & Müşteri','/admin/client-hub/','Proje ve müşteri akışı'],
-        ['Teklif Talepleri','/admin/sales/','Gelen teklifler ve satış hunisi'],
-        ['Teklif formu','/teklif-al/','Müşterinin gördüğü form']
+        ['Teklif Talepleri','/admin/sales/','Satış hunisi ve teklifler'],
+        ['Teklif Formu','/teklif-al/','Müşterinin gördüğü form']
       ]},
-      {ad:'HİZMETLER',items:[
-        ['Video / Prodüksiyon','/video-produksiyon/','Video ve prodüksiyon hizmetleri'],
-        ['AI LAB','/ai-lab/','AI içerik ve deneysel üretim'],
-        ['Haber / Medya','/haberler/','Haber ve medya üretimi']
+      {ad:'VİTRİN',items:[
+        ['Portföy','/portfoy/','Gerçek işler ve vakalar'],
+        ['Siyah Oda','/siyah-oda/','Program ve bölüm arşivi'],
+        ['Vaka Çalışmaları','/vaka-calismalari/','İş kanıtları']
       ]}
     ]}
   ];
