@@ -75,12 +75,7 @@
 
 <script>
 (()=>{
-const DATA={
-haber:{title:'HABER & MEDYA',desc:'Kaynaklı içerikten güvenli yayına; haber, röportaj, dosya ve arşiv tek editoryal akışta.',tags:['Haber Odası','Kaynak Masası','Trend Radar','SEO / AEO','Yayın Merkezi'],checks:['Kaynak ve provenans görünür','Haber kategorisi ve üretim türü doğru','SEO / AEO hedefi karşılanır','Kritik yayınlarda editör onayı korunur'],actions:[['Haber Odası','/admin/editor/'],['Kategori Merkezi','/admin/kategori/'],['Yayın Merkezi','/admin/yayin/']]},
-sosyal:{title:'SOSYAL & DİJİTAL',desc:'Müşteri hesabından platform dağıtımına; native sosyal yayın, SEO, web ve AI otomasyonu tek akışta.',tags:['Social OS','Connect','Meta Direct','TikTok / YouTube','SEO / AI'],checks:['Çalışma alanı doğru','Platform formatı doğru','Medya gerçek kaynaktan seçildi','Native API ilk seçenek, fallback ikinci seçenek'],actions:[['BTMEDYA Social OS','/admin/social-os/'],['Connect Center','/admin/connect/'],['Müşteri Social OS','/admin/musteri-sosyal/']]},
-tanitim:{title:'MARKA & PRODÜKSİYON',desc:'Marka hikâyesi, çekim, özel gün, portföy ve teklif süreci aynı üretim hattında.',tags:['Medya Kasası','Video','Proje','Satış','Portföy'],checks:['Marka dili ve gerçek medya korunur','AI üretimi açıkça etiketlenir','Kapsam / teslim kaydı vardır','İş kanıtı portföy ve vakaya bağlanır'],actions:[['Medya Kasası','/admin/app.html'],['Müşteri Merkezi','/admin/client-hub/'],['Teklifler','/admin/sales/']]}
-};
-const root=document.getElementById('adminCategoryGrid'),out=document.getElementById('categoryCommand');
+const DATA=(()=>{const T=window.BTMEDYA_TAXONOMY;const out={};for(const p of (T?.paths||[])){const actions=(p.adminGroups||[]).flatMap(g=>g.items||[]).slice(0,3).map(x=>[x.label,x.href]);const checks=p.key==='haber'?['Kaynak ve provenans görünür','Haber kategorisi ve üretim türü doğru','SEO / AEO hedefi karşılanır','Kritik yayınlarda editör onayı korunur']:p.key==='sosyal'?['Çalışma alanı doğru','Platform formatı doğru','Medya gerçek kaynaktan seçildi','Native API ilk seçenek, fallback ikinci seçenek']:['Marka dili ve gerçek medya korunur','AI üretimi açıkça etiketlenir','Kapsam / teslim kaydı vardır','İş kanıtı portföy ve vakaya bağlanır'];out[p.key]={title:p.label,desc:p.customerIntent||p.description,tags:p.groups.flatMap(g=>g.items||[]).slice(0,5).map(x=>x.label),checks,actions};}return out})();const root=document.getElementById('adminCategoryGrid'),out=document.getElementById('categoryCommand');
 function render(key){
  const d=DATA[key];
  root.querySelectorAll('.admin-category').forEach(x=>x.classList.toggle('is-active',x.dataset.category===key));
