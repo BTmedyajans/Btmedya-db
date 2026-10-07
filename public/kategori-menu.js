@@ -52,6 +52,8 @@
       ]}
     ]}
   ];
+  // Film sonu paneli (film-secim.js) aynı ağacı kullanır: tek kaynak, iki görünüm.
+  window.btKategoriler=KATEGORILER;
   const KURUMSAL=[['Hakkımızda','/hakkimizda/'],['İletişim','/iletisim/'],['Basın kiti','/basin-kiti/'],['Marka kiti','/marka-kiti/'],['Yayın ilkeleri','/yayin-ilkeleri/'],['Gizlilik','/gizlilik/'],['English','/en/']];
   const yolu=location.pathname.replace(/index\.html$/,'').replace(/([^/])$/,'$1/');
   const kac=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));

@@ -1,60 +1,68 @@
-/* BTMEDYA Film Seçimi + Film Sesi · 2026-10-06
-   Siyah-gri saydam cam düğmeler, gri degrade yazı, harf harf motion başlık.
-   Seçenekler filmin üstünde açılır; film görünür kalır (eski seçim sahnesi
-   filmi gizliyordu). Dokunma hedefleri ≥44 px. */
-.film-secim{position:absolute;inset:0;z-index:30;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;color:#ececef;
-  --cam:linear-gradient(135deg,rgba(30,30,34,.46),rgba(8,8,10,.34));--cam-cizgi:rgba(255,255,255,.15);--gri-yazi:linear-gradient(180deg,#fbfbfc 0%,#b9b9c0 100%)}
+/* BTMEDYA Film Sonu Paneli + Film Sesi · 2026-10-07 (v2)
+   Film bitince tek ana başlık ve ondan dallanan üç kademe gelir:
+   ana başlık -> alt başlık -> onun alt başlıkları (film-secim.js).
+   Görsel dil bilerek sakin: tek yazı ailesi (Manrope, sitenin gövde yazısı),
+   500/600 ağırlık, cümle düzeni; tek vurgu rengi (sitenin camgöbeğinin
+   yumuşatılmış tonu). Mono yazı, degrade harf ve parlak sarı-yeşil yok.
+   Dokunma hedefleri >=44 px. */
+.film-secim{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;pointer-events:none;
+  --fs-yazi:#eef1f4;--fs-soluk:#a9b4c0;--fs-cizgi:rgba(214,224,236,.13);--fs-yuzey:rgba(20,25,33,.58);--fs-yuzey-acik:rgba(36,44,56,.72);--fs-vurgu:#a6d9ea;--fs-vurgu-koyu:#0b1a20;
+  --fs-egri:cubic-bezier(.16,1,.3,1);color:var(--fs-yazi);font-family:var(--bt-yazi,Manrope,'Segoe UI',system-ui,Arial,sans-serif)}
 .film-secim[hidden]{display:none}
-.fs-perde{position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,3,5,0) 28%,rgba(3,3,5,.5) 58%,rgba(3,3,5,.86) 100%);opacity:0;transition:opacity 1s ease}
+/* Filmin son karesi kendi yazısını taşır; panel okunsun diye kare bulanıklaşıp koyulaşır. */
+.fs-perde{position:absolute;inset:0;background:rgba(7,9,12,.74);backdrop-filter:blur(18px) saturate(80%);-webkit-backdrop-filter:blur(18px) saturate(80%);opacity:0;transition:opacity .8s ease}
 .film-secim.is-acik .fs-perde{opacity:1}
-/* --fs-tasma: masaüstünde yapışkan sahnenin ekran altında kalan kısmı (film-secim.js ölçer);
-   seçenekler görünen alanın içinde durur. */
-.fs-icerik{position:relative;width:min(1120px,calc(100% - 48px));padding:0 0 calc(clamp(28px,6vh,64px) + var(--fs-tasma,0px));pointer-events:auto}
-.fs-ust{display:flex;align-items:center;gap:12px;margin:0 0 14px;font:700 11px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.26em;color:rgba(232,232,238,.62);
-  opacity:0;transform:translateY(10px);transition:opacity .6s ease .05s,transform .8s cubic-bezier(.16,1,.3,1) .05s}
-.fs-ust i{display:block;width:44px;height:1px;background:rgba(255,255,255,.4);transform:scaleX(0);transform-origin:left;transition:transform .9s cubic-bezier(.16,1,.3,1) .25s}
-.film-secim.is-acik .fs-ust{opacity:1;transform:none}
-.film-secim.is-acik .fs-ust i{transform:scaleX(1)}
-.fs-baslik{margin:0 0 22px;font:800 clamp(40px,6.4vw,104px)/.88 'Space Grotesk','Bricolage Grotesque',Inter,Arial,sans-serif;letter-spacing:-.045em;perspective:700px}
-.fs-satir{display:block;white-space:nowrap}
-/* Her harf alttan, eğik ve bulanık gelir; gri degrade cam görünümünü taşır. */
-.fs-h{display:inline-block;background:var(--gri-yazi);-webkit-background-clip:text;background-clip:text;color:transparent;
-  opacity:0;transform:translateY(.6em) rotateX(-75deg);transform-origin:50% 100%;filter:blur(8px);
-  transition:opacity .55s ease,transform .8s cubic-bezier(.16,1,.3,1),filter .7s ease;transition-delay:calc(.2s + var(--i) * .035s)}
-.film-secim.is-acik .fs-h{opacity:1;transform:none;filter:blur(0)}
-.fs-liste{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.fs-secenek{position:relative;display:flex;align-items:center;gap:16px;min-height:84px;padding:18px 20px;border-radius:18px;overflow:hidden;
-  border:1px solid var(--cam-cizgi);background:var(--cam);backdrop-filter:blur(18px) saturate(115%);-webkit-backdrop-filter:blur(18px) saturate(115%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 24px 60px rgba(0,0,0,.38);color:#ececef;text-decoration:none;
-  opacity:0;transform:translateY(28px) scale(.98);
-  transition:opacity .6s ease calc(.85s + var(--s) * .15s),transform .9s cubic-bezier(.16,1,.3,1) calc(.85s + var(--s) * .15s),border-color .3s ease,background .3s ease,box-shadow .3s ease}
-.film-secim.is-acik .fs-secenek{opacity:1;transform:none}
-.fs-secenek:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(240px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.13),transparent 62%);opacity:0;transition:opacity .3s ease}
-/* Cam yüzeyden bir kez geçen ışık şeridi: düğme göründüğü an. */
-.fs-secenek:after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:30%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,255,255,.14),transparent);transform:skewX(-18deg);opacity:0}
-.film-secim.is-acik .fs-secenek:after{animation:fsParilti 1.4s cubic-bezier(.4,0,.2,1) calc(1.3s + var(--s) * .15s) 1 both}
-.fs-secenek:hover,.fs-secenek:focus-visible{border-color:rgba(255,255,255,.36);background:linear-gradient(135deg,rgba(44,44,50,.58),rgba(10,10,12,.48));box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 28px 70px rgba(0,0,0,.5)}
-.fs-secenek:hover:before,.fs-secenek:focus-visible:before{opacity:1}
-.fs-secenek:focus-visible{outline:2px solid #fff;outline-offset:3px}
-.fs-no{flex:0 0 auto;font:600 11px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;color:rgba(222,222,228,.5)}
-.fs-ad{display:flex;flex-direction:column;gap:6px;min-width:0}
-/* Düğme adı soldan sağa maskeyle yazılır. */
-.fs-ad b{font:800 clamp(18px,1.55vw,23px)/1 'Space Grotesk','Bricolage Grotesque',Inter,Arial,sans-serif;letter-spacing:.05em;white-space:nowrap;
-  background:var(--gri-yazi);-webkit-background-clip:text;background-clip:text;color:transparent;
-  clip-path:inset(0 100% 0 0);transition:clip-path .8s cubic-bezier(.65,0,.35,1) calc(1.05s + var(--s) * .15s)}
-.film-secim.is-acik .fs-ad b{clip-path:inset(0 0 0 0)}
-.fs-ad small{font:500 12.5px/1.3 Manrope,Inter,Arial,sans-serif;color:rgba(206,206,214,.68);opacity:0;transform:translateY(6px);
-  transition:opacity .6s ease calc(1.35s + var(--s) * .15s),transform .6s ease calc(1.35s + var(--s) * .15s)}
-.film-secim.is-acik .fs-ad small{opacity:1;transform:none}
-.fs-ok{margin-left:auto;flex:0 0 auto;font-size:19px;line-height:1;color:rgba(230,230,236,.55);transition:transform .3s cubic-bezier(.16,1,.3,1),color .3s ease}
-.fs-secenek:hover .fs-ok,.fs-secenek:focus-visible .fs-ok{transform:translate(3px,-3px);color:#fff}
-.fs-tekrar{margin-top:14px;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(10,10,12,.36);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:rgba(232,232,238,.82);font:600 13px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer;
-  opacity:0;transition:opacity .6s ease 1.9s,border-color .25s ease}
-.film-secim.is-acik .fs-tekrar{opacity:1}
-.fs-tekrar:hover{border-color:rgba(255,255,255,.4)}
-.fs-tekrar:focus-visible{outline:2px solid #fff;outline-offset:2px}
-@keyframes fsParilti{0%{left:-40%;opacity:0}20%{opacity:1}100%{left:120%;opacity:0}}
+/* --fs-tasma: masaüstünde yapışkan sahnenin ekran altında kalan kısmı (film-secim.js ölçer). */
+.fs-icerik{position:relative;width:min(1040px,calc(100% - 64px));max-height:100%;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:88px 0 calc(40px + var(--fs-tasma,0px));pointer-events:auto;
+  opacity:0;transform:translateY(14px);transition:opacity .7s ease .15s,transform .9s var(--fs-egri) .15s}
+.fs-icerik::-webkit-scrollbar{display:none}
+.film-secim.is-acik .fs-icerik{opacity:1;transform:none}
+.fs-ust{margin:0 0 14px;font-weight:600;font-size:13px;line-height:1.2;letter-spacing:.02em;color:var(--fs-vurgu)}
+.fs-baslik{margin:0;font-family:inherit!important;font-weight:600;font-size:clamp(30px,3.5vw,50px);line-height:1.08;font-weight:600!important;letter-spacing:-.022em;color:var(--fs-yazi)}
+.fs-spot{margin:12px 0 28px;font-weight:400;font-size:16px;line-height:1.5;color:var(--fs-soluk)}
+
+/* Ağaç: solda ana başlıklar, sağda seçilen başlığın dalı (alt başlıklar + ögeleri). */
+.fs-agac{display:grid;grid-template-columns:minmax(260px,.82fr) 2fr;column-gap:16px;row-gap:10px;align-items:stretch}
+.fs-yol{display:contents}
+.fs-yol-dugme{grid-column:1;display:flex;align-items:center;gap:14px;min-height:76px;padding:14px 18px;border-radius:16px;border:1px solid var(--fs-cizgi);background:var(--fs-yuzey);
+  color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background .25s ease,border-color .25s ease}
+.fs-yol-dugme:hover{background:var(--fs-yuzey-acik);border-color:rgba(214,224,236,.24)}
+.fs-yol.is-acik .fs-yol-dugme{background:var(--fs-yuzey-acik);border-color:rgba(166,217,234,.5)}
+.fs-no{flex:0 0 auto;font-weight:500;font-size:13px;line-height:1;font-variant-numeric:tabular-nums;color:var(--fs-soluk)}
+.fs-yol.is-acik .fs-no{color:var(--fs-vurgu)}
+.fs-ad{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fs-ad b{font-weight:600;font-size:19px;line-height:1.15;letter-spacing:-.01em}
+.fs-ad small{font-weight:400;font-size:13.5px;line-height:1.35;color:var(--fs-soluk)}
+/* Ok: kapalıyken sağa bakar; açık başlıkta dalı gösterir (mobilde aşağı döner). */
+.fs-ok{margin-left:auto;flex:0 0 auto;width:9px;height:9px;border-right:1.5px solid var(--fs-soluk);border-top:1.5px solid var(--fs-soluk);transform:rotate(45deg);transition:transform .3s var(--fs-egri),border-color .25s ease}
+.fs-yol.is-acik .fs-ok{border-color:var(--fs-vurgu)}
+
+.fs-dal{grid-column:2;grid-row:1 / span 3;display:grid;grid-template-columns:minmax(170px,.7fr) 1.3fr;grid-template-rows:1fr auto;column-gap:22px;padding:20px 22px;border-radius:16px;border:1px solid var(--fs-cizgi);background:var(--fs-yuzey);animation:fsDal .5s var(--fs-egri) both}
+.fs-dal[hidden]{display:none}
+.fs-altlar{grid-column:1;grid-row:1;display:flex;flex-direction:column;gap:4px;padding-right:22px;border-right:1px solid var(--fs-cizgi)}
+.fs-alt-dugme{display:flex;align-items:center;min-height:46px;padding:0 14px;border:0;border-radius:11px;background:transparent;color:var(--fs-soluk);font-weight:500;font-size:15.5px;line-height:1.25;text-align:left;cursor:pointer;transition:background .2s ease,color .2s ease}
+.fs-alt-dugme:hover{color:var(--fs-yazi);background:rgba(214,224,236,.06)}
+.fs-alt-dugme[aria-expanded="true"]{color:var(--fs-yazi);background:rgba(166,217,234,.13);font-weight:600}
+.fs-ogeler{grid-column:2;grid-row:1;list-style:none;margin:0;padding:0;align-self:start;animation:fsDal .4s var(--fs-egri) both}
+.fs-ogeler[hidden]{display:none}
+.fs-ogeler li+li{border-top:1px solid var(--fs-cizgi)}
+.fs-ogeler a{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px;padding:0 6px;color:var(--fs-yazi);text-decoration:none;font-weight:500;font-size:15.5px;line-height:1.25;transition:color .2s ease}
+.fs-ogeler a i{font-style:normal;color:var(--fs-soluk);transition:transform .3s var(--fs-egri),color .2s ease}
+.fs-ogeler a:hover{color:var(--fs-vurgu)}
+.fs-ogeler a:hover i{transform:translateX(4px);color:var(--fs-vurgu)}
+.fs-tumu{grid-column:1 / -1;grid-row:2;justify-self:start;display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-top:10px;padding:0 6px;color:var(--fs-vurgu);text-decoration:none;font-weight:600;font-size:14.5px;line-height:1}
+.fs-tumu:hover{text-decoration:underline;text-underline-offset:4px}
+
+.fs-alt{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:22px}
+.fs-teklif,.fs-ikincil{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 20px;border-radius:999px;font-weight:600;font-size:14.5px;line-height:1;text-decoration:none;cursor:pointer;transition:background .2s ease,border-color .2s ease}
+.fs-teklif{border:1px solid var(--fs-vurgu);background:var(--fs-vurgu);color:var(--fs-vurgu-koyu)}
+.fs-teklif:hover{background:#c0e6f2;border-color:#c0e6f2}
+.fs-ikincil{border:1px solid rgba(214,224,236,.22);background:transparent;color:var(--fs-yazi)}
+.fs-ikincil:hover{border-color:rgba(214,224,236,.48)}
+.fs-tekrar{margin-left:auto;border-color:transparent;color:var(--fs-soluk)}
+.fs-not{margin:16px 0 0;font-weight:400;font-size:12px;line-height:1.45;color:rgba(169,180,192,.8)}
+.film-secim :is(a,button):focus-visible{outline:2px solid var(--fs-vurgu);outline-offset:3px}
+@keyframes fsDal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
 /* Film oynarken hero başlığı %12 opaklıkta bulanık bir iz olarak filmin
    üstünde kalıyordu (hero-sequence-v2.css); tek filmde film oynarken gizli. */
@@ -87,21 +95,41 @@
 @keyframes fsNabiz{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.8);opacity:0}}
 
 @media(max-width:720px){
-  .fs-icerik{width:calc(100% - 24px);padding-bottom:14px}
-  .fs-ust{margin-bottom:10px;font-size:10px}
-  .fs-baslik{margin-bottom:14px;font-size:clamp(32px,10.4vw,46px)}
-  .fs-liste{grid-template-columns:1fr;gap:8px}
-  .fs-secenek{min-height:60px;padding:12px 14px;gap:12px;border-radius:14px}
-  .fs-ad b{font-size:17px}
-  .fs-ad small{font-size:12px}
-  .fs-tekrar{margin-top:10px;font-size:12px}
+  /* Mobil: aynı ağaç tek sütunda akordeon. Ana başlığa dokununca dalı hemen
+     altında açılır; alt başlıklar yatay haplar, ögeler altında liste. */
+  /* Üst boşluk kaydırma alanının dışında: içerik kayınca logo ve menünün altına girmez. */
+  .film-secim{align-items:flex-end;padding-top:68px}
+  .fs-icerik{width:calc(100% - 32px);padding:8px 0 calc(18px + env(safe-area-inset-bottom))}
+  .fs-baslik{font-size:clamp(27px,7.6vw,34px)!important}
+  .fs-spot{margin:10px 0 18px;font-size:15px}
+  .film-secim.dal-acik :is(.fs-ust,.fs-spot){display:none}
+  .film-secim.dal-acik .fs-baslik{margin-bottom:16px}
+  .fs-agac{display:block}
+  .fs-yol{display:block}
+  .fs-yol+.fs-yol{margin-top:8px}
+  .fs-yol-dugme{width:100%;min-height:64px;padding:11px 16px;border-radius:14px}
+  .fs-ad b{font-size:17.5px}
+  .fs-ad small{font-size:13px}
+  .fs-yol.is-acik .fs-ok{transform:rotate(135deg)}
+  .film-secim.dal-acik .fs-yol:not(.is-acik) .fs-ad small{display:none}
+  .film-secim.dal-acik .fs-yol:not(.is-acik) .fs-yol-dugme{min-height:50px}
+  .fs-dal{display:block;margin-top:6px;padding:12px 12px 6px;border-radius:14px}
+  .fs-altlar{flex-direction:row;gap:6px;padding:0 0 10px;border-right:0;overflow-x:auto;scrollbar-width:none}
+  .fs-altlar::-webkit-scrollbar{display:none}
+  .fs-alt-dugme{flex:0 0 auto;min-height:44px;border:1px solid var(--fs-cizgi);border-radius:999px;font-size:14.5px;white-space:nowrap}
+  .fs-alt-dugme[aria-expanded="true"]{border-color:transparent}
+  .fs-ogeler a{min-height:48px;font-size:15.5px}
+  .fs-tumu{margin-top:2px}
+  .fs-alt{margin-top:14px;gap:8px}
+  .fs-teklif,.fs-ikincil{flex:1 1 auto;padding:0 14px;font-size:14px}
+  .fs-tekrar{flex:1 0 100%;margin-left:0;min-height:44px}
+  .fs-not{margin-top:6px;font-size:11.5px}
   /* Sol üstteki AI ÜRETİMİ etiketi düğmenin altına girmesin: etiket gerekirse iki satıra iner. */
   .film-ses{top:12px;right:12px;min-height:44px;padding:0 12px 0 11px;font-size:10px}
   .cinematic-hero[data-tek-film] .mfilm-etiket{max-width:calc(100% - 148px)}
   .film-ses-davet{min-height:52px;padding:0 22px 0 18px;font-size:13px}
 }
 @media(prefers-reduced-motion:reduce){
-  .fs-perde,.fs-ust,.fs-ust i,.fs-h,.fs-secenek,.fs-ad b,.fs-ad small,.fs-tekrar{transition:none!important}
-  .fs-h{filter:none}
-  .film-secim.is-acik .fs-secenek:after,.film-ses.acik .film-ses-cubuk b,.film-ses-davet i:after{animation:none}
+  .fs-perde,.fs-icerik,.fs-ok{transition:none!important}
+  .fs-dal,.fs-ogeler,.film-ses.acik .film-ses-cubuk b,.film-ses-davet i:after{animation:none}
 }
