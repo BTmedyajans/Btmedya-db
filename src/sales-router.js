@@ -340,6 +340,15 @@ async function clientHubApi(request,env,url){
     return j({ok:true,decision,status,message:decision==='approved'?'İçerik müşteri tarafından onaylandı.':decision==='revision'?'Revizyon talebi kaydedildi.':'İçerik reddedildi.'});
   }
 
+  const cp=url.pathname.match(/^\/api\/client-hub\/content\/([^/]+)\/project$/);
+  if(cp && request.method==='POST'){
+    const contentId=cp[1],owner=await requireContent(contentId);
+    if(!owner)return j({ok:false,error:'İçerik bulunamadı'},404);
+    const b=await request.json().catch(()=>({})),projectId=clean(b.project_id,120);
+    if(projectId && !(await env.DB.prepare('SELECT id FROM client_projects WHERE id=? AND client_id=?').bind(projectId,owner.client_id).first()))return j({ok:false,error:'Proje bu müşteri çalışma alanına ait değil'},400);
+    await env.DB.prepare('UPDATE client_content SET project_id=?,updated_at=? WHERE id=? AND client_id=?').bind(projectId||null,new Date().toISOString(),contentId,owner.client_id).run();
+    return j({ok:true,id:contentId,project_id:projectId||null});
+  }
   const cm=url.pathname.match(/^\/api\/client-hub\/content\/([^/]+)$/);
   if(cm&&request.method==='PATCH'){const id=cm[1];const owner=await requireContent(id);if(!owner)return j({ok:false,error:'İçerik bulunamadı'},404);const b=await request.json().catch(()=>({}));const fields=[],vals=[];for(const k of ['title','content_type','engine','brief','body','media_key','status'])if(k in b){fields.push(k+'=?');vals.push(clean(b[k],k==='body'?20000:k==='brief'?3000:500));}if('preview' in b){fields.push('preview_json=?');vals.push(JSON.stringify(b.preview||{}));}if('client_approved' in b){fields.push('client_approved=?');vals.push(b.client_approved?1:0);}if('published_at' in b){fields.push('published_at=?');vals.push(b.published_at||null);}if(!fields.length)return j({ok:false,error:'Değişiklik yok'},400);fields.push('updated_at=?');vals.push(new Date().toISOString(),id);await env.DB.prepare('UPDATE client_content SET '+fields.join(',')+' WHERE id=?').bind(...vals).run();return j({ok:true,id});}
   const cr=url.pathname.match(/^\/api\/client-hub\/workspace\/([^/]+)\/reference$/);
