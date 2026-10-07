@@ -402,7 +402,7 @@ async function apiSchedule(request,env){
   const b=await request.json().catch(()=>({}));
   const ids=Array.isArray(b.connection_ids)?[...new Set(b.connection_ids.map(x=>clean(x,120)).filter(Boolean))]:[];
   if(!ids.length)return j({ok:false,error:"En az bir hesap seçin"},400);
-  const title=clean(b.title,240),body=clean(b.body||title,63206),mediaKey=clean(b.media_key,500),sourceSlug=clean(b.source_slug,240),contentHash=clean(b.content_hash,128),kind=clean(b.kind||"manual",40);
+  const title=clean(b.title,240),body=clean(b.body||title,63206),mediaKey=clean(b.media_key,500),sourceSlug=clean(b.source_slug,240),contentHash=clean(b.content_hash,128),kind=clean(b.kind||"manual",40),taxonomyPath=clean(b.taxonomy_path,60);
   const workspace_type=validWorkspaceType(b.workspace_type)?b.workspace_type:"agency";
   const workspace_id=clean(b.workspace_id,120)||"btmedya";
   if(!(await workspaceExists(env,workspace_type,workspace_id)))return j({ok:false,error:"Çalışma alanı bulunamadı"},404);
@@ -422,7 +422,8 @@ async function apiSchedule(request,env){
       await env.DB.prepare("INSERT INTO social_direct_jobs(id,connection_id,title,body,media_key,scheduled_at,status,attempts,external_id,last_error,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)")
         .bind(id,c.id,title,body,mediaKey,scheduled.toISOString(),"queued",0,"","",now,now).run();
     }
-    jobs.push({id,connection_id:c.id,provider:c.provider,account_name:c.account_name,scheduled_at:scheduled.toISOString()});
+    await saveContentTaxonomy(env,"social_job",id,{path_key:taxonomyPath||"sosyal",group_key:"",item_key:"",secondary_json:"[]"});
+    jobs.push({id,connection_id:c.id,provider:c.provider,account_name:c.account_name,scheduled_at:scheduled.toISOString(),taxonomy_path:taxonomyPath||"sosyal"});
   }
   return j({ok:true,items:jobs},201);
 }
