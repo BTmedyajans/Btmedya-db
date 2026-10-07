@@ -11,6 +11,14 @@ const META_SCOPES=[
   "instagram_content_publish"
 ];
 const providers=new Set(["facebook","instagram"]);
+const BTMEDYA_SOCIAL_PROVIDERS={
+  facebook:{label:"Facebook",mode:"direct",connect:"meta",requirement:"Facebook Page + Meta OAuth",publishing:true},
+  instagram:{label:"Instagram",mode:"direct",connect:"meta",requirement:"Instagram Professional + Meta OAuth",publishing:true},
+  tiktok:{label:"TikTok",mode:"oauth",connect:"tiktok",requirement:"TikTok Content Posting API + video.publish onay",publishing:false},
+  youtube:{label:"YouTube",mode:"oauth",connect:"google",requirement:"Google OAuth + youtube.upload",publishing:false},
+  x:{label:"X",mode:"oauth",connect:"x",requirement:"X Developer App + API erişimi",publishing:false},
+  whatsapp:{label:"WhatsApp",mode:"cloud",connect:"meta-whatsapp",requirement:"Meta Business + WhatsApp Business Account",publishing:false}
+};
 
 const j=(d,s=200,h={})=>new Response(JSON.stringify(d),{
   status:s,
@@ -327,8 +335,23 @@ async function apiJobs(request,env,url){
   return j({ok:true,items:q.results||[]});
 }
 
+async function apiProviders(request,env){
+  if(!(await validSession(request,env)))return j({ok:false,error:"Yetkisiz"},401);
+  const metaMissing=[];
+  if(!String(env.META_APP_ID||"").trim())metaMissing.push("META_APP_ID");
+  if(!String(env.META_APP_SECRET||"").trim())metaMissing.push("META_APP_SECRET");
+  if(!secret(env))metaMissing.push("SOCIAL_TOKEN_ENCRYPTION_KEY");
+  if(!env.KV)metaMissing.push("KV");
+  return j({ok:true,providers:Object.entries(BTMEDYA_SOCIAL_PROVIDERS).map(([id,p])=>({
+    id,...p,
+    ready:id==="facebook"||id==="instagram"?metaMissing.length===0:false,
+    missing:id==="facebook"||id==="instagram"?metaMissing:[]
+  }))});
+}
+
 export async function directSocialApi(request,env,url){
   if(!url.pathname.startsWith("/api/social/direct/"))return null;
+  if(url.pathname==="/api/social/direct/providers" && request.method==="GET")return apiProviders(request,env);
   if(url.pathname==="/api/social/direct/meta/callback" && request.method==="GET")return metaCallback(request,env,url);
   if(url.pathname==="/api/social/direct/meta/start" && request.method==="GET")return startMeta(request,env,url);
   if(url.pathname==="/api/social/direct/accounts" && request.method==="GET")return apiAccounts(request,env,url);
