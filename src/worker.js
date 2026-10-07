@@ -538,17 +538,19 @@ async function newsApi(request, env, url, ctx){
         await env.DB.prepare('UPDATE news SET title=?,excerpt=?,body=?,category=?,author=?,cover_url=?,video_url=?,status=?,published_at=?,updated_at=? WHERE id=?')
           .bind(...values.slice(0,9),now,id).run();
       }
+      const current=await env.DB.prepare('SELECT slug,source_url FROM news WHERE id=?').bind(id).first().catch(()=>null);
+      if(current?.slug) await saveContentTaxonomy(env,'news',current.slug,taxonomy);
       if(status==='published'){
-        const current=await env.DB.prepare('SELECT slug,source_url FROM news WHERE id=?').bind(id).first().catch(()=>null);
-        if(current?.slug) await saveContentTaxonomy(env,'news',current.slug,taxonomy);
         const r=current;
         if(r?.source_url) await kaynakBaglaHaber(env,r.source_url,r.slug).catch(()=>{});
         indexNowBildir(ctx, url.origin, r?.slug);
       }
-      return json({ok:true});
+      return json({ok:true,taxonomy});
     }
     if(request.method==='DELETE'){
+      const row=await env.DB.prepare('SELECT slug FROM news WHERE id=?').bind(id).first().catch(()=>null);
       await env.DB.prepare('DELETE FROM news WHERE id=?').bind(id).run();
+      if(row?.slug) await env.DB.prepare("DELETE FROM content_taxonomy WHERE entity_type='news' AND entity_id=?").bind(row.slug).run().catch(()=>{});
       return json({ok:true});
     }
   }
