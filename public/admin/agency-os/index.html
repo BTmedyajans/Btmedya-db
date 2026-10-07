@@ -14,6 +14,25 @@
 <link rel="stylesheet" href="../mobile-admin.css">
 <link rel="stylesheet" href="./agency-social-v1.css?v=20261002-1">
 <link rel="stylesheet" href="/admin/admin-menu.css?v=20261007-3"><script src="/admin/admin-menu.js?v=20261007-3" defer></script></head>
+<style>
+.admin-category-system{margin-top:18px;padding:16px;border:1px solid #28322f;border-radius:18px;background:rgba(10,14,14,.82)}
+.category-system-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.category-system-head h2{margin:5px 0;font-size:clamp(22px,3vw,34px);letter-spacing:-.03em}
+.category-system-head p{max-width:780px}
+.admin-category-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}
+.admin-category{appearance:none;text-align:left;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:15px;border:1px solid #29332f;border-radius:13px;background:#0a0f0f;color:#f4f7f5;cursor:pointer}
+.admin-category:hover,.admin-category.is-active{border-color:#71804d;background:#151d16}
+.admin-category.is-active .cat-no,.admin-category.is-active .cat-arrow{color:#d9ff4f}
+.cat-no{font:800 11px ui-monospace,monospace;color:#89938e}.cat-main b{display:block;font-size:15px}.cat-main small{display:block;color:#8e9994;margin-top:3px}.cat-arrow{font-size:18px;color:#78837d}
+.category-command{margin-top:10px}
+.category-command-inner{display:grid;grid-template-columns:1.1fr 1fr;gap:10px}
+.category-command-main,.category-command-side{border:1px solid #29332f;border-radius:13px;background:#0b1010;padding:14px}
+.category-command-main h3{margin:3px 0 5px;font-size:24px}.category-command-main p{margin:0;color:#98a39e}
+.category-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}.category-tags span{padding:5px 8px;border:1px solid #303b36;border-radius:999px;font-size:10px;color:#c2ccc7}
+.category-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.category-actions a{padding:9px 11px;border:1px solid #303b36;border-radius:9px;color:#f4f7f5;text-decoration:none;font-weight:800;font-size:12px}.category-actions a.primary{background:#d9ff4f;color:#081008;border-color:#d9ff4f}
+.category-command-side b{display:block;margin-bottom:7px}.category-check{display:flex;gap:7px;padding:6px 0;color:#aeb9b4;font-size:12px}.category-check i{font-style:normal;color:#73e59b}
+@media(max-width:800px){.admin-category-grid,.category-command-inner{grid-template-columns:1fr}.category-system-head{display:block}.category-system-head .btn{display:inline-block;margin-top:8px}}
+</style>
 <body>
 <header class="top">
   <div class="brand">BT<span>MEDYA</span> / AGENCY OS</div>
@@ -34,9 +53,44 @@
       <button id="refresh" class="btn">Yenile</button>
     </div>
     <div id="heartbeat" class="status">Sistem bağlantısı hazırlanıyor…</div>
-    <div class="super-paths" aria-label="BTMEDYA üç ana çalışma yolu"><a class="super-path is-active" href="/admin/editor/"><span class="num">01</span><span class="copy"><b>HABER</b><small>Kaynak · AI · SEO · önizleme · yayın</small></span><span class="arrow">↗</span></a><a class="super-path" href="/admin/musteri-sosyal/"><span class="num">02</span><span class="copy"><b>SOSYAL MEDYA</b><small>Müşteri hesapları · içerik · planlama · dağıtım</small></span><span class="arrow">↗</span></a><a class="super-path" href="/admin/app.html"><span class="num">03</span><span class="copy"><b>TANITIM</b><small>Video · medya kasası · proje · teklif</small></span><span class="arrow">↗</span></a></div>
+    <section class="admin-category-system" aria-label="BTMEDYA üç ana kategori">
+      <div class="category-system-head">
+        <div><div class="eyebrow">01 · ÇALIŞMA ALANI</div><h2>Önce alanı seç. Panel kendini ona göre düzenlesin.</h2><p class="mut">Web sitesiyle aynı üçlü omurga: <b>HABER</b>, <b>SOSYAL MEDYA</b>, <b>TANITIM</b>. Seçilen alan; hızlı işlemleri, kuralları ve araçları öne çıkarır.</p></div>
+        <a class="btn" href="/admin/kategori/">Kategori Merkezi ↗</a>
+      </div>
+      <div class="admin-category-grid" id="adminCategoryGrid">
+        <button class="admin-category is-active" data-category="haber">
+          <span class="cat-no">01</span><span class="cat-main"><b>HABER</b><small>Kaynak · AI · SEO · yayın</small></span><span class="cat-arrow">↗</span>
+        </button>
+        <button class="admin-category" data-category="sosyal">
+          <span class="cat-no">02</span><span class="cat-main"><b>SOSYAL MEDYA</b><small>İçerik · hesap · planlama · ölçüm</small></span><span class="cat-arrow">↗</span>
+        </button>
+        <button class="admin-category" data-category="tanitim">
+          <span class="cat-no">03</span><span class="cat-main"><b>TANITIM</b><small>Medya · proje · teklif · portföy</small></span><span class="cat-arrow">↗</span>
+        </button>
+      </div>
+      <div class="category-command" id="categoryCommand"></div>
+    </section>
   </section>
 
+<script>
+(()=>{
+const DATA={
+haber:{title:'HABER',desc:'Kaynaklı ve doğrulanabilir içerikten güvenli yayına.',tags:['Kaynak','AI Editör','SEO / AEO','Önizleme','Yayın'],checks:['Kaynak ve tarih görünür','Kategori kuralı karşılanır','SEO hedefi kontrol edilir','Editör onayı olmadan kritik yayın yapılmaz'],actions:[['Haber Odası','/admin/editor/'],['Kategori Merkezi','/admin/kategori/'],['Yayın Kuyruğu','/admin/yayin/']]},
+sosyal:{title:'SOSYAL MEDYA',desc:'Müşteri, BTMEDYA ve kişisel hesapları tek dağıtım akışında.',tags:['Instagram','TikTok','YouTube','Facebook','X / WhatsApp'],checks:['Platform formatı doğru','İlk 1–3 saniye net','Tek CTA kullanılır','Gerçek performans ölçülür'],actions:[['Social OS','/admin/social-os/'],['Müşteri Sosyal OS','/admin/musteri-sosyal/'],['Sosyal Yayın','/admin/yayin/#social']]},
+tanitim:{title:'TANITIM',desc:'Gerçek medya, proje, teklif ve portföyü satışa bağlayan üretim hattı.',tags:['Medya Kasası','Video','Proje','Teklif','Portföy'],checks:['Marka dili korunur','Gerçek / AI üretim ayrılır','Kapsam ve teslim net','İş kanıtı portföye bağlanır'],actions:[['Medya Kasası','/admin/app.html'],['Proje Merkezi','/admin/client-hub/'],['Teklifler','/admin/sales/']]}
+};
+const root=document.getElementById('adminCategoryGrid'),out=document.getElementById('categoryCommand');
+function render(key){
+ const d=DATA[key];
+ root.querySelectorAll('.admin-category').forEach(x=>x.classList.toggle('is-active',x.dataset.category===key));
+ out.innerHTML='<div class="category-command-inner"><div class="category-command-main"><div class="eyebrow">AKTİF KATEGORİ</div><h3>'+d.title+'</h3><p>'+d.desc+'</p><div class="category-tags">'+d.tags.map(x=>'<span>'+x+'</span>').join('')+'</div><div class="category-actions">'+d.actions.map((a,i)=>'<a class="'+(i===0?'primary':'')+'" href="'+a[1]+'">'+a[0]+' ↗</a>').join('')+'</div></div><div class="category-command-side"><b>YÖNETİM KRİTERLERİ</b>'+d.checks.map(x=>'<div class="category-check"><i>✓</i><span>'+x+'</span></div>').join('')+'</div></div>';
+ try{sessionStorage.setItem('btmedya-admin-category',key)}catch{}
+}
+root.addEventListener('click',e=>{const b=e.target.closest('.admin-category');if(b)render(b.dataset.category)});
+let saved='haber';try{saved=sessionStorage.getItem('btmedya-admin-category')||'haber'}catch{}render(DATA[saved]?saved:'haber');
+})();
+</script>
   <section class="mobile-install" id="pwaInstall" hidden aria-label="Mobil uygulama kurulumu">
     <b>BTMEDYA’yı telefona kur</b>
     <span>Bu yönetim merkezini uygulama gibi açmak için ana ekrana ekleyin.</span>
