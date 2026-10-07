@@ -38,7 +38,7 @@
     currentMode=mode;
     film.poster=s.poster;
 
-    const preferred=saveData()?s.mp4:(canPlayWebm()?s.webm:s.mp4);
+    const preferred=s.mp4;
     activeSrc=preferred;
     film.src=preferred;
     film.load();
