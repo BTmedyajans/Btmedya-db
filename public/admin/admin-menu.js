@@ -9,7 +9,9 @@
       ]},
       {ad:'GÜNDEM',items:[
         ['Trend & Radar','/admin/autopilot/','Gündem ve haber adayları'],
-        ['Kaynak Masası','/admin/kaynak-masasi/','Kaynak ve doğrulama']
+        ['Kaynak Masası','/admin/kaynak-masasi/','Kaynak ve doğrulama'],
+        ['Halkın Merak Radarı','/admin/merak-radari/','Arama sinyali ve özel haber fırsatı'],
+        ['Gelen Mesajlar','/admin/mesajlar/','Haber ihbarı ve iletişim formu']
       ]},
       {ad:'HABER KATEGORİLERİ',items:[
         ['Bölge: Balıkesir / Marmara / Türkiye / Dünya','/admin/editor/#category','Bölge seçimi'],
@@ -40,10 +42,11 @@
       ]},
       {ad:'MÜŞTERİ / PROJE',items:[
         ['Proje & Müşteri','/admin/client-hub/','Proje ve müşteri akışı'],
-        ['Teklif Al','/teklif-al/','Yeni proje / müşteri talebi']
+        ['Teklif Talepleri','/admin/sales/','Gelen teklifler ve satış hunisi'],
+        ['Teklif formu','/teklif-al/','Müşterinin gördüğü form']
       ]},
       {ad:'HİZMETLER',items:[
-        ['Video / Prodüksiyon','/prodüksiyon/','Video ve prodüksiyon hizmetleri'],
+        ['Video / Prodüksiyon','/video-produksiyon/','Video ve prodüksiyon hizmetleri'],
         ['AI LAB','/ai-lab/','AI içerik ve deneysel üretim'],
         ['Haber / Medya','/haberler/','Haber ve medya üretimi']
       ]}
@@ -79,7 +82,11 @@
       ).join('')+
       '</div></section>'
     ).join('')+
-    '</nav><div class="bam-foot">Tek arayüz. Üç ana kategori. Alt dallar kendi kategorisinin içinde tutulur.</div></div>';
+    // Üç yolun dışında kalan sistem ekranları: her sayfadan ana ekrana dönüş,
+    // sağlık kontrolü, canlı site ve çıkış. Bunlar menüde yoktu; ana ekrana
+    // yalnız tarayıcının geri tuşuyla dönülebiliyordu.
+    '</nav><div class="bam-sistem" aria-label="Sistem"><a href="/admin/agency-os/">Süpervizör (ana ekran)</a><a href="/admin/site-os/">Site sağlığı</a><a href="/" target="_blank" rel="noopener">Canlı site ↗</a><button type="button" data-bam-cikis>Çıkış</button></div>'+
+    '<div class="bam-foot">Tek arayüz. Üç ana kategori. Alt dallar kendi kategorisinin içinde tutulur.</div></div>';
   document.documentElement.appendChild(root);
   const panel=root.querySelector('.bam-panel');let trigger=null;
   const allTriggers='#adminMenuToggle,.menu-toggle,.bam-dugme';
@@ -88,6 +95,7 @@
   const close=()=>{root.classList.remove('is-acik');document.documentElement.classList.remove('bam-acik');setExpanded(false);setTimeout(()=>{if(!root.classList.contains('is-acik'))root.hidden=true},220);trigger&&trigger.focus()};
   root.addEventListener('click',e=>{
     if(e.target.closest('[data-bam-kapat]')){close();return}
+    if(e.target.closest('[data-bam-cikis]')){fetch('/api/logout',{method:'POST',credentials:'same-origin'}).finally(()=>{location.href='/admin/'});return}
     const head=e.target.closest('.bam-kat-baslik');
     if(head){
       const isOpen=head.getAttribute('aria-expanded')==='true';
@@ -98,7 +106,7 @@
       if(!isOpen){head.setAttribute('aria-expanded','true');const p=root.querySelector('#'+head.getAttribute('aria-controls'));if(p)p.hidden=false}
       return;
     }
-    if(e.target.closest('.bam-alt a'))close();
+    if(e.target.closest('.bam-alt a,.bam-sistem a'))close();
   });
   document.addEventListener('keydown',e=>{
     if(root.hidden)return;

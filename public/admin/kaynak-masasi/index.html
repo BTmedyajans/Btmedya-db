@@ -12,7 +12,7 @@ a{color:inherit}.wrap{max-width:1400px;margin:0 auto;padding:28px 18px 60px}.top
 .stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:18px 0}.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}.stat b{display:block;font-size:25px}.stat small{color:var(--muted)}
 .grid{display:grid;grid-template-columns:1.6fr .9fr;gap:14px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}.panel h2{font-size:15px;margin:0 0 12px}.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.input,.select{background:#0e1216;color:var(--text);border:1px solid var(--line);padding:10px;border-radius:8px;min-width:0}.input.q{flex:1}.select{min-width:150px}table{width:100%;border-collapse:collapse}th,td{text-align:left;vertical-align:top;border-top:1px solid var(--line);padding:10px 8px}th{font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.08em}.source{display:flex;gap:8px;flex-direction:column}.source strong{font-size:13px}.source a{color:#c8d0da;overflow-wrap:anywhere}.tag{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;padding:3px 7px;margin-right:4px;font-size:10px;color:#d7dde4}.tag.ok{border-color:#2e6f46;color:#80dd9e}.tag.warn{border-color:#795e26;color:#edc96e}.tag.red{border-color:#7c2631;color:#ff99a3}.muted{color:var(--muted)}.notice{padding:11px;border:1px solid var(--line);border-radius:8px;color:var(--muted);margin-bottom:12px}.form{display:grid;grid-template-columns:1fr 1fr;gap:9px}.form label{display:flex;flex-direction:column;gap:5px;color:var(--muted);font-size:12px}.form .wide{grid-column:1/-1}.form input,.form select,.form textarea{background:#0e1216;color:var(--text);border:1px solid var(--line);padding:10px;border-radius:8px;font:inherit}.form textarea{min-height:85px;resize:vertical}.dev{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.dev:first-child{border-top:0}.dev b{font-size:12px}.dev span{color:var(--muted);font-size:12px;text-align:right}.empty{padding:22px;text-align:center;color:var(--muted)}.statusline{min-height:20px;color:var(--muted);margin-top:8px}@media(max-width:950px){.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.top{flex-direction:column}.form{grid-template-columns:1fr}}@media(max-width:560px){.wrap{padding:18px 12px 40px}.top h1{font-size:26px}.stats{grid-template-columns:1fr 1fr}.actions{width:100%}.btn{flex:1;text-align:center}.panel{padding:12px;overflow:auto}table{min-width:760px}}
 </style>
-</head>
+<link rel="stylesheet" href="/admin/admin-menu.css?v=20261007-3"></head>
 <body>
 <main class="wrap">
 <header class="top">
@@ -70,7 +70,7 @@ a{color:inherit}.wrap{max-width:1400px;margin:0 auto;padding:28px 18px 60px}.top
   </aside>
 </div>
 </main>
-<script src="/admin/admin-menu.js?v=20261006-1" defer></script>
+<script src="/admin/admin-menu.js?v=20261007-3" defer></script>
 <script>
 (()=>{'use strict';
 const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
