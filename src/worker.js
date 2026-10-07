@@ -14,6 +14,7 @@ import { siteOsApi, runSiteOsChecks } from "./site-os.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
+import { processDirectSocialQueue, directSocialApi } from "./direct-social.js";
 import { WorkerEntrypoint } from "cloudflare:workers";
 import { aiGorunurluk, ICERIK_SINYALI } from "./ai-gorunurluk.js";
 import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu, KATEGORILER, kategoriIsle, yanitMetni, jsonAyikla } from "./sabah-masasi.js";
@@ -1975,6 +1976,13 @@ export default { async scheduled(controller, env, ctx){
         .then(x=>console.log('[btmedya] Metricool handoff',JSON.stringify({enabled:x.enabled,processed:x.processed,scheduled:x.scheduled,failed:x.failed,skipped:x.skipped})))
         .catch(e=>console.error('[btmedya] Metricool handoff:',e?.message||e))
     : Promise.resolve(null);
+  /* Direct Social OS: Meta OAuth ile bağlanan Facebook Page / Instagram Professional
+     hesaplarını Metricool aboneliği olmadan doğrudan yayın kuyruğuna teslim eder. */
+  const directSocial=(controller && (controller.cron==='*/5 * * * *' || controller.cron==='*/15 * * * *'))
+    ? processDirectSocialQueue(env,10)
+        .then(x=>console.log('[btmedya] Direct Social handoff',JSON.stringify({enabled:x.enabled,processed:x.processed,published:x.published,failed:x.failed})))
+        .catch(e=>console.error('[btmedya] Direct Social handoff:',e?.message||e))
+    : Promise.resolve(null);
   const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
   /* Metricool sosyal tesliminden önce yardımcı kuyruk bakımı: zamanı geçmiş,
      henüz dış servise teslim edilmemiş planları ileri alır; teslim edilmiş
@@ -1995,7 +2003,7 @@ export default { async scheduled(controller, env, ctx){
      yayınlar ve rakip görünürlük sinyalleri taranır. Bu katman yalnız keşif
      kuyruğunu günceller; otomatik yayın için Sabah Masası'nın doğrulama
      zinciri geçerlidir. */
-  const hepsi=Promise.all([task,metricool,archive,drafts,takip,intelligence,autopilot,supervisor,siteHealth]);
+  const hepsi=Promise.all([task,metricool,directSocial,archive,drafts,takip,intelligence,autopilot,supervisor,siteHealth]);
   if(ctx?.waitUntil) ctx.waitUntil(hepsi); else await hepsi;
 }, async fetch(request, env, ctx){
   const url = new URL(request.url);
@@ -2144,6 +2152,8 @@ export default { async scheduled(controller, env, ctx){
     if(aiCommand) return audit(aiCommand);
     const command = await adminCommandApi(request, env, url);
     if(command) return audit(command);
+    const rDirectSocial = await directSocialApi(request, env, url);
+    if(rDirectSocial) return rDirectSocial;
     const rSales = await salesApi(request, env, url, ctx);
     if(rSales) return audit(rSales);
     const ras = await agencySupervisorApi(request, env, url);
