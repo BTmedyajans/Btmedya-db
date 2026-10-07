@@ -32,7 +32,7 @@ async function load(){
  $('#steps').innerHTML=needs.map((x,i)=>'<div class="step"><b>'+String(i+1).padStart(2,'0')+'</b>'+esc(x)+'</div>').join('');
 }
 $('#meta').onclick=()=>location.href='/api/social/direct/meta/start?return_to=%2Fadmin%2Fconnect%2F';
-$('#tt').onclick=()=>location.href='/api/social/direct/tiktok/start';
-$('#yt').onclick=()=>location.href='/api/social/direct/youtube/start';
-$('#refresh').onclick=load;load().catch(e=>$('#steps').innerHTML='<div class="step bad">'+esc(e.message)+'</div>');
+$('#tt').onclick=()=>location.href='/api/social/direct/tiktok/start?workspace_type=company&workspace_id=btmedya';
+$('#yt').onclick=()=>location.href='/api/social/direct/youtube/start?workspace_type=company&workspace_id=btmedya';
+$('#refresh').onclick=load;const q=new URLSearchParams(location.search);if(q.get('tiktok')==='ok'||q.get('youtube')==='ok')document.querySelector('.sub').textContent=(q.get('tiktok')==='ok'?'TikTok':'YouTube')+' bağlantısı tamamlandı. Hesap çalışma alanına kaydedildi.';load().catch(e=>$('#steps').innerHTML='<div class="step bad">'+esc(e.message)+'</div>');
 </script></body></html>
