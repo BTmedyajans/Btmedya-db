@@ -137,43 +137,32 @@
       parca + '<span aria-hidden="true" style="display:contents">' + parca.replace(/<a /g, '<a tabindex="-1" ') + '</span></div></div>';
   }
 
-  var mansetZamanlayici = null;
+  function mansetKartBuyuk(n) {
+    return '<a class="hm-manset-buyuk" data-kat="' + n._kat + '" href="' + adres(n) + '">' +
+      '<figure><img src="' + esc(kapak(n)) + '" alt="' + esc(n.title) + '" width="1200" height="675" fetchpriority="high" decoding="async"><span class="hm-manset-etiket">' + esc(AD[n._kat]) + '</span><span class="hm-manset-karartma"></span><figcaption><small>' + esc(formatEtiketi(n)) + ' · ' + esc(onceYaz(n)) + '</small><h3>' + esc(n.title) + '</h3><p>' + esc(n.excerpt || '') + '</p></figcaption></figure></a>';
+  }
+
+  function mansetKartYan(n) {
+    return '<a class="hm-manset-yan-kart" data-kat="' + n._kat + '" href="' + adres(n) + '">' +
+      '<figure><img src="' + esc(kare(n)) + '" alt="' + esc(n.title) + '" width="600" height="450" loading="lazy" decoding="async"></figure>' +
+      '<span><span class="hm-kat">' + esc(AD[n._kat]) + '</span><time class="hm-zaman" datetime="' + tamTarih(n) + '">' + esc(onceYaz(n)) + '</time><h3>' + esc(n.title) + '</h3></span></a>';
+  }
+
+  function mansetGrubu(yer, liste) {
+    if (!yer) return;
+    if (!liste.length) {
+      yer.innerHTML = '<p class="hm-bos">Bu manşet grubunda henüz yayımlanmış haber yok.</p>';
+      return;
+    }
+    var ilk = liste[0], yan = liste.slice(1, 5);
+    yer.innerHTML = '<div class="hm-manset-grid"><div>' + mansetKartBuyuk(ilk) + '</div><div class="hm-manset-yan">' + yan.map(mansetKartYan).join('') + '</div></div>';
+  }
+
   function manset(liste) {
-    var yer = kok.querySelector('[data-hm-manset]'); if (!yer) return;
-    var adet = liste.length;
-    yer.innerHTML = '<div class="hm-manset-iz" tabindex="0" aria-roledescription="manşet" aria-label="Manşet haberleri">' + liste.map(function (n, i) {
-      return '<a class="hm-manset-kart" data-kat="' + n._kat + '" href="' + adres(n) + '" aria-label="' + (i + 1) + '. manşet: ' + esc(n.title) + '">' +
-        '<img src="' + esc(kapak(n)) + '" alt="' + esc(n.title) + '" width="1200" height="675" ' + (i ? 'loading="lazy"' : 'fetchpriority="high"') + ' decoding="async">' +
-        '<span class="hm-manset-alt"><span class="hm-kat">' + esc(AD[n._kat]) + '</span><p>' + esc(n.excerpt || '') + '</p><time class="hm-zaman" datetime="' + tamTarih(n) + '">' + esc(onceYaz(n)) + '</time></span></a>';
-    }).join('') + '</div><div class="hm-sayac" style="--adet:' + adet + '" role="group" aria-label="Manşet numaraları">' +
-      liste.map(function (n, i) { return '<button type="button" aria-label="' + (i + 1) + '. manşet" ' + (i ? '' : 'aria-current="true"') + '>' + (i + 1) + '</button>'; }).join('') + '</div>';
-    var iz = yer.querySelector('.hm-manset-iz'), dugmeler = yer.querySelectorAll('.hm-sayac button'), sira = 0, bekle = 6000;
-    yer.style.setProperty('--bekle', bekle / 1000 + 's');
-    function isaretle(i) {
-      if (i === sira && dugmeler[i].getAttribute('aria-current')) return;
-      sira = i;
-      dugmeler.forEach(function (d, j) { if (j === i) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current'); });
-    }
-    function git(i) { iz.scrollTo({ left: i * iz.clientWidth, behavior: azHareket ? 'auto' : 'smooth' }); isaretle(i); }
-    dugmeler.forEach(function (d, i) { d.addEventListener('click', function () { durdur(); git(i); }); });
-    // Parmakla kaydırma: hangi kart ortadaysa numarası işaretlenir.
-    var bekleyen = 0;
-    iz.addEventListener('scroll', function () {
-      cancelAnimationFrame(bekleyen);
-      bekleyen = requestAnimationFrame(function () { isaretle(Math.round(iz.scrollLeft / Math.max(1, iz.clientWidth))); });
-    }, { passive: true });
-    function dongu() {
-      clearInterval(mansetZamanlayici);
-      if (azHareket || adet < 2) return;
-      yer.classList.remove('durdu');
-      mansetZamanlayici = setInterval(function () { git((sira + 1) % adet); }, bekle);
-    }
-    function durdur() { clearInterval(mansetZamanlayici); mansetZamanlayici = null; yer.classList.add('durdu'); }
-    ['pointerdown', 'focusin', 'mouseenter'].forEach(function (o) { yer.addEventListener(o, durdur); });
-    yer.addEventListener('mouseleave', dongu);
-    if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) dongu(); else durdur(); }); }, { threshold: .4 }).observe(yer);
-    else dongu();
-    document.addEventListener('visibilitychange', function () { if (document.hidden) durdur(); });
+    var tr = liste.filter(function (n) { return n._kat !== 'balikesir'; }).slice(0, 5);
+    var bal = liste.filter(function (n) { return n._kat === 'balikesir'; }).slice(0, 5);
+    mansetGrubu(kok.querySelector('[data-hm-manset-turkiye]'), tr);
+    mansetGrubu(kok.querySelector('[data-hm-manset-balikesir]'), bal);
   }
 
   // Masaüstünde manşetin yanındaki saatli akış (mobilde gizli; şerit aynı işi görür).
@@ -329,10 +318,11 @@
     guncel.sort(function (a, b) { return (zaman(b) || 0) - (zaman(a) || 0); });
     tumHaberler = guncel;
 
-    // Manşet: Balıkesir önce, ardından diğer kategoriler dengeli biçimde.
-    var sayac = {}, mansetler = [];
-    guncel.filter(function (n) { return n._kat === 'balikesir'; }).slice(0, 5).forEach(function (n) { mansetler.push(n); sayac.balikesir = (sayac.balikesir || 0) + 1; });
-    guncel.forEach(function (n) { if (mansetler.length < 12 && (sayac[n._kat] || 0) < 3) { mansetler.push(n); sayac[n._kat] = (sayac[n._kat] || 0) + 1; } });
+    // Manşet iki ayrı yayın masasıdır: Türkiye + Balıkesir.
+    // Her gruptan ilk 5 haber manşete alınır; aşağıdaki akışta tekrar edilmez.
+    var trManset = guncel.filter(function (n) { return n._kat !== 'balikesir'; }).slice(0, 5);
+    var balManset = guncel.filter(function (n) { return n._kat === 'balikesir'; }).slice(0, 5);
+    var mansetler = trManset.concat(balManset);
     var kalan = guncel.filter(function (n) { return mansetler.indexOf(n) < 0; });
     var surler = kalan.slice(0, 12);
     var gruplar = {}; KATEGORILER.forEach(function (k) { gruplar[k[0]] = []; });
@@ -346,7 +336,7 @@
     });
     serit(guncel);
     akis(guncel.slice(0, 12));
-    manset(mansetler);
+    manset(guncel);
     surmanset(surler);
     bloklar(gruplar);
     var yedek = kok.querySelector('[data-hm-yedek]'); if (yedek) yedek.remove();
