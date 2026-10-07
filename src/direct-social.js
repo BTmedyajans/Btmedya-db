@@ -335,11 +335,20 @@ export async function directSocialApi(request,env,url){
   if(url.pathname==="/api/social/direct/schedule" && request.method==="POST")return apiSchedule(request,env);
   if(url.pathname==="/api/social/direct/jobs" && request.method==="GET")return apiJobs(request,env,url);
   if(url.pathname==="/api/social/direct/health" && request.method==="GET"){
-    const configured=Boolean(env.META_APP_ID&&env.META_APP_SECRET&&secret(env));
-    return j({ok:true,configured,provider:"Meta Direct",subscription_required:false,supported:["facebook-page","instagram-professional"],limitations:[
-      "Facebook kişisel profil paylaşımı resmi Graph API üzerinden bu uygulamada desteklenmez.",
-      "Instagram consumer/personal hesaplar resmi yayın API'sine dahil değildir; Professional (Business/Creator) gerekir."
-    ]});
+    const missing=[];
+    if(!String(env.META_APP_ID||"").trim()) missing.push("META_APP_ID");
+    if(!String(env.META_APP_SECRET||"").trim()) missing.push("META_APP_SECRET");
+    if(!secret(env)) missing.push("SOCIAL_TOKEN_ENCRYPTION_KEY");
+    if(!env.KV) missing.push("KV");
+    if(!env.DB) missing.push("DB");
+    const configured=missing.length===0;
+    return j({ok:true,configured,provider:"Meta Direct",subscription_required:false,
+      setup:{ready:configured,missing,oauth_callback:String(env.META_OAUTH_REDIRECT_URI||"otomatik: /api/social/direct/meta/callback")},
+      supported:["facebook-page","instagram-professional"],
+      limitations:[
+        "Facebook kişisel profil paylaşımı resmi Graph API üzerinden bu uygulamada desteklenmez.",
+        "Instagram consumer/personal hesaplar resmi yayın API'sine dahil değildir; Professional (Business/Creator) gerekir."
+      ]});
   }
   return j({ok:false,error:"Direct Social endpoint bulunamadı"},404);
 }
