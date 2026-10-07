@@ -115,7 +115,7 @@
     if(link){
       try{
         const raw=link.getAttribute('href')||'';
-        if(raw.startsWith('/admin/') && !raw.includes('kategori=') && !raw.startsWith('/admin/admin')){
+        if(raw.startsWith('/admin/') && !raw.includes('kategori=') && !raw.startsWith('/admin/agency-os/')){
           const u=new URL(raw,location.origin);u.searchParams.set('kategori',pathCategory(raw));link.setAttribute('href',u.pathname+u.search+u.hash);
           sessionStorage.setItem('btmedya-admin-category',pathCategory(raw));
         }
