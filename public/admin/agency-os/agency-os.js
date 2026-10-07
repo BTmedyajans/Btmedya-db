@@ -141,3 +141,42 @@ loadCore();loadPlatformReadiness();setInterval(loadCore,60000);setInterval(loadP
 
 async function adminLogout(){const b=$('#adminLogout'),s=$('#adminSessionStatus');if(!b)return;b.disabled=true;b.textContent='Çıkılıyor…';try{await fetch('/api/logout',{method:'POST',credentials:'same-origin'});}catch{}if(s)s.textContent='OTURUM KAPATILDI';window.location.href='/admin/';}
 function bindAdminSession(){const b=$('#adminLogout');if(b)b.addEventListener('click',adminLogout);}bindAdminSession();
+
+/* BTMEDYA Autonomous Operations: tek ekrandan güvenli manuel tetikleme. */
+(()=>{
+ const box=document.querySelector('#autonomousStatus');
+ const buttons=[...document.querySelectorAll('[data-auto-command]')];
+ if(!box||!buttons.length)return;
+ const label={
+  'news-intelligence':'Haber istihbaratı',
+  'sabah-preview':'Sabah Masası',
+  'social-drafts':'Sosyal taslak üretimi',
+  'automation-heartbeat':'Otomasyon heartbeat'
+ };
+ async function runCommand(name){
+  const r=await fetch('/api/admin/command',{method:'POST',headers:{'content-type':'application/json'},credentials:'same-origin',body:JSON.stringify({command:name})});
+  const d=await r.json().catch(()=>({ok:false,error:'JSON okunamadı'}));
+  if(!r.ok||d.ok===false)throw Error(d.error||'Komut başarısız');
+  return d;
+ }
+ async function execute(name){
+  const targets=name==='all'?['news-intelligence','social-drafts','automation-heartbeat']:[name];
+  buttons.forEach(b=>b.disabled=true);
+  box.className='autonomous-status';
+  box.innerHTML='<b>Çalışıyor…</b><span>'+targets.map(x=>label[x]).join(' → ')+'</span>';
+  try{
+   const results=[];
+   for(const cmd of targets){
+    box.innerHTML='<b>Çalışıyor…</b><span>'+label[cmd]+' yürütülüyor.</span>';
+    results.push(await runCommand(cmd));
+   }
+   box.className='autonomous-status ok';
+   box.innerHTML='<b>✓ Tamamlandı</b><span>'+results.length+' güvenli otomasyon adımı çalıştırıldı. Dashboard verileri yenileniyor.</span>';
+   await Promise.allSettled([load(),loadSystemSnapshot(),loadAutomationSnapshot(),loadSocialSnapshot(),loadCore(),loadPlatformReadiness()]);
+  }catch(e){
+   box.className='autonomous-status warn';
+   box.innerHTML='<b>⚠ İşlem tamamlanamadı</b><span>'+esc(e.message)+'</span>';
+  }finally{buttons.forEach(b=>b.disabled=false)}
+ }
+ buttons.forEach(b=>b.addEventListener('click',()=>execute(b.dataset.autoCommand)));
+})();
