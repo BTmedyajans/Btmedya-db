@@ -17,8 +17,8 @@
   const root=document.querySelector('.cinematic-hero[data-tek-film]');
   if(!root)return;
   const mobil=matchMedia('(max-width:720px)').matches;
-  const film=mobil?root.querySelector('.mfilm-video'):root.querySelector('.cinematic-video-1 video');
-  const kap=mobil?root.querySelector('.mfilm-kare'):root.querySelector('.cinematic-sticky');
+  const film=root.querySelector('.mfilm-video');
+  const kap=root.querySelector('.bt-home-hero-video')||root;
   if(!film||!kap)return;
   const azHareket=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ESIK=3.6;
