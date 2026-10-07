@@ -3,6 +3,7 @@
 
 export const CONTENT_TAXONOMY_FALLBACK={
   'Balıkesir':{path_key:'haber',group_key:'haber-bul',item_key:'balikesir'},
+  'Yerel':{path_key:'haber',group_key:'haber-bul',item_key:'balikesir'},
   'Marmara':{path_key:'haber',group_key:'haber-bul',item_key:'marmara'},
   'Türkiye':{path_key:'haber',group_key:'haber-bul',item_key:'turkiye'},
   'Dünya':{path_key:'haber',group_key:'haber-bul',item_key:'dunya'},
@@ -12,8 +13,11 @@ export const CONTENT_TAXONOMY_FALLBACK={
   'Sağlık':{path_key:'haber',group_key:'haber-bul',item_key:'saglik'},
   'Spor':{path_key:'haber',group_key:'haber-bul',item_key:'spor'},
   'Kültür · Sanat':{path_key:'haber',group_key:'haber-bul',item_key:'kultur-sanat'},
+  'Kültür':{path_key:'haber',group_key:'haber-bul',item_key:'kultur-sanat'},
   'Yaşam':{path_key:'haber',group_key:'haber-bul',item_key:'yasam'},
   'Teknoloji · AI':{path_key:'sosyal',group_key:'digital-growth',item_key:'ai-automation'},
+  'Teknoloji':{path_key:'sosyal',group_key:'digital-growth',item_key:'ai-automation'},
+  'Yapay Zekâ':{path_key:'sosyal',group_key:'digital-growth',item_key:'ai-automation'},
   'Röportaj':{path_key:'haber',group_key:'derinles',item_key:'roportaj'},
   'Özel Dosya':{path_key:'haber',group_key:'derinles',item_key:'ozel-dosya'},
   'AI LAB':{path_key:'sosyal',group_key:'digital-growth',item_key:'ai-automation'},
