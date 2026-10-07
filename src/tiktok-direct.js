@@ -1,7 +1,7 @@
 const TIKTOK_AUTH="https://www.tiktok.com/v2/auth/authorize/";
 const TIKTOK_TOKEN="https://open.tiktokapis.com/v2/oauth/token/";
 const TIKTOK_API="https://open.tiktokapis.com/v2";
-import { validSession, saveOAuthConnection } from "./direct-social.js";
+import { validSession, saveOAuthConnection, validWorkspaceType, workspaceExists } from "./direct-social.js";
 
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
 
@@ -13,8 +13,9 @@ export async function tiktokApi(request,env){
   const path=url.pathname.replace("/api/social/direct/tiktok/","");
   if(path==="start"){
     const state=crypto.randomUUID();
-    const workspace_type=url.searchParams.get("workspace_type")||"company";
+    const workspace_type=validWorkspaceType(url.searchParams.get("workspace_type"))?url.searchParams.get("workspace_type"):"agency";
     const workspace_id=url.searchParams.get("workspace_id")||"btmedya";
+    if(!(await workspaceExists(env,workspace_type,workspace_id)))return json({error:"Çalışma alanı bulunamadı"},404);
     if(!env.KV)return json({error:"KV bağlantısı yok"},503);
     await env.KV.put("tiktok_oauth:"+state,JSON.stringify({workspace_type,workspace_id}),{expirationTtl:600});
     const redirectUri=env.TIKTOK_REDIRECT_URI||new URL("/api/social/direct/tiktok/callback",url.origin).toString();
