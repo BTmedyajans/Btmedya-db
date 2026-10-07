@@ -24,7 +24,7 @@ const DEFAULT_POLICY = {
   discoveryEveryMinutes: 15,
   maxItemsPerRun: 3,
   minScore: 60,
-  autoPublish: true,
+  autoPublish: false,
   autoPublishMinScore: 84,
   autoPublishSourceTiers: ["publisher"],
   approvalRequiredCategories: ["Gündem","Sağlık","Ulaşım","Asayiş","Yerel"],
@@ -62,7 +62,10 @@ function trimPolicy(p){
   out.autoPublishMinScore=Math.max(out.minScore,Math.min(100,Number(out.autoPublishMinScore)||84));
   out.maxSocialPerRun=Math.max(0,Math.min(10,Number(out.maxSocialPerRun)||2));
   out.discoveryEveryMinutes=Math.max(5,Math.min(60,Number(out.discoveryEveryMinutes)||15));
-  out.autoPublish=out.autoPublish===true;
+  // Editoryal güvenlik: otomatik üretim taslak oluşturur; yayın kararı
+  // mutlaka admin editör onayından sonra verilir. Kullanıcı ayarı bu kapıyı
+  // otomatik olarak açamaz.
+  out.autoPublish=false;
   out.autoScheduleSocial=out.autoScheduleSocial!==false;
   out.neverAutoPublishSensitive=out.neverAutoPublishSensitive!==false;
   out.allowAiMedia=out.allowAiMedia!==false;

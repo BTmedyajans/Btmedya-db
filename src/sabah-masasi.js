@@ -29,7 +29,7 @@ const RAPOR = 'sabah:son';
 const MODEL = '@cf/openai/gpt-oss-120b';
 const VARSAYILAN = Object.freeze({
   etkin: true,
-  otomatikYayin: true,
+  otomatikYayin: false,
   gunlukAzami: 8,
   kategoriler: null // null: hepsi
 });
@@ -126,7 +126,8 @@ export async function sabahAyarlari(env) {
   const secili = Array.isArray(a.kategoriler) ? a.kategoriler.map(String).filter(x => gecerli.has(x)) : null;
   return {
     etkin: a.etkin !== false,
-    otomatikYayin: a.otomatikYayin === true,
+    // Günlük üretim hiçbir koşulda doğrudan yayınlamaz; editör onayı gerekir.
+    otomatikYayin: false,
     model: MODEL,
     gunlukAzami: Math.max(1, Math.min(8, Number(a.gunlukAzami) || 8)),
     // Boş seçim "hiçbiri" değil "hepsi" sayılır: yanlışlıkla boşaltılan

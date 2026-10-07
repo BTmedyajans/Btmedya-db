@@ -135,9 +135,9 @@ The admin panel's **Autopilot → Günlük içerik üretim planı** is the singl
 As of 5 October 2026, BTMEDYA runs a bounded autopilot on the canonical Worker/D1/R2 stack:
 
 - News autopilot: every 2-hour window, maximum 2 new stories per run; categories rotate across the eight editorial areas.
-- The existing source, freshness, duplicate-topic, sensitive-content, promotional-content, numeric, proper-name and language-quality checks remain mandatory before an automatic news publication can occur.
+- All autonomous output is now a **draft before publication**. Source, freshness, duplicate-topic, sensitive-content, promotional-content, numeric, proper-name and language-quality checks remain mandatory before a draft is shown to the editor; the final publish action requires admin approval.
 - The 08:00 Europe/Istanbul Sabah Masası remains as the daily full editorial pass.
-- Social autopilot: newly published news is converted into platform-fit social posts; with Metricool configured, fresh posts can be placed into future queue slots automatically.
+- Social autopilot: newly **approved and published** news is converted into platform-fit social posts; with Metricool configured, fresh posts can be placed into future queue slots automatically. Unapproved drafts never enter the social delivery queue.
 - Metricool delivery runs every 5 minutes/15 minutes as a retrying handoff and is limited to explicitly verified networks. Current verified company networks are TikTok and YouTube.
 - Agency OS exposes provider status, queue counts, overdue items and Metricool delivery failures.
 - No unverified social network receives an automatic fallback publication.
