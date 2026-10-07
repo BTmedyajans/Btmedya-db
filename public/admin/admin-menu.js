@@ -57,7 +57,7 @@
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const here=location.pathname+location.hash;
   const CATEGORY_CONTEXT={haber:'HABER',sosyal:'SOSYAL MEDYA',tanitim:'TANITIM'};
-  const pathCategory=p=>p.includes('/social')||p.includes('musteri-sosyal')?'sosyal':p.includes('/app')||p.includes('/sales')||p.includes('client-hub')?'tanitim':'haber';
+  const pathCategory=p=>p.includes('/social')||p.includes('musteri-sosyal')||p.includes('/connect')?'sosyal':p.includes('/app')||p.includes('/sales')||p.includes('client-hub')?'tanitim':'haber';
   // Mobilde menü düğmesi her admin sayfasında görünür; mevcut sayfa özel tetikleyicileri varsa onları da kullanır.
   let active='';
   for(const k of KATEGORILER)for(const g of k.gruplar)for(const[,u]of g.items){
