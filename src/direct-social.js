@@ -40,7 +40,7 @@ async function hmac(secretValue,message){
   const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secretValue),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
   return base64url(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(message)));
 }
-async function validSession(request,env){
+export async function validSession(request,env){
   const base=String(env.ADMIN_SESSION_SECRET_SECRET||env.ADMIN_SESSION_SECRET||"");
   const s=base ? (env.MEDIA_SIGNING_SECRET ? base+"\u0000"+String(env.MEDIA_SIGNING_SECRET) : base) : "";
   if(!s)return false;
