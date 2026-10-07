@@ -10,7 +10,7 @@
 (()=>{
   if(document.getElementById('btAdminMenu'))return;
   const KATEGORILER=[
-    {ad:'Merkez',alt:[['Süpervizör','/admin/agency-os/','Alarm · aksiyon · ölçüm'],['Autopilot','/admin/autopilot/','Haber radarı · trend · yayın']]},
+    {ad:'Merkez',alt:[['Süpervizör','/admin/agency-os/','Alarm · aksiyon · ölçüm'],['Site OS','/admin/site-os/','Müşteri siteleri · sağlık · web operasyon'],['Autopilot','/admin/autopilot/','Haber radarı · trend · yayın']]},
     {ad:'İçerik',alt:[['Haber editörü','/admin/editor/','Haber · AI taslak · kaynak'],['Kaynak Masası','/admin/kaynak-masasi/','Araştırma · doğrulama · proje hafızası'],['SEO','/admin/editor/#seo','Teknik SEO · sitemap'],['Yayın ve sosyal medya','/admin/yayin/','Instagram · YouTube · TikTok'],['Halkın Merak Radarı','/admin/merak-radari/','Arama · rakip · haber fırsatı']]},
     {ad:'Müşteri & Satış',alt:[['Müşteri ve içerik merkezi','/admin/client-hub/','Firma · önizleme · onay'],['Satış hunisi','/admin/sales/','Web · WhatsApp · teklif']]},
     {ad:'Medya',alt:[['Medya kasası','/admin/app.html','Fotoğraf · video · gerçek iş arşivi']]},
