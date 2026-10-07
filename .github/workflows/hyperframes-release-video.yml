@@ -1,0 +1,55 @@
+name: BTMEDYA HyperFrames Release Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: "Videoda gösterilecek kısa başlık"
+        required: false
+        default: "BTMEDYA yeni üretim"
+  workflow_call:
+    inputs:
+      title:
+        required: false
+        type: string
+        default: "BTMEDYA yeni üretim"
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Prepare composition metadata
+        env:
+          BTMEDYA_VIDEO_TITLE: ${{ inputs.title || 'BTMEDYA yeni üretim' }}
+          BTMEDYA_COMMIT: ${{ github.sha }}
+          BTMEDYA_DATE: ${{ github.event.repository.updated_at }}
+        run: node tools/hyperframes-release.mjs
+
+      - name: Render HyperFrames MP4
+        run: |
+          set -euo pipefail
+          npx --yes hyperframes@latest check -c video/hyperframes/release/index.html
+          mkdir -p artifacts
+          npx --yes hyperframes@latest render -c video/hyperframes/release/index.html -o artifacts/btmedya-release.mp4
+          test -s artifacts/btmedya-release.mp4
+          file artifacts/btmedya-release.mp4
+
+      - name: Upload video artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: btmedya-release-video-${{ github.sha }}
+          path: artifacts/btmedya-release.mp4
+          if-no-files-found: error
+          retention-days: 14
