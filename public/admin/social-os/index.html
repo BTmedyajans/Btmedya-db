@@ -14,7 +14,7 @@
 <body>
 <main class="wrap"><div id="categoryContext" class="panel" style="margin-bottom:12px;border-color:#3a4932"></div>
 <header class="top">
-<div><div class="ey">BTMEDYA / SOCIAL OS</div><h1>Hesaplarını tek merkezden yönet.</h1><p class="muted">BTMEDYA hesabın ve müşterilerin Facebook Page + Instagram Professional hesaplarını doğrudan bağla. Zorunlu Metricool aboneliği yok.</p></div>
+<div><div class="ey">BTMEDYA / SOSYAL & DİJİTAL OS</div><h1>Hesaplarını tek merkezden yönet.</h1><p class="muted">BTMEDYA hesabın ve müşterilerin Facebook Page + Instagram Professional hesaplarını doğrudan bağla. Zorunlu Metricool aboneliği yok.</p></div>
 <a class="btn" href="/admin/">← Yönetim Merkezi</a>
 </header>
 
@@ -45,7 +45,7 @@
 </main>
 <script>
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function renderCategoryContext(){const k=sessionStorage.getItem('btmedya-admin-category')||'sosyal';const m={haber:['HABER','Editoryal içerik ve haber yayın akışı'],sosyal:['SOSYAL MEDYA','Platform, müşteri hesabı ve yayın akışı'],tanitim:['TANITIM','Portföy, kampanya ve proje görünürlüğü']};const x=m[k]||m.sosyal;$('#categoryContext').innerHTML='<div class="ey">AKTİF YÖNETİM MODU</div><b style="font-size:18px">'+x[0]+'</b><div class="mini">'+x[1]+'</div>'}
+function renderCategoryContext(){const k=sessionStorage.getItem('btmedya-admin-category')||'sosyal';const m={haber:['HABER & MEDYA','Haber, röportaj, dosya ve arşiv'],sosyal:['SOSYAL & DİJİTAL','Sosyal, SEO, AI ve platform otomasyonu'],tanitim:['MARKA & PRODÜKSİYON','Çekim, marka, portföy ve satış']};const x=m[k]||m.sosyal;$('#categoryContext').innerHTML='<div class="ey">AKTİF YÖNETİM MODU</div><b style="font-size:18px">'+x[0]+'</b><div class="mini">'+x[1]+'</div>'}
 let accounts=[];renderCategoryContext();
 const PLATFORM_META={
  facebook:{name:'Facebook',type:'Meta Direct',state:'meta',note:'Facebook Page doğrudan yayın destekli.'},
