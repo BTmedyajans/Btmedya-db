@@ -55,21 +55,36 @@ const PLATFORM_META={
  x:{name:'X',type:'X API',state:'cost',note:'API kullanımı tüketime dayalı olabilir; tamamen ücretsiz kabul edilmez.'},
  whatsapp:{name:'WhatsApp',type:'Cloud API',state:'cost',note:'Meta Business + WABA gerekir; mesaj ücretleri uygulanabilir.'}
 };
-function renderPlatformMatrix(metaReady=false){
- const labels={meta:['META MOTORU','ok'],planned:['API / OAUTH GEREKİYOR','warn'],cost:['PLATFORM MALİYETİ','warn']};
- $('#platformMatrix').innerHTML=Object.entries(PLATFORM_META).map(([id,p])=>{const state=(p.state==='meta'&&!metaReady)?'planned':p.state; const [label,cls]=labels[state]||labels.planned;return '<div class="card"><div class="row"><b>'+p.name+'</b><span class="badge '+cls+'">'+label+'</span></div><div class="mini">'+p.type+'</div><div class="mini" style="margin-top:5px">'+p.note+'</div></div>'}).join('');
+function renderPlatformMatrix(items=[]){
+ const local=items.length?items:Object.entries(PLATFORM_META).map(([id,p])=>({id,label:p.name,mode:p.type,requirement:p.note,ready:false}));
+ $('#platformMatrix').innerHTML=local.map(p=>{
+   const label=p.ready?'BAĞLANMAYA HAZIR':(p.id==='facebook'||p.id==='instagram'?'YAPILANDIRMA BEKLİYOR':'API / OAUTH GEREKİYOR');
+   const cls=p.ready?'ok':'warn';
+   const action=(p.ready||p.id==='facebook'||p.id==='instagram')?'<button class="btn" data-provider="'+esc(p.id)+'">Bağla</button>':'<span class="badge '+cls+'">FAZ 2</span>';
+   return '<div class="card"><div class="row"><b>'+esc(p.label||p.name)+'</b><span class="badge '+cls+'">'+label+'</span></div><div class="mini">'+esc(p.mode||p.type||'')+'</div><div class="mini" style="margin-top:5px">'+esc(p.requirement||p.note||'')+'</div><div style="margin-top:9px">'+action+'</div></div>';
+ }).join('');
+ document.querySelectorAll('[data-provider]').forEach(b=>b.onclick=()=>connectProvider(b.dataset.provider));
 }
-renderPlatformMatrix(false);
+renderPlatformMatrix([]);
+async function connectProvider(provider){
+ const v=$('#workspace').value.split(':');
+ if(provider==='facebook'||provider==='instagram'){
+   location.href='/api/social/direct/meta/start?workspace_type='+encodeURIComponent(v[0])+'&workspace_id='+encodeURIComponent(v.slice(1).join(':'))+'&return_to='+encodeURIComponent('/admin/social-os/');
+   return;
+ }
+ $('#s1').textContent='BTMEDYA Connect: '+provider+' sağlayıcısı için resmi OAuth/API kimlik bilgileri henüz yapılandırılmadı. Platform şifresi istenmez.';
+ $('#s1').className='status warn';
+}
 async function api(u,o={}){const r=await fetch(u,{credentials:'same-origin',...o});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}
 function selectedIds(){return [...document.querySelectorAll('#accounts input[data-id]:checked')].map(x=>x.dataset.id)}
 async function workspaces(){const d=await api('/api/client-hub/workspaces');for(const x of d.items||[]){const o=document.createElement('option');o.value='client:'+x.id;o.textContent=x.name;$('#workspace').appendChild(o)}}
-async function load(){const v=$('#workspace').value.split(':');const q='/api/social/direct/accounts?workspace_type='+encodeURIComponent(v[0])+'&workspace_id='+encodeURIComponent(v.slice(1).join(':'));const [a,h,j]=await Promise.all([api(q),api('/api/social/direct/health'),api('/api/social/direct/jobs')]);accounts=a.items||[];$('#health').innerHTML=h.configured
+async function load(){const v=$('#workspace').value.split(':');const q='/api/social/direct/accounts?workspace_type='+encodeURIComponent(v[0])+'&workspace_id='+encodeURIComponent(v.slice(1).join(':'));const [a,h,j,p]=await Promise.all([api(q),api('/api/social/direct/health'),api('/api/social/direct/jobs'),api('/api/social/direct/providers')]);accounts=a.items||[];$('#health').innerHTML=h.configured
   ? '<span class="ok">Meta Direct çekirdeği hazır.</span> OAuth ile hesap bağlanabilir.'
-  : '<span class="warn">Meta Direct henüz hazır.</span> Eksik: <b>'+esc((h.setup?.missing||[]).join(', ')||'yapılandırma')+'</b>. Secret değerleri panelde gösterilmez; yalnızca Cloudflare Worker secret olarak eklenmelidir.';renderPlatformMatrix(!!h.configured);renderAccounts();renderJobs(j.items||[])}
+  : '<span class="warn">Meta Direct henüz hazır.</span> Eksik: <b>'+esc((h.setup?.missing||[]).join(', ')||'yapılandırma')+'</b>. Secret değerleri panelde gösterilmez; yalnızca Cloudflare Worker secret olarak eklenmelidir.';renderPlatformMatrix(p.providers||[]);renderAccounts();renderJobs(j.items||[])}
 function renderAccounts(){const names={facebook:'Facebook Page',instagram:'Instagram Professional'};$('#accounts').innerHTML=accounts.length?accounts.map(a=>'<label class="card account"><input type="checkbox" data-id="'+esc(a.id)+'"><div><b>'+esc(names[a.provider]||a.provider)+' · '+esc(a.account_name)+'</b><div class="mini">@'+esc(String(a.handle||'').replace(/^@/,''))+'</div><div class="mini">'+esc(a.profile_url||'')+'</div></div><span class="badge '+(a.status==='active'?'ok':'bad')+'">'+esc(a.status)+'</span></label>').join(''):'<div class="card">Bu çalışma alanına bağlı hesap yok.</div>'}
 function renderJobs(items){$('#jobs').innerHTML=items.length?items.slice(0,30).map(j=>'<div class="card"><b>'+esc(j.provider)+' · '+esc(j.account_name)+'</b><div class="mini">'+esc(j.title||j.body||'')+'</div><div class="mini">'+esc(new Date(j.scheduled_at).toLocaleString('tr-TR'))+' · '+esc(j.status)+(j.last_error?' · '+esc(j.last_error):'')+'</div></div>').join(''):'<div class="card">Henüz planlı iş yok.</div>'}
 $('#workspace').onchange=load;$('#refresh').onclick=load;
-$('#connect').onclick=()=>{const v=$('#workspace').value.split(':');location.href='/api/social/direct/meta/start?workspace_type='+encodeURIComponent(v[0])+'&workspace_id='+encodeURIComponent(v.slice(1).join(':'))+'&return_to='+encodeURIComponent('/admin/social-os/')};
+$('#connect').onclick=()=>connectProvider('facebook');
 $('#schedule').onclick=async()=>{try{const ids=selectedIds();if(!ids.length)throw new Error('En az bir hesap seç.');const when=$('#when').value?new Date($('#when').value).toISOString():new Date(Date.now()+10*60000).toISOString();await api('/api/social/direct/schedule',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({connection_ids:ids,title:$('#title').value,body:$('#body').value,media_key:$('#media').value,scheduled_at:when})});$('#s2').textContent='Yayın kuyruğa alındı.';await load()}catch(e){$('#s2').textContent=e.message;$('#s2').className='status bad'}};
 $('#now').onclick=()=>{$('#when').value=new Date(Date.now()+10*60000-Date.now()%60000).toISOString().slice(0,16)};
 workspaces().then(load).catch(e=>$('#s1').textContent=e.message);
