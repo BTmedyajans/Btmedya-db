@@ -88,6 +88,36 @@ load();loadCategoryFeed();setInterval(load,60000);setInterval(loadCategoryFeed,6
   hero.insertAdjacentElement('afterend',bar);
 })();
 
+async function loadPlatformReadiness(){
+ const el=$('#platformReadiness');if(!el)return;
+ const rows=[
+  ['Facebook','Meta Direct','meta'],
+  ['Instagram','Meta Direct','meta'],
+  ['TikTok','Metricool / Direct API','metricool'],
+  ['YouTube','Metricool / YouTube API','metricool'],
+  ['X','X API','cost'],
+  ['WhatsApp','Meta Cloud API','cost']
+ ];
+ try{
+  const [p,h]=await Promise.all([
+    api('/api/admin/social/providers'),
+    api('/api/social/direct/health').catch(()=>({configured:false}))
+  ]);
+  const providers=p.providers||{};
+  const metaReady=!!h.configured;
+  const status=rows.map(([name,type,key])=>{
+    let label='API / OAUTH GEREKİYOR',cls='warn';
+    if(key==='meta' && metaReady){label='META MOTORU HAZIR';cls='ok'}
+    if(key==='metricool' && providers[key.toLowerCase()]?.configured){label='BAĞLI / YAYIN AKTİF';cls='ok'}
+    if(key==='cost'){label='PLATFORM KULLANIMI / MALİYET';cls='warn'}
+    if(name==='TikTok' && providers.tiktok?.configured){label='BAĞLI / YAYIN AKTİF';cls='ok'}
+    if(name==='YouTube' && providers.youtube?.configured){label='BAĞLI / YAYIN AKTİF';cls='ok'}
+    const note= name==='Facebook'?'Page gerekir':name==='Instagram'?'Professional hesap gerekir':name==='TikTok'?'Content Posting API / onay gerekir':name==='YouTube'?'OAuth + upload yetkisi gerekir':name==='X'?'API kullanımı tüketime bağlı olabilir':'WABA + Meta Business gerekir';
+    return '<div class="rule"><b>'+esc(name)+' · '+esc(type)+'</b><span class="'+cls+'">'+label+' · '+note+'</span></div>';
+  }).join('');
+  el.innerHTML=status;
+ }catch(e){el.innerHTML='<div class="rec"><b>Platform matrisi okunamadı.</b><span class="meta">'+esc(e.message)+'</span></div>'}
+}
 async function loadCore(){
  const grid=$('#btCoreGrid'),status=$('#btCoreStatus'),boot=$('#btCoreBootstrap'); if(!grid)return;
  try{
@@ -106,7 +136,7 @@ async function bootstrapCore(){
  try{await api('/api/admin/core/bootstrap',{method:'POST'});await loadCore()}catch(e){alert(e.message)}finally{b.disabled=false;b.textContent="BTMEDYA Core'u başlat"}
 }
 const coreBoot=$('#btCoreBootstrap');if(coreBoot)coreBoot.addEventListener('click',bootstrapCore);
-loadCore();setInterval(loadCore,60000);
+loadCore();loadPlatformReadiness();setInterval(loadCore,60000);setInterval(loadPlatformReadiness,60000);
 
 
 async function adminLogout(){const b=$('#adminLogout'),s=$('#adminSessionStatus');if(!b)return;b.disabled=true;b.textContent='Çıkılıyor…';try{await fetch('/api/logout',{method:'POST',credentials:'same-origin'});}catch{}if(s)s.textContent='OTURUM KAPATILDI';window.location.href='/admin/';}
