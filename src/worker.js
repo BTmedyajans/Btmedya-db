@@ -64,7 +64,8 @@ async function medyaListesi(env, origin){
     return Array.isArray(j) ? j : [];
   }catch{ return []; }
 }
-async function sessionToken(secret){ const payload=b64url(new TextEncoder().encode(JSON.stringify({iat:Date.now(),exp:Date.now()+7*86400000,role:'admin'}))); return payload+'.'+await hmac(secret,payload); }
+const ADMIN_SESSION_TTL_MS=24*60*60*1000;
+async function sessionToken(secret){ const payload=b64url(new TextEncoder().encode(JSON.stringify({iat:Date.now(),exp:Date.now()+ADMIN_SESSION_TTL_MS,role:'admin'}))); return payload+'.'+await hmac(secret,payload); }
 async function validSession(request, secret){
   if(!secret) return false;
   const c=request.headers.get('cookie')||''; const m=c.match(/bt_admin=([^;]+)/); if(!m) return false;
@@ -1370,14 +1371,14 @@ async function mediaApi(request, env){
       return json({error:'Geçersiz kimlik bilgisi',remaining:rate.remaining},401);
     await clearRateLimit(env,ip);
     const token=await sessionToken(sess);
-    return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`});
+    return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=86400; Priority=High`});
   }
-  if(path==='/api/logout') return new Response(null,{status:204,headers:{'set-cookie':'bt_admin=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict'}});
+  if(path==='/api/logout') return new Response(null,{status:204,headers:{'cache-control':'no-store','clear-site-data':'"cookies", "storage"','set-cookie':'bt_admin=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict; Priority=High'}});
 
   if(path==='/api/refresh' && request.method==='POST'){
     if(!await validSession(request,sess)) return json({ok:false,error:'Geçersiz veya süresi dolmuş oturum'},401);
     const token=await sessionToken(sess);
-    return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`});
+    return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=86400; Priority=High`});
   }
 
 
@@ -2456,6 +2457,8 @@ function guvenlikBasliklari(pathname, nonce) {
     'x-frame-options': 'SAMEORIGIN',
     'x-permitted-cross-domain-policies': 'none',
     'cross-origin-opener-policy': 'same-origin',
+    'cross-origin-resource-policy': pathname.startsWith('/admin') ? 'same-origin' : 'same-site',
+    'origin-agent-cluster': '?1',
     // İçerik kullanım politikası (contentsignals.org): arama ve yapay zekâ
     // yanıtında alıntı evet, model eğitimi hayır.
     'content-signal': ICERIK_SINYALI
