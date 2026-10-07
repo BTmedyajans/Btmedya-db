@@ -177,7 +177,7 @@
     modal.hidden=false;$('#cmName').focus();
   }
   async function syncSelection(id){
-    if(!id)return;selectedId=id;
+    if(!id)return;selectedId=id;selectedProjectId='';
     ensureV3Panel();
     try{
       const d=await api('/api/client-hub/workspaces');const c=(d.items||[]).find(x=>x.id===id);
