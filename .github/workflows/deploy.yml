@@ -61,6 +61,7 @@ jobs:
           node --check src/autopilot.js
           node --check src/agency-supervisor.js
           node --check src/btmedya-core.js
+          node --check src/site-os.js
           node --check public/home.js
           node --check public/mobile-motion.js
           node --check public/admin/next-gen.js
@@ -118,6 +119,7 @@ jobs:
           grep -q 'BTMEDYA Yönetim Merkezi' public/admin/index.html
           grep -q '/admin/agency-os/' public/admin/index.html
           grep -q 'btmedya-core' src/worker.js
+          grep -q 'site-os.js' src/worker.js
           grep -q '/api/admin/core' public/admin/agency-os/agency-os.js
           grep -q '/kaynak-masasi' wrangler.toml
           grep -q '/rss.xml' wrangler.toml
@@ -149,6 +151,7 @@ jobs:
           test -s migrations/0015_client_social_radar.sql
           test -s migrations/0013_client_review.sql
           test -s migrations/0014_agency_supervisor.sql
+          test -s migrations/0022_client_site_os.sql
           grep -q 'reviewAdmin' src/sales-router.js
           grep -q 'Müşteriye önizleme linki' public/admin/client-hub/index.html
           ! grep -q '<script>const' public/client/review/index.html
