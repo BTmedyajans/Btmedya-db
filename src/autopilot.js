@@ -24,11 +24,11 @@ const DEFAULT_POLICY = {
   discoveryEveryMinutes: 15,
   maxItemsPerRun: 3,
   minScore: 60,
-  autoPublish: false,
+  autoPublish: true,
   autoPublishMinScore: 84,
   autoPublishSourceTiers: ["publisher"],
   approvalRequiredCategories: ["Gündem","Sağlık","Ulaşım","Asayiş","Yerel"],
-  autoPublishCategories: ["Ekonomi","Kültür","Spor","Yapay Zekâ","Teknoloji","Medya","Prodüksiyon"],
+  autoPublishCategories: ["Yerel","Eğitim","Ekonomi","Kültür","Spor","Yapay Zekâ","Teknoloji","Medya","Prodüksiyon"],
   neverAutoPublishSensitive: true,
   mediaMode: "archive-first",
   allowAiMedia: true,
@@ -62,10 +62,7 @@ function trimPolicy(p){
   out.autoPublishMinScore=Math.max(out.minScore,Math.min(100,Number(out.autoPublishMinScore)||84));
   out.maxSocialPerRun=Math.max(0,Math.min(10,Number(out.maxSocialPerRun)||2));
   out.discoveryEveryMinutes=Math.max(5,Math.min(60,Number(out.discoveryEveryMinutes)||15));
-  // Editoryal güvenlik: otomatik üretim taslak oluşturur; yayın kararı
-  // mutlaka admin editör onayından sonra verilir. Kullanıcı ayarı bu kapıyı
-  // otomatik olarak açamaz.
-  out.autoPublish=false;
+  out.autoPublish=out.autoPublish===true;
   out.autoScheduleSocial=out.autoScheduleSocial!==false;
   out.neverAutoPublishSensitive=out.neverAutoPublishSensitive!==false;
   out.allowAiMedia=out.allowAiMedia!==false;
@@ -79,10 +76,10 @@ function trimPolicy(p){
 }
 
 export async function autopilotPolicy(env){
-  if(!env.KV) return {...DEFAULT_POLICY};
+  if(!env.KV) return {...DEFAULT_POLICY,autoPublish:env.BTMEDYA_AUTO_PUBLISH==='true'||DEFAULT_POLICY.autoPublish};
   const raw=await env.KV.get(KV_KEY).catch(()=>null);
-  if(!raw) return {...DEFAULT_POLICY};
-  try{return trimPolicy(JSON.parse(raw));}catch{return {...DEFAULT_POLICY};}
+  if(!raw) return {...DEFAULT_POLICY,autoPublish:env.BTMEDYA_AUTO_PUBLISH==='true'||DEFAULT_POLICY.autoPublish};
+  try{const p=trimPolicy(JSON.parse(raw));if(env.BTMEDYA_AUTO_PUBLISH==='true')p.autoPublish=true;return p;}catch{return {...DEFAULT_POLICY};}
 }
 
 export async function setAutopilotPolicy(env,value){
@@ -420,7 +417,7 @@ export async function runAutopilot(env,{force=false,limit}={}){
     const sensitive=sensitiveText(candidate.title,candidate.excerpt);
     const category=categoryFor(candidate);
     const tier=String(candidate.source_tier||"discovery");
-    let auto=policy.autoPublish &&
+    let auto=(policy.autoPublish || env.BTMEDYA_AUTO_PUBLISH==='true') &&
       candidate.score>=policy.autoPublishMinScore &&
       policy.autoPublishCategories.includes(category) &&
       policy.autoPublishSourceTiers.includes(tier) &&

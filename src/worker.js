@@ -1921,19 +1921,19 @@ export default { async scheduled(controller, env, ctx){
     if(ctx?.waitUntil){ ctx.waitUntil(masa); ctx.waitUntil(ozet); } else await Promise.allSettled([masa,ozet]);
     return;
   }
-  /* Haber autopilotu: her 2 saatte bir, en fazla 2 yeni haber.
+  /* Haber autopilotu: her saat, en fazla 2 yeni haber.
      KV kilidi aynı saat içinde tekrar üretimi engeller. Kaynak/doğrulama
      kapıları sabahMasasi içinde aynen korunur. */
   const haberAutopilot=(controller && controller.cron==='*/15 * * * *')
     ? (async()=>{
-        const saat=Math.floor(Date.now()/7200000);
+        const saat=Math.floor(Date.now()/3600000);
         const anahtar='autopilot:news:'+saat;
         if(env.KV){
           const once=await env.KV.get(anahtar).catch(()=>null);
           if(once) return null;
           await env.KV.put(anahtar,'1',{expirationTtl:7500}).catch(()=>{});
         }
-        const bucket=Math.floor(Date.now()/7200000);
+        const bucket=Math.floor(Date.now()/3600000);
         const start=(bucket*2)%KATEGORILER.length;
         const kategoriler=[KATEGORILER[start],KATEGORILER[(start+1)%KATEGORILER.length]].map(x=>x.anahtar);
         return sabahMasasi(env,{maxHaber:2,kategoriler})

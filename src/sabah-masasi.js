@@ -29,7 +29,7 @@ const RAPOR = 'sabah:son';
 const MODEL = '@cf/openai/gpt-oss-120b';
 const VARSAYILAN = Object.freeze({
   etkin: true,
-  otomatikYayin: false,
+  otomatikYayin: true,
   gunlukAzami: 8,
   kategoriler: null // null: hepsi
 });
@@ -126,8 +126,9 @@ export async function sabahAyarlari(env) {
   const secili = Array.isArray(a.kategoriler) ? a.kategoriler.map(String).filter(x => gecerli.has(x)) : null;
   return {
     etkin: a.etkin !== false,
-    // Günlük üretim hiçbir koşulda doğrudan yayınlamaz; editör onayı gerekir.
-    otomatikYayin: false,
+    // Güvenli, kaynak doğrulamalı içerikler otomatik yayınlanabilir; hassas,
+    // tanıtım ve denetimden kalmış içerikler kategoriIsle içinde taslak kalır.
+    otomatikYayin: env.BTMEDYA_AUTO_PUBLISH === 'true' || a.otomatikYayin === true,
     model: MODEL,
     gunlukAzami: Math.max(1, Math.min(8, Number(a.gunlukAzami) || 8)),
     // Boş seçim "hiçbiri" değil "hepsi" sayılır: yanlışlıkla boşaltılan
@@ -427,7 +428,7 @@ function yonerge(kategori) {
     '4. Alıntı yalnız kaynakta tırnak içinde geçiyorsa, kime ait olduğu belirtilerek aynen kullanılabilir.',
     '',
     'DİL VE BİÇİM',
-    '5. BAŞLIK: 55-95 karakter, yüklemi olan tam bir haber cümlesi; özne + ne oldu. Cümle düzeninde yaz: yalnız ilk harf ve özel adlar büyük. Ünlem, soru, "şok", "flaş" yok. Kötü örnek: "Okula Uyumu". İyi örnek: "Balıkesir\'de tarım fuarı dört günde 108 bin ziyaretçiyi ağırladı".',
+    '5. BAŞLIK: 55-95 karakter, yüklemi olan tam bir haber cümlesi; özne + ne oldu. Cümle düzeninde yaz: yalnız ilk harf ve özel adlar büyük. Ünlem, soru, "şok", "flaş" yok. Başlık merak uyandırsın ama tık tuzağı olmasın; Balıkesir haberinde yerel gelişmenin insanlara, ekonomiye veya dünyadaki benzer gelişmelere neden önemli olduğunu kaynaktaki olgularla hissettirsin. Kötü örnek: "Okula Uyumu". İyi örnek: "Balıkesir\'de tarım fuarı dört günde 108 bin ziyaretçiyi ağırladı".',
     '6. SPOT: 1-2 cümle, 140-260 karakter; başlığı tekrarlamadan haberin en önemli bilgisini ve bağlamını versin.',
     '7. GÖVDE: 4-6 paragraf, her biri 2-4 cümle. İlk paragraf 5N1K\'yı (ne, kim, nerede, ne zaman, nasıl, neden) yanıtlasın; sonrakiler ayrıntı, bağlam ve varsa açıklamaları versin. Kaynağın cümlelerini kopyalama; kendi cümlelerinle yeniden kur.',
     '8. Türkçe ekleri doğru yaz: özel adlara ek kesme işaretiyle (Balıkesir\'de, TRT\'nin); skorlar "4-1\'lik", "2-0\'lık" biçiminde; sayılara gelen ekler okunuşa göre (3\'te, 5\'i, 1990\'lı).',

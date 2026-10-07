@@ -130,14 +130,14 @@ No automatic upgrade or paid API activation.
 
 ## Automatic publishing policy
 
-The admin panel's **Autopilot → Günlük içerik üretim planı** is the single control surface for the daily newsroom. It reads and writes `/api/admin/sabah-masasi`, supports a no-write preview, a manual run, daily enable/disable, maximum daily article count and category selection. The scheduled run remains `0 5 * * *` (08:00 Europe/Istanbul); the manual button does not change the schedule.
+The admin panel's **Autopilot → Günlük içerik üretim planı** is the single control surface for the daily newsroom. It reads and writes `/api/admin/sabah-masasi`, supports a no-write preview, a manual run, daily enable/disable, maximum daily article count, category selection and the safe auto-publish switch. The scheduled run remains `0 5 * * *` (08:00 Europe/Istanbul); the manual button does not change the schedule.
 
 As of 5 October 2026, BTMEDYA runs a bounded autopilot on the canonical Worker/D1/R2 stack:
 
-- News autopilot: every 2-hour window, maximum 2 new stories per run; categories rotate across the eight editorial areas.
-- All autonomous output is now a **draft before publication**. Source, freshness, duplicate-topic, sensitive-content, promotional-content, numeric, proper-name and language-quality checks remain mandatory before a draft is shown to the editor; the final publish action requires admin approval.
+- News autopilot: every hour, maximum 2 new stories per run; categories rotate across the eight editorial areas, with Balıkesir and trend signals prioritized by source scoring.
+- Safe autonomous output may publish without manual approval when the policy switch is enabled. Source, freshness, duplicate-topic, sensitive-content, promotional-content, numeric, proper-name and language-quality checks remain mandatory; sensitive, political, crime, crisis, promotional, duplicate and failed-quality items remain drafts.
 - The 08:00 Europe/Istanbul Sabah Masası remains as the daily full editorial pass.
-- Social autopilot: newly **approved and published** news is converted into platform-fit social posts; with Metricool configured, fresh posts can be placed into future queue slots automatically. Unapproved drafts never enter the social delivery queue.
+- Social autopilot: newly published safe news is converted into platform-fit social posts; with Metricool configured, fresh posts can be placed into future queue slots automatically. Drafts never enter the social delivery queue.
 - Metricool delivery runs every 5 minutes/15 minutes as a retrying handoff and is limited to explicitly verified networks. Current verified company networks are TikTok and YouTube.
 - Agency OS exposes provider status, queue counts, overdue items and Metricool delivery failures.
 - No unverified social network receives an automatic fallback publication.

@@ -71,6 +71,9 @@ METRICOOL_BRAND_ID = "6858384"
 METRICOOL_CREATOR_EMAIL = "busetuncay74@gmail.com"
 METRICOOL_ACCOUNT_EMAIL = "busetuncay74@gmail.com"
 METRICOOL_TIMEZONE = "Europe/Istanbul"
+# Güvenli kaynak/doğrulama kapılarını geçen haberlerde otomatik yayın açıktır;
+# hassas, tanıtım, tekrar veya denetimden kalan içerikler yine taslak kalır.
+BTMEDYA_AUTO_PUBLISH = "true"
 
 # Secret değerleri GitHub'a veya bu dosyaya yazılmaz.
 # Production security sync: main değişikliği, GitHub secret -> Cloudflare Worker secret senkronizasyonunu da tetikler.
