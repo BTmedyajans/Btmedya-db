@@ -38,27 +38,13 @@ jobs:
           test -s public/assets/media/web/giris-filmi-clean.mp4
           test -s public/assets/media/web/giris-filmi-clean-poster.jpg
 
-      - name: Publish generated hero as a pull request
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          if [ -z "$(git status --porcelain -- public/assets/media/web/giris-filmi-clean*)" ]; then
-            echo "No clean hero changes."
-            exit 0
-          fi
-          git config user.name "BTMEDYA Clean Hero Builder"
-          git config user.email "actions@users.noreply.github.com"
-          git add public/assets/media/web/giris-filmi-clean*
-          git commit -m "chore: build clean cinematic homepage hero"
-          git fetch origin main
-          git rebase origin/main
-          BRANCH="automation/clean-cinematic-hero"
-          git checkout -B "$BRANCH"
-          git push origin "HEAD:$BRANCH" --force
-          PR_NUMBER="$(gh pr list --base main --head "$BRANCH" --state open --json number --jq ".[0].number")"
-          if [ -z "$PR_NUMBER" ]; then
-            gh pr create --base main --head "$BRANCH"               --title "feat: clean cinematic homepage hero"               --body "Generated clean BTMEDYA homepage hero. The film starts with video-only, then freezes the three story beats for category labels: HABER & MEDYA, SOSYAL & DİJİTAL, MARKA & PRODÜKSİYON."
-          else
-            echo "Existing clean hero PR #$PR_NUMBER updated."
-          fi
+      - name: Upload generated hero artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: btmedya-clean-hero
+          if-no-files-found: error
+          path: |
+            public/assets/media/web/giris-filmi-clean-genis.mp4
+            public/assets/media/web/giris-filmi-clean-genis-poster.jpg
+            public/assets/media/web/giris-filmi-clean.mp4
+            public/assets/media/web/giris-filmi-clean-poster.jpg
