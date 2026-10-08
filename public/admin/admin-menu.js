@@ -43,7 +43,7 @@
               return '<section class="bam-alt-grup"><button type="button" class="bam-grup-baslik" aria-expanded="false" aria-controls="'+gid+'"><span>'+esc(groupLabel)+'</span><i>＋</i></button><div id="'+gid+'" class="bam-grup-items" hidden>'+
                 (g.items||[]).map((it,j)=>
                   '<a href="'+esc(it.href)+'"'+(it.href===active?' aria-current="page"':'')+'>'+
-                    '<span class="bam-adim"><em>0'+(j+1)+'</em><b>'+esc(it.label)+'</b><small>'+esc(it.note||'')+'</small></span><i>↗</i>'+
+                    '<span class="bam-adim"><em>0'+(j+1)+'</em><b>'+esc(it.label)+'</b></span><i>↗</i>'+
                   '</a>'
                 ).join('')+'</div></section>';
             }).join('')+
@@ -52,7 +52,7 @@
       ).join('')+
       '</nav>'+
       '<div class="bam-sistem" aria-label="Sistem"><a href="/admin/agency-os/">Süpervizör (ana ekran)</a><a href="/admin/site-os/">Site sağlığı</a><a href="/admin/connect/">Bağlantılar</a><a href="/" target="_blank" rel="noopener">Canlı site ↗</a><button type="button" data-bam-cikis>Çıkış</button></div>'+
-      '<div class="bam-foot">Tek operasyon arayüzü. Kategori seçimi içerik, medya, yayın ve ölçüm akışını aynı bağlama taşır.</div>'+
+      '<div class="bam-foot">Aynı kategori yapısı: ana kategori → alt kategori → işlem.</div>'+
     '</div>';
 
     document.documentElement.appendChild(root);
