@@ -50,14 +50,14 @@
 @media(max-width:800px){.admin-category-grid,.category-command-inner{grid-template-columns:1fr}.category-system-head{display:block}.category-system-head .btn{display:inline-block;margin-top:8px}}
 
 /* 2026-10-08 · hamburger-first admin navigation */
-.admin-category-system,.admin-commandbar{display:none!important}
-.top .menu-toggle{min-width:88px}
-@media(max-width:720px){.admin-session-tools .admin-session-status{display:none}.top .menu-toggle{min-width:82px}}
+.admin-category-system,.admin-commandbar,.quick-actions{display:none!important}
+.top{min-height:64px}
+.top .menu-toggle{min-width:92px}
+@media(max-width:720px){.top .menu-toggle{min-width:84px}}
 </style>
 <body>
 <header class="top">
   <div class="brand">BT<span>MEDYA</span> / AGENCY OS</div>
-  <div class="admin-session-tools"><span id="adminSessionStatus" class="admin-session-status">OTURUM AKTİF</span><button id="adminLogout" class="btn" type="button">Çıkış</button></div>
   <button class="menu-toggle" id="adminMenuToggle" type="button" aria-expanded="false" aria-controls="adminMenu"><span>☰</span><b>MENÜ</b></button>
 
 </header>
