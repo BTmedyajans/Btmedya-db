@@ -35,20 +35,7 @@
             '<span><small>'+esc(p.number)+'</small><b>'+esc(p.label)+'</b></span><i>＋</i>'+
           '</button>'+
           ''+
-          '<div id="bam-alt-'+i+'" class="bam-alt" hidden>'+
-            (p.adminGroups||[]).map((g,gi)=>{
-              const gid='bam-grup-'+i+'-'+gi;
-              const publicGroup=(p.groups||[])[gi];
-              const groupLabel=publicGroup?.label||g.label;
-              return '<section class="bam-alt-grup"><button type="button" class="bam-grup-baslik" aria-expanded="false" aria-controls="'+gid+'"><span>'+esc(groupLabel)+'</span><i>＋</i></button><div id="'+gid+'" class="bam-grup-items" hidden>'+
-                (g.items||[]).map((it,j)=>
-                  '<a href="'+esc(it.href)+'"'+(it.href===active?' aria-current="page"':'')+'>'+
-                    '<span class="bam-adim"><em>0'+(j+1)+'</em><b>'+esc(it.label)+'</b></span><i>↗</i>'+
-                  '</a>'
-                ).join('')+'</div></section>';
-            }).join('')+
-          '</div>'+
-        '</section>'
+          '<div id="bam-alt-'+i+'" class="bam-alt" hidden>'+            (p.groups||[]).map((g,gi)=>{              const gid='bam-grup-'+i+'-'+gi;              const adminGroup=(p.adminGroups||[])[gi]||{};              const adminItems=adminGroup.items||[];              const fallbackHref=adminItems[0]?.href||'/admin/agency-os/';              return '<section class="bam-alt-grup"><button type="button" class="bam-grup-baslik" aria-expanded="false" aria-controls="'+gid+'"><span>'+esc(g.label)+'</span><i>＋</i></button><div id="'+gid+'" class="bam-grup-items" hidden>'+                (g.items||[]).map((it,j)=>{                  const target=it.adminHref||fallbackHref;                  const u=new URL(target,location.origin);                  u.searchParams.set('kategori',it.key||g.key||p.key);                  u.searchParams.set('yol',p.key);                  u.searchParams.set('alt',g.key);                  return '<a href="'+esc(u.pathname+u.search+u.hash)+'" data-public-href="'+esc(it.href||'')+'">'+                    '<span class="bam-adim"><em>0'+(j+1)+'</em><b>'+esc(it.label)+'</b></span><i>↗</i>                  '</a>';                }).join('')+'</div></section>';            }).join('')          '</div>'+   '</section>'
       ).join('')+
       '</nav>'+
       '<div class="bam-sistem" aria-label="Sistem"><a href="/admin/agency-os/">Süpervizör (ana ekran)</a><a href="/admin/site-os/">Site sağlığı</a><a href="/admin/connect/">Bağlantılar</a><a href="/" target="_blank" rel="noopener">Canlı site ↗</a><button type="button" data-bam-cikis>Çıkış</button></div>'+
