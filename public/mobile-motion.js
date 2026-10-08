@@ -18,6 +18,7 @@
      gercek:true ile geldiğinde ayrı ve doğru etiketli bir bölüm kurulur. */
 
   const root=document.querySelector('.cinematic-hero'); if(!root||window.innerWidth>720)return;
+  if(root.hasAttribute('data-bt-clean-hero'))return;
   const box=root.querySelector('[data-mfilm]'), video=box&&box.querySelector('video'); if(!video)return;
   const label=box.querySelector('[data-mfilm-etiket]'), playBtn=box.querySelector('[data-mfilm-oynat]'), soundBtn=box.querySelector('[data-mfilm-ses]');
   // Mobil kalite kapısı bu sahne kaydını katalogla karşılaştırır: GERÇEK ÇEKİM
