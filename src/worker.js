@@ -2171,7 +2171,9 @@ export default { async scheduled(controller, env, ctx){
     const rYouTube = await youtubeApi(request, env); if(rYouTube) return rYouTube;
     const rX = await xApi(request, env); if(rX) return rX;
     const rWhatsApp = await whatsappApi(request, env); if(rWhatsApp) return rWhatsApp;
-    const rManualIntegrations = await manualIntegrationApi(request, env, url);\n    if(rManualIntegrations) return audit(rManualIntegrations);\n    const rDirectSocial = await directSocialApi(request, env, url);
+    const rManualIntegrations = await manualIntegrationApi(request, env, url);
+    if(rManualIntegrations) return audit(rManualIntegrations);
+    const rDirectSocial = await directSocialApi(request, env, url);
     if(rDirectSocial) return rDirectSocial;
     const rSales = await salesApi(request, env, url, ctx);
     if(rSales) return audit(rSales);
