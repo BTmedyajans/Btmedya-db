@@ -107,4 +107,17 @@ jobs:
           json.dump({"sha": sys.argv[1], "force": False}, sys.stdout)
           PY
 
-          gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/heads/main" --input /tmp/bt-ref.json --silent
+          TARGET_BRANCH="automation/seo-search-console-sync"
+          git_main_ref="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/$TARGET_BRANCH" --jq ".object.sha")"
+          test -n "$git_main_ref"
+          python3 - "$NEW_COMMIT" > /tmp/bt-ref.json <<'PY'
+          import json, sys
+          json.dump({"sha": sys.argv[1], "force": False}, sys.stdout)
+          PY
+          gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/heads/$TARGET_BRANCH" --input /tmp/bt-ref.json --silent
+          PR_NUMBER="$(gh pr list --base main --head "$TARGET_BRANCH" --state open --json number --jq ".[0].number")"
+          if [ -z "$PR_NUMBER" ]; then
+            gh pr create --base main --head "$TARGET_BRANCH" --title "feat: clean cinematic homepage hero" --body "BTMEDYA homepage opening film: video-only opening, then three synchronized freeze moments with category typography for HABER & MEDYA, SOSYAL & DİJİTAL, MARKA & PRODÜKSİYON."
+          else
+            echo "Existing clean hero PR #$PR_NUMBER updated."
+          fi
