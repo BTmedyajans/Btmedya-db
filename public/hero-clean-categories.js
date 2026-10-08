@@ -16,7 +16,7 @@
   ];
   const layer=document.createElement('div');
   layer.className='bt-clean-hero-surface';
-  layer.innerHTML=categories.map(c=>'<div class="bt-clean-category" data-scene="'+c.n+'" aria-hidden="true"><small>0'+c.n+' / BTMEDYA</small><strong>'+c.label+'</strong></div>').join('');
+  layer.innerHTML=categories.map(c=>'<div class="bt-clean-category" data-scene="'+c.n+'" aria-hidden="true"><strong>'+c.label+'</strong></div>').join('');
   root.appendChild(layer);
   const els=categories.map(c=>({data:c,el:layer.querySelector('[data-scene="'+c.n+'"]')}));
   const src=matchMedia('(max-width:720px)').matches?film.dataset.mobileMp4:film.dataset.desktopMp4;
@@ -38,7 +38,7 @@
     html.classList.remove('bt-clean-intro-active');
     body.classList.remove('bt-clean-intro-active');
     body.style.overflow='';
-    window.scrollTo({top:0,behavior:'instant'});
+    window.scrollTo(0,0);
     setTimeout(()=>{body.classList.add('bt-clean-hero-finished');root.classList.add('is-finished');},20);
   };
   const tick=()=>{
