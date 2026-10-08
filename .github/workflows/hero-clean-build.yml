@@ -43,7 +43,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TAG="btmedya-clean-hero"
+          TAG="btmedya-clean-hero-v20261008-1"
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Updating existing clean hero release."
           else
