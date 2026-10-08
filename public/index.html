@@ -98,10 +98,10 @@
 <section class="cinematic-hero bt-home-hero bt-clean-hero" id="hero" data-tek-film data-bt-home-hero-v3 data-bt-clean-hero aria-label="BTMEDYA giriş filmi">
   <div class="bt-clean-hero-video-wrap">
     <video class="bt-clean-hero-video" muted autoplay playsinline preload="auto"
-      data-desktop-mp4="/assets/media/web/giris-filmi-genis.mp4?v=20261008-hero2"
-      data-mobile-mp4="/assets/media/web/giris-filmi.mp4?v=20261008-hero2"
-      data-desktop-poster="/assets/media/web/giris-filmi-genis-poster.jpg?v=20261008-hero2"
-      data-mobile-poster="/assets/media/web/giris-filmi-poster.jpg?v=20261008-hero2"></video>
+      data-desktop-mp4="/assets/media/web/state-produksiyon.mp4?v=20261008-archive-hero"
+      data-mobile-mp4="/assets/media/web/state-produksiyon.mp4?v=20261008-archive-hero"
+      data-desktop-poster="/assets/media/portfoy/poster-btmedya-saha-showreel.webp?v=20261008-archive-hero"
+      data-mobile-poster="/assets/media/portfoy/poster-btmedya-saha-showreel.webp?v=20261008-archive-hero"></video>
   </div>
 </section>
 <section class="hero-paths-static" aria-labelledby="hero-paths-title">
@@ -248,7 +248,34 @@
   <a href="/video-produksiyon/" data-mobile-nav="production" data-accent="#65e6a4" aria-label="Tanıtım"><span aria-hidden="true">✦</span><small>TANITIM</small></a>
   <a class="mobile-quick-cta" href="/teklif-al/?kaynak=mobile-nav" data-mobile-nav="contact" data-accent="#d9ff3f" aria-label="Teklif al"><span aria-hidden="true">↗</span><small>TEKLİF</small></a>
 </nav>
-<script src="/home.js?v=20261007-2" defer></script><script src="/mobile-motion.js?v=20261007-2" defer></script><script src="/mobile-ux-v4.js?v=20261007-1" defer></script><link rel="stylesheet" href="/editorial-cover-system.css?v=20261003-1"><script src="/editorial-cover-system.js?v=20261004-1" defer></script><script src="/olcum.js?v=20261003-2" defer></script><script src="/site-motion-v2.js?v=20261005-2" defer></script><script src="/hero-clean-categories.js?v=20261008-1" defer></script>
+<script>
+(function(){
+  const hero=document.querySelector('.bt-clean-hero-video');
+  if(!hero)return;
+  let started=false,ctx,master;
+  function startMusic(){
+    if(started)return; started=true;
+    try{
+      ctx=new (window.AudioContext||window.webkitAudioContext)();
+      master=ctx.createGain(); master.gain.value=0.035; master.connect(ctx.destination);
+      const tempo=108, step=60/tempo;
+      const notes=[110,138.59,164.81,146.83,123.47,146.83,164.81,185];
+      let t=ctx.currentTime+0.05;
+      for(let i=0;i<64;i++){
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.type='triangle'; o.frequency.value=notes[i%notes.length];
+        g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.055,t+0.025); g.gain.exponentialRampToValueAtTime(0.0001,t+step*0.78);
+        o.connect(g).connect(master); o.start(t); o.stop(t+step);
+        if(i%2===0){const b=ctx.createOscillator(),bg=ctx.createGain();b.type='sine';b.frequency.value=55;bg.gain.setValueAtTime(.0001,t);bg.gain.exponentialRampToValueAtTime(.08,t+.01);bg.gain.exponentialRampToValueAtTime(.0001,t+.16);b.connect(bg).connect(master);b.start(t);b.stop(t+.18)}
+        t+=step;
+      }
+      setTimeout(()=>{started=false},64000);
+    }catch(e){}
+  }
+  hero.addEventListener('play',startMusic,{once:true});
+  ['pointerdown','touchstart','keydown'].forEach(e=>document.addEventListener(e,startMusic,{once:true,passive:true}));
+})();
+</script><script src="/home.js?v=20261007-2" defer></script><script src="/mobile-motion.js?v=20261007-2" defer></script><script src="/mobile-ux-v4.js?v=20261007-1" defer></script><link rel="stylesheet" href="/editorial-cover-system.css?v=20261003-1"><script src="/editorial-cover-system.js?v=20261004-1" defer></script><script src="/olcum.js?v=20261003-2" defer></script><script src="/site-motion-v2.js?v=20261005-2" defer></script><script src="/hero-clean-categories.js?v=20261008-1" defer></script>
 
 
 </body>
