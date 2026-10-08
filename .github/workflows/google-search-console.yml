@@ -30,7 +30,8 @@ jobs:
           for url in \
             https://btmedya.com.tr/robots.txt \
             https://btmedya.com.tr/sitemap.xml \
-            https://btmedya.com.tr/news-sitemap.xml; do
+            https://btmedya.com.tr/news-sitemap.xml \
+            https://btmedya.com.tr/57fb863171638cffa9cdfb3913627b57.txt; do
             code="$(curl -LfsS -o /dev/null -w '%{http_code}' "$url")"
             test "$code" = "200"
             echo "OK $code $url"
@@ -39,6 +40,7 @@ jobs:
           echo "- robots.txt: 200" >> "$GITHUB_STEP_SUMMARY"
           echo "- sitemap.xml: 200" >> "$GITHUB_STEP_SUMMARY"
           echo "- news-sitemap.xml: 200" >> "$GITHUB_STEP_SUMMARY"
+          echo "- IndexNow key: 200" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check Google credentials
         id: auth

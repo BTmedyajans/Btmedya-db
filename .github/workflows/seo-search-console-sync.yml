@@ -36,9 +36,9 @@ jobs:
         run: node tools/seo-quality-gate.mjs
       - name: Create Google access token when configured
         id: gsc_auth
-        if: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON != '' }}
+        if: ${{ secrets.GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON != '' }}
         env:
-          GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
+          GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -77,4 +77,4 @@ jobs:
           PY
       - name: Explain optional Google setup
         if: ${{ always() && steps.gsc_auth.outcome != 'success' }}
-        run: echo "GSC audit active; automatic sitemap submission remains disabled until GSC_SERVICE_ACCOUNT_JSON is configured in GitHub Secrets."
+        run: echo "GSC audit active; automatic sitemap submission remains disabled until GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON is configured in GitHub Secrets."
