@@ -38,18 +38,11 @@ jobs:
           test -s public/assets/media/web/giris-filmi-clean.mp4
           test -s public/assets/media/web/giris-filmi-clean-poster.jpg
 
-      - name: Publish generated hero to a public GitHub release
+      - name: Publish generated hero to a versioned GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TAG="btmedya-clean-hero-v20261008-1"
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Updating existing clean hero release."
-          else
-            gh release create "$TAG"               --title "BTMEDYA Clean Homepage Hero"               --notes "BTMEDYA homepage opening film. Video-only opening followed by three synchronized freeze moments where the website places HABER & MEDYA, SOSYAL & DİJİTAL and MARKA & PRODÜKSİYON labels."               --target "$GITHUB_SHA"
-          fi
-          gh release upload "$TAG"             public/assets/media/web/giris-filmi-clean-genis.mp4             public/assets/media/web/giris-filmi-clean-genis-poster.jpg             public/assets/media/web/giris-filmi-clean.mp4             public/assets/media/web/giris-filmi-clean-poster.jpg             --clobber
-          echo "Stable media URLs:"
-          echo "https://github.com/${GITHUB_REPOSITORY}/releases/download/$TAG/giris-filmi-clean-genis.mp4"
-          echo "https://github.com/${GITHUB_REPOSITORY}/releases/download/$TAG/giris-filmi-clean.mp4"
+          TAG="btmedya-clean-hero-${GITHUB_SHA:0:7}"
+          gh release create "$TAG"             public/assets/media/web/giris-filmi-clean-genis.mp4             public/assets/media/web/giris-filmi-clean-genis-poster.jpg             public/assets/media/web/giris-filmi-clean.mp4             public/assets/media/web/giris-filmi-clean-poster.jpg             --title "BTMEDYA Clean Homepage Hero ${GITHUB_SHA:0:7}"             --notes "BTMEDYA homepage opening film. Video-only opening followed by three synchronized freeze moments where the website places HABER & MEDYA, SOSYAL & DİJİTAL and MARKA & PRODÜKSİYON labels."             --target "${GITHUB_SHA}"
+          echo "https://github.com/${GITHUB_REPOSITORY}/releases/tag/$TAG"
