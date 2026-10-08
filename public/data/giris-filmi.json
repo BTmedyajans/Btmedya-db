@@ -1,13 +1,12 @@
 {
- "dosya": "/assets/media/web/giris-ai.mp4",
- "sure": 15.0,
- "etiket": "AI ÜRETİMİ VE SAHA ARŞİVİ · BTMEDYA TANITIM FİLMİ",
- "kaynak": "BTMEDYA tanıtım filmi (tools/giris-filmi/tanitim.sh)",
+ "dosya": "/assets/media/web/giris-filmi.mp4",
+ "sure": 13.62,
+ "etiket": "GERÇEK ÇEKİM + BTMEDYA ARŞİVİ · BTMEDYA TANITIM FİLMİ",
+ "kaynak": "BTMEDYA arşiv kurgusu (tools/giris-filmi/tanitim.sh)",
  "bolumler": [
-  {"bolum": "SAHA", "alt": "Gece çekimi", "bas": 0.0, "tur": "gercek"},
-  {"bolum": "STÜDYO", "alt": "Yeşil perde çekimi", "bas": 2.4, "tur": "gercek"},
-  {"bolum": "SOSYAL MEDYA", "bas": 3.6, "tur": "ai"},
-  {"bolum": "STÜDYO / PRODÜKSİYON", "bas": 6.8, "tur": "ai"},
-  {"bolum": "YAPAY ZEKÂ", "bas": 10.8, "tur": "ai"}
+  {"bolum": "SAHA", "alt": "Gerçek çekim", "bas": 0.0, "tur": "gercek"},
+  {"bolum": "SAHA / ARŞİV", "alt": "Gerçek BTMEDYA arşivi", "bas": 2.6, "tur": "gercek"},
+  {"bolum": "STÜDYO / PRODÜKSİYON", "alt": "Gerçek BTMEDYA çekimi", "bas": 4.0, "tur": "gercek"},
+  {"bolum": "BTMEDYA", "alt": "Arşivden markaya", "bas": 8.4, "tur": "gercek"}
  ]
 }
