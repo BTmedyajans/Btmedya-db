@@ -2542,13 +2542,13 @@ function robotsBasligi(pathname) {
     : 'max-image-preview:large, max-snippet:-1, max-video-preview:-1';
 }
 
-const CLEAN_HERO_RELEASE = 'https://github.com/BTmedyajans/Btmedya-db/releases/download/btmedya-clean-hero-ce1c5fe/';
+const CLEAN_HERO_RELEASE = 'https://github.com/BTmedyajans/Btmedya-db/releases/download/btmedya-ai-hero-200e379/';
 
 const CLEAN_HERO_FILES = new Map([
-  ['/hero-media/giris-filmi-clean-genis.mp4', 'giris-filmi-clean-genis.mp4'],
-  ['/hero-media/giris-filmi-clean.mp4', 'giris-filmi-clean.mp4'],
-  ['/hero-media/giris-filmi-clean-genis-poster.jpg', 'giris-filmi-clean-genis-poster.jpg'],
-  ['/hero-media/giris-filmi-clean-poster.jpg', 'giris-filmi-clean-poster.jpg'],
+  ['/hero-media/giris-filmi-clean-genis.mp4', 'btmedya-ai-hero-desktop.mp4'],
+  ['/hero-media/giris-filmi-clean.mp4', 'btmedya-ai-hero-mobile.mp4'],
+  ['/hero-media/giris-filmi-clean-genis-poster.jpg', 'btmedya-ai-hero-desktop.jpg'],
+  ['/hero-media/giris-filmi-clean-poster.jpg', 'btmedya-ai-hero-mobile.jpg'],
 ]);
 
 async function servisEt(request, env) {
