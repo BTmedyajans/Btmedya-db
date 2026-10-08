@@ -1,0 +1,53 @@
+name: BTMEDYA Clean Hero Video
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tools/giris-filmi-clean.py"
+      - "tools/giris-kaynak/**"
+      - ".github/workflows/hero-clean-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: btmedya-clean-hero
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Build clean hero variants
+        run: |
+          python3 tools/giris-filmi-clean.py
+          test -s public/assets/media/web/giris-filmi-clean-genis.mp4
+          test -s public/assets/media/web/giris-filmi-clean-genis-poster.jpg
+          test -s public/assets/media/web/giris-filmi-clean.mp4
+          test -s public/assets/media/web/giris-filmi-clean-poster.jpg
+
+      - name: Commit generated hero
+        run: |
+          if [ -z "$(git status --porcelain -- public/assets/media/web/giris-filmi-clean*)" ]; then
+            echo "No clean hero changes."
+            exit 0
+          fi
+          git config user.name "BTMEDYA Clean Hero Builder"
+          git config user.email "actions@users.noreply.github.com"
+          git add public/assets/media/web/giris-filmi-clean*
+          git commit -m "chore: build clean cinematic homepage hero"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
