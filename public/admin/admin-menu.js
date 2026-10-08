@@ -27,18 +27,20 @@
 
     root.innerHTML='<div class="bam-perde" data-bam-kapat></div><div class="bam-panel">'+
       '<div class="bam-ust"><span class="bam-marka">BT<span>MEDYA</span></span><button type="button" class="bam-kapat" data-bam-kapat>Kapat ×</button></div>'+
-      '<div class="bam-rehber"><b>ÖNCE NE YAPTIĞINI SEÇ</b><span>Haber & medya · sosyal & dijital · marka & prodüksiyon. Alt seviyeler yalnızca seçtiğin alanı açar.</span></div>'+
+      '<div class="bam-rehber"><b>BTMEDYA KATEGORİLERİ</b><span>Web sitesindeki kategori yapısıyla aynı sırayı kullan.</span></div>'+
       '<nav class="bam-kategoriler" aria-label="BTMEDYA üç ana kategori">'+
       T.paths.map((p,i)=>
         '<section class="bam-kategori">'+
           '<button type="button" class="bam-kat-baslik" aria-expanded="false" aria-controls="bam-alt-'+i+'">'+
             '<span><small>'+esc(p.number)+'</small><b>'+esc(p.label)+'</b></span><i>＋</i>'+
           '</button>'+
-          '<div class="bam-kat-aciklama">'+esc(p.description)+'</div>'+
+          ''+
           '<div id="bam-alt-'+i+'" class="bam-alt" hidden>'+
             (p.adminGroups||[]).map((g,gi)=>{
               const gid='bam-grup-'+i+'-'+gi;
-              return '<section class="bam-alt-grup"><button type="button" class="bam-grup-baslik" aria-expanded="false" aria-controls="'+gid+'"><span>'+esc(g.label)+'</span><i>＋</i></button><div id="'+gid+'" class="bam-grup-items" hidden>'+
+              const publicGroup=(p.groups||[])[gi];
+              const groupLabel=publicGroup?.label||g.label;
+              return '<section class="bam-alt-grup"><button type="button" class="bam-grup-baslik" aria-expanded="false" aria-controls="'+gid+'"><span>'+esc(groupLabel)+'</span><i>＋</i></button><div id="'+gid+'" class="bam-grup-items" hidden>'+
                 (g.items||[]).map((it,j)=>
                   '<a href="'+esc(it.href)+'"'+(it.href===active?' aria-current="page"':'')+'>'+
                     '<span class="bam-adim"><em>0'+(j+1)+'</em><b>'+esc(it.label)+'</b><small>'+esc(it.note||'')+'</small></span><i>↗</i>'+
