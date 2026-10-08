@@ -1,25 +1,14 @@
 name: BTMEDYA Production Verify
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "wrangler.toml"
-      - "src/**"
-      - "public/**"
-      - "migrations/**"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/deploy.yml"
-      - ".github/workflows/sync-worker-secrets.yml"
-      - "control-plane/**"
-      - "control-plane/reconcile-worker-domains.sh"
+  # Production deploy is handled by Cloudflare Workers Builds on main.
+  # This workflow remains available for explicit/manual production verification.
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# Production verification is intentionally retained in the main deployment path.
+# Production deployment is owned by Cloudflare Workers Builds; this workflow is verification-only.
 
 concurrency:
   group: btmedya-production-verify
