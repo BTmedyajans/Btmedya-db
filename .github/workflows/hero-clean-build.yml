@@ -31,7 +31,7 @@ jobs:
       - name: Download uploaded AI hero
         run: |
           set -euo pipefail
-          curl -L --fail --retry 3 -o /tmp/btmedya-source.mp4 "https://d2ol7oe51mr4n9cfec647d20.cloudfront.net/user_3I87Wl91fYo7jAjCVYu9K4bPJ4B/25296664-3a7a-4358-9768-b9cfec647d20.mp4"
+          curl -L --fail --retry 3 -o /tmp/btmedya-source.mp4 "https://d2ol7oe51mr4n9.cloudfront.net/user_3I87Wl91fYo7jAjCVYu9K4bPJ4B/25296664-3a7a-4358-9768-b9cfec647d20.mp4"
           test -s /tmp/btmedya-source.mp4
           ffprobe -v error -show_entries format=duration -of csv=p=0 /tmp/btmedya-source.mp4
 
