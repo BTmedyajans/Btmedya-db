@@ -38,86 +38,18 @@ jobs:
           test -s public/assets/media/web/giris-filmi-clean.mp4
           test -s public/assets/media/web/giris-filmi-clean-poster.jpg
 
-      - name: Publish generated hero through Git Data API
+      - name: Publish generated hero to a public GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import base64, json
-          from pathlib import Path
-          files = [
-              "public/assets/media/web/giris-filmi-clean-genis.mp4",
-              "public/assets/media/web/giris-filmi-clean-genis-poster.jpg",
-              "public/assets/media/web/giris-filmi-clean.mp4",
-              "public/assets/media/web/giris-filmi-clean-poster.jpg",
-          ]
-          for i, path in enumerate(files):
-              payload = {
-                  "encoding": "base64",
-                  "content": base64.b64encode(Path(path).read_bytes()).decode("ascii"),
-              }
-              Path(f"/tmp/bt-blob-{i}.json").write_text(json.dumps(payload), encoding="utf-8")
-          PY
-
-          mapfile -t FILES < <(printf '%s\n' \
-            public/assets/media/web/giris-filmi-clean-genis.mp4 \
-            public/assets/media/web/giris-filmi-clean-genis-poster.jpg \
-            public/assets/media/web/giris-filmi-clean.mp4 \
-            public/assets/media/web/giris-filmi-clean-poster.jpg)
-
-          SHAS=()
-          for i in 0 1 2 3; do
-            SHAS[$i]="$(gh api --method POST "repos/${GITHUB_REPOSITORY}/git/blobs" --input "/tmp/bt-blob-$i.json" --jq .sha)"
-            test -n "${SHAS[$i]}"
-          done
-
-          MAIN_COMMIT="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
-          TREE_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/git/commits/$MAIN_COMMIT" --jq '.tree.sha')"
-
-          python3 - "${TREE_SHA}" "${SHAS[0]}" "${SHAS[1]}" "${SHAS[2]}" "${SHAS[3]}" > /tmp/bt-tree.json <<'PY'
-          import json, sys
-          base, *sha = sys.argv[1:]
-          paths = [
-              "public/assets/media/web/giris-filmi-clean-genis.mp4",
-              "public/assets/media/web/giris-filmi-clean-genis-poster.jpg",
-              "public/assets/media/web/giris-filmi-clean.mp4",
-              "public/assets/media/web/giris-filmi-clean-poster.jpg",
-          ]
-          tree = [{"path": p, "mode": "100644", "type": "blob", "sha": s} for p, s in zip(paths, sha)]
-          json.dump({"base_tree": base, "tree": tree}, sys.stdout)
-          PY
-
-          NEW_TREE="$(gh api --method POST "repos/${GITHUB_REPOSITORY}/git/trees" --input /tmp/bt-tree.json --jq .sha)"
-          python3 - "${MAIN_COMMIT}" "${NEW_TREE}" > /tmp/bt-commit.json <<'PY'
-          import json, sys
-          parent, tree = sys.argv[1:]
-          json.dump({
-              "message": "chore: publish clean cinematic homepage hero",
-              "tree": tree,
-              "parents": [parent],
-          }, open("/tmp/bt-commit.json", "w"),)
-          PY
-
-          NEW_COMMIT="$(gh api --method POST "repos/${GITHUB_REPOSITORY}/git/commits" --input /tmp/bt-commit.json --jq .sha)"
-          test -n "${NEW_COMMIT}"
-
-          python3 - "${NEW_COMMIT}" > /tmp/bt-ref.json <<'PY'
-          import json, sys
-          json.dump({"sha": sys.argv[1], "force": False}, sys.stdout)
-          PY
-
-          TARGET_BRANCH="automation/seo-search-console-sync"
-          git_main_ref="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/$TARGET_BRANCH" --jq ".object.sha")"
-          test -n "$git_main_ref"
-          python3 - "$NEW_COMMIT" > /tmp/bt-ref.json <<'PY'
-          import json, sys
-          json.dump({"sha": sys.argv[1], "force": False}, sys.stdout)
-          PY
-          gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/heads/$TARGET_BRANCH" --input /tmp/bt-ref.json --silent
-          PR_NUMBER="$(gh pr list --base main --head "$TARGET_BRANCH" --state open --json number --jq ".[0].number")"
-          if [ -z "$PR_NUMBER" ]; then
-            gh pr create --base main --head "$TARGET_BRANCH" --title "feat: clean cinematic homepage hero" --body "BTMEDYA homepage opening film: video-only opening, then three synchronized freeze moments with category typography for HABER & MEDYA, SOSYAL & DİJİTAL, MARKA & PRODÜKSİYON."
+          TAG="btmedya-clean-hero"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Updating existing clean hero release."
           else
-            echo "Existing clean hero PR #$PR_NUMBER updated."
+            gh release create "$TAG"               --title "BTMEDYA Clean Homepage Hero"               --notes "BTMEDYA homepage opening film. Video-only opening followed by three synchronized freeze moments where the website places HABER & MEDYA, SOSYAL & DİJİTAL and MARKA & PRODÜKSİYON labels."               --target "$GITHUB_SHA"
           fi
+          gh release upload "$TAG"             public/assets/media/web/giris-filmi-clean-genis.mp4             public/assets/media/web/giris-filmi-clean-genis-poster.jpg             public/assets/media/web/giris-filmi-clean.mp4             public/assets/media/web/giris-filmi-clean-poster.jpg             --clobber
+          echo "Stable media URLs:"
+          echo "https://github.com/${GITHUB_REPOSITORY}/releases/download/$TAG/giris-filmi-clean-genis.mp4"
+          echo "https://github.com/${GITHUB_REPOSITORY}/releases/download/$TAG/giris-filmi-clean.mp4"
