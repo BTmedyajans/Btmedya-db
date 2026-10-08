@@ -2542,8 +2542,34 @@ function robotsBasligi(pathname) {
     : 'max-image-preview:large, max-snippet:-1, max-video-preview:-1';
 }
 
+const CLEAN_HERO_RELEASE = 'https://github.com/BTmedyajans/Btmedya-db/releases/download/btmedya-clean-hero-ce1c5fe/';
+
+const CLEAN_HERO_FILES = new Map([
+  ['/hero-media/giris-filmi-clean-genis.mp4', 'giris-filmi-clean-genis.mp4'],
+  ['/hero-media/giris-filmi-clean.mp4', 'giris-filmi-clean.mp4'],
+  ['/hero-media/giris-filmi-clean-genis-poster.jpg', 'giris-filmi-clean-genis-poster.jpg'],
+  ['/hero-media/giris-filmi-clean-poster.jpg', 'giris-filmi-clean-poster.jpg'],
+]);
+
 async function servisEt(request, env) {
   const url = new URL(request.url);
+  const cleanHeroFile = CLEAN_HERO_FILES.get(url.pathname);
+  if (cleanHeroFile && (request.method === 'GET' || request.method === 'HEAD')) {
+    const headers = new Headers();
+    const range = request.headers.get('range');
+    if (range) headers.set('range', range);
+    const upstream = await fetch(CLEAN_HERO_RELEASE + cleanHeroFile, { method: request.method, headers });
+    if (!upstream.ok && upstream.status !== 206) {
+      return new Response('Hero media unavailable', {status: upstream.status || 502});
+    }
+    const out = new Headers(upstream.headers);
+    out.set('cache-control', 'public, max-age=31536000, immutable');
+    out.set('content-disposition', 'inline');
+    out.set('accept-ranges', upstream.headers.get('accept-ranges') || 'bytes');
+    if (cleanHeroFile.endsWith('.mp4')) out.set('content-type', 'video/mp4');
+    else out.set('content-type', 'image/jpeg');
+    return new Response(request.method === 'HEAD' ? null : upstream.body, {status: upstream.status, headers: out});
+  }
   let res = await env.ASSETS.fetch(request);
 
   /* Static Assets "/hizmetler" -> "/hizmetler/" ve "/index.html" -> "/"
