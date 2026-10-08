@@ -1,11 +1,9 @@
-name: BTMEDYA Clean Hero Video
+name: BTMEDYA AI Hero Master
 
 on:
   push:
     branches: [main]
     paths:
-      - "tools/giris-filmi-clean.py"
-      - "tools/giris-kaynak/**"
       - ".github/workflows/hero-clean-build.yml"
   workflow_dispatch:
 
@@ -13,7 +11,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: btmedya-clean-hero
+  group: btmedya-ai-hero-master
   cancel-in-progress: true
 
 jobs:
@@ -23,26 +21,58 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Install FFmpeg
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: Build clean hero variants
+      - name: Download uploaded AI hero
         run: |
-          python3 tools/giris-filmi-clean.py
-          test -s public/assets/media/web/giris-filmi-clean-genis.mp4
-          test -s public/assets/media/web/giris-filmi-clean-genis-poster.jpg
-          test -s public/assets/media/web/giris-filmi-clean.mp4
-          test -s public/assets/media/web/giris-filmi-clean-poster.jpg
+          set -euo pipefail
+          curl -L --fail --retry 3 -o /tmp/btmedya-source.mp4 "https://d2ol7oe51mr4n9cfec647d20.cloudfront.net/user_3I87Wl91fYo7jAjCVYu9K4bPJ4B/25296664-3a7a-4358-9768-b9cfec647d20.mp4"
+          test -s /tmp/btmedya-source.mp4
+          ffprobe -v error -show_entries format=duration -of csv=p=0 /tmp/btmedya-source.mp4
 
-      - name: Publish generated hero to a versioned GitHub release
+      - name: Build cinematic music and transition effects
+        run: |
+          set -euo pipefail
+          ffmpeg -y -hide_banner -loglevel error -f lavfi -i "sine=frequency=55:sample_rate=48000:duration=18" -f lavfi -i "sine=frequency=110:sample_rate=48000:duration=18" -f lavfi -i "sine=frequency=220:sample_rate=48000:duration=18" -f lavfi -i "sine=frequency=330:sample_rate=48000:duration=18" -filter_complex "
+            [0:a]volume='if(lt(mod(t,1),0.22),0.18,0)'[b];
+            [1:a]volume='if(lt(mod(t,1),0.12),0.08,0)'[p];
+            [2:a]volume='if(lt(mod(t,2),0.28),0.035,0)'[m];
+            [3:a]volume='if(lt(mod(t,4),0.42),0.025,0)'[h];
+            [b][p][m][h]amix=inputs=4:duration=longest:normalize=0,lowpass=f=2600,volume=1.8[music];
+            aevalsrc=0.22*sin(2*PI*(450*t+1000*t*t)):s=48000:d=0.42,volume=0.65,adelay=4200|4200[w1];
+            aevalsrc=0.22*sin(2*PI*(500*t+1200*t*t)):s=48000:d=0.42,volume=0.65,adelay=10020|10020[w2];
+            aevalsrc=0.22*sin(2*PI*(550*t+1300*t*t)):s=48000:d=0.42,volume=0.65,adelay=15440|15440[w3];
+            aevalsrc=0.38*sin(2*PI*65*t)*exp(-8*t):s=48000:d=0.55,volume=0.9,adelay=4200|4200[i1];
+            aevalsrc=0.38*sin(2*PI*58*t)*exp(-8*t):s=48000:d=0.55,volume=0.9,adelay=10020|10020[i2];
+            aevalsrc=0.38*sin(2*PI*52*t)*exp(-8*t):s=48000:d=0.55,volume=0.9,adelay=15440|15440[i3];
+            [music][w1][w2][w3][i1][i2][i3]amix=inputs=7:duration=longest:normalize=0,alimiter=limit=0.92[mix];
+          " -map "[mix]" -c:a aac -b:a 192k -ar 48000 /tmp/cinematic-bed.m4a
+
+      - name: Master desktop and mobile hero
+        run: |
+          set -euo pipefail
+          ffmpeg -y -hide_banner -loglevel error             -i /tmp/btmedya-source.mp4 -i /tmp/cinematic-bed.m4a             -filter_complex "[0:a]volume=5.5dB[orig];[1:a]volume=0.72[bed];[orig][bed]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95[a]"             -map 0:v:0 -map "[a]"             -vf "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,fps=24,format=yuv420p"             -c:v libx264 -crf 18 -preset medium -profile:v high -pix_fmt yuv420p             -c:a aac -b:a 192k -ar 48000 -movflags +faststart             /tmp/btmedya-ai-hero-desktop.mp4
+
+          ffmpeg -y -hide_banner -loglevel error             -i /tmp/btmedya-source.mp4 -i /tmp/cinematic-bed.m4a             -filter_complex "[0:v]split=2[fg][bg];[bg]scale=1080:2340:force_original_aspect_ratio=increase,crop=1080:2340,boxblur=18:4,eq=brightness=-0.14:saturation=0.65[bg2];[fg]scale=1080:2340:force_original_aspect_ratio=decrease[fg2];[bg2][fg2]overlay=(W-w)/2:(H-h)/2:shortest=1[v];[0:a]volume=5.5dB[orig];[1:a]volume=0.72[bed];[orig][bed]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95[a]"             -map "[v]" -map "[a]"             -c:v libx264 -crf 20 -preset medium -profile:v high -pix_fmt yuv420p             -c:a aac -b:a 192k -ar 48000 -movflags +faststart             /tmp/btmedya-ai-hero-mobile.mp4
+
+          ffmpeg -y -hide_banner -loglevel error -ss 1.2 -i /tmp/btmedya-ai-hero-desktop.mp4 -frames:v 1 -q:v 2 /tmp/btmedya-ai-hero-desktop.jpg
+          ffmpeg -y -hide_banner -loglevel error -ss 1.2 -i /tmp/btmedya-ai-hero-mobile.mp4 -frames:v 1 -q:v 2 /tmp/btmedya-ai-hero-mobile.jpg
+
+      - name: Publish hero release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TAG="btmedya-clean-hero-${GITHUB_SHA:0:7}"
-          gh release create "$TAG"             public/assets/media/web/giris-filmi-clean-genis.mp4             public/assets/media/web/giris-filmi-clean-genis-poster.jpg             public/assets/media/web/giris-filmi-clean.mp4             public/assets/media/web/giris-filmi-clean-poster.jpg             --title "BTMEDYA Clean Homepage Hero ${GITHUB_SHA:0:7}"             --notes "BTMEDYA homepage opening film. Video-only opening followed by three synchronized freeze moments where the website places HABER & MEDYA, SOSYAL & DİJİTAL and MARKA & PRODÜKSİYON labels."             --target "${GITHUB_SHA}"
+          TAG="btmedya-ai-hero-${GITHUB_SHA:0:7}"
+          gh release create "$TAG"             /tmp/btmedya-ai-hero-desktop.mp4             /tmp/btmedya-ai-hero-desktop.jpg             /tmp/btmedya-ai-hero-mobile.mp4             /tmp/btmedya-ai-hero-mobile.jpg             --title "BTMEDYA AI Hero ${GITHUB_SHA:0:7}"             --notes "AI-generated BTMEDYA homepage hero with cinematic music bed, transition whooshes and category freeze impacts. Source: user-provided AI hero video."             --target "${GITHUB_SHA}"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
           echo "https://github.com/${GITHUB_REPOSITORY}/releases/tag/$TAG"
+
+      - name: Publish release metadata
+        run: |
+          printf '%s\n' "${TAG}" > /tmp/btmedya-ai-hero-tag.txt
