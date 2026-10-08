@@ -375,10 +375,17 @@
   if (ara) {
     var kartlar = Array.prototype.slice.call(document.querySelectorAll('[data-arsiv]'));
     var sayi = document.querySelector('[data-arsiv-sayi]');
-    ara.addEventListener('input', function () {
+    var qParam = new URLSearchParams(location.search).get('q') || '';
+    function arsivAra() {
       var q = norm(ara.value.trim()), gorunen = 0;
       kartlar.forEach(function (x) { var u = !q || norm(x.textContent + ' ' + x.getAttribute('data-arsiv')).indexOf(q) > -1; x.hidden = !u; if (u) gorunen++; });
       if (sayi) sayi.textContent = gorunen + ' arşiv haberi';
-    });
+      var next = new URL(location.href);
+      if (ara.value.trim()) next.searchParams.set('q', ara.value.trim()); else next.searchParams.delete('q');
+      history.replaceState(history.state, '', next.pathname + next.search + next.hash);
+    }
+    if (qParam) ara.value = qParam;
+    ara.addEventListener('input', arsivAra);
+    arsivAra();
   }
 })();
