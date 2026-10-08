@@ -1,0 +1,80 @@
+name: BTMEDYA SEO & Search Console Daily Sync
+
+on:
+  schedule:
+    - cron: "20 5 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "public/**"
+      - "src/**"
+      - "tools/seo-quality-gate.mjs"
+      - ".github/workflows/seo-search-console-sync.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btmedya-seo-sync
+  cancel-in-progress: true
+
+jobs:
+  seo:
+    runs-on: ubuntu-latest
+    name: SEO health + optional Search Console sync
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run live SEO/mobile quality gate
+        env:
+          BASE_URL: https://btmedya.com.tr
+        run: node tools/seo-quality-gate.mjs
+      - name: Create Google access token when configured
+        id: gsc_auth
+        if: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON != '' }}
+        env:
+          GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, json, os, subprocess, time, urllib.parse, urllib.request
+          from pathlib import Path
+          sa=json.loads(os.environ["GSC_SERVICE_ACCOUNT_JSON"])
+          now=int(time.time())
+          enc=lambda x: base64.urlsafe_b64encode(x).rstrip(b"=").decode()
+          header={"alg":"RS256","typ":"JWT"}
+          claim={"iss":sa["client_email"],"scope":"https://www.googleapis.com/auth/webmasters","aud":"https://oauth2.googleapis.com/token","iat":now,"exp":now+3600}
+          unsigned=enc(json.dumps(header,separators=(",",":")).encode())+"."+enc(json.dumps(claim,separators=(",",":")).encode())
+          key=Path("/tmp/gsc-key.pem"); key.write_text(sa["private_key"])
+          signature=subprocess.check_output(["openssl","dgst","-sha256","-sign",str(key)],input=unsigned.encode())
+          jwt=unsigned+"."+enc(signature)
+          body=urllib.parse.urlencode({"grant_type":"urn:ietf:params:oauth:grant-type:jwt-bearer","assertion":jwt}).encode()
+          request=urllib.request.Request("https://oauth2.googleapis.com/token",data=body,headers={"Content-Type":"application/x-www-form-urlencoded"})
+          token=json.load(urllib.request.urlopen(request))["access_token"]
+          Path("/tmp/gsc-token").write_text(token)
+          print("GSC_AUTH_OK")
+          PY
+      - name: Submit sitemaps to Google Search Console
+        if: ${{ steps.gsc_auth.outcome == 'success' }}
+        env:
+          GSC_PROPERTY: ${{ secrets.GSC_PROPERTY || 'sc-domain:btmedya.com.tr' }}
+        run: |
+          set -euo pipefail
+          python3 - "$GSC_PROPERTY" <<'PY'
+          import sys, urllib.parse, urllib.request
+          from pathlib import Path
+          site=sys.argv[1]; token=Path("/tmp/gsc-token").read_text().strip()
+          site_enc=urllib.parse.quote(site,safe='')
+          for sitemap in ("https://btmedya.com.tr/sitemap.xml","https://btmedya.com.tr/news-sitemap.xml"):
+              url=f"https://www.googleapis.com/webmasters/v3/sites/{site_enc}/sitemaps/{urllib.parse.quote(sitemap,safe='')}"
+              request=urllib.request.Request(url,method="PUT",headers={"Authorization":f"Bearer {token}"})
+              with urllib.request.urlopen(request) as response: print("GSC_SITEMAP_OK",sitemap,response.status)
+          PY
+      - name: Explain optional Google setup
+        if: ${{ always() && steps.gsc_auth.outcome != 'success' }}
+        run: echo "GSC audit active; automatic sitemap submission remains disabled until GSC_SERVICE_ACCOUNT_JSON is configured in GitHub Secrets."
