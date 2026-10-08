@@ -16,3 +16,11 @@ node_modules/
 # Python onbellek klasoru: tools/paylasim-kapagi.py, haber-kapagi.py modulunu
 # import ettigi icin olusuyor; depoya girmez.
 __pycache__/
+
+# Android yerel derleme ve imzalama çıktıları — depoya girmez.
+android-admin/.gradle/
+android-admin/app/build/
+android-admin/*.jks
+android-admin/*.keystore
+android-admin/keystore.properties
+dist/
