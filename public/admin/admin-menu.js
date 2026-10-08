@@ -36,15 +36,15 @@
           '</button>'+
           '<div class="bam-kat-aciklama">'+esc(p.description)+'</div>'+
           '<div id="bam-alt-'+i+'" class="bam-alt" hidden>'+
-            (p.adminGroups||[]).map(g=>
-              '<section class="bam-alt-grup"><h3>'+esc(g.label)+'</h3>'+
-              (g.items||[]).map((it,j)=>
-                '<a href="'+esc(it.href)+'"'+(it.href===active?' aria-current="page"':'')+'>'+
-                  '<span class="bam-adim"><em>0'+(j+1)+'</em><b>'+esc(it.label)+'</b><small>'+esc(it.note||'')+'</small></span><i>↗</i>'+
-                '</a>'
-              ).join('')+
-              '</section>'
-            ).join('')+
+            (p.adminGroups||[]).map((g,gi)=>{
+              const gid='bam-grup-'+i+'-'+gi;
+              return '<section class="bam-alt-grup"><button type="button" class="bam-grup-baslik" aria-expanded="false" aria-controls="'+gid+'"><span>'+esc(g.label)+'</span><i>＋</i></button><div id="'+gid+'" class="bam-grup-items" hidden>'+
+                (g.items||[]).map((it,j)=>
+                  '<a href="'+esc(it.href)+'"'+(it.href===active?' aria-current="page"':'')+'>'+
+                    '<span class="bam-adim"><em>0'+(j+1)+'</em><b>'+esc(it.label)+'</b><small>'+esc(it.note||'')+'</small></span><i>↗</i>'+
+                  '</a>'
+                ).join('')+'</div></section>';
+            }).join('')+
           '</div>'+
         '</section>'
       ).join('')+
@@ -54,6 +54,15 @@
     '</div>';
 
     document.documentElement.appendChild(root);
+    const currentLink=root.querySelector('[aria-current="page"]');
+    if(currentLink){
+      const groupBox=currentLink.closest('.bam-grup-items');
+      const groupBtn=groupBox&&root.querySelector('[aria-controls="'+groupBox.id+'"]');
+      const catBox=currentLink.closest('.bam-alt');
+      const catBtn=catBox&&root.querySelector('[aria-controls="'+catBox.id+'"]');
+      if(groupBox&&groupBtn){groupBtn.setAttribute('aria-expanded','true');groupBox.hidden=false}
+      if(catBox&&catBtn){catBtn.setAttribute('aria-expanded','true');catBox.hidden=false}
+    }
     const panel=root.querySelector('.bam-panel');
     const allTriggers='#adminMenuToggle,.menu-toggle,.bam-dugme';
     const setExpanded=a=>document.querySelectorAll(allTriggers).forEach(x=>x.setAttribute('aria-expanded',String(a)));
@@ -64,6 +73,14 @@
     root.addEventListener('click',e=>{
       if(e.target.closest('[data-bam-kapat]')){close();return}
       if(e.target.closest('[data-bam-cikis]')){fetch('/api/logout',{method:'POST',credentials:'same-origin'}).finally(()=>{location.href='/admin/'});return}
+      const group=e.target.closest('.bam-grup-baslik');
+      if(group){
+        const open=group.getAttribute('aria-expanded')==='true';
+        group.setAttribute('aria-expanded',String(!open));
+        const box=root.querySelector('#'+group.getAttribute('aria-controls'));
+        if(box)box.hidden=open;
+        return;
+      }
       const head=e.target.closest('.bam-kat-baslik');
       if(head){
         const isOpen=head.getAttribute('aria-expanded')==='true';
@@ -71,7 +88,12 @@
           x.setAttribute('aria-expanded','false');
           const p=root.querySelector('#'+x.getAttribute('aria-controls'));if(p)p.hidden=true;
         });
-        if(!isOpen){head.setAttribute('aria-expanded','true');const p=root.querySelector('#'+head.getAttribute('aria-controls'));if(p)p.hidden=false}
+        if(!isOpen){
+          head.setAttribute('aria-expanded','true');
+          const p=root.querySelector('#'+head.getAttribute('aria-controls'));if(p)p.hidden=false;
+          const firstGroup=p.querySelector('.bam-grup-baslik');
+          if(firstGroup){firstGroup.setAttribute('aria-expanded','true');const box=p.querySelector('#'+firstGroup.getAttribute('aria-controls'));if(box)box.hidden=false}
+        }
         return;
       }
       const link=e.target.closest('.bam-alt a');
