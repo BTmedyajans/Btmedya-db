@@ -36,7 +36,7 @@ SCENES = [
 def run(*args: str) -> None:
     subprocess.run([FFMPEG, "-hide_banner", "-loglevel", "error", "-y", *args], check=True)
 
-def render_variant(width: int, height: int, stem: str, tmp: Path) -> None:
+def render_variant(width: int, height: int, stem: str, tmp: Path, mobile: bool = False) -> None:
     parts: list[Path] = []
     for i, (name, start, duration) in enumerate(SCENES, 1):
         src = SRC / name
@@ -44,12 +44,26 @@ def render_variant(width: int, height: int, stem: str, tmp: Path) -> None:
             raise FileNotFoundError(src)
         part = tmp / f"{stem}-{i:02d}.mp4"
         total = duration + FREEZE
-        vf = (
-            f"scale={width}:{height}:force_original_aspect_ratio=increase,"
-            f"crop={width}:{height},fps={FPS},format=yuv420p,"
-            f"eq=brightness=0.02:contrast=1.04:saturation=1.04,"
-            f"tpad=stop_mode=clone:stop_duration={FREEZE}"
-        )
+        if mobile:
+            vf = (
+                f"split[main][blur];"
+                f"[blur]scale={width}:{height}:force_original_aspect_ratio=increase,"
+                f"crop={width}:{height},boxblur=18:4,"
+                f"eq=brightness=-0.10:contrast=1.05:saturation=0.72[bg];"
+                f"[main]scale={width}:{height}:force_original_aspect_ratio=decrease,"
+                f"format=rgba[fg];"
+                f"[bg][fg]overlay=(W-w)/2:(H-h)/2:format=auto,"
+                f"fps={FPS},format=yuv420p,"
+                f"eq=brightness=0.02:contrast=1.04:saturation=1.04,"
+                f"tpad=stop_mode=clone:stop_duration={FREEZE}"
+            )
+        else:
+            vf = (
+                f"scale={width}:{height}:force_original_aspect_ratio=increase,"
+                f"crop={width}:{height},fps={FPS},format=yuv420p,"
+                f"eq=brightness=0.02:contrast=1.04:saturation=1.04,"
+                f"tpad=stop_mode=clone:stop_duration={FREEZE}"
+            )
         af = (
             f"aresample=48000,"
             f"apad,"
@@ -103,7 +117,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory(prefix="btmedya-clean-hero-") as td:
         tmp = Path(td)
         render_variant(1920, 1080, "giris-filmi-clean-genis", tmp)
-        render_variant(1080, 2340, "giris-filmi-clean", tmp)
+        render_variant(1080, 2340, "giris-filmi-clean", tmp, mobile=True)
     print("BTMEDYA clean hero generated.")
     print(f"Scene total: {sum(d for _, _, d in SCENES) + FREEZE * len(SCENES):.2f}s")
 
