@@ -8,7 +8,7 @@ body.bt-clean-intro-active> :not(#icerik){display:none!important}
 body.bt-clean-intro-active #icerik> :not(#hero){display:none!important}
 body.bt-clean-intro-active #hero{position:fixed;inset:0;z-index:9999;width:100vw;height:100svh;min-height:100svh;margin:0}
 .bt-clean-hero{position:relative;background:#000}
-.bt-clean-hero-video{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover}
+ .bt-clean-hero-video{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;pointer-events:none}
 .bt-clean-hero-video::-webkit-media-controls{display:none!important}
 .bt-clean-hero-surface{position:absolute;inset:0;pointer-events:none}
 .bt-clean-hero-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.02),transparent 46%,rgba(0,0,0,.18));}
