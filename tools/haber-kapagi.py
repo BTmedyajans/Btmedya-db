@@ -697,7 +697,9 @@ def egik_serit(im, x, y, metin, font, zemin, yazi=INK, egim=16, pad=(22, 10)):
 
 
 def logo_plakasi(im):
-    logo = Image.open(os.path.join(KOK, "public", "assets", "logo", "btmedya-logo-yatay-pozitif.png")).convert("RGBA")
+    # 9 Ekim: logo v2 (tools/logo/logo-uret.py; sembol lacivert, yazi ayri
+    # soft renk). PNG, SVG'nin 4x tarayici render'idir: Pillow SVG okuyamaz.
+    logo = Image.open(os.path.join(KOK, "public", "assets", "logo", "btmedya-logo-v2-pozitif.png")).convert("RGBA")
     lh = 40
     logo = logo.resize((int(logo.width * lh / logo.height), lh), Image.LANCZOS)
     d = ImageDraw.Draw(im)
