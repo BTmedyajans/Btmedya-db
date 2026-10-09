@@ -4,8 +4,10 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "src/worker.js"
       - "src/autopilot.js"
       - "src/news-intelligence.js"
+      - "wrangler.toml"
       - ".github/workflows/d1-migrations.yml"
       - ".github/workflows/automation-reliability-check.yml"
   workflow_dispatch:
@@ -24,6 +26,7 @@ jobs:
       - name: JavaScript syntax checks
         run: |
           set -euo pipefail
+          node --check src/worker.js
           node --check src/autopilot.js
           node --check src/news-intelligence.js
       - name: Reliability and migration guard checks
@@ -34,6 +37,15 @@ jobs:
           grep -q 'AbortSignal.timeout(8000)' src/autopilot.js
           grep -q 'feedBatchSize=6' src/news-intelligence.js
           grep -q 'Promise.all(activeFeeds.map' src/news-intelligence.js
+          grep -q 'processCandidates=candidates.slice(0,12)' src/news-intelligence.js
+          grep -q 'skipRecentIntelligence' src/autopilot.js
+          grep -q 'cron==="1-59/15 \* \* \* \*"' src/worker.js
+          grep -q 'cron==="6-59/15 \* \* \* \*"' src/worker.js
+          grep -q 'cron==="11-59/15 \* \* \* \*"' src/worker.js
+          grep -q '4-59/5 \* \* \* \*' wrangler.toml
+          grep -q '1-59/15 \* \* \* \*' wrangler.toml
+          grep -q '6-59/15 \* \* \* \*' wrangler.toml
+          grep -q '11-59/15 \* \* \* \*' wrangler.toml
           ! grep -Eq '^  push:' .github/workflows/d1-migrations.yml
           grep -q 'APPLY_TO_REMOTE_D1' .github/workflows/d1-migrations.yml
           echo "AUTOMATION_RELIABILITY_GUARDS_PASS"
