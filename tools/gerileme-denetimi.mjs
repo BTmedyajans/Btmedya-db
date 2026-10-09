@@ -592,7 +592,7 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
     bulgular.push('public medya API static/ dosyalarını /assets/ üzerinden sunmuyor veya R2 içinde bulunmayan kayıtları filtrelemiyor.');
   }
   const exportStart = worker.indexOf("if(path==='/api/export' && request.method==='GET')");
-  const exportEnd = worker.indexOf('return null;', exportStart);
+  const exportEnd = worker.indexOf('\n  return null;\n}', exportStart);
   const exportApi = exportStart >= 0 && exportEnd > exportStart ? worker.slice(exportStart, exportEnd) : '';
   if (!exportApi.includes('url:medyaAdresi(key)') ||
       !exportApi.includes('env.MEDIA.head(key)') ||
