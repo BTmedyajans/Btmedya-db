@@ -14,6 +14,12 @@
     {n:2,start:10.02,end:10.84,label:'SOSYAL & DİJİTAL'},
     {n:3,start:15.44,end:16.26,label:'MARKA & PRODÜKSİYON'}
   ];
+  const finishPanel=document.createElement('div');
+  finishPanel.className='bt-clean-finish-panel';
+  finishPanel.hidden=true;
+  finishPanel.setAttribute('aria-label','BTMEDYA üç ana yol');
+  finishPanel.innerHTML='<div class="bt-clean-finish-inner"><p class="bt-clean-finish-kicker">BTMEDYA · ÜÇ ANA YOL</p><h2>Şimdi nereye?</h2><nav aria-label="Film sonu yönlendirme"><a href="/haberler/"><span>01</span><strong>HABER</strong><small>Haber &amp; Medya</small><i aria-hidden="true">↗</i></a><a href="/sosyal-medya/"><span>02</span><strong>SOSYAL MEDYA</strong><small>Sosyal &amp; Dijital</small><i aria-hidden="true">↗</i></a><a href="/video-produksiyon/"><span>03</span><strong>TANITIM</strong><small>Marka &amp; Prodüksiyon</small><i aria-hidden="true">↗</i></a></nav></div>';
+  root.appendChild(finishPanel);
   const layer=document.createElement('div');
   layer.className='bt-clean-hero-surface';
   layer.innerHTML=categories.map(c=>'<div class="bt-clean-category" data-scene="'+c.n+'" aria-hidden="true"><strong>'+c.label+'</strong></div>').join('');
@@ -39,7 +45,13 @@
     body.classList.remove('bt-clean-intro-active');
     body.style.overflow='';
     window.scrollTo(0,0);
-    setTimeout(()=>{body.classList.add('bt-clean-hero-finished');root.classList.add('is-finished');},20);
+    body.classList.add('film-bitti');
+    setTimeout(()=>{
+      body.classList.add('bt-clean-hero-finished');
+      root.classList.add('is-finished');
+      finishPanel.hidden=false;
+      requestAnimationFrame(()=>finishPanel.classList.add('is-visible'));
+    },20);
   };
   const tick=()=>{
     const t=film.currentTime||0;
@@ -52,7 +64,12 @@
   };
   const tryPlay=()=>{
     const p=film.play();
-    if(p&&p.catch)p.catch(()=>{html.classList.remove('bt-clean-intro-active');body.classList.remove('bt-clean-intro-active');body.style.overflow='';});
+    if(p&&p.catch)p.catch(()=>{
+      html.classList.remove('bt-clean-intro-active');
+      body.classList.remove('bt-clean-intro-active');
+      body.style.overflow='';
+      finish();
+    });
   };
   film.addEventListener('timeupdate',tick);
   film.addEventListener('play',()=>requestAnimationFrame(tick));

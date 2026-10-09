@@ -94,14 +94,24 @@ else ok("mobile polish stylesheet is loaded last by homepage UI bootstrap");
 
 /* V6 mobile intro contract. Branch-local guard: keep the archive-hero merge contract explicit. */
 const motionCss = read("public/mobile-motion.css");
-if (index.includes("data-bt-home-hero-v3")) {
+if (index.includes("data-bt-clean-hero")) {
+  const vids = [...index.matchAll(/<video\b[^>]*>/g)].map(m => m[0]);
+  if (vids.length !== 1 || !/bt-clean-hero-video/.test(vids[0] || '') ||
+      !/data-slot="hero-video"/.test(vids[0] || '') ||
+      !/\bmuted\b/.test(vids[0] || '') || !/\bplaysinline\b/.test(vids[0] || ''))
+    fail("clean hero must expose one muted inline video connected to hero-video slot");
+  else ok("clean hero has one muted inline video connected to hero-video slot");
+  if (!/body\.ana-sade #hero\{[^}]*height:100svh/.test(read("public/ana-sade.css")))
+    fail("clean hero viewport sizing contract missing");
+  else ok("clean hero uses full viewport sizing");
+} else if (index.includes("data-bt-home-hero-v3")) {
   const vids = [...index.matchAll(/<video\b[^>]*>/g)].map(m => m[0]);
   if (vids.length !== 2 || vids.some(v => !/bt-home-hero-layer/.test(v) || !/muted/.test(v) || !/playsinline/.test(v)))
-    fail("new archive hero must expose two muted inline video layers");
-  else ok("new archive hero has two muted inline video layers");
+    fail("legacy V3 archive hero must expose two muted inline video layers");
+  else ok("legacy V3 archive hero has two muted inline video layers");
   if (!/\.bt-home-hero\{[^}]*height:100svh/.test(index))
-    fail("new archive hero viewport sizing contract missing");
-  else ok("new archive hero uses full viewport sizing");
+    fail("legacy V3 archive hero viewport sizing contract missing");
+  else ok("legacy V3 archive hero uses full viewport sizing");
 } else {
   if (!/<div class="mfilm\b[^"]*" data-mfilm\b[^>]*>[\s\S]*?<video class="mfilm-video"[^>]*\bmuted\b[^>]*\bplaysinline\b/.test(index))
     fail("mobile intro film block (muted, inline video) missing from homepage");

@@ -69,6 +69,11 @@ for (const vp of viewports) {
     if(item.path==='/' && vp.name==='mobile'){
       const toggle=page.locator('#menuToggle');
       if(await toggle.count()){
+        // The homepage intentionally hides navigation during the intro film.
+        // Exercise the real user flow: wait for the film to finish and the
+        // header to become interactive before testing the hamburger menu.
+        await page.waitForFunction(() => document.body.classList.contains('film-bitti') || !document.body.classList.contains('bt-clean-intro-active'), {timeout:30000});
+        await toggle.waitFor({state:'visible',timeout:5000});
         await toggle.click();
         await page.waitForTimeout(120);
         const state=await page.locator('#btKategoriMenu').evaluate(el=>({hidden:el.hidden,open:el.classList.contains('is-acik')}));

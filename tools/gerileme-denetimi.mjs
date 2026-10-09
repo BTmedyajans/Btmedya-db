@@ -487,9 +487,18 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
 {
   const ana = readFileSync('public/index.html', 'utf8');
   const videolar = ana.match(/<video\b[^>]*>/g) || [];
-  if (ana.includes('data-bt-home-hero-v3')) {
+  if (ana.includes('data-bt-clean-hero')) {
+    /* Clean hero mimarisi tek aktif video kullanır; eski V3 mimarisindeki
+       iki katman şartını bu dala uygulamak hatalı pozitif üretir. */
+    if (videolar.length !== 1 || !/class="[^"]*bt-clean-hero-video/.test(videolar[0] || '') ||
+        !/data-slot="hero-video"/.test(videolar[0] || '')) {
+      bulgular.push('BTMEDYA clean hero tek video yuvasini korumuyor.');
+    }
+    if (!/<section[^>]*cinematic-hero[^>]*\bdata-tek-film\b/.test(ana))
+      bulgular.push('BTMEDYA clean hero data-tek-film isaretini tasimiyor.');
+  } else if (ana.includes('data-bt-home-hero-v3')) {
     if (videolar.length !== 2 || videolar.some(v => !/bt-home-hero-layer/.test(v)))
-      bulgular.push('BTMEDYA yeni hero iki katmanli video yapisini korumuyor.');
+      bulgular.push('BTMEDYA eski V3 hero iki katmanli video yapisini korumuyor.');
     if (!/<section[^>]*cinematic-hero[^>]*\bdata-tek-film\b/.test(ana))
       bulgular.push('BTMEDYA yeni hero data-tek-film isaretini tasimiyor.');
   } else {
