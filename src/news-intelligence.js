@@ -145,7 +145,10 @@ export async function runNewsIntelligence(env,{limit=8}={}){
   }
   candidates.sort((a,b)=>b.score-a.score);
   const seen=new Set();
-  for(const c of candidates){
+  // Bound D1 writes per invocation. The six-feed rotation still scans broadly,
+  // while only the highest-ranked 12 candidates are persisted on each tick.
+  const processCandidates=candidates.slice(0,12);
+  for(const c of processCandidates){
     if(seen.has(c.link)) continue;
     seen.add(c.link);
     const now=new Date().toISOString();
