@@ -89,9 +89,10 @@ jobs:
           grep -q 'HABER' public/index.html
           grep -q 'SOSYAL MEDYA' public/index.html
           grep -q 'TANITIM' public/index.html
-          grep -q '/haberler/balikesir/' public/kategori-menu.js
-          grep -q '/sosyal-medya/' public/kategori-menu.js
-          grep -q 'niyet=dugun' public/kategori-menu.js
+          # Kategori menüsü taxonomy sözlüğünden türetilir; rotalar artık menü JS içine sabit yazılmaz.
+          grep -Fq 'href:"/haberler/balikesir/"' public/data/btmedya-taxonomy.js
+          grep -Fq 'href:"/sosyal-medya/"' public/data/btmedya-taxonomy.js
+          grep -Fq 'href:"/portfoy/?niyet=dugun"' public/data/btmedya-taxonomy.js
 
           test ! -e .github/workflows/media-smoke.yml
           test ! -e .github/workflows/storage-audit.yml
