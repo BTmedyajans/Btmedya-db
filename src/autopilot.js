@@ -396,6 +396,7 @@ export async function runAutopilot(env,{force=false,limit}={}){
     ok:true,enabled:policy.enabled,runKey,runId,scanned:0,candidates:0,created_news:0,published_news:0,
     social_created:0,social_scheduled:0,blocked:0,error_count:0,items:[],competitors:[],policy
   };
+  try{
   if(!force && !policy.enabled){
     result.ok=true; result.skipped=true; result.reason="Autopilot kapalı.";
     return result;
@@ -471,7 +472,7 @@ export async function runAutopilot(env,{force=false,limit}={}){
     for(const host of hosts){
       const url="https://news.google.com/rss/search?q=site%3A"+encodeURIComponent(host)+"&hl=tr&gl=TR&ceid=TR:tr";
       try{
-        const r=await fetch(url,{headers:{accept:"application/rss+xml, text/xml","user-agent":"BTMEDYA-CompetitorRadar/1.0"}});
+        const r=await fetch(url,{headers:{accept:"application/rss+xml, text/xml","user-agent":"BTMEDYA-CompetitorRadar/1.0"},signal:AbortSignal.timeout(5000)});
         const xml=await r.text();
         const items=[...xml.matchAll(/<item>[\s\S]*?<\/item>/gi)].slice(0,12).map(m=>m[0])
           .map(b=>({
@@ -487,13 +488,24 @@ export async function runAutopilot(env,{force=false,limit}={}){
       }catch(e){ rows.push({host,count:0,error:String(e?.message||e).slice(0,120)}); }
     }
     result.competitors=rows;
-    await env.DB.prepare("UPDATE autopilot_runs SET finished_at=?,scanned=?,candidates=?,created_news=?,published_news=?,social_created=?,social_scheduled=?,blocked=?,error_count=?,detail=? WHERE id=?")
-      .bind(nowIso(),result.scanned,result.candidates,result.created_news,result.published_news,result.social_created,result.social_scheduled,result.blocked,result.error_count,JSON.stringify({items:result.items,competitors:result.competitors}),runId||0).run().catch(()=>{});
     if(result.social_created) {
       try{ await processMetricoolQueue(env,Math.max(1,result.social_created)); }catch{}
     }
   }
   return result;
+  }catch(e){
+    result.ok=false;
+    result.error_count++;
+    result.errors=[...(result.errors||[]),String(e?.message||e).slice(0,300)];
+    return result;
+  }finally{
+    // Her çıkış yolu (erken dönüş, dış servis hatası veya normal tamamlanma)
+    // çalışmayı kapatır; aksi halde panelde sonsuza kadar "çalışıyor" görünür.
+    if(env.DB && runId){
+      await env.DB.prepare("UPDATE autopilot_runs SET finished_at=?,scanned=?,candidates=?,created_news=?,published_news=?,social_created=?,social_scheduled=?,blocked=?,error_count=?,detail=? WHERE id=? AND finished_at IS NULL")
+        .bind(nowIso(),result.scanned,result.candidates,result.created_news,result.published_news,result.social_created,result.social_scheduled,result.blocked,result.error_count,JSON.stringify({items:result.items,competitors:result.competitors,errors:result.errors||[],finalized_by:"finally"}),runId).run().catch(e=>console.error("[autopilot] run finalization failed:",e?.message||e));
+    }
+  }
 }
 
 export async function autopilotStatus(env){
