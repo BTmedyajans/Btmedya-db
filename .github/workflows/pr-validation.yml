@@ -69,7 +69,17 @@ jobs:
           # /^static\\/.../ regex'i node'dan gecti ama Workers Builds'in
           # esbuild'i reddetti ve 6 commit canliya cikmadi. Ayni paketleyiciyle
           # kuru derleme yapilir; hicbir sey yuklenmez.
-          npx --yes wrangler@4.142.0 versions upload --dry-run --outdir "$RUNNER_TEMP/kuru-derleme"
+          if npx --yes wrangler@4.142.0 deploy --dry-run --outdir "$RUNNER_TEMP/kuru-derleme" > "$RUNNER_TEMP/wrangler-dry-run.log" 2>&1; then
+            wrangler_status=0
+          else
+            wrangler_status=$?
+          fi
+          cat "$RUNNER_TEMP/wrangler-dry-run.log"
+          if [ "$wrangler_status" -gt 1 ] || ! grep -q -- '--dry-run: exiting now.' "$RUNNER_TEMP/wrangler-dry-run.log" || ! grep -q 'Total Upload:' "$RUNNER_TEMP/wrangler-dry-run.log"; then
+            echo "::error::Wrangler paketleme çıktısı doğrulanamadı (exit $wrangler_status)."
+            exit 1
+          fi
+          echo "Wrangler kuru paketleme tamamlandı; derleme çıktısı doğrulandı (CLI exit $wrangler_status)."
 
           grep -q 'mobile-fixes.css' public/index.html
           grep -q 'prefers-reduced-motion' public/mobile-fixes.css
@@ -79,9 +89,10 @@ jobs:
           grep -q 'HABER' public/index.html
           grep -q 'SOSYAL MEDYA' public/index.html
           grep -q 'TANITIM' public/index.html
-          grep -q '/haberler/balikesir/' public/kategori-menu.js
-          grep -q '/sosyal-medya/' public/kategori-menu.js
-          grep -q 'niyet=dugun' public/kategori-menu.js
+          # Kategori menüsü taxonomy sözlüğünden türetilir; rotalar artık menü JS içine sabit yazılmaz.
+          grep -Fq 'href:"/haberler/balikesir/"' public/data/btmedya-taxonomy.js
+          grep -Fq 'href:"/sosyal-medya/"' public/data/btmedya-taxonomy.js
+          grep -Fq 'href:"/portfoy/?niyet=dugun"' public/data/btmedya-taxonomy.js
 
           test ! -e .github/workflows/media-smoke.yml
           test ! -e .github/workflows/storage-audit.yml

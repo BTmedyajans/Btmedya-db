@@ -192,7 +192,7 @@ footer{{padding:32px 16px 96px;color:var(--g);font-size:14px;border-top:1px soli
 <section aria-labelledby="foto"><h2 id="foto">Fotoğraf ve video yuvaları</h2><p>Bu yuvalar şablon değil, gerçek kare ister. Panelden yüklenir.</p><div class="tablo"><table><thead><tr><th>Yuva</th><th>Ölçü</th><th>Not</th></tr></thead><tbody>{foto}</tbody></table></div></section>
 </main>
 <footer>BTMEDYA Marka Kiti · sürüm {veri["surum"]} · {veri["tarih"]} · Kaynak veri: <a href="/data/marka-kiti.json">marka-kiti.json</a></footer>
-<script src="/olcum.js?v=20261003-2" defer></script><script src="/site-motion-v2.js?v=20261005-2" defer></script>
+<script src="/olcum.js?v=20261009-1" defer></script><script src="/site-motion-v2.js?v=20261005-2" defer></script>
 </body></html>
 '''
 

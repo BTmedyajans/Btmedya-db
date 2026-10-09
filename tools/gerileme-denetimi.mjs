@@ -547,7 +547,61 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   if (!/-genis\.webm(\?.*)?$/.test(webm)) bulgular.push(`public/index.html masaüstü filmin data-webm'i masaüstü kurgusu değil: ${webm || 'yok'}`);
   if (/data-src-hq="[^"]+\.mp4"/.test(ana)) bulgular.push('public/index.html data-src-hq MP4 kaynağı codec denetimi olmadan zorlanıyor; H.264 çözemeyen tarayıcıda film açılmaz.');
   }
-}if (bulgular.length) {
+}
+/* 21) Analitik ölçüm açık ziyaretçi tercihi olmadan başlamamalı.
+       Eski olcum.js URL'si tarayıcı/CDN önbelleğinde kalırsa tercih arayüzü
+       birkaç saat görünmeyebilir; tüm sayfa şablonları ve üreteçler sürümü
+       aynı anda yeniler. Politika URL'si sitemap ve Worker route listesinde
+       olmalı ki doğru başlıklar ve kanonik davranış uygulansın. */
+{
+  const ana = readFileSync('public/index.html', 'utf8');
+  const olcum = readFileSync('public/olcum.js', 'utf8');
+  const tercihYolu = 'public/cerez-tercihleri.js';
+  const stilYolu = 'public/cerez-tercihleri.css';
+  const politikaYolu = 'public/cerez-politikasi/index.html';
+  const harita = readFileSync('public/sitemap.xml', 'utf8');
+  const ayarlar = readFileSync('wrangler.toml', 'utf8');
+  if (!existsSync(tercihYolu)) bulgular.push('Analitik onay arayüzü (public/cerez-tercihleri.js) eksik.');
+  if (!existsSync(stilYolu)) bulgular.push('Analitik onay arayüzünün CSS dosyası (public/cerez-tercihleri.css) eksik.');
+  if (!existsSync(politikaYolu)) bulgular.push('Çerez ve analitik ölçüm politikası eksik.');
+  if (!olcum.includes('/cerez-tercihleri.js?v=20261009-1')) bulgular.push('public/olcum.js tercih yöneticisini yüklemiyor.');
+  if (/tracker\.metricool\.com\/resources\/be\.js/.test(olcum)) bulgular.push('public/olcum.js analitik izleyicisini doğrudan yükleyebilir; kullanıcı tercihi olmadan dış izleyici çağrısı yapılmamalı.');
+  if (ana.includes('<link rel="preconnect" href="https://tracker.metricool.com" crossorigin>')) bulgular.push('public/index.html analitik tercihi öncesinde Metricool alan adına bağlantı kuruyor.');
+  if (!harita.includes('<loc>https://btmedya.com.tr/cerez-politikasi/</loc>')) bulgular.push('Çerez politikası sitemap.xml içinde yok.');
+  if (!/"\/cerez-politikasi\*"/.test(ayarlar)) bulgular.push('cerez-politikasi rotası wrangler.toml run_worker_first listesinde yok.');
+  for (const yol of ['public/index.html', 'public/gizlilik/index.html', 'public/en/index.html', 'public/404.html', 'src/news-page.js', 'tools/marka-kiti.py']) {
+    if (!existsSync(yol)) continue;
+    if (readFileSync(yol, 'utf8').includes('olcum.js?v=20261003-2')) {
+      bulgular.push(yol + ' eski analitik betiği önbellek sürümünü kullanıyor.');
+    }
+  }
+}
+
+/* 22) Public medya kayıtları, static/ önekli dosyaları R2 imzasıyla sunmamalı.
+       Bu kayıtlar public/assets altındadır; R2 anahtarı olmadığından imzalı URL 404 veriyordu.
+       Ayrıca R2 nesnesi silinmiş bir kayıt kamuya açık medya listesinde kalmamalı. */
+{
+  const publicStart = worker.indexOf("if(path==='/api/public/media' && request.method==='GET')");
+  const publicEnd = worker.indexOf("if(path==='/api/media' && request.method==='GET')", publicStart);
+  const publicApi = publicStart >= 0 && publicEnd > publicStart ? worker.slice(publicStart, publicEnd) : '';
+  if (!publicApi.includes('const staticCatalog=await medyaListesi(env,u.origin)') ||
+      !publicApi.includes('key.startsWith(STATIK_ONEK)') ||
+      !publicApi.includes('url:medyaAdresi(key)') ||
+      !publicApi.includes('env.MEDIA.head(key)') ||
+      !publicApi.includes('.filter(Boolean)')) {
+    bulgular.push('public medya API static/ dosyalarını /assets/ üzerinden sunmuyor veya R2 içinde bulunmayan kayıtları filtrelemiyor.');
+  }
+  const exportStart = worker.indexOf("if(path==='/api/export' && request.method==='GET')");
+  const exportEnd = worker.indexOf('\n  return null;\n}', exportStart);
+  const exportApi = exportStart >= 0 && exportEnd > exportStart ? worker.slice(exportStart, exportEnd) : '';
+  if (!exportApi.includes('url:medyaAdresi(key)') ||
+      !exportApi.includes('env.MEDIA.head(key)') ||
+      !exportApi.includes('.filter(Boolean)')) {
+    bulgular.push('/api/export static medya URL eşlemesini veya bozuk R2 kaydı filtresini içermiyor.');
+  }
+}
+
+if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
   process.exit(1);

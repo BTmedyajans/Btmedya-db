@@ -81,12 +81,16 @@ assert.match(worker, /cron==='0 5 \* \* \*'[\s\S]{0,700}satisOzeti\(env\)/);
 
 // olcum.js: WhatsApp / tel / mailto tıklaması sinyal gönderir, diğer bağlantılar göndermez.
 const kaynak = readFileSync('public/olcum.js', 'utf8');
-const calistir = ({ webdriver = false } = {}) => {
+const calistir = ({ webdriver = false, analytics = false } = {}) => {
   const sinyaller = []; let dinleyici = null;
   const sb = {
     URLSearchParams, Blob, JSON,
     location: { search: '', pathname: '/hizmetler/' },
-    localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+    localStorage: {
+      getItem: key => key === 'btmedya_izleme_tercihleri_v1' && analytics
+        ? JSON.stringify({ surum: 1, analitik: true }) : null,
+      setItem() {}, removeItem() {}
+    },
     navigator: { webdriver, userAgent: 'Mozilla/5.0 (iPhone) Safari', sendBeacon: (u, b) => { sinyaller.push({ u, b }); return true; } },
     document: { addEventListener: (t, f) => { if (t === 'click') dinleyici = f; }, createElement: () => ({}), head: { appendChild() {} } },
     window: {}
@@ -95,7 +99,12 @@ const calistir = ({ webdriver = false } = {}) => {
   const tikla = href => dinleyici && dinleyici({ target: { closest: () => ({ getAttribute: () => href }) } });
   return { sinyaller, tikla, dinleyici: () => dinleyici };
 };
-const o = calistir();
+// Varsayılan tercih yok: temas/analitik sinyali gönderilmemeli.
+const reddedilmis = calistir();
+reddedilmis.tikla('https://wa.me/905416401029');
+assert.equal(reddedilmis.sinyaller.length, 0);
+// Açık analitik izni verilmiş: yalnızca WhatsApp / tel / e-posta ölçülür.
+const o = calistir({ analytics: true });
 o.tikla('https://wa.me/905416401029?text=Merhaba');
 o.tikla('tel:+905416401029');
 o.tikla('mailto:info@btmedya.com.tr');
