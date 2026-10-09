@@ -14,7 +14,7 @@ Yayın geçidi: Metricool
 Zincir: GitHub ana dalı -> Cloudflare Worker -> D1 sosyal kuyruk -> Metricool -> TikTok
 Durum: Metricool teslim kuyruğu yarış koşullarına karşı kilitlendi; başarılı teslim kimliği D1'e kaydedilir; geçici API hataları 5 dakikalık geri çekilmeyle sınırlı tekrar denenir.
 
-**Güvenlik:** Token/secret değerleri kaynak koda yazılmaz. GitHub Actions yalnızca `BTMEDYA_METRICOOL_USER_TOKEN`, `BTMEDYA_METRICOOL_USER_ID` ve `BTMEDYA_METRICOOL_BRAND_ID` secret'larını Cloudflare Worker'a aktarır.
+**Güvenlik:** Token kaynak koda yazılmaz. GitHub Actions yalnızca `BTMEDYA_METRICOOL_USER_TOKEN` GitHub Secret'ını `METRICOOL_USER_TOKEN` Cloudflare Worker secret'ına aktarır. `METRICOOL_USER_ID` ve `METRICOOL_BRAND_ID` gizli olmayan kimlik değerleri olarak `wrangler.toml` içindeki değişkenlerden okunur.
 
 ## Dağıtım katmanı
 
