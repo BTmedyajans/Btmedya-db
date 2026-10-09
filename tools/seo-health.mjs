@@ -141,7 +141,7 @@ try {
   });
   const type = response.headers.get("content-type") || "";
   if (![200, 206].includes(response.status)) fail(`hero video HTTP ${response.status}`);
-  if (!/^video\\//i.test(type)) fail(`hero video has unexpected content-type: ${type}`);
+  if (!/^video\//i.test(type)) fail(`hero video has unexpected content-type: ${type}`);
   console.log("PASS: hero video HTTP " + response.status + "; content-type=" + type);
 } catch (e) { fail(`hero video fetch failed: ${e.message}`); }
 
