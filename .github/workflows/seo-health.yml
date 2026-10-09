@@ -1,0 +1,40 @@
+name: BTMEDYA Live SEO Health
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "public/**"
+      - "src/**"
+      - "wrangler.toml"
+      - "tools/seo-health.mjs"
+      - ".github/workflows/seo-health.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btmedya-live-seo-health
+  cancel-in-progress: true
+
+jobs:
+  live-seo-smoke:
+    name: Check live SEO surfaces
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Syntax-check monitor
+        run: node --check tools/seo-health.mjs
+      - name: Check production pages, metadata, robots, sitemap and RSS
+        env:
+          BTMEDYA_ORIGIN: https://btmedya.com.tr
+        run: node tools/seo-health.mjs
