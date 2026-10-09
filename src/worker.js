@@ -2005,9 +2005,15 @@ export default { async scheduled(controller, env, ctx){
   // giriş ekranına döner. API'ler ayrıca kendi session kontrollerini uygular.
   if(url.pathname.startsWith('/admin/') && url.pathname !== '/admin/'){
     if(!(await validSession(request, oturumAnahtari(env)))){
-      // Sayfa isteğinde hedef korunur: girişten sonra okur istediği modüle döner.
-      const sayfa=/text\/html/.test(request.headers.get('accept')||'') && !/\.(?:css|js|json|webmanifest|png|webp|jpg|svg|ico)$/i.test(url.pathname);
-      return Response.redirect(new URL(sayfa ? '/admin/?sonra='+encodeURIComponent(url.pathname+url.search) : '/admin/', url.origin), 302);
+      // Yönetim arayüzünün kodu public/ altında statik varlıktır; HTML ekranları
+      // oturum ister, fakat stil/JS/manifest/font dosyaları giriş ekranına çevrilmemelidir.
+      // API uçları ayrı oturum denetimi yaptığından statik dosyayı açmak veri erişimi vermez.
+      const statikVarlik = /\.(?:css|js|mjs|json|webmanifest|png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf|eot)$/i.test(url.pathname);
+      if(!statikVarlik){
+        // Sayfa isteğinde hedef korunur: girişten sonra okur istediği modüle döner.
+        const sayfa=/text\/html/.test(request.headers.get('accept')||'');
+        return Response.redirect(new URL(sayfa ? '/admin/?sonra='+encodeURIComponent(url.pathname+url.search) : '/admin/', url.origin), 302);
+      }
     }
   }
   const coreApi=await btmedyaCoreApi(request,env,url,validSession); if(coreApi) return coreApi;
