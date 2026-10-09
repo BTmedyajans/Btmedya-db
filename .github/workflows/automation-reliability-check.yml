@@ -39,13 +39,10 @@ jobs:
           grep -q 'Promise.all(activeFeeds.map' src/news-intelligence.js
           grep -q 'processCandidates=candidates.slice(0,12)' src/news-intelligence.js
           grep -q 'skipRecentIntelligence' src/autopilot.js
-          grep -q 'cron==="1-59/15 \* \* \* \*"' src/worker.js
-          grep -q 'cron==="6-59/15 \* \* \* \*"' src/worker.js
-          grep -q 'cron==="11-59/15 \* \* \* \*"' src/worker.js
-          grep -q '4-59/5 \* \* \* \*' wrangler.toml
-          grep -q '1-59/15 \* \* \* \*' wrangler.toml
-          grep -q '6-59/15 \* \* \* \*' wrangler.toml
-          grep -q '11-59/15 \* \* \* \*' wrangler.toml
+          grep -q 'cron==="\*/5 \* \* \* \*"' src/worker.js
+          grep -q 'cron==="\*/15 \* \* \* \*"' src/worker.js
+          grep -q 'cron==="0 5 \* \* \*"' src/worker.js
+          grep -q 'crons = ["\*/5 \* \* \* \*", "\*/15 \* \* \* \*", "0 5 \* \* \*"]' wrangler.toml
           ! grep -Eq '^  push:' .github/workflows/d1-migrations.yml
           grep -q 'APPLY_TO_REMOTE_D1' .github/workflows/d1-migrations.yml
           echo "AUTOMATION_RELIABILITY_GUARDS_PASS"
