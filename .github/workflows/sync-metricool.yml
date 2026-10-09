@@ -22,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Sync Metricool Worker secrets
+      - name: Validate Metricool credentials are configured
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
           METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
@@ -30,15 +30,27 @@ jobs:
           set -euo pipefail
 
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Cloudflare deploy token eksik"; exit 1; }
+          if [ -z "$METRICOOL_USER_TOKEN" ]; then
+            echo "::error::Metricool API anahtarı eksik. GitHub > Settings > Secrets and variables > Actions altında BTMEDYA_METRICOOL_USER_TOKEN secret'ını tanımlayın. Anahtarı koda veya sohbete yazmayın."
+            exit 1
+          fi
           METRICOOL_USER_ID="$(grep '^METRICOOL_USER_ID = ' wrangler.toml | cut -d '"' -f 2)"
           METRICOOL_BRAND_ID="$(grep '^METRICOOL_BRAND_ID = ' wrangler.toml | cut -d '"' -f 2)"
-          if [ -z "$METRICOOL_USER_TOKEN" ] || [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
-            echo "::warning::GitHub Metricool secret'ları tanımlı değil; mevcut Cloudflare Worker secret'ları korunuyor, senkronizasyon atlandı."
-            exit 0
+          if [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
+            echo "::error::METRICOOL_USER_ID veya METRICOOL_BRAND_ID wrangler.toml içinde eksik."
+            exit 1
           fi
 
-          npm install --no-save --no-package-lock wrangler@4.142.0
+      - name: Sync Metricool Worker secret
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
+        run: |
+          set -euo pipefail
 
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Cloudflare deploy token eksik"; exit 1; }
+          test -n "$METRICOOL_USER_TOKEN" || { echo "::error::BTMEDYA_METRICOOL_USER_TOKEN secret eksik; Metricool bağlantısı senkronize edilmedi."; exit 1; }
+          npm install --no-save --no-package-lock wrangler@4.142.0
           printf '%s' "$METRICOOL_USER_TOKEN" | npx wrangler secret put METRICOOL_USER_TOKEN --name btmedya-db --config wrangler.toml
 
       - name: Verify Metricool Brand access
@@ -46,12 +58,11 @@ jobs:
           METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
         run: |
           set -euo pipefail
+          test -n "$METRICOOL_USER_TOKEN" || { echo "::error::BTMEDYA_METRICOOL_USER_TOKEN secret eksik; Brand doğrulaması yapılmadı."; exit 1; }
           METRICOOL_USER_ID="$(grep '^METRICOOL_USER_ID = ' wrangler.toml | cut -d '"' -f 2)"
           METRICOOL_BRAND_ID="$(grep '^METRICOOL_BRAND_ID = ' wrangler.toml | cut -d '"' -f 2)"
-          if [ -z "$METRICOOL_USER_TOKEN" ] || [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
-            echo "::warning::GitHub Metricool secret'ları tanımlı değil; doğrulama atlandı."
-            exit 0
-          fi
+          test -n "$METRICOOL_USER_ID" || { echo "::error::METRICOOL_USER_ID wrangler.toml içinde eksik."; exit 1; }
+          test -n "$METRICOOL_BRAND_ID" || { echo "::error::METRICOOL_BRAND_ID wrangler.toml içinde eksik."; exit 1; }
           body="$(curl -fsS -H "X-Mc-Auth: $METRICOOL_USER_TOKEN" \
             "https://app.metricool.com/api/admin/simpleProfiles?userId=$METRICOOL_USER_ID")"
 
