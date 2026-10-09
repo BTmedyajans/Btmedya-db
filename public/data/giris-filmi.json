@@ -1,12 +1,14 @@
 {
- "dosya": "/assets/media/web/giris-filmi.mp4",
- "sure": 13.62,
- "etiket": "GERÇEK ÇEKİM + BTMEDYA ARŞİVİ · BTMEDYA TANITIM FİLMİ",
- "kaynak": "BTMEDYA arşiv kurgusu (tools/giris-filmi/tanitim.sh)",
+ "dosya": "/assets/media/web/btmedya-ai-film-genis.mp4",
+ "dosya_mobil": "/assets/media/web/btmedya-ai-film.mp4",
+ "sure": 15.0,
+ "etiket": "AI ÜRETİMİ · BTMEDYA TANITIM FİLMİ",
+ "kaynak": "BTMEDYA giriş filmi (tools/giris-filmi/giris-v4.sh + giris-katman.py); tüm planlar AI üretimi, motion kimlik kartları, sentez ses",
  "bolumler": [
-  {"bolum": "SAHA", "alt": "Gerçek çekim", "bas": 0.0, "tur": "gercek"},
-  {"bolum": "SAHA / ARŞİV", "alt": "Gerçek BTMEDYA arşivi", "bas": 2.6, "tur": "gercek"},
-  {"bolum": "STÜDYO / PRODÜKSİYON", "alt": "Gerçek BTMEDYA çekimi", "bas": 4.0, "tur": "gercek"},
-  {"bolum": "BTMEDYA", "alt": "Arşivden markaya", "bas": 8.4, "tur": "gercek"}
+  {"bolum": "GAZETECİ", "alt": "Sahadan, kaynağıyla haber", "bas": 0.45, "tur": "ai"},
+  {"bolum": "YAPAY ZEKÂ", "alt": "Açık etiketli AI üretim", "bas": 2.25, "tur": "ai"},
+  {"bolum": "SUNUCU", "alt": "Röportaj · program · stüdyo çekimi", "bas": 3.85, "tur": "ai"},
+  {"bolum": "SOSYAL MEDYA UZMANI", "alt": "Reels · içerik planı · hesap yönetimi", "bas": 5.95, "tur": "ai"},
+  {"bolum": "DİJİTAL YAPIMCI", "alt": "Tanıtım filmi · reklam · web", "bas": 8.85, "tur": "ai"}
  ]
 }

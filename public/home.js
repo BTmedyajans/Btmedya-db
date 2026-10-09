@@ -827,7 +827,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
      Panelden bir sahneye gercek cekim atanirsa etiket asagidaki kancayla
      kendiliginden degisir; elle yazilmaz. */
   const scenes=[
-    {key:'hero',yuva:'hero-video',k:'BTMEDYA / GİRİŞ FİLMİ',kaynak:'AI ÜRETİMİ VE SAHA ARŞİVİ · BTMEDYA TANITIM FİLMİ',t:'YENİ NESİL<br><span>ÜRETİM.</span>',d:'Haber, sosyal medya ve tanıtım filmi tek ekipten. Film bitince yolunu seç: kaynak ve etiket her zaman görünür.'},
+    {key:'hero',yuva:'hero-video',k:'BTMEDYA / GİRİŞ FİLMİ',kaynak:'AI ÜRETİMİ · BTMEDYA TANITIM FİLMİ',t:'YENİ NESİL<br><span>ÜRETİM.</span>',d:'Haber, sosyal medya ve tanıtım filmi tek ekipten. Film bitince yolunu seç: kaynak ve etiket her zaman görünür.'},
     {key:'haber',yuva:'kategori-haber',k:'02 / HABER · SAHA',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'ŞEHRİN<br><span>HİKÂYESİ.</span>',d:'Haber, röportaj ve saha görüntüsü aynı akışta buluşuyor.'},
     {key:'medya',yuva:'kategori-medya',k:'03 / MEDYA · İÇERİK',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'İÇERİĞİ<br><span>HAREKETE GEÇİR.</span>',d:'Fotoğraf, video ve sosyal medya için üretim.'},
     {key:'produksiyon',yuva:'kategori-prod',k:'04 / PRODÜKSİYON',kaynak:'KAYNAK DURUMU DOĞRULANIYOR',t:'KAMERA<br><span>AÇIK.</span>',d:'Kadraj. Kurgu. Yayın. Fikri görüntüye dönüştürüyoruz.'},
