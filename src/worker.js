@@ -2213,6 +2213,15 @@ export default { async scheduled(controller, env, ctx){
     teknoloji:{label:'Teknoloji',desc:'Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetleri anlaşılır haberler ve kaynaklarla takip edin.'},
     yasam:{label:'Yaşam',desc:'Günlük yaşam, aile, moda, etkinlik, insan hikâyeleri ve şehir yaşamına dair haberler.'}
   };
+  /* 10 Ekim (kullanıcı isteği): Balıkesir menüde öne çıkar; ilçe sayfaları
+     /haberler/balikesir/<ilce>/ adresinde, Balıkesir haberleri içinden ilçe
+     adı geçenleri listeler. Haberi olmayan ilçe sayfası noindex döner. */
+  const BALIKESIR_ILCELERI = {
+    altieylul:'Altıeylül',karesi:'Karesi',ayvalik:'Ayvalık',balya:'Balya',bandirma:'Bandırma',bigadic:'Bigadiç',
+    burhaniye:'Burhaniye',dursunbey:'Dursunbey',edremit:'Edremit',erdek:'Erdek',gomec:'Gömeç',gonen:'Gönen',
+    havran:'Havran',ivrindi:'İvrindi',kepsut:'Kepsut',manyas:'Manyas',marmara:'Marmara',savastepe:'Savaştepe',
+    sindirgi:'Sındırgı',susurluk:'Susurluk'
+  };
   function htmlKac(s){
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
@@ -2242,9 +2251,13 @@ export default { async scheduled(controller, env, ctx){
     for(const [key,re] of rules) if(re.test(metin)) return key;
     return 'gundem';
   }
-  async function temizKategoriSayfasi(request, env, url, key){
-    const bilgi=HABER_KATEGORILERI[key];
-    if(!bilgi) return null;
+  async function temizKategoriSayfasi(request, env, url, key, ilce=''){
+    const kategoriBilgi=HABER_KATEGORILERI[key];
+    if(!kategoriBilgi) return null;
+    const ilceAd=ilce?BALIKESIR_ILCELERI[ilce]:'';
+    if(ilce && !ilceAd) return null;
+    const bilgi=ilceAd?{label:ilceAd,desc:ilceAd+' (Balıkesir) haberleri: belediye, ulaşım, ekonomi, eğitim ve kent yaşamından kaynaklı gündem.'}:kategoriBilgi;
+    const ilceNorm=s=>String(s||'').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
     let base=await env.ASSETS.fetch(new Request(new URL('/haberler/index.html',url.origin),{headers:{accept:'text/html'}}));
     if(!base.ok) return new Response('Kategori sayfası hazırlanamadı',503);
     let html=await base.text();
@@ -2255,7 +2268,9 @@ export default { async scheduled(controller, env, ctx){
         "SELECT slug,title,excerpt,category,cover_url,published_at,updated_at FROM news WHERE status='published' AND slug<>'' ORDER BY published_at DESC LIMIT 500"
       ).all().catch(()=>({results:[]}))).results||[];
       const kapaklar=await uretilmisKapaklar(env);
-      items=rows.filter(n=>haberKategoriAnahtari(n)===key).slice(0,30).map(n=>({...n,cover_url:kapakSec(n,kapaklar)}));
+      items=rows.filter(n=>haberKategoriAnahtari(n)===key)
+        .filter(n=>!ilce||new RegExp('\\b'+ilce+'\\b').test(ilceNorm(n.title+' '+n.excerpt+' '+n.category)))
+        .slice(0,30).map(n=>({...n,cover_url:kapakSec(n,kapaklar)}));
     }
 
     let coverMap={};
@@ -2277,7 +2292,7 @@ export default { async scheduled(controller, env, ctx){
     }).join('');
 
     const title=bilgi.label+' Haberleri | BTMEDYA Haber Merkezi';
-    const canonical=url.origin+'/haberler/'+key+'/';
+    const canonical=url.origin+'/haberler/'+key+'/'+(ilce?ilce+'/':'');
     const block='<section class="hm-katsayfa" data-hm-katsayfa data-kat="'+key+'" aria-labelledby="hm-kategori-h1">'+
       '<div class="hm-kat-bas"><h2 id="hm-kategori-h1" aria-label="'+htmlKac(bilgi.label)+'">'+htmlKac(bilgi.label)+'<span class="hm-golge" aria-hidden="true">'+htmlKac(bilgi.label)+'</span></h2>'+
       '<p>'+htmlKac(bilgi.desc)+'</p><small>'+items.length+' güncel haber · en yeniden eskiye</small></div>'+
@@ -2311,6 +2326,13 @@ export default { async scheduled(controller, env, ctx){
     if(HABER_KATEGORILERI[key]) return Response.redirect(new URL('/haberler/'+key+'/',url.origin).toString(),301);
   }
 
+  const ilceMatch=url.pathname.match(/^\/haberler\/balikesir\/([a-z]+)\/$/);
+  if(ilceMatch && BALIKESIR_ILCELERI[ilceMatch[1]]){
+    const yanit=await temizKategoriSayfasi(request,env,url,'balikesir',ilceMatch[1]);
+    // Haberi olmayan ilçe sayfası boş içerik olarak dizine girmesin.
+    if(yanit && !(await yanit.clone().text()).includes('hm-kat-sunucu-kart')){ const h=new Headers(yanit.headers); h.set('x-robots-tag','noindex, follow'); return new Response(yanit.body,{status:200,headers:h}); }
+    return yanit;
+  }
   const temizKatMatch=url.pathname.match(/^\/haberler\/(balikesir|turkiye|dunya|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|yasam)\/$/);
   if(temizKatMatch) return await temizKategoriSayfasi(request,env,url,temizKatMatch[1]);
 

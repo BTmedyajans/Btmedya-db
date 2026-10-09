@@ -130,7 +130,7 @@
 
   if(window.BTMEDYA_TAXONOMY) boot();
   else{
-    const s=document.createElement('script');s.src='/data/btmedya-taxonomy.js';
+    const s=document.createElement('script');s.src='/data/btmedya-taxonomy.js?v=20261010-1';
     s.onload=boot;s.onerror=()=>console.error('BTMEDYA taxonomy yüklenemedi');document.head.appendChild(s);
   }
 })();
