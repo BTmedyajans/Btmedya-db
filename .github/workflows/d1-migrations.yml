@@ -46,7 +46,7 @@ jobs:
 
       - name: Require staging schema and taxonomy audit to pass
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN || secrets.BTMEDYA_D1 }}
           CLOUDFLARE_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
           CLOUDFLARE_D1_DATABASE_ID: 3a6d6fb9-93b7-4995-8a73-8f53358de36f
           CLOUDFLARE_WORKER_NAME: btmedya-db
