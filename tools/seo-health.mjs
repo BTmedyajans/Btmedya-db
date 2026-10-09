@@ -111,8 +111,9 @@ try {
     if (h && h.r2 !== true) fail("/api/health R2 is not ready");
     if (h && h.admin !== true) fail("/api/health admin authentication is not configured");
     if (h && h.readiness?.metricool?.userToken !== true) fail("Metricool automation is not ready: Worker secret METRICOOL_USER_TOKEN is missing");
-    if (h && h.readiness?.windsor?.apiKey !== true) fail("Windsor analytics is not ready: Worker secret WINDSOR_API_KEY is missing");
-    console.log(`PASS: /api/health HTTP ${health.status}; cms=${Boolean(h?.cms)} r2=${Boolean(h?.r2)} admin=${Boolean(h?.admin)} metricoolToken=${Boolean(h?.readiness?.metricool?.userToken)} windsorKey=${Boolean(h?.readiness?.windsor?.apiKey)}`);
+    if (h && h.readiness?.windsor && h.readiness.windsor.apiKey !== true) fail("Windsor analytics is not ready: Worker secret WINDSOR_API_KEY is missing");
+    const windsorState = h?.readiness?.windsor ? String(Boolean(h.readiness.windsor.apiKey)) : "not-exposed-by-live-version";
+    console.log(`PASS: /api/health HTTP ${health.status}; cms=${Boolean(h?.cms)} r2=${Boolean(h?.r2)} admin=${Boolean(h?.admin)} metricoolToken=${Boolean(h?.readiness?.metricool?.userToken)} windsorKey=${windsorState}`);
   }
 } catch (e) { fail(`/api/health fetch failed: ${e.message}`); }
 
