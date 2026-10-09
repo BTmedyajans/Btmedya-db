@@ -25,8 +25,13 @@
 .fs-agac{display:grid;grid-template-columns:minmax(260px,.82fr) 2fr;column-gap:16px;row-gap:10px;align-items:stretch}
 .fs-yol{display:contents}
 .fs-yol-dugme{grid-column:1;display:flex;align-items:center;gap:14px;min-height:76px;padding:14px 18px;border-radius:16px;border:1px solid var(--fs-cizgi);background:var(--fs-yuzey);
-  color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background .25s ease,border-color .25s ease}
+  color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background .25s ease,border-color .25s ease,transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s ease}
 .fs-yol-dugme:hover{background:var(--fs-yuzey-acik);border-color:rgba(214,224,236,.24)}
+/* 7 Ekim (kullanıcı isteği): fare üstüne gelince seçenek büyür. Yalnız
+   gerçek fare olan cihazda; dokunmatikte yapışık hover kalmasın. */
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+  .fs-yol-dugme:hover,.fs-yol-dugme:focus-visible{transform:scale(1.045);box-shadow:0 14px 40px rgba(0,0,0,.35)}
+}
 .fs-yol.is-acik .fs-yol-dugme{background:var(--fs-yuzey-acik);border-color:rgba(166,217,234,.5)}
 .fs-no{flex:0 0 auto;font-weight:500;font-size:13px;line-height:1;font-variant-numeric:tabular-nums;color:var(--fs-soluk)}
 .fs-yol.is-acik .fs-no{color:var(--fs-vurgu)}

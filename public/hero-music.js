@@ -4,6 +4,8 @@
 (() => {
   const film = document.querySelector('.bt-clean-hero-video');
   if (!film) return;
+  // Film kendi ses izini taşıyorsa (data-kendi-sesi) sentez müzik üstüne binmez.
+  if (film.hasAttribute('data-kendi-sesi')) return;
 
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) return;

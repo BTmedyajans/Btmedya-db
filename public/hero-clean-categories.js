@@ -9,7 +9,10 @@
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const html=document.documentElement;
   const body=document.body;
-  const categories=[
+  /* 9 Ekim (kullanıcı isteği): AI giriş filmi (tools/giris-filmi/giris-v4.sh)
+     kimlik kartlarını kendi karesinde taşır; data-kart-gomulu varsa bu
+     sabit zamanlı etiketler çift yazı olmasın diye gösterilmez. */
+  const categories=film.hasAttribute('data-kart-gomulu')?[]:[
     {n:1,start:4.20,end:5.02,label:'HABER & MEDYA'},
     {n:2,start:10.02,end:10.84,label:'SOSYAL & DİJİTAL'},
     {n:3,start:15.44,end:16.26,label:'MARKA & PRODÜKSİYON'}

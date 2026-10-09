@@ -45,7 +45,7 @@ body.bt-clean-intro-active #hero{position:fixed;inset:0;z-index:9999;width:100vw
 .bt-clean-finish-inner h2{margin:0 0 28px;color:#fff;font:700 clamp(38px,7vw,86px)/.95 Space,Manrope,sans-serif;letter-spacing:-.05em}
 .bt-clean-finish-inner nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;text-align:left}
 .bt-clean-finish-inner nav a{min-height:132px;padding:18px;display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto 1fr auto;gap:7px 12px;border:1px solid rgba(255,255,255,.16);background:rgba(7,11,16,.72);backdrop-filter:blur(12px);color:#fff;transition:transform .25s ease,border-color .25s ease,background .25s ease}
-.bt-clean-finish-inner nav a:hover,.bt-clean-finish-inner nav a:focus-visible{transform:translateY(-3px);border-color:#a6d9ea;background:rgba(12,20,28,.9)}
+.bt-clean-finish-inner nav a:hover,.bt-clean-finish-inner nav a:focus-visible{transform:translateY(-3px) scale(1.045);border-color:#a6d9ea;background:rgba(12,20,28,.9)}
 .bt-clean-finish-inner nav a span{grid-row:1/4;color:#a6d9ea;font:700 10px/1 Jet,monospace}
 .bt-clean-finish-inner nav a strong{font:700 clamp(18px,2vw,27px)/1 Space,Manrope,sans-serif}
 .bt-clean-finish-inner nav a small{align-self:end;color:#9aa7b3;font:600 10px/1.3 Jet,monospace;letter-spacing:.04em}
