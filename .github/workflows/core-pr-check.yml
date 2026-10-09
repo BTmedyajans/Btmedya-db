@@ -27,6 +27,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check src/worker.js
+          node --check src/windsor-analytics.js
           node --check src/btmedya-core.js
           node --check src/metricool-scheduler.js
           node --check src/sosyal-otomasyon.js
