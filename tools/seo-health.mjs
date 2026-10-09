@@ -90,7 +90,7 @@ for (const path of ["/robots.txt", "/sitemap.xml", "/news-sitemap.xml", "/rss.xm
       if (!/<urlset\b/i.test(r.body)) fail("news-sitemap.xml is not a URL set");
       if (!/xmlns:news=["']http:\/\/www\.google\.com\/schemas\/sitemap-news\/0\.9["']/i.test(r.body)) fail("news-sitemap.xml is missing the Google News namespace");
       const count = (r.body.match(/<news:news>/gi) || []).length;
-      console.log(\`PASS: /news-sitemap.xml HTTP 200; recent news entries=\${count}\`);
+      console.log("PASS: /news-sitemap.xml HTTP 200; recent news entries=" + count);
     } else {
       rssBody = r.body;
       if (!/<rss\b/i.test(r.body) || !/<channel>/i.test(r.body)) fail("rss.xml is not a valid RSS feed");
