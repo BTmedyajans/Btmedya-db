@@ -33,8 +33,8 @@ jobs:
 
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Cloudflare deploy token eksik"; exit 1; }
           if [ -z "$METRICOOL_USER_TOKEN" ] || [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
-            echo "::warning::GitHub Metricool secret'ları tanımlı değil; mevcut Cloudflare Worker secret'ları korunuyor, senkronizasyon atlandı."
-            exit 0
+            echo "::error::Gerekli GitHub secrets eksik: BTMEDYA_METRICOOL_USER_TOKEN, BTMEDYA_METRICOOL_USER_ID ve BTMEDYA_METRICOOL_BRAND_ID. Değerleri GitHub repository Settings > Secrets and variables > Actions altında tanımlayın; gizli değerleri sohbete yazmayın."
+            exit 1
           fi
 
           npm install --no-save --no-package-lock wrangler@4.142.0
@@ -51,8 +51,8 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "$METRICOOL_USER_TOKEN" ] || [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
-            echo "::warning::GitHub Metricool secret'ları tanımlı değil; doğrulama atlandı."
-            exit 0
+            echo "::error::Metricool Brand doğrulanamadı; gerekli GitHub Actions secrets eksik. Önce secret'ları tanımlayıp workflow'u yeniden çalıştırın."
+            exit 1
           fi
           body="$(curl -fsS -H "X-Mc-Auth: $METRICOOL_USER_TOKEN" \
             "https://app.metricool.com/api/admin/simpleProfiles?userId=$METRICOOL_USER_ID")"
