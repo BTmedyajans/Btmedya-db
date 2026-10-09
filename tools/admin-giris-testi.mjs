@@ -41,6 +41,20 @@ r = await istek('/admin/agency-os/?v=1');
 assert.equal(r.status, 302);
 assert.equal(r.headers.get('location'), 'https://btmedya.com.tr/admin/?sonra=%2Fadmin%2Fagency-os%2F%3Fv%3D1');
 
+// 2b) Oturumsuz durumda PWA için gereken statik dosyalar giriş HTML'ine çevrilmez.
+r = await istek('/admin/pwa-install.js', { headers: { accept: '*/*' } });
+assert.equal(r.status, 200, 'PWA yükleme betiği oturumsuzken de statik dosya olarak sunulmalı');
+assert.match(await r.text(), /serviceWorker/i, 'PWA betiğinin gerçek içeriği gelmeli');
+r = await istek('/admin/manifest.webmanifest', { headers: { accept: '*/*' } });
+assert.equal(r.status, 200, 'PWA manifest dosyası girişe yönlendirilmemeli');
+assert.match(await r.text(), /start_url/, 'manifest gerçek dosya içeriğiyle sunulmalı');
+r = await istek('/admin/sw.js', { headers: { accept: '*/*' } });
+assert.equal(r.status, 200, 'service worker betiği oturumsuzken de statik dosya olarak sunulmalı');
+
+// HTML yönetim dosyaları oturum kapısının arkasında kalmalı.
+r = await istek('/admin/app.html');
+assert.equal(r.status, 302, 'HTML yönetim ekranı oturumsuzken korunmalı');
+
 // 3) Yanlış şifre reddedilir; kullanıcı adı büyük/küçük harfe duyarsız.
 r = await istek('/api/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: 'btmedya', password: 'yanlis' }) });
 assert.equal(r.status, 401);
