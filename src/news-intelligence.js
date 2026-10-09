@@ -117,12 +117,19 @@ export async function runNewsIntelligence(env,{limit=8}={}){
   try{trendXml=await get('https://trends.google.com/trending/rss?geo=TR');}catch(e){result.errors.push('Google Trends: '+String(e.message||e).slice(0,120));}
   const trendItems=rssItems(trendXml);
   const trendMap=trendWords(trendItems);
-  /* Feed kataloğu Kaynak Masası'nda da kalıcı tutulur. Bu kayıtlar editörün
-     aday kaynakları ile tarama motorunun kendi giriş noktalarını ayırmasını sağlar. */
-  for(const feed of FEEDS){
+  /* Ücretsiz Workers planında dış istek bütçesini korumak için her çağrıda
+     yalnızca altı RSS kaynağı taranır. 15 dakikalık zaman dilimi kaynak grubunu
+     döndürür; böylece tüm katalog üç turda kapsanır ve tek çağrı 50 dış isteğe
+     yaklaşmaz. */
+  const feedBatchSize=6;
+  const feedBatchCount=Math.ceil(FEEDS.length/feedBatchSize);
+  const feedBatch=Math.floor(Date.now()/900000)%feedBatchCount;
+  const activeFeeds=FEEDS.slice(feedBatch*feedBatchSize,feedBatch*feedBatchSize+feedBatchSize);
+  /* Feed kataloğu Kaynak Masası'nda da kalıcı tutulur. */
+  for(const feed of activeFeeds){
     await kaynakKaydet(env,{url:feed.url,publisher:feed.name,tier:feed.tier,category:feed.category,status:'active',notes:'BTMEDYA Haber İstihbarat Motoru kaynak kataloğu.'}).catch(()=>{});
   }
-  const fetched=await Promise.all(FEEDS.map(async feed=>{
+  const fetched=await Promise.all(activeFeeds.map(async feed=>{
     try{return {feed,items:rssItems(await get(feed.url))};}
     catch(e){result.errors.push(feed.name+': '+String(e.message||e).slice(0,100));return {feed,items:[]};}
   }));
@@ -138,7 +145,10 @@ export async function runNewsIntelligence(env,{limit=8}={}){
   }
   candidates.sort((a,b)=>b.score-a.score);
   const seen=new Set();
-  for(const c of candidates){
+  // Bound D1 writes per invocation. The six-feed rotation still scans broadly,
+  // while only the highest-ranked 12 candidates are persisted on each tick.
+  const processCandidates=candidates.slice(0,12);
+  for(const c of processCandidates){
     if(seen.has(c.link)) continue;
     seen.add(c.link);
     const now=new Date().toISOString();
