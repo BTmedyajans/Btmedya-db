@@ -1923,104 +1923,70 @@ async function hydrateR2FromManifest(env, limit=3){
 
 /* production-reconcile: keep GitHub main as the sole Cloudflare Workers Builds source of truth. */
 export default { async scheduled(controller, env, ctx){
-  await ensureContentTaxonomy(env).catch(e=>console.error("[taxonomy] bootstrap:",e?.message||e));
-  /* Sabah Masası: her gün 08:00 İstanbul (05:00 UTC). Diğer 5 dakikalık
-     işler bu tetikte de çalışır; masa yeni haberleri yayınladığında sosyal
-     taslaklar bir sonraki 5 dakikalık turda hazırlanır. */
-  if(controller && controller.cron==='0 5 * * *'){
-    const masa=sabahMasasi(env)
-      .then(r=>console.log('[btmedya] sabah masasi',r.yayinlanan,'yayinda',r.taslak,'taslak',r.hatalar.length,'hata'))
-      .catch(e=>console.error('[btmedya] sabah masasi:',e?.message||e));
-    // Sabah satış özeti: yeni talepler, geciken dönüşler, dünkü temaslar.
-    const ozet=satisOzeti(env)
-      .then(r=>console.log('[btmedya] satis ozeti',JSON.stringify(r)))
-      .catch(e=>console.error('[btmedya] satis ozeti:',e?.message||e));
-    if(ctx?.waitUntil){ ctx.waitUntil(masa); ctx.waitUntil(ozet); } else await Promise.allSettled([masa,ozet]);
+  const cron=String(controller?.cron||"");
+  const scheduledRaw=Number(controller?.scheduledTime||0);
+  const scheduledAt=new Date(scheduledRaw>1e12?scheduledRaw:(scheduledRaw?scheduledRaw*1000:Date.now()));
+  const minute=scheduledAt.getUTCMinutes();
+
+  // One workload per cron event. Heavy news/AI/health jobs no longer fan out
+  // concurrently from a single 10 ms CPU invocation.
+  if(cron==="0 5 * * *"){
+    await ensureContentTaxonomy(env).catch(e=>console.error("[taxonomy] bootstrap:",e?.message||e));
+    const results=await Promise.allSettled([
+      sabahMasasi(env).then(r=>console.log("[btmedya] sabah masasi",r.yayinlanan,"yayinda",r.taslak,"taslak",r.hatalar.length,"hata")),
+      satisOzeti(env).then(r=>console.log("[btmedya] satis ozeti",JSON.stringify(r)))
+    ]);
+    for(const r of results) if(r.status==="rejected") console.error("[btmedya] daily job:",r.reason?.message||r.reason);
     return;
   }
-  /* Haber autopilotu: her saat, en fazla 2 yeni haber.
-     KV kilidi aynı saat içinde tekrar üretimi engeller. Kaynak/doğrulama
-     kapıları sabahMasasi içinde aynen korunur. */
-  const haberAutopilot=(controller && controller.cron==='*/15 * * * *')
-    ? (async()=>{
-        const saat=Math.floor(Date.now()/3600000);
-        const anahtar='autopilot:news:'+saat;
-        if(env.KV){
-          const once=await env.KV.get(anahtar).catch(()=>null);
-          if(once) return null;
-          await env.KV.put(anahtar,'1',{expirationTtl:7500}).catch(()=>{});
-        }
-        const bucket=Math.floor(Date.now()/3600000);
-        const start=(bucket*2)%KATEGORILER.length;
-        const kategoriler=[KATEGORILER[start],KATEGORILER[(start+1)%KATEGORILER.length]].map(x=>x.anahtar);
-        return sabahMasasi(env,{maxHaber:2,kategoriler})
-          .then(x=>console.log('[btmedya] haber autopilot',JSON.stringify({categories:kategoriler,published:x.yayinlanan,draft:x.taslak,errors:x.hatalar?.length||0})))
-          .catch(e=>console.error('[btmedya] haber autopilot:',e?.message||e));
-      })()
-    : Promise.resolve(null);
-  const autopilot=(controller && controller.cron==='*/15 * * * *')
-    ? runAutopilot(env,{force:false,limit:3}).then(x=>console.log('[btmedya] autopilot',JSON.stringify({scanned:x.scanned,candidates:x.candidates,news:x.created_news,published:x.published_news,social:x.social_created,blocked:x.blocked}))).catch(e=>console.error('[btmedya] autopilot:',e?.message||e))
-    : Promise.resolve(null);
-  const siteHealth=(controller && controller.cron==='*/15 * * * *')
-    ? runSiteOsChecks(env,{limit:20}).then(x=>console.log('[btmedya] site OS',JSON.stringify(x))).catch(e=>console.error('[btmedya] site OS:',e?.message||e))
-    : Promise.resolve(null);
-  const supervisor=(controller && controller.cron==='*/15 * * * *')
-    ? runAgencySupervisor(env,{force:false}).then(x=>console.log('[btmedya] agency supervisor',JSON.stringify({ok:x.ok,alerts:x.summary?.alerts,clients:x.summary?.clients?.active,pendingApproval:x.summary?.content?.pendingApproval}))).catch(e=>console.error('[btmedya] agency supervisor:',e?.message||e))
-    : Promise.resolve(null);
-  const intelligence=(controller && controller.cron==='*/15 * * * *')
-    ? (async()=>{
-        const saat=Math.floor(Date.now()/3600000);
-        const anahtar='merak-radari:calisti:'+saat;
-        if(env.KV){
-          const once=await env.KV.get(anahtar).catch(()=>null);
-          if(once) return null;
-          await env.KV.put(anahtar,'1',{expirationTtl:3700}).catch(()=>{});
-        }
-        const intel=runNewsIntelligence(env,{limit:16})
-          .then(x=>console.log('[btmedya] haber istihbarati',JSON.stringify({scanned:x.scanned,added:x.added,hot:x.hot,errors:x.errors?.length||0})))
-          .catch(e=>console.error('[btmedya] haber istihbarati:',e?.message||e));
-        const merak=merakRadariCalistir(env,{limit:16})
-          .then(x=>console.log('[btmedya] halkin merak radari',JSON.stringify({scanned:x.scanned,signals:x.signals,opportunities:x.opportunities,errors:x.errors?.length||0})))
-          .catch(e=>console.error('[btmedya] merak radari:',e?.message||e));
-        return Promise.allSettled([intel,merak]);
-      })()
-    : Promise.resolve(null);
-  /* Metricool teslim kuyruğu: token/Brand hazırsa planlı sosyal içerikleri dış servise teslim eder.
-     Token yoksa güvenli biçimde yalnızca kuyruğu izler; cron döngüsü yine devam eder. */
-  const metricool=(controller && (controller.cron==='*/5 * * * *' || controller.cron==='*/15 * * * *'))
-    ? processMetricoolQueue(env,10)
-        .then(x=>console.log('[btmedya] Metricool handoff',JSON.stringify({enabled:x.enabled,processed:x.processed,scheduled:x.scheduled,failed:x.failed,skipped:x.skipped})))
-        .catch(e=>console.error('[btmedya] Metricool handoff:',e?.message||e))
-    : Promise.resolve(null);
-  /* Direct Social OS: Meta OAuth ile bağlanan Facebook Page / Instagram Professional
-     hesaplarını Metricool aboneliği olmadan doğrudan yayın kuyruğuna teslim eder. */
-  const directSocial=(controller && (controller.cron==='*/5 * * * *' || controller.cron==='*/15 * * * *'))
-    ? processDirectSocialQueue(env,10)
-        .then(x=>console.log('[btmedya] Direct Social handoff',JSON.stringify({enabled:x.enabled,processed:x.processed,published:x.published,failed:x.failed})))
-        .catch(e=>console.error('[btmedya] Direct Social handoff:',e?.message||e))
-    : Promise.resolve(null);
-  const task=recordAutomationHeartbeat(env).then(x=>console.log('[btmedya] scheduled heartbeat',x.heartbeatAt,'queued',x.queued,'overdue',x.overdue));
-  /* Metricool sosyal tesliminden önce yardımcı kuyruk bakımı: zamanı geçmiş,
-     henüz dış servise teslim edilmemiş planları ileri alır; teslim edilmiş
-     gönderilerin süresi dolduğunda yerel durumunu yayınlandı olarak işaretler. */
-  const sosyalAyar=ayarlariOku(env).catch(()=>({aglar:[],otomatikPlanla:false}));
-  const takip=sosyalAyar.then(a=>gecikenleriKaydir(env,a,5))
-    .then(x=>{ if(x) console.log('[btmedya] geciken sosyal planlar kaydirildi',x); })
-    .catch(e=>console.error('[btmedya] geciken sosyal planlar:',e?.message||e));
-  const archive=yayinlananlariIsaretle(env)
-    .then(x=>{ if(x) console.log('[btmedya] Metricool teslimleri yayinlandi olarak işaretlendi',x); })
-    .catch(e=>console.error('[btmedya] Metricool yayın durumu:',e?.message||e));
-  /* Yayındaki yeni haberleri sosyal panelde onay kuyruğuna hazırlar.
-     Otomatik yayın yapmaz: son yayın kararı kullanıcı onayından sonra Metricool'a gider. */
-  const drafts=autoPrepareSocialDrafts(env,3)
-    .then(x=>{ if(x.created) console.log('[btmedya] social drafts',x.created,'hazırlandı'); })
-    .catch(e=>console.error('[btmedya] social draft generator:',e?.message||e));
-  /* Gün içi haber istihbaratı: her 15 dakikada Google Trends TR, ulusal/yerel
-     yayınlar ve rakip görünürlük sinyalleri taranır. Bu katman yalnız keşif
-     kuyruğunu günceller; otomatik yayın için Sabah Masası'nın doğrulama
-     zinciri geçerlidir. */
-  const hepsi=Promise.all([task,metricool,directSocial,archive,drafts,takip,intelligence,autopilot,supervisor,siteHealth]);
-  if(ctx?.waitUntil) ctx.waitUntil(hepsi); else await hepsi;
+
+  if(cron==="2-59/5 * * * *"){
+    // Alternate queue providers instead of making both external deliveries
+    // in the same invocation. The heartbeat is kept with this lightweight lane.
+    const queue=minute%10===2
+      ? processMetricoolQueue(env,5).then(x=>console.log("[btmedya] Metricool handoff",JSON.stringify({enabled:x.enabled,processed:x.processed,scheduled:x.scheduled,failed:x.failed,skipped:x.skipped})))
+      : processDirectSocialQueue(env,5).then(x=>console.log("[btmedya] Direct Social handoff",JSON.stringify({enabled:x.enabled,processed:x.processed,published:x.published,failed:x.failed})));
+    const heartbeat=recordAutomationHeartbeat(env).then(x=>console.log("[btmedya] scheduled heartbeat",x.heartbeatAt,"queued",x.queued,"overdue",x.overdue));
+    const results=await Promise.allSettled([queue,heartbeat]);
+    for(const r of results) if(r.status==="rejected") console.error("[btmedya] queue lane:",r.reason?.message||r.reason);
+    return;
+  }
+
+  if(cron==="1-59/15 * * * *"){
+    try{
+      const x=await runNewsIntelligence(env,{limit:8});
+      console.log("[btmedya] haber istihbarati",JSON.stringify({scanned:x.scanned,added:x.added,hot:x.hot,errors:x.errors?.length||0}));
+    }catch(e){console.error("[btmedya] haber istihbarati:",e?.message||e);}
+    return;
+  }
+
+  if(cron==="6-59/15 * * * *"){
+    try{
+      const x=await runAutopilot(env,{force:false,limit:2,skipRecentIntelligence:true});
+      console.log("[btmedya] autopilot",JSON.stringify({ok:x.ok,scanned:x.scanned,candidates:x.candidates,news:x.created_news,published:x.published_news,social:x.social_created,blocked:x.blocked,errors:x.error_count}));
+    }catch(e){console.error("[btmedya] autopilot:",e?.message||e);}
+    return;
+  }
+
+  if(cron==="11-59/15 * * * *"){
+    // Rotate the remaining monitoring jobs; never launch all of them together.
+    const slot=(Math.floor((minute-11)/15)%3+3)%3;
+    try{
+      if(slot===0){
+        const x=await runSiteOsChecks(env,{limit:10});
+        console.log("[btmedya] site OS",JSON.stringify(x));
+      }else if(slot===1){
+        const x=await runAgencySupervisor(env,{force:false});
+        console.log("[btmedya] agency supervisor",JSON.stringify({ok:x.ok,alerts:x.summary?.alerts,clients:x.summary?.clients?.active,pendingApproval:x.summary?.content?.pendingApproval}));
+      }else{
+        const x=await merakRadariCalistir(env,{limit:8});
+        console.log("[btmedya] halkin merak radari",JSON.stringify({scanned:x.scanned,signals:x.signals,opportunities:x.opportunities,errors:x.errors?.length||0}));
+      }
+    }catch(e){console.error("[btmedya] rotating monitor:",e?.message||e);}
+    return;
+  }
+
+  console.warn("[btmedya] unknown cron trigger",cron);
 }, async fetch(request, env, ctx){
   const url = new URL(request.url);
 
