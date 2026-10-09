@@ -382,7 +382,7 @@ export async function generateAutopilotImage(env,{prompt,category="Yapay Zekâ",
   }
 }
 
-export async function runAutopilot(env,{force=false,limit}={}){
+export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence=false}={}){
   await ensureTables(env);
   const policy=await autopilotPolicy(env);
   const runKey="run:"+Math.floor(Date.now()/60000);
@@ -402,8 +402,19 @@ export async function runAutopilot(env,{force=false,limit}={}){
     return result;
   }
   try{
-    const intel=await runNewsIntelligence(env,{limit:Math.max(12,Number(limit)||policy.maxItemsPerRun*4)});
-    result.scanned=Number(intel.scanned||0);
+    let recentScan=null;
+    if(skipRecentIntelligence && env.KV){
+      const raw=await env.KV.get("news-intelligence:last").catch(()=>null);
+      try{recentScan=raw?JSON.parse(raw):null;}catch{recentScan=null;}
+    }
+    const age=recentScan?.at?Date.now()-Date.parse(recentScan.at):Infinity;
+    if(skipRecentIntelligence && Number.isFinite(age) && age>=0 && age<12*60*1000){
+      result.scanned=0;
+      result.intelligenceSkipped=true;
+    }else{
+      const intel=await runNewsIntelligence(env,{limit:Math.max(12,Number(limit)||policy.maxItemsPerRun*4)});
+      result.scanned=Number(intel.scanned||0);
+    }
   }catch(e){
     result.error_count++; result.ok=false; result.errors=[String(e?.message||e).slice(0,300)];
   }
@@ -417,7 +428,10 @@ export async function runAutopilot(env,{force=false,limit}={}){
   result.candidates=candidates.length;
 
   let i=0;
-  for(const candidate of candidates){
+  // Bound per-run D1 writes and AI work so a single scheduled invocation
+  // stays inside the Workers Free CPU/subrequest budget.
+  const processLimit=Math.max(1,Math.min(12,Number(limit)||policy.maxItemsPerRun));
+  for(const candidate of candidates.slice(0,processLimit)){
     i++;
     const sensitive=sensitiveText(candidate.title,candidate.excerpt);
     const category=categoryFor(candidate);
