@@ -5,8 +5,16 @@ on:
   # ledger and schema have been reconciled. Never migrate production on push.
   workflow_dispatch:
     inputs:
+      confirm_backup:
+        description: "Type BACKUP_VERIFIED only after a recoverable D1 backup exists"
+        required: true
+        type: string
+      confirm_staging:
+        description: "Type STAGING_VERIFIED only after pending migrations passed on staging"
+        required: true
+        type: string
       confirm_apply:
-        description: "Type APPLY_TO_REMOTE_D1 only after a verified backup and staging test"
+        description: "Type APPLY_TO_REMOTE_D1 to explicitly authorize the remote migration"
         required: true
         type: string
 
@@ -23,11 +31,13 @@ jobs:
       - name: Require explicit production migration confirmation
         shell: bash
         env:
+          CONFIRM_BACKUP: ${{ inputs.confirm_backup }}
+          CONFIRM_STAGING: ${{ inputs.confirm_staging }}
           CONFIRM_APPLY: ${{ inputs.confirm_apply }}
         run: |
           set -euo pipefail
-          if [ "$CONFIRM_APPLY" != "APPLY_TO_REMOTE_D1" ]; then
-            echo "::error::Production D1 migration stopped. First take a backup, reconcile the live ledger, and test on staging."
+          if [ "$CONFIRM_BACKUP" != "BACKUP_VERIFIED" ] || [ "$CONFIRM_STAGING" != "STAGING_VERIFIED" ] || [ "$CONFIRM_APPLY" != "APPLY_TO_REMOTE_D1" ]; then
+            echo "::error::Production D1 migration stopped. Require verified backup, successful staging rehearsal, and explicit apply confirmation."
             exit 1
           fi
 
