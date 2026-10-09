@@ -53,6 +53,7 @@ jobs:
           node --check src/agency-supervisor.js
           node --check src/btmedya-core.js
           node --check src/site-os.js
+          node --check src/windsor-analytics.js
           node --check public/home.js
           node --check public/mobile-motion.js
           node --check public/admin/next-gen.js
