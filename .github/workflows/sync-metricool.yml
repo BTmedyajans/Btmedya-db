@@ -44,11 +44,11 @@ jobs:
       - name: Verify Metricool Brand access
         env:
           METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
-          METRICOOL_USER_ID: ${{ secrets.BTMEDYA_METRICOOL_USER_ID }}
-          METRICOOL_BRAND_ID: ${{ secrets.BTMEDYA_METRICOOL_BRAND_ID }}
+          METRICOOL_USER_ID: "5278969"
+          METRICOOL_BRAND_ID: "6858384"
         run: |
           set -euo pipefail
-          if [ -z "$METRICOOL_USER_TOKEN" ] || [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
+          if [ -z "$METRICOOL_USER_TOKEN" ]; then
             echo "::error::Metricool Brand doğrulanamadı; BTMEDYA_METRICOOL_USER_TOKEN secret eksik. Önce token secret'ını tanımlayıp workflow'u yeniden çalıştırın."
             exit 1
           fi
