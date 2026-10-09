@@ -10,6 +10,7 @@ on:
       - "public/kategori-menu.js"
       - "public/data/youtube-portfoy.json"
       - "wrangler.toml"
+      - "tools/admin-giris-testi.mjs"
       - ".github/workflows/**"
 
 permissions:
@@ -36,6 +37,8 @@ jobs:
           node --check public/home.js
           node --check public/kategori-menu.js
           node --check public/admin/agency-os/agency-os.js
+      - name: Admin login and static asset route regression
+        run: node tools/admin-giris-testi.mjs
       - name: Core wiring
         run: |
           grep -q 'btmedya-core' src/worker.js
