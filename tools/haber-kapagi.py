@@ -742,13 +742,10 @@ def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
         t = h["temsili"]
         im = kapla(kaynak_im, W, H, t.get("odak", 0.45))
         im = ImageEnhance.Contrast(im).enhance(1.08)
-        # Soldan ve alttan karartma: beyaz baslik her fotografta okunsun.
-        maske = Image.new("L", (W, H), 0)
-        dm = ImageDraw.Draw(maske)
-        for x in range(W):
-            dm.line([(x, 0), (x, H)], fill=int(205 * max(0.0, 1 - x / (W * 0.95)) ** 0.9))
-        im = Image.composite(Image.new("RGB", (W, H), (4, 10, 26)), im, maske)
-        im = alt_gecis(im, 0.45, 230)
+        # 10 Ekim (kullanici istegi, ulusal kanal karti): gorsel on planda.
+        # Soldan tum kareyi karartan perde kalkti; yalniz alt ucte bir
+        # gecis var, baslik onun ustunde okunur.
+        im = alt_gecis(im, 0.52 if H > W else 0.50, 225)
         metin_gen = W - 2 * KEN
         kaynak = kunye_satiri(t)
     else:
@@ -804,10 +801,13 @@ def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
     # Baslik: Big Shoulders 900, buyuk harf, en fazla 4 satir, olabildigince iri.
     baslik = buyuk(h["baslik"])
     dikey = H > W
-    punto = 150 if dikey else 118
-    while punto > 50:
+    # 10 Ekim: yazi kucuk, gorsel on planda. Fotografli kartta baslik en
+    # fazla 3 satir ve 78 puntodan baslar (onceden 118, 4 satir).
+    fotolu = bool(temsili_yolu or portre)
+    punto = (104 if dikey else 78) if fotolu else (130 if dikey else 96)
+    while punto > 44:
         bf = f_baslik(punto)
-        if len(sar(d, baslik, bf, metin_gen)) <= (4 if dikey else (3 if punto > 80 else 4)):
+        if len(sar(d, baslik, bf, metin_gen)) <= (4 if dikey else 3):
             break
         punto -= 4
     bf = f_baslik(punto)
@@ -818,7 +818,7 @@ def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
     alt = H - 60
     y = alt - len(satirlar) * sat_y
     if etiket:
-        ef = f_baslik(40)
+        ef = f_baslik(30 if fotolu else 36)
         while ef.size > 24 and d.textlength(etiket, font=ef) > metin_gen - 40:
             ef = f_baslik(ef.size - 2)
         if d.textlength(etiket, font=ef) > metin_gen - 40:

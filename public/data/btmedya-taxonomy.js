@@ -2,7 +2,7 @@
    Public + admin arayüzleri aynı ağacı kullanır.
    Ana anahtarlar geriye dönük olarak haber/sosyal/tanitim tutulur. */
 window.BTMEDYA_TAXONOMY = {
-  version: "2026-10-07.1",
+  version: "2026-10-10.1",
   principle: "Müşteri niyetine göre seç, üretim türünü ikinci/üçüncü seviyede belirle, dağıtımı otomasyona bırak.",
   paths: [
     {
@@ -15,11 +15,28 @@ window.BTMEDYA_TAXONOMY = {
       publicHref: "/haberler/",
       groups: [
         {
+          key: "balikesir",
+          label: "BALIKESİR",
+          adminLabel: "BALIKESİR",
+          items: [
+            {key:"balikesir",label:"Balıkesir",short:"Şehir ve ilçe gündemi",href:"/haberler/balikesir/",type:"news",automation:["news-intelligence","sabah-masasi","seo-aeo"]},
+            {key:"ilce-karesi",label:"Karesi",short:"Karesi haberleri",href:"/haberler/balikesir/karesi/",type:"news",automation:["news-intelligence","sabah-masasi"]},
+            {key:"ilce-altieylul",label:"Altıeylül",short:"Altıeylül haberleri",href:"/haberler/balikesir/altieylul/",type:"news",automation:["news-intelligence","sabah-masasi"]},
+            {key:"ilce-edremit",label:"Edremit",short:"Edremit haberleri",href:"/haberler/balikesir/edremit/",type:"news",automation:["news-intelligence","sabah-masasi"]},
+            {key:"ilce-ayvalik",label:"Ayvalık",short:"Ayvalık haberleri",href:"/haberler/balikesir/ayvalik/",type:"news",automation:["news-intelligence","sabah-masasi"]},
+            {key:"ilce-bandirma",label:"Bandırma",short:"Bandırma haberleri",href:"/haberler/balikesir/bandirma/",type:"news",automation:["news-intelligence","sabah-masasi"]},
+            {key:"ilce-burhaniye",label:"Burhaniye",short:"Burhaniye haberleri",href:"/haberler/balikesir/burhaniye/",type:"news",automation:["news-intelligence","sabah-masasi"]},
+            {key:"ilce-gonen",label:"Gönen",short:"Gönen haberleri",href:"/haberler/balikesir/gonen/",type:"news",automation:["news-intelligence","sabah-masasi"]},
+            {key:"ilce-susurluk",label:"Susurluk",short:"Susurluk haberleri",href:"/haberler/balikesir/susurluk/",type:"news",automation:["news-intelligence","sabah-masasi"]},
+            {key:"ilce-erdek",label:"Erdek",short:"Erdek haberleri",href:"/haberler/balikesir/erdek/",type:"news",automation:["news-intelligence","sabah-masasi"]},
+            {key:"ilce-bigadic",label:"Bigadiç",short:"Bigadiç haberleri",href:"/haberler/balikesir/bigadic/",type:"news",automation:["news-intelligence","sabah-masasi"]}
+          ]
+        },
+        {
           key: "haber-bul",
           label: "HABERİ BUL",
           adminLabel: "EDİTORYAL",
           items: [
-            {key:"balikesir",label:"Balıkesir",short:"Şehir ve ilçe gündemi",href:"/haberler/balikesir/",type:"news",automation:["news-intelligence","sabah-masasi","seo-aeo"]},
             {key:"turkiye",label:"Türkiye",short:"Ulusal gündem",href:"/haberler/turkiye/",type:"news",automation:["news-intelligence","seo-aeo"]},
             {key:"dunya",label:"Dünya",short:"Uluslararası gelişmeler",href:"/haberler/dunya/",type:"news",automation:["news-intelligence","seo-aeo"]}
           ]

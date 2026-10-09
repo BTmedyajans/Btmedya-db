@@ -211,7 +211,7 @@ ${ldYaz(videoLd)}
 <link rel="stylesheet" href="/mobil-tipografi.css?v=20261006-1">
 <link rel="stylesheet" href="/kategori-menu.css?v=20261006-1">
 <link rel="stylesheet" href="/tipografi-v2.css?v=20261006-1">
-<script src="/kategori-menu.js?v=20261006-1" defer></script>
+<script src="/kategori-menu.js?v=20261010-1" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">İçeriğe geç</a>

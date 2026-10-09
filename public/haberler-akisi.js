@@ -158,12 +158,53 @@
     yer.innerHTML = '<div class="hm-manset-grid"><div>' + mansetKartBuyuk(ilk) + '</div><div class="hm-manset-yan">' + yan.map(mansetKartYan).join('') + '</div></div>';
   }
 
+  /* 10 Ekim (kullanıcı isteği): ulusal kanal (CNN Türk) manşet düzeni.
+     Büyük alanda sırayla dönen manşetler, altında numaralı şerit, sağda iki
+     sürmanşet. Kapakta başlık basılı olduğu için manşet görselinin üstüne
+     ikinci başlık yazılmaz; başlık ekran okuyucu için gizli metinde durur.
+     Numara üstüne gelince/odaklanınca o manşet açılır; fare alandayken ya
+     da azaltılmış hareket tercihinde kendiliğinden ilerlemez. */
+  function numaraliManset(yer, liste) {
+    if (!yer) return;
+    if (!liste.length) { yer.innerHTML = '<p class="hm-bos">Bu manşet grubunda henüz yayımlanmış haber yok.</p>'; return; }
+    var slaytlar = liste.slice(0, 8), yan = liste.slice(8, 10);
+    yer.innerHTML = '<div class="hm-mt"><div class="hm-mt-sahne">' +
+      '<div class="hm-mt-slaytlar">' + slaytlar.map(function (n, i) {
+        return '<a class="hm-mt-slayt' + (i ? '' : ' is-acik') + '" data-kat="' + n._kat + '" href="' + adres(n) + '"' + (i ? ' tabindex="-1" aria-hidden="true"' : '') + '>' +
+          '<img src="' + esc(kapak(n)) + '" alt="" width="1200" height="675" ' + (i ? 'loading="lazy"' : 'fetchpriority="high"') + ' decoding="async">' +
+          '<span class="hm-gizli">' + esc(n.title) + '</span></a>';
+      }).join('') + '</div>' +
+      '<div class="hm-mt-numaralar" role="tablist" aria-label="Manşetler">' + slaytlar.map(function (n, i) {
+        return '<button type="button" role="tab" class="hm-mt-no' + (i ? '' : ' is-acik') + '" aria-selected="' + (i ? 'false' : 'true') + '" aria-label="' + (i + 1) + '. manşet: ' + esc(n.title) + '" data-i="' + i + '">' + (i + 1) + '</button>';
+      }).join('') + '</div></div>' +
+      (yan.length ? '<div class="hm-mt-yan">' + yan.map(function (n) {
+        return '<a class="hm-mt-yan-kart" data-kat="' + n._kat + '" href="' + adres(n) + '"><img src="' + esc(kapak(n)) + '" alt="" width="1200" height="675" loading="lazy" decoding="async"><span class="hm-gizli">' + esc(n.title) + '</span></a>';
+      }).join('') + '</div>' : '') + '</div>';
+    var kutu = yer.querySelector('.hm-mt'), aslar = kutu.querySelectorAll('.hm-mt-slayt'), nolar = kutu.querySelectorAll('.hm-mt-no');
+    var etkin = 0, zamanlayici = 0, durdu = false;
+    function ac(i) {
+      etkin = (i + aslar.length) % aslar.length;
+      aslar.forEach(function (a, j) { var on = j === etkin; a.classList.toggle('is-acik', on); a.setAttribute('aria-hidden', String(!on)); a.tabIndex = on ? 0 : -1; });
+      nolar.forEach(function (b, j) { var on = j === etkin; b.classList.toggle('is-acik', on); b.setAttribute('aria-selected', String(on)); });
+    }
+    function kur() { clearInterval(zamanlayici); if (!azHareket && !durdu && aslar.length > 1) zamanlayici = setInterval(function () { ac(etkin + 1); }, 6000); }
+    nolar.forEach(function (b) {
+      var sec = function () { ac(Number(b.getAttribute('data-i'))); };
+      b.addEventListener('mouseenter', sec); b.addEventListener('focus', sec); b.addEventListener('click', sec);
+    });
+    kutu.addEventListener('mouseenter', function () { durdu = true; kur(); });
+    kutu.addEventListener('mouseleave', function () { durdu = false; kur(); });
+    kutu.addEventListener('focusin', function () { durdu = true; kur(); });
+    kutu.addEventListener('focusout', function () { durdu = false; kur(); });
+    kur();
+  }
+
   function manset(liste) {
     // Editoryal öncelik: Balıkesir ana manşet, Türkiye seçilmiş 3 haber.
-    var bal = liste.filter(function (n) { return n._kat === 'balikesir'; }).slice(0, 5);
+    var bal = liste.filter(function (n) { return n._kat === 'balikesir'; }).slice(0, 10);
     var trAday = liste.filter(function (n) { return n._kat !== 'balikesir' && n._kat !== 'dunya'; });
     var tr = trAday.slice(0, 3);
-    mansetGrubu(kok.querySelector('[data-hm-manset-balikesir]'), bal);
+    numaraliManset(kok.querySelector('[data-hm-manset-balikesir]'), bal);
     mansetGrubu(kok.querySelector('[data-hm-manset-turkiye]'), tr);
   }
 
@@ -377,7 +418,7 @@
     // Manşet iki ayrı yayın masasıdır: Türkiye + Balıkesir.
     // Her gruptan ilk 5 haber manşete alınır; aşağıdaki akışta tekrar edilmez.
     var trManset = guncel.filter(function (n) { return n._kat !== 'balikesir' && n._kat !== 'dunya'; }).slice(0, 3);
-    var balManset = guncel.filter(function (n) { return n._kat === 'balikesir'; }).slice(0, 5);
+    var balManset = guncel.filter(function (n) { return n._kat === 'balikesir'; }).slice(0, 10);
     var mansetler = trManset.concat(balManset);
     var kalan = guncel.filter(function (n) { return mansetler.indexOf(n) < 0; });
     var surler = kalan.slice(0, 12);

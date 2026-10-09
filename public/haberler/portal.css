@@ -362,3 +362,22 @@ body>.hm-cekmece{position:fixed!important;inset:0;z-index:2147483000!important}
  .hm-manset-yan-kart{display:block}
  .hm-manset-yan-kart img{aspect-ratio:1/1;object-fit:cover}
 }
+
+/* 10 Ekim: CNN Türk düzeni numaralı manşet (haberler-akisi.js numaraliManset). */
+.hm-mt{display:grid;grid-template-columns:minmax(0,2.1fr) minmax(260px,.9fr);gap:16px;align-items:start}
+.hm-mt-sahne{min-width:0;background:#0d1015}
+.hm-mt-slaytlar{position:relative;aspect-ratio:16/9;overflow:hidden;background:#111}
+.hm-mt-slayt{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .45s ease,visibility 0s .45s}
+.hm-mt-slayt.is-acik{opacity:1;visibility:visible;transition:opacity .45s ease}
+.hm-mt-slayt img{width:100%;height:100%;object-fit:cover;display:block}
+.hm-mt-numaralar{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));background:#0d1015}
+.hm-mt-no{min-height:44px;border:0;border-top:3px solid transparent;background:transparent;color:#aab3bd;font:800 15px/1 Manrope,Inter,Arial,sans-serif;cursor:pointer;transition:background .2s ease,color .2s ease,border-color .2s ease}
+.hm-mt-no:hover,.hm-mt-no:focus-visible{color:#fff;background:#1a2029;outline:none}
+.hm-mt-no.is-acik{color:#fff;background:var(--hm-news-red,#e3141b);border-top-color:#fff}
+.hm-mt-yan{display:grid;gap:16px}
+.hm-mt-yan-kart{display:block;aspect-ratio:16/9;overflow:hidden;background:#111}
+.hm-mt-yan-kart img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease}
+.hm-mt-yan-kart:hover img{transform:scale(1.03)}
+@media(max-width:1000px){.hm-mt{grid-template-columns:1fr}.hm-mt-yan{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.hm-mt-numaralar{grid-template-columns:repeat(8,minmax(40px,1fr))}.hm-mt-no{min-height:44px;font-size:14px}.hm-mt-yan{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.hm-mt-slayt,.hm-mt-slayt.is-acik{transition:none}}
