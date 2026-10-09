@@ -30,8 +30,8 @@ jobs:
           set -euo pipefail
 
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Cloudflare deploy token eksik"; exit 1; }
-          METRICOOL_USER_ID="$(sed -n 's/^METRICOOL_USER_ID = "\\([^"]*\\)".*/\\1/p' wrangler.toml | head -n1)"
-          METRICOOL_BRAND_ID="$(sed -n 's/^METRICOOL_BRAND_ID = "\\([^"]*\\)".*/\\1/p' wrangler.toml | head -n1)"
+          METRICOOL_USER_ID="$(grep '^METRICOOL_USER_ID = ' wrangler.toml | cut -d '"' -f 2)"
+          METRICOOL_BRAND_ID="$(grep '^METRICOOL_BRAND_ID = ' wrangler.toml | cut -d '"' -f 2)"
           if [ -z "$METRICOOL_USER_TOKEN" ] || [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
             echo "::warning::GitHub Metricool secret'ları tanımlı değil; mevcut Cloudflare Worker secret'ları korunuyor, senkronizasyon atlandı."
             exit 0
@@ -46,8 +46,8 @@ jobs:
           METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
         run: |
           set -euo pipefail
-          METRICOOL_USER_ID="$(sed -n 's/^METRICOOL_USER_ID = "\\([^"]*\\)".*/\\1/p' wrangler.toml | head -n1)"
-          METRICOOL_BRAND_ID="$(sed -n 's/^METRICOOL_BRAND_ID = "\\([^"]*\\)".*/\\1/p' wrangler.toml | head -n1)"
+          METRICOOL_USER_ID="$(grep '^METRICOOL_USER_ID = ' wrangler.toml | cut -d '"' -f 2)"
+          METRICOOL_BRAND_ID="$(grep '^METRICOOL_BRAND_ID = ' wrangler.toml | cut -d '"' -f 2)"
           if [ -z "$METRICOOL_USER_TOKEN" ] || [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
             echo "::warning::GitHub Metricool secret'ları tanımlı değil; doğrulama atlandı."
             exit 0
