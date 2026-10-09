@@ -54,6 +54,9 @@
     var izleyiciOncedenBasladi = window.__btmedyaMetricoolRequested === true;
     OTURUM_TERCIHI = analitik === true;
     try {
+      /* Açık bir kullanıcı seçimi, önceki ?olcum=kapat geçici anahtarını
+         geçersiz kılar; tercih penceresi eski anahtarla sonsuza dek kilitlenmez. */
+      localStorage.removeItem(IC_OLUM_KAPALI);
       localStorage.setItem(ANAHTAR, JSON.stringify({
         surum: 1,
         zorunlu: true,
