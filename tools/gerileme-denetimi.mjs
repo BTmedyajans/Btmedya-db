@@ -577,6 +577,30 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   }
 }
 
+/* 22) Public medya kayıtları, static/ önekli dosyaları R2 imzasıyla sunmamalı.
+       Bu kayıtlar public/assets altındadır; R2 anahtarı olmadığından imzalı URL 404 veriyordu.
+       Ayrıca R2 nesnesi silinmiş bir kayıt kamuya açık medya listesinde kalmamalı. */
+{
+  const publicStart = worker.indexOf("if(path==='/api/public/media' && request.method==='GET')");
+  const publicEnd = worker.indexOf("if(path==='/api/media' && request.method==='GET')", publicStart);
+  const publicApi = publicStart >= 0 && publicEnd > publicStart ? worker.slice(publicStart, publicEnd) : '';
+  if (!publicApi.includes('const staticCatalog=await medyaListesi(env,u.origin)') ||
+      !publicApi.includes('key.startsWith(STATIK_ONEK)') ||
+      !publicApi.includes('url:medyaAdresi(key)') ||
+      !publicApi.includes('env.MEDIA.head(key)') ||
+      !publicApi.includes('.filter(Boolean)')) {
+    bulgular.push('public medya API static/ dosyalarını /assets/ üzerinden sunmuyor veya R2 içinde bulunmayan kayıtları filtrelemiyor.');
+  }
+  const exportStart = worker.indexOf("if(path==='/api/export' && request.method==='GET')");
+  const exportEnd = worker.indexOf('return null;', exportStart);
+  const exportApi = exportStart >= 0 && exportEnd > exportStart ? worker.slice(exportStart, exportEnd) : '';
+  if (!exportApi.includes('url:medyaAdresi(key)') ||
+      !exportApi.includes('env.MEDIA.head(key)') ||
+      !exportApi.includes('.filter(Boolean)')) {
+    bulgular.push('/api/export static medya URL eşlemesini veya bozuk R2 kaydı filtresini içermiyor.');
+  }
+}
+
 if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
