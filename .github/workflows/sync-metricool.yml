@@ -26,12 +26,12 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
           METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
-          METRICOOL_USER_ID: ${{ secrets.BTMEDYA_METRICOOL_USER_ID }}
-          METRICOOL_BRAND_ID: ${{ secrets.BTMEDYA_METRICOOL_BRAND_ID }}
         run: |
           set -euo pipefail
 
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Cloudflare deploy token eksik"; exit 1; }
+          METRICOOL_USER_ID="$(sed -n 's/^METRICOOL_USER_ID = "\\([^"]*\\)".*/\\1/p' wrangler.toml | head -n1)"
+          METRICOOL_BRAND_ID="$(sed -n 's/^METRICOOL_BRAND_ID = "\\([^"]*\\)".*/\\1/p' wrangler.toml | head -n1)"
           if [ -z "$METRICOOL_USER_TOKEN" ] || [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
             echo "::warning::GitHub Metricool secret'ları tanımlı değil; mevcut Cloudflare Worker secret'ları korunuyor, senkronizasyon atlandı."
             exit 0
@@ -40,16 +40,14 @@ jobs:
           npm install --no-save --no-package-lock wrangler@4.142.0
 
           printf '%s' "$METRICOOL_USER_TOKEN" | npx wrangler secret put METRICOOL_USER_TOKEN --name btmedya-db --config wrangler.toml
-          printf '%s' "$METRICOOL_USER_ID" | npx wrangler secret put METRICOOL_USER_ID --name btmedya-db --config wrangler.toml
-          printf '%s' "$METRICOOL_BRAND_ID" | npx wrangler secret put METRICOOL_BRAND_ID --name btmedya-db --config wrangler.toml
 
       - name: Verify Metricool Brand access
         env:
           METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
-          METRICOOL_USER_ID: ${{ secrets.BTMEDYA_METRICOOL_USER_ID }}
-          METRICOOL_BRAND_ID: ${{ secrets.BTMEDYA_METRICOOL_BRAND_ID }}
         run: |
           set -euo pipefail
+          METRICOOL_USER_ID="$(sed -n 's/^METRICOOL_USER_ID = "\\([^"]*\\)".*/\\1/p' wrangler.toml | head -n1)"
+          METRICOOL_BRAND_ID="$(sed -n 's/^METRICOOL_BRAND_ID = "\\([^"]*\\)".*/\\1/p' wrangler.toml | head -n1)"
           if [ -z "$METRICOOL_USER_TOKEN" ] || [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
             echo "::warning::GitHub Metricool secret'ları tanımlı değil; doğrulama atlandı."
             exit 0
