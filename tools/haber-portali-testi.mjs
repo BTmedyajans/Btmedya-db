@@ -105,4 +105,10 @@ assert.match(ilgili, /src="\/assets\/haber-kapak\/a-foto\.webp"[^>]*loading="laz
 assert.match(ilgili, /Arşiv fotoğrafı/);
 assert.match(ilgili, /src="\/assets\/kategori-kapak\/spor\.webp"[\s\S]*?BTMEDYA grafik/);
 assert.equal((ilgili.match(/<img/g) || []).length, 2, 'kapaksız ilgili habere görsel basılmamalı');
+// API hata/boş sonuç halinde manşet yer tutucuları kalıcı olmamalı; RSS ve arşiv erişilebilir kalmalı.
+assert.ok(betik.includes('function akisYuklenemedi()'), 'akış yedek fonksiyonu eksik');
+assert.ok(betik.includes('href="/rss.xml"'), 'RSS yedek bağlantısı eksik');
+assert.ok(betik.includes('if (!cevap.ok) { akisYuklenemedi(); return; }'), 'API hatası yedek duruma geçmiyor');
+assert.ok(betik.includes('if (!guncel.length) { akisYuklenemedi(); return; }'), 'boş haber listesi yedek duruma geçmiyor');
+assert.ok(betik.includes("yukle().catch(function (e) { akisYuklenemedi();"), 'beklenmeyen hata yedek duruma geçmiyor');
 console.log('HABER PORTALI TESTI GECTI');
