@@ -23,9 +23,9 @@ CREATE TABLE IF NOT EXISTS social_direct_jobs_v2 (
 );
 
 INSERT OR IGNORE INTO social_direct_jobs_v2
-  (id,connection_id,title,body,media_key,scheduled_at,status,attempts,external_id,last_error,created_at,updated_at)
+  (id,connection_id,title,body,media_key,scheduled_at,status,attempts,external_id,last_error,source_slug,content_hash,kind,created_at,updated_at)
 SELECT
-  id,connection_id,title,body,media_key,scheduled_at,status,attempts,external_id,last_error,created_at,updated_at
+  id,connection_id,title,body,media_key,scheduled_at,status,attempts,external_id,last_error,source_slug,content_hash,kind,created_at,updated_at
 FROM social_direct_jobs;
 
 DROP TABLE social_direct_jobs;

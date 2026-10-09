@@ -32,6 +32,9 @@ CREATE TABLE IF NOT EXISTS social_direct_jobs (
   attempts INTEGER NOT NULL DEFAULT 0,
   external_id TEXT NOT NULL DEFAULT '',
   last_error TEXT NOT NULL DEFAULT '',
+  source_slug TEXT NOT NULL DEFAULT '',
+  content_hash TEXT NOT NULL DEFAULT '',
+  kind TEXT NOT NULL DEFAULT 'manual',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY(connection_id) REFERENCES social_direct_connections(id) ON DELETE CASCADE

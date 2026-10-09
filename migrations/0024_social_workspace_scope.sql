@@ -3,6 +3,11 @@
 -- intentionally attached to different workspaces without global collisions.
 PRAGMA foreign_keys=OFF;
 
+-- Replacing the parent connection table may cascade-delete queued publications
+-- in D1 even when foreign_keys is toggled inside a migration batch. Keep an
+-- independent copy and restore it after the parent has been renamed.
+CREATE TABLE social_direct_jobs__scope_backup AS SELECT * FROM social_direct_jobs;
+
 CREATE TABLE IF NOT EXISTS social_direct_connections_v2 (
   id TEXT PRIMARY KEY,
   workspace_type TEXT NOT NULL DEFAULT 'client',
@@ -32,6 +37,9 @@ FROM social_direct_connections;
 
 DROP TABLE social_direct_connections;
 ALTER TABLE social_direct_connections_v2 RENAME TO social_direct_connections;
+
+INSERT OR IGNORE INTO social_direct_jobs SELECT * FROM social_direct_jobs__scope_backup;
+DROP TABLE social_direct_jobs__scope_backup;
 
 CREATE INDEX IF NOT EXISTS idx_social_direct_workspace ON social_direct_connections(workspace_type,workspace_id);
 CREATE INDEX IF NOT EXISTS idx_social_direct_provider ON social_direct_connections(provider,status);

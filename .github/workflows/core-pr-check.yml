@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "src/**"
+      - "migrations/**"
+      - "tools/site-os-migration-test.py"
+      - "tools/admin-giris-testi.mjs"
       - "public/admin/agency-os/**"
       - "public/home.js"
       - "public/kategori-menu.js"
@@ -36,6 +39,10 @@ jobs:
           node --check public/home.js
           node --check public/kategori-menu.js
           node --check public/admin/agency-os/agency-os.js
+      - name: Admin login and static asset route regression
+        run: node tools/admin-giris-testi.mjs
+      - name: Site OS migration and taxonomy regression
+        run: python3 tools/site-os-migration-test.py
       - name: Core wiring
         run: |
           grep -q 'btmedya-core' src/worker.js
