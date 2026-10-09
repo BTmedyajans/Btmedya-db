@@ -398,10 +398,14 @@ export async function runAutopilot(env,{force=false,limit}={}){
   };
   if(!force && !policy.enabled){
     result.ok=true; result.skipped=true; result.reason="Autopilot kapalı.";
+    if(env.DB && runId) await env.DB.prepare("UPDATE autopilot_runs SET finished_at=?,detail=? WHERE id=?")
+      .bind(nowIso(),JSON.stringify({skipped:true,reason:result.reason}),runId).run().catch(()=>{});
     return result;
   }
+  // Bound per-invocation work to stay below Workers' subrequest/runtime limits.
+  // More candidates are processed by later scheduled runs instead of one oversized run.
   try{
-    const intel=await runNewsIntelligence(env,{limit:Math.max(12,Number(limit)||policy.maxItemsPerRun*4)});
+    const intel=await runNewsIntelligence(env,{limit:Math.min(8,Math.max(4,Number(limit)||policy.maxItemsPerRun*2))});
     result.scanned=Number(intel.scanned||0);
   }catch(e){
     result.error_count++; result.ok=false; result.errors=[String(e?.message||e).slice(0,300)];
@@ -411,13 +415,14 @@ export async function runAutopilot(env,{force=false,limit}={}){
   if(env.DB){
     candidates=(await env.DB.prepare(
       "SELECT ni.* FROM news_intelligence ni LEFT JOIN news n ON n.source_url=ni.source_url WHERE n.id IS NULL AND ni.score>=? ORDER BY ni.score DESC, ni.updated_at DESC LIMIT ?"
-    ).bind(policy.minScore,policy.maxItemsPerRun).all().catch(()=>({results:[]}))).results||[];
+    ).bind(policy.minScore,Math.min(2,policy.maxItemsPerRun)).all().catch(()=>({results:[]}))).results||[];
   }
   result.candidates=candidates.length;
 
   let i=0;
   for(const candidate of candidates){
     i++;
+    try {
     const sensitive=sensitiveText(candidate.title,candidate.excerpt);
     const category=categoryFor(candidate);
     const tier=String(candidate.source_tier||"discovery");
@@ -462,16 +467,25 @@ export async function runAutopilot(env,{force=false,limit}={}){
     await log(env,runId,"news",news.slug,news.status,auto?"kriterler sağlandı":"editör onayı gerektiriyor",{
       source:candidate.source_url,score:candidate.score,category,media:media?.key||""
     });
+    } catch(e) {
+      result.error_count++;
+      result.ok=false;
+      result.errors=[...(result.errors||[]),String(e?.message||e).slice(0,240)].slice(-10);
+      await log(env,runId,"candidate",candidate.source_url,"error","aday işlenemedi; sonraki adaya devam ediliyor",{error:String(e?.message||e).slice(0,240)});
+    }
   }
 
   if(env.DB){
     // Rakip kaynakları kamuya açık RSS üzerinden yalnızca başlık sıklığı için izlenir.
-    const hosts=policy.competitorHosts;
+    const hostList=policy.competitorHosts;
+    // Rotate through at most two feeds per run; subsequent 15-minute runs cover the rest.
+    const start=hostList.length ? Math.floor(Date.now()/900000)%hostList.length : 0;
+    const hosts=hostList.length ? Array.from({length:Math.min(2,hostList.length)},(_,n)=>hostList[(start+n)%hostList.length]) : [];
     const rows=[];
     for(const host of hosts){
       const url="https://news.google.com/rss/search?q=site%3A"+encodeURIComponent(host)+"&hl=tr&gl=TR&ceid=TR:tr";
       try{
-        const r=await fetch(url,{headers:{accept:"application/rss+xml, text/xml","user-agent":"BTMEDYA-CompetitorRadar/1.0"}});
+        const r=await fetch(url,{headers:{accept:"application/rss+xml, text/xml","user-agent":"BTMEDYA-CompetitorRadar/1.0"},signal:AbortSignal.timeout(6500)});
         const xml=await r.text();
         const items=[...xml.matchAll(/<item>[\s\S]*?<\/item>/gi)].slice(0,12).map(m=>m[0])
           .map(b=>({
