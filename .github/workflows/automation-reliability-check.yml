@@ -42,7 +42,7 @@ jobs:
           grep -q 'cron==="\*/5 \* \* \* \*"' src/worker.js
           grep -q 'cron==="\*/15 \* \* \* \*"' src/worker.js
           grep -q 'cron==="0 5 \* \* \*"' src/worker.js
-          grep -q 'crons = ["\*/5 \* \* \* \*", "\*/15 \* \* \* \*", "0 5 \* \* \*"]' wrangler.toml
+          grep -Fq 'crons = ["*/5 * * * *", "*/15 * * * *", "0 5 * * *"]' wrangler.toml
           ! grep -Eq '^  push:' .github/workflows/d1-migrations.yml
           grep -q 'APPLY_TO_REMOTE_D1' .github/workflows/d1-migrations.yml
           echo "AUTOMATION_RELIABILITY_GUARDS_PASS"
