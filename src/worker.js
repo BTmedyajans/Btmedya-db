@@ -1929,9 +1929,7 @@ export default { async scheduled(controller, env, ctx){
   const minute=scheduledAt.getUTCMinutes();
   const hour=scheduledAt.getUTCHours();
 
-  // Daily editorial pass runs on the 05:00 UTC tick of the 5-minute lane.
-  // This avoids a separate cron trigger and keeps all heavy tasks staggered.
-  if(cron==="*/5 * * * *" && hour===5 && minute===0){
+  if(cron==="0 5 * * *"){
     await ensureContentTaxonomy(env).catch(e=>console.error("[taxonomy] bootstrap:",e?.message||e));
     const results=await Promise.allSettled([
       sabahMasasi(env).then(r=>console.log("[btmedya] sabah masasi",r.yayinlanan,"yayinda",r.taslak,"taslak",r.hatalar.length,"hata")),
@@ -1942,55 +1940,47 @@ export default { async scheduled(controller, env, ctx){
   }
 
   if(cron==="*/5 * * * *"){
-    // Alternate queue providers instead of making both external deliveries
-    // in the same invocation.
-    const queue=minute%10===0
-      ? processMetricoolQueue(env,5).then(x=>console.log("[btmedya] Metricool handoff",JSON.stringify({enabled:x.enabled,processed:x.processed,scheduled:x.scheduled,failed:x.failed,skipped:x.skipped})))
-      : processDirectSocialQueue(env,5).then(x=>console.log("[btmedya] Direct Social handoff",JSON.stringify({enabled:x.enabled,processed:x.processed,published:x.published,failed:x.failed})));
-    const heartbeat=recordAutomationHeartbeat(env).then(x=>console.log("[btmedya] scheduled heartbeat",x.heartbeatAt,"queued",x.queued,"overdue",x.overdue));
-    const results=await Promise.allSettled([queue,heartbeat]);
-    for(const r of results) if(r.status==="rejected") console.error("[btmedya] queue lane:",r.reason?.message||r.reason);
-    return;
-  }
-
-  if(cron==="4-59/5 * * * *"){
-    // Rotate local queue maintenance; one DB-heavy helper per invocation.
-    const slot=(Math.floor(minute/5)%3+3)%3;
+    // Use only one delivery/discovery/maintenance lane per event. This keeps
+    // the already-active cron expression compatible while the deployment
+    // platform finishes reconciling trigger metadata.
+    const slot=Math.floor(minute/5)%6;
     try{
       if(slot===0){
+        const x=await processMetricoolQueue(env,5);
+        console.log("[btmedya] Metricool handoff",JSON.stringify({enabled:x.enabled,processed:x.processed,scheduled:x.scheduled,failed:x.failed,skipped:x.skipped}));
+        const h=await recordAutomationHeartbeat(env);
+        console.log("[btmedya] scheduled heartbeat",h.heartbeatAt,"queued",h.queued,"overdue",h.overdue);
+      }else if(slot===1){
+        const x=await processDirectSocialQueue(env,5);
+        console.log("[btmedya] Direct Social handoff",JSON.stringify({enabled:x.enabled,processed:x.processed,published:x.published,failed:x.failed}));
+      }else if(slot===2){
+        const x=await runNewsIntelligence(env,{limit:8});
+        console.log("[btmedya] haber istihbarati",JSON.stringify({scanned:x.scanned,added:x.added,hot:x.hot,errors:x.errors?.length||0}));
+      }else if(slot===3){
+        const x=await runAutopilot(env,{force:false,limit:2,skipRecentIntelligence:true});
+        console.log("[btmedya] autopilot",JSON.stringify({ok:x.ok,scanned:x.scanned,candidates:x.candidates,news:x.created_news,published:x.published_news,social:x.social_created,blocked:x.blocked,errors:x.error_count}));
+      }else if(slot===4){
         const x=await autoPrepareSocialDrafts(env,3);
         if(x?.created) console.log("[btmedya] social drafts",x.created,"hazırlandı");
-      }else if(slot===1){
-        const a=await ayarlariOku(env).catch(()=>({aglar:[],otomatikPlanla:false}));
-        const x=await gecikenleriKaydir(env,a,5);
-        if(x) console.log("[btmedya] geciken sosyal planlar kaydirildi",x);
       }else{
-        const x=await yayinlananlariIsaretle(env);
-        if(x) console.log("[btmedya] Metricool yayın durumu",x);
+        const settings=await ayarlariOku(env).catch(()=>({aglar:[],otomatikPlanla:false}));
+        if(hour%2===0){
+          const x=await gecikenleriKaydir(env,settings,5);
+          if(x) console.log("[btmedya] geciken sosyal planlar kaydirildi",x);
+        }else{
+          const x=await yayinlananlariIsaretle(env);
+          if(x) console.log("[btmedya] Metricool yayın durumu",x);
+        }
       }
-    }catch(e){console.error("[btmedya] maintenance lane:",e?.message||e);}
+    }catch(e){console.error("[btmedya] scheduled lane:",e?.message||e);}
     return;
   }
 
-  if(cron==="1-59/15 * * * *"){
-    try{
-      const x=await runNewsIntelligence(env,{limit:8});
-      console.log("[btmedya] haber istihbarati",JSON.stringify({scanned:x.scanned,added:x.added,hot:x.hot,errors:x.errors?.length||0}));
-    }catch(e){console.error("[btmedya] haber istihbarati:",e?.message||e);}
-    return;
-  }
-
-  if(cron==="6-59/15 * * * *"){
-    try{
-      const x=await runAutopilot(env,{force:false,limit:2,skipRecentIntelligence:true});
-      console.log("[btmedya] autopilot",JSON.stringify({ok:x.ok,scanned:x.scanned,candidates:x.candidates,news:x.created_news,published:x.published_news,social:x.social_created,blocked:x.blocked,errors:x.error_count}));
-    }catch(e){console.error("[btmedya] autopilot:",e?.message||e);}
-    return;
-  }
-
-  if(cron==="11-59/15 * * * *"){
-    // Rotate the remaining monitoring jobs; never launch all of them together.
-    const slot=(Math.floor((minute-11)/15)%3+3)%3;
+  // The platform can deliver a previously queued */15 event after a config
+  // update. Handle that legacy trigger explicitly instead of emitting
+  // "unknown cron trigger" or launching all monitoring jobs together.
+  if(cron==="*/15 * * * *"){
+    const slot=Math.floor(minute/15)%3;
     try{
       if(slot===0){
         const x=await runSiteOsChecks(env,{limit:10});
