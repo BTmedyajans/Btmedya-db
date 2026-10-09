@@ -344,10 +344,29 @@
 
   /* ---- Akışın kurulması ---- */
   async function yukle() {
-    var cevap = await fetch('/api/news?limit=100&ozet=1', { headers: { Accept: 'application/json' } });
+    // Ağ/API yanıtı beklenirken sayfanın sonsuza kadar yükleniyor durumda kalmasını önle.
+    // Hem haber API'si hem de görsel künyesi isteği için kısa bir üst sınır uygula.
+    function zamanAsimliFetch(url, options, sure) {
+      var denetleyici = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var zamanlayici = denetleyici ? setTimeout(function () { denetleyici.abort(); }, sure) : null;
+      var ayarlar = Object.assign({}, options || {});
+      if (denetleyici) ayarlar.signal = denetleyici.signal;
+      return fetch(url, ayarlar).finally(function () { if (zamanlayici) clearTimeout(zamanlayici); });
+    }
+    var cevap;
+    try {
+      cevap = await zamanAsimliFetch('/api/news?limit=100&ozet=1', { headers: { Accept: 'application/json' } }, 8000);
+    } catch (e) {
+      akisYuklenemedi();
+      return;
+    }
     if (!cevap.ok) { akisYuklenemedi(); return; }
-    var veri = await cevap.json();
-    try { var g = await fetch('/data/haber-kapak-kaynagi.json', { headers: { Accept: 'application/json' } }); if (g.ok) gorselTuru = await g.json(); } catch (e) { /* etiket varsayılana düşer */ }
+    var veri;
+    try { veri = await cevap.json(); } catch (e) { akisYuklenemedi(); return; }
+    try {
+      var g = await zamanAsimliFetch('/data/haber-kapak-kaynagi.json', { headers: { Accept: 'application/json' } }, 5000);
+      if (g.ok) gorselTuru = await g.json();
+    } catch (e) { /* künye isteği başarısızsa etiket varsayılana düşer */ }
     // Arşiv (2024) aşağıda statik bölümde; akış yalnız güncel yayınları alır.
     var guncel = (Array.isArray(veri.items) ? veri.items : []).filter(function (n) { return n.status === 'published' && n.cover_url && String(n.published_at || '') >= '2026'; });
     if (!guncel.length) { akisYuklenemedi(); return; }
