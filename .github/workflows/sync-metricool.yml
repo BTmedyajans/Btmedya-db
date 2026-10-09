@@ -26,22 +26,20 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
           METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
-          METRICOOL_USER_ID: ${{ secrets.BTMEDYA_METRICOOL_USER_ID }}
-          METRICOOL_BRAND_ID: ${{ secrets.BTMEDYA_METRICOOL_BRAND_ID }}
+          METRICOOL_USER_ID: "5278969"
+          METRICOOL_BRAND_ID: "6858384"
         run: |
           set -euo pipefail
 
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Cloudflare deploy token eksik"; exit 1; }
-          if [ -z "$METRICOOL_USER_TOKEN" ] || [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
-            echo "::error::Gerekli GitHub secrets eksik: BTMEDYA_METRICOOL_USER_TOKEN, BTMEDYA_METRICOOL_USER_ID ve BTMEDYA_METRICOOL_BRAND_ID. Değerleri GitHub repository Settings > Secrets and variables > Actions altında tanımlayın; gizli değerleri sohbete yazmayın."
+          if [ -z "$METRICOOL_USER_TOKEN" ]; then
+            echo "::error::Gerekli GitHub secret eksik: BTMEDYA_METRICOOL_USER_TOKEN. Token değerini GitHub repository Settings > Secrets and variables > Actions altında tanımlayın; gizli değeri sohbete yazmayın."
             exit 1
           fi
 
           npm install --no-save --no-package-lock wrangler@4.142.0
 
           printf '%s' "$METRICOOL_USER_TOKEN" | npx wrangler secret put METRICOOL_USER_TOKEN --name btmedya-db --config wrangler.toml
-          printf '%s' "$METRICOOL_USER_ID" | npx wrangler secret put METRICOOL_USER_ID --name btmedya-db --config wrangler.toml
-          printf '%s' "$METRICOOL_BRAND_ID" | npx wrangler secret put METRICOOL_BRAND_ID --name btmedya-db --config wrangler.toml
 
       - name: Verify Metricool Brand access
         env:
@@ -51,7 +49,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "$METRICOOL_USER_TOKEN" ] || [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
-            echo "::error::Metricool Brand doğrulanamadı; gerekli GitHub Actions secrets eksik. Önce secret'ları tanımlayıp workflow'u yeniden çalıştırın."
+            echo "::error::Metricool Brand doğrulanamadı; BTMEDYA_METRICOOL_USER_TOKEN secret eksik. Önce token secret'ını tanımlayıp workflow'u yeniden çalıştırın."
             exit 1
           fi
           body="$(curl -fsS -H "X-Mc-Auth: $METRICOOL_USER_TOKEN" \
