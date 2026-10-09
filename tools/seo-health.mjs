@@ -110,9 +110,40 @@ try {
     if (h && h.cms !== true) fail("/api/health CMS/D1 is not ready");
     if (h && h.r2 !== true) fail("/api/health R2 is not ready");
     if (h && h.admin !== true) fail("/api/health admin authentication is not configured");
-    console.log(`PASS: /api/health HTTP ${health.status}; cms=${Boolean(h?.cms)} r2=${Boolean(h?.r2)} admin=${Boolean(h?.admin)}`);
+    if (h && h.readiness?.metricool?.userToken !== true) fail("Metricool automation is not ready: Worker secret METRICOOL_USER_TOKEN is missing");
+    console.log(`PASS: /api/health HTTP ${health.status}; cms=${Boolean(h?.cms)} r2=${Boolean(h?.r2)} admin=${Boolean(h?.admin)} metricoolToken=${Boolean(h?.readiness?.metricool?.userToken)}`);
   }
 } catch (e) { fail(`/api/health fetch failed: ${e.message}`); }
+
+// Admin kapısı: login/Access yönlendirmesi beklenir; 404 veya sunucu hatası kabul edilmez.
+try {
+  const response = await fetch(origin + "/admin/", {
+    redirect: "manual",
+    headers: { "user-agent": "BTMEDYA-SEO-Health/1.0" },
+    signal: AbortSignal.timeout(15000)
+  });
+  const location = response.headers.get("location") || "";
+  if (response.status === 404 || response.status >= 500) fail(`/admin/ returned HTTP ${response.status}`);
+  else if (response.status >= 300 && response.status < 400 && !location) fail("/admin/ redirect has no Location header");
+  else if (response.status === 200) {
+    const body = await response.text();
+    if (!/admin|login|noindex/i.test(body)) fail("/admin/ returned 200 without admin/login/noindex evidence");
+  }
+  console.log("PASS: /admin/ gate HTTP " + response.status + "; redirect=" + Boolean(location));
+} catch (e) { fail(`/admin/ fetch failed: ${e.message}`); }
+
+// Giriş filmi gerçek dosya olarak canlıda açılabilmeli; küçük Range isteğiyle tüm filmi indirmeyiz.
+try {
+  const videoPath = "/assets/media/web/state-produksiyon.mp4?v=20261008-archive-hero";
+  const response = await fetch(origin + videoPath, {
+    headers: { "user-agent": "BTMEDYA-SEO-Health/1.0", "range": "bytes=0-0" },
+    signal: AbortSignal.timeout(20000)
+  });
+  const type = response.headers.get("content-type") || "";
+  if (![200, 206].includes(response.status)) fail(`hero video HTTP ${response.status}`);
+  if (!/^video\\//i.test(type)) fail(`hero video has unexpected content-type: ${type}`);
+  console.log("PASS: hero video HTTP " + response.status + "; content-type=" + type);
+} catch (e) { fail(`hero video fetch failed: ${e.message}`); }
 
 try {
   const api = await get("/api/news?limit=100&ozet=1");
