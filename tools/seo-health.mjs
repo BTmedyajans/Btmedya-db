@@ -62,6 +62,8 @@ for (const path of pages) {
   } catch (e) { fail(`${path} fetch failed: ${e.message}`); }
 }
 
+let newsSitemapBody = "";
+let rssBody = "";
 for (const path of ["/robots.txt", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml"]) {
   try {
     const r = await get(path);
@@ -94,6 +96,42 @@ for (const path of ["/robots.txt", "/sitemap.xml", "/news-sitemap.xml", "/rss.xm
     }
   } catch (e) { fail(`${path} fetch failed: ${e.message}`); }
 }
+
+// D1'de yakın zamanda yayımlanan haber varsa News sitemap ve RSS bununla eşleşmeli.
+try {
+  const health = await get("/api/health");
+  if (health.status !== 200) fail(`/api/health returned HTTP ${health.status}`);
+  else {
+    let h;
+    try { h = JSON.parse(health.body); } catch { fail("/api/health did not return JSON"); }
+    if (h && h.ok !== true) fail("/api/health ok is not true");
+    if (h && h.cms !== true) fail("/api/health CMS/D1 is not ready");
+    if (h && h.r2 !== true) fail("/api/health R2 is not ready");
+    if (h && h.admin !== true) fail("/api/health admin authentication is not configured");
+    console.log(`PASS: /api/health HTTP ${health.status}; cms=${Boolean(h?.cms)} r2=${Boolean(h?.r2)} admin=${Boolean(h?.admin)}`);
+  }
+} catch (e) { fail(`/api/health fetch failed: ${e.message}`); }
+
+try {
+  const api = await get("/api/news?limit=100&ozet=1");
+  if (api.status !== 200) fail(`/api/news HTTP ${api.status}`);
+  else {
+    let data;
+    try { data = JSON.parse(api.body); } catch { fail("/api/news did not return JSON"); }
+    const items = Array.isArray(data?.items) ? data.items : [];
+    const now = Date.now();
+    const recent = items.filter(n => {
+      const t = Date.parse(n.published_at || "");
+      return Number.isFinite(t) && t <= now + 3600000 && t >= now - 48 * 3600000;
+    }).sort((a,b) => Date.parse(b.published_at || "") - Date.parse(a.published_at || ""));
+    const latest = recent[0];
+    const newsCount = (newsSitemapBody.match(/<news:news>/gi) || []).length;
+    if (latest && newsCount === 0) fail("published news is within 48 hours but news-sitemap.xml has zero entries");
+    if (latest && !rssBody.includes(latest.slug)) fail(`RSS does not include the latest recent published news: ${latest.slug}`);
+    if (!items.length) warn("/api/news returned no items");
+    console.log(`PASS: /api/news HTTP ${api.status}; items=${items.length}; recent=${recent.length}; news-sitemap=${newsCount}`);
+  }
+} catch (e) { fail(`/api/news fetch failed: ${e.message}`); }
 
 console.log(JSON.stringify({ origin, checkedAt: new Date().toISOString(), pagesChecked: report.length, warnings, failures }, null, 2));
 if (failures.length) process.exit(1);
