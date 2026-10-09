@@ -18,7 +18,7 @@ const CONNECTORS={
   instagram:{
     source:"instagram",
     selectAccount:"17841408084433281",
-    fields:["date","reach","impressions","profile_views","website_clicks_1d","follower_count","accounts_engaged"],
+    fields:["date","reach_1d","impressions_1d","profile_views_1d","website_clicks_1d","follower_count_1d"],
     label:"Instagram"
   }
 };
@@ -83,15 +83,15 @@ export function summarizeWindsorSearchConsole(rows){
 }
 export function summarizeWindsorInstagram(rows){
   const keys=[
-    ["reach","reach"],["impressions","impressions"],["profileViews","profile_views"],
-    ["websiteClicks","website_clicks_1d"],["newFollowers","follower_count"],["accountsEngaged","accounts_engaged"]
+    ["reach","reach_1d"],["impressions","impressions_1d"],["profileViews","profile_views_1d"],
+    ["websiteClicks","website_clicks_1d"],["newFollowers","follower_count_1d"]
   ];
   const summary={};
   for(const [out,field] of keys) summary[out]=rows.reduce((sum,row)=>sum+num(row?.[field]),0);
   const days=new Map();
   for(const row of rows){
     const date=text(row?.date)||"unknown";
-    const d=days.get(date)||{date,reach:0,impressions:0,profileViews:0,websiteClicks:0,newFollowers:0,accountsEngaged:0};
+    const d=days.get(date)||{date,reach:0,impressions:0,profileViews:0,websiteClicks:0,newFollowers:0};
     for(const [out,field] of keys)d[out]+=num(row?.[field]);
     days.set(date,d);
   }
