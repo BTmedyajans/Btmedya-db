@@ -50,6 +50,11 @@ jobs:
           node --check src/direct-social.js
           node --check src/news-intelligence.js
           node --check src/autopilot.js
+          # Regression guards: bound candidate/feed work and timeout third-party RSS fetches.
+          grep -q 'Math.min(8,Math.max(4,Number(limit)||policy.maxItemsPerRun\*2))' src/autopilot.js
+          grep -q 'Math.min(2,policy.maxItemsPerRun)' src/autopilot.js
+          grep -q 'AbortSignal.timeout(6500)' src/autopilot.js
+          grep -q 'result.error_count++' src/autopilot.js
           node --check src/agency-supervisor.js
           node --check src/btmedya-core.js
           node --check src/site-os.js
