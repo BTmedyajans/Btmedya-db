@@ -24,7 +24,7 @@ jobs:
 
       - name: Validate Metricool credentials are configured
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN || secrets.BTMEDYA_DB1 || secrets.BTMEDYA_D1 }}
           METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
         run: |
           set -euo pipefail
@@ -43,7 +43,7 @@ jobs:
 
       - name: Sync Metricool Worker secret
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN || secrets.BTMEDYA_DB1 || secrets.BTMEDYA_D1 }}
           METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
         run: |
           set -euo pipefail

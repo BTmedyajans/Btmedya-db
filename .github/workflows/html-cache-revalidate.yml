@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Verify Cloudflare credentials
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN || secrets.BTMEDYA_DB1 || secrets.BTMEDYA_D1 }}
         run: |
           set -euo pipefail
           test -n "$CLOUDFLARE_API_TOKEN" || {
@@ -34,7 +34,7 @@ jobs:
       - name: Resolve zone
         id: zone
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN || secrets.BTMEDYA_DB1 || secrets.BTMEDYA_D1 }}
         run: |
           set -euo pipefail
           api="https://api.cloudflare.com/client/v4"
@@ -50,7 +50,7 @@ jobs:
 
       - name: Revalidate live HTML
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_CACHE_PURGE_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_CACHE_PURGE_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN || secrets.BTMEDYA_DB1 || secrets.BTMEDYA_D1 }}
           ZONE_ID: ${{ steps.zone.outputs.zone_id }}
         run: |
           set -euo pipefail
