@@ -331,7 +331,7 @@
   /* API hata verir veya kapakli guncel haber bulunamazsa yukleniyor yazisini sonsuza dek birakma.
      RSS ve arsiv, ziyaretcinin haberlere ulasmasi icin saglam bir cikis yolu sunar. */
   function akisYuklenemedi() {
-    var mesaj = '<p class="hm-bos">Guncel haber akisi su anda alinamiyor. <a href="/rss.xml">RSS akisini ac</a> veya <a href="/haberler/">haber arsivine goz at</a>.</p>';
+    var mesaj = '<p class="hm-bos">Güncel haber akışı şu anda alınamıyor. <a href="/rss.xml">RSS akışını aç</a> veya <a href="/haberler/">haber arşivine göz at</a>.</p>';
     ['[data-hm-manset-balikesir]', '[data-hm-manset-turkiye]'].forEach(function (secici) {
       var yer = kok.querySelector(secici);
       if (yer && yer.querySelector('.hm-yedek')) yer.innerHTML = mesaj;
@@ -339,7 +339,7 @@
     var sur = kok.querySelector('[data-hm-sur]');
     if (sur && !sur.children.length) sur.innerHTML = mesaj;
     var akisYer = kok.querySelector('[data-hm-akis]');
-    if (akisYer && !akisYer.children.length) akisYer.innerHTML = '<li><a href="/rss.xml">Haber akisi gecici olarak kullanilamiyor · RSS</a></li>';
+    if (akisYer && !akisYer.children.length) akisYer.innerHTML = '<li><a href="/rss.xml">Haber akışı geçici olarak kullanılamıyor · RSS</a></li>';
   }
 
   /* ---- Akışın kurulması ---- */
