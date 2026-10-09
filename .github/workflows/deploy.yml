@@ -1,8 +1,9 @@
 name: BTMEDYA Production Verify
 
 on:
-  # Production deploy is handled by Cloudflare Workers Builds on main.
-  # This workflow remains available for explicit/manual production verification.
+  # This workflow verifies PR source and current live production; it never deploys.
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -51,7 +52,7 @@ jobs:
           node --check src/news-intelligence.js
           node --check src/autopilot.js
           # Regression guards: bound candidate/feed work and timeout third-party RSS fetches.
-          grep -q 'Math.min(8,Math.max(4,Number(limit)||policy.maxItemsPerRun\*2))' src/autopilot.js
+          grep -Fq 'Math.min(8,Math.max(4,Number(limit)||policy.maxItemsPerRun*2))' src/autopilot.js
           grep -q 'Math.min(2,policy.maxItemsPerRun)' src/autopilot.js
           grep -q 'AbortSignal.timeout(6500)' src/autopilot.js
           grep -q 'result.error_count++' src/autopilot.js
