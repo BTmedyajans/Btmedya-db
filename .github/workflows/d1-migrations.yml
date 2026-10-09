@@ -1,12 +1,15 @@
 name: BTMEDYA D1 Migrations
 
 on:
+  # Production D1 migration is deliberately manual until live schema/history drift is reconciled.
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "migrations/**"
-      - ".github/workflows/d1-migrations.yml"
+    inputs:
+      confirm_schema_review:
+        description: "Run only after backup and live-vs-repo migration history review"
+        required: true
+        type: choice
+        options: [no, yes]
+        default: no
 
 permissions:
   contents: read
@@ -17,6 +20,7 @@ env:
 
 jobs:
   migrate:
+    if: inputs.confirm_schema_review == 'yes'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
