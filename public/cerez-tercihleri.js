@@ -11,6 +11,8 @@
   var IC_OLUM_KAPALI = 'bt_olcum_kapali';
   var METRICOOL_HASH = 'c8e19cd28971fcef340713b1f1b81555';
   var OTURUM_TERCIHI = null;
+  var tercihPenceresiniKapat = function () {};
+  var tercihDugmesiniGoster = function () {};
 
   function okuTercih() {
     try {
@@ -49,6 +51,7 @@
   }
 
   function kaydet(analitik) {
+    var izleyiciOncedenBasladi = window.__btmedyaMetricoolRequested === true;
     OTURUM_TERCIHI = analitik === true;
     try {
       localStorage.setItem(ANAHTAR, JSON.stringify({
@@ -58,9 +61,17 @@
         guncellendi: new Date().toISOString()
       }));
     } catch (e) { /* Bu sayfada tercih uygulanır; depolama yoksa tekrar sorulur. */ }
-    if (OTURUM_TERCIHI) metricoolYukle();
-    pencereyiKapat();
-    ayarDugmesiniGoster();
+    if (OTURUM_TERCIHI) {
+      metricoolYukle();
+    } else if (izleyiciOncedenBasladi) {
+      /* Yüklü izleyici çalışan sayfadan bütünüyle kaldırılamayabilir. İzin
+         geri çekildiğinde sayfayı yenileyerek sonraki yüklemede izleyicinin
+         hiç başlatılmamasını sağlar. */
+      location.reload();
+      return;
+    }
+    tercihPenceresiniKapat();
+    tercihDugmesiniGoster();
   }
 
   function stilYukle() {
@@ -95,7 +106,7 @@
       '</aside>' +
       '<section class="bt-consent-preferences" id="bt-consent-preferences" role="region" aria-labelledby="bt-consent-preferences-title" hidden>' +
         '<p class="bt-consent-eyebrow">BTMEDYA / TERCİHLER</p>' +
-        '<h2 id="bt-consent-preferences-title">Ölçüm ayarları</h2>' +
+        '<h2 id="bt-consent-preferences-title" tabindex="-1">Ölçüm ayarları</h2>' +
         '<p>Zorunlu yerel tercih kaydı site seçiminizi hatırlamak için kullanılır. Analitik ölçüm isteğe bağlıdır ve başlangıçta kapalıdır.</p>' +
         '<label class="bt-consent-option"><input type="checkbox" id="bt-consent-analytics"> <span><strong>Analitik ölçüm</strong><small>Metricool ziyaret ve sayfa görüntüleme ölçümü. Onay verilmezse üçüncü taraf izleme betiği yüklenmez.</small></span></label>' +
         '<div class="bt-consent-actions">' +
@@ -132,6 +143,8 @@
     function ayarDugmesiniGoster() {
       ayar.hidden = false;
     }
+    tercihPenceresiniKapat = pencereyiKapat;
+    tercihDugmesiniGoster = ayarDugmesiniGoster;
 
     kok.addEventListener('click', function (olay) {
       var dugme = olay.target.closest('[data-consent-action]');
