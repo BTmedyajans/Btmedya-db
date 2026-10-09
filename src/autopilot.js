@@ -396,6 +396,7 @@ export async function runAutopilot(env,{force=false,limit}={}){
     ok:true,enabled:policy.enabled,runKey,runId,scanned:0,candidates:0,created_news:0,published_news:0,
     social_created:0,social_scheduled:0,blocked:0,error_count:0,items:[],competitors:[],policy
   };
+  try {
   if(!force && !policy.enabled){
     result.ok=true; result.skipped=true; result.reason="Autopilot kapalı.";
     return result;
@@ -471,7 +472,7 @@ export async function runAutopilot(env,{force=false,limit}={}){
     for(const host of hosts){
       const url="https://news.google.com/rss/search?q=site%3A"+encodeURIComponent(host)+"&hl=tr&gl=TR&ceid=TR:tr";
       try{
-        const r=await fetch(url,{headers:{accept:"application/rss+xml, text/xml","user-agent":"BTMEDYA-CompetitorRadar/1.0"}});
+        const r=await fetch(url,{headers:{accept:"application/rss+xml, text/xml","user-agent":"BTMEDYA-CompetitorRadar/1.0"},signal:AbortSignal.timeout(8000)});
         const xml=await r.text();
         const items=[...xml.matchAll(/<item>[\s\S]*?<\/item>/gi)].slice(0,12).map(m=>m[0])
           .map(b=>({
@@ -487,13 +488,24 @@ export async function runAutopilot(env,{force=false,limit}={}){
       }catch(e){ rows.push({host,count:0,error:String(e?.message||e).slice(0,120)}); }
     }
     result.competitors=rows;
-    await env.DB.prepare("UPDATE autopilot_runs SET finished_at=?,scanned=?,candidates=?,created_news=?,published_news=?,social_created=?,social_scheduled=?,blocked=?,error_count=?,detail=? WHERE id=?")
-      .bind(nowIso(),result.scanned,result.candidates,result.created_news,result.published_news,result.social_created,result.social_scheduled,result.blocked,result.error_count,JSON.stringify({items:result.items,competitors:result.competitors}),runId||0).run().catch(()=>{});
     if(result.social_created) {
-      try{ await processMetricoolQueue(env,Math.max(1,result.social_created)); }catch{}
+      try{ await processMetricoolQueue(env,Math.max(1,result.social_created)); }
+      catch(e){ result.error_count++; result.ok=false; result.errors=[...(result.errors||[]), "Metricool queue: "+String(e?.message||e).slice(0,200)]; }
     }
   }
   return result;
+  } catch(e) {
+    result.ok=false;
+    result.error_count++;
+    result.errors=[...(result.errors||[]), String(e?.message||e).slice(0,300)];
+    return result;
+  } finally {
+    // Every run is finalized, including disabled, exceptional, and partial runs.
+    if(env.DB) {
+      await env.DB.prepare("UPDATE autopilot_runs SET finished_at=?,scanned=?,candidates=?,created_news=?,published_news=?,social_created=?,social_scheduled=?,blocked=?,error_count=?,detail=? WHERE run_key=?")
+        .bind(nowIso(),result.scanned,result.candidates,result.created_news,result.published_news,result.social_created,result.social_scheduled,result.blocked,result.error_count,JSON.stringify({ok:result.ok,errors:result.errors||[],items:result.items,competitors:result.competitors}),runKey).run().catch(e=>console.error("[autopilot] finalize failed:",e?.message||e));
+    }
+  }
 }
 
 export async function autopilotStatus(env){
