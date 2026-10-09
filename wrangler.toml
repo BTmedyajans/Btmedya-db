@@ -132,4 +132,4 @@ binding = "SURUM"
 
 [triggers]
 # */5: nabız, sosyal kuyruk, R2 köprüsü. 0 5: Sabah Masası (08:00 İstanbul).
-crons = ["*/5 * * * *", "4-59/5 * * * *", "1-59/15 * * * *", "6-59/15 * * * *", "11-59/15 * * * *"]
+crons = ["*/5 * * * *", "*/15 * * * *", "0 5 * * *"]
