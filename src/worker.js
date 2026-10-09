@@ -1031,6 +1031,7 @@ async function controlCenterApi(request, env, url){
     readiness:{
       ai:{openai:!!env.OPENAI_API_KEY},
       metricool:{userToken:!!env.METRICOOL_USER_TOKEN,userId:!!env.METRICOOL_USER_ID,brandId:!!env.METRICOOL_BRAND_ID},
+      windsor:{apiKey:!!env.WINDSOR_API_KEY},
       note:'Secret değerleri hiçbir zaman API yanıtında gösterilmez; yalnızca yapılandırma varlığı raporlanır.'
     },
     automation,
