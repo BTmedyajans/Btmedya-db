@@ -36,7 +36,7 @@ jobs:
         run: node tools/seo-quality-gate.mjs
       - name: Create Google access token when configured
         id: gsc_auth
-        if: ${{ secrets.GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON != '' }}
+        if: ${{ env.GSC_SERVICE_ACCOUNT_JSON != '' }}
         env:
           GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON }}
         run: |
