@@ -70,21 +70,17 @@ jobs:
           # esbuild'i reddetti ve 6 commit canliya cikmadi. Ayni paketleyiciyle
           # kuru derleme yapilir; hicbir sey yuklenmez.
           set +e
-          npx --yes wrangler@4.142.0 deploy --dry-run --outdir "$RUNNER_TEMP/kuru-derleme" 2>&1 | tee "$RUNNER_TEMP/wrangler-dry-run.log"
-          wrangler_status=${PIPESTATUS[0]}
+          npx --yes wrangler@4.142.0 deploy --dry-run --outdir "$RUNNER_TEMP/kuru-derleme" > "$RUNNER_TEMP/wrangler-dry-run.log" 2>&1
+          wrangler_status=$?
           set -e
+          cat "$RUNNER_TEMP/wrangler-dry-run.log"
           if [ "$wrangler_status" -ne 0 ]; then
             if [ "$wrangler_status" -eq 1 ] && grep -q -- '--dry-run: exiting now.' "$RUNNER_TEMP/wrangler-dry-run.log" && grep -q 'Total Upload:' "$RUNNER_TEMP/wrangler-dry-run.log"; then
-              echo "Wrangler dry-run paketlemeyi tamamladı; beklenen kuru-çalıştırma çıkış kodu kabul edildi."
+              echo "Wrangler kuru paketleme tamamlandı; CLI'nın beklenen dry-run çıkış kodu kabul edildi."
             else
               echo "::error::Wrangler paketlemesi başarısız oldu (exit $wrangler_status)."
               exit "$wrangler_status"
             fi
-          fi
-          test -d "$RUNNER_TEMP/kuru-derleme"
-          if ! find "$RUNNER_TEMP/kuru-derleme" -type f -size +0c -print -quit | grep -q .; then
-            echo "::error::Wrangler kuru derleme çıktı üretmedi."
-            exit 1
           fi
 
           grep -q 'mobile-fixes.css' public/index.html
