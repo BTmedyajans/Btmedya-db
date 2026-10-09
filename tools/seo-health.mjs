@@ -12,7 +12,7 @@ const report = [];
 function fail(message) { failures.push(message); console.error("FAIL:", message); }
 function warn(message) { warnings.push(message); console.warn("WARN:", message); }
 function attr(tag, name) {
-  const re = new RegExp("\\b" + name + "\\s*=\\s*([\\"'])(.*?)\\1", "i");
+  const re = new RegExp("\\b" + name + "\\s*=\\s*([\\x22\\x27])(.*?)\\1", "i");
   return (tag.match(re) || [])[2] || "";
 }
 function metaContent(html, key) {
