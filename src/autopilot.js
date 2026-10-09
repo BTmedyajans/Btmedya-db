@@ -396,6 +396,12 @@ export async function runAutopilot(env,{force=false,limit}={}){
     ok:true,enabled:policy.enabled,runKey,runId,scanned:0,candidates:0,created_news:0,published_news:0,
     social_created:0,social_scheduled:0,blocked:0,error_count:0,items:[],competitors:[],policy
   };
+  // The unique minute key is a concurrency guard. Do not do duplicate work when another invocation owns this slot.
+  if(env.DB && !runId){
+    result.skipped=true;
+    result.reason="Bu dakika için otomasyon çalışması zaten kaydedilmiş; yinelenen çağrı atlandı.";
+    return result;
+  }
   if(!force && !policy.enabled){
     result.ok=true; result.skipped=true; result.reason="Autopilot kapalı.";
     if(env.DB && runId) await env.DB.prepare("UPDATE autopilot_runs SET finished_at=?,detail=? WHERE id=?")
