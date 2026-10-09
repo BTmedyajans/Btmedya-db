@@ -77,7 +77,7 @@ assert.equal((await satisOzeti({ DB })).gonderildi, false);
 // Sabah görevi özeti Sabah Masası ile birlikte çalıştırır.
 const worker = readFileSync('src/worker.js', 'utf8');
 assert.match(worker, /import \{[^}]*satisOzeti[^}]*\} from "\.\/sales-router\.js"/);
-assert.match(worker, /cron==='0 5 \* \* \*'[\s\S]{0,700}satisOzeti\(env\)/);
+assert.match(worker, /cron==="\*\/5 \* \* \* \*" && hour===5 && minute===0[\s\S]{0,900}satisOzeti\(env\)/);
 
 // olcum.js: WhatsApp / tel / mailto tıklaması sinyal gönderir, diğer bağlantılar göndermez.
 const kaynak = readFileSync('public/olcum.js', 'utf8');
