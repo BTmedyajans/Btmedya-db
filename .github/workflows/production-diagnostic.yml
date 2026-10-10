@@ -165,20 +165,24 @@ jobs:
           D1_AUDIT_TOKEN_SET: ${{ secrets.CLOUDFLARE_D1_API_TOKEN != '' && 'yes' || 'no' }}
           DEPLOY_TOKEN_SET: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN != '' && 'yes' || 'no' }}
           API_TOKEN_SET: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && 'yes' || 'no' }}
+          LEGACY_DB1_TOKEN_SET: ${{ secrets.BTMEDYA_DB1 != '' && 'yes' || 'no' }}
           LEGACY_D1_TOKEN_SET: ${{ secrets.BTMEDYA_D1 != '' && 'yes' || 'no' }}
+          D1_AUDIT_TOKEN_SOURCE: ${{ secrets.CLOUDFLARE_D1_API_TOKEN != '' && 'CLOUDFLARE_D1_API_TOKEN' || secrets.CLOUDFLARE_API_TOKEN != '' && 'CLOUDFLARE_API_TOKEN' || secrets.CLOUDFLARE_DEPLOY_TOKEN != '' && 'CLOUDFLARE_DEPLOY_TOKEN' || secrets.BTMEDYA_DB1 != '' && 'BTMEDYA_DB1' || secrets.BTMEDYA_D1 != '' && 'BTMEDYA_D1' || 'none' }}
         run: |
+          echo "D1 audit selected secret name: $D1_AUDIT_TOKEN_SOURCE"
           echo "CLOUDFLARE_D1_API_TOKEN configured: $D1_AUDIT_TOKEN_SET"
           echo "CLOUDFLARE_DEPLOY_TOKEN configured: $DEPLOY_TOKEN_SET"
           echo "CLOUDFLARE_API_TOKEN configured: $API_TOKEN_SET"
+          echo "BTMEDYA_DB1 configured: $LEGACY_DB1_TOKEN_SET"
           echo "BTMEDYA_D1 configured: $LEGACY_D1_TOKEN_SET"
-          if [ "$D1_AUDIT_TOKEN_SET$DEPLOY_TOKEN_SET$API_TOKEN_SET$LEGACY_D1_TOKEN_SET" = "nononono" ]; then
-            echo "::error::No Cloudflare token secret is configured. Add a token with Cloudflare Account > D1 > Read permission."
+          if [ "$D1_AUDIT_TOKEN_SET$DEPLOY_TOKEN_SET$API_TOKEN_SET$LEGACY_DB1_TOKEN_SET$LEGACY_D1_TOKEN_SET" = "nonononono" ]; then
+            echo "::error::No Cloudflare token secret is configured. Add CLOUDFLARE_D1_API_TOKEN with Account > D1 > Read for the configured account."
             exit 1
           fi
 
       - name: Run read-only D1 schema and integration audit
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN || secrets.BTMEDYA_D1 || secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN || secrets.CLOUDFLARE_API_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.BTMEDYA_DB1 || secrets.BTMEDYA_D1 }}
           CLOUDFLARE_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
           CLOUDFLARE_D1_DATABASE_ID: 94a980cd-62c5-4c29-b7fc-40f96ab665e4
           CLOUDFLARE_WORKER_NAME: btmedya-db
