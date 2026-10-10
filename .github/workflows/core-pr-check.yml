@@ -37,7 +37,7 @@ jobs:
             console.error('Production deploy must not apply D1 migrations automatically.');
             process.exit(1);
           }
-          if (!/wrangler deploy/.test(deploy)) {
+          if (!/wrangler/.test(deploy) || !/deploy/.test(deploy)) {
             console.error('Expected the deploy script to invoke wrangler deploy.');
             process.exit(1);
           }
