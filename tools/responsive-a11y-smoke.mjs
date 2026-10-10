@@ -103,9 +103,20 @@ if(!adminResponse){
     loginForm:!!document.querySelector('form input[type="password"], input[name="password"], input[autocomplete="current-password"]'),
     hasAgencyShell:!!document.querySelector('#accessBrowserReadiness')
   }));
-  // The worker may use an internal 401 login shell or an explicit redirect.
-  if(adminResponse.status()!==401 && adminResponse.status()!==302 && adminResponse.status()!==303 && !/\/admin\/$/.test(new URL(adminPage.url()).pathname)){
+  // The worker may use an internal 401 login shell, an explicit redirect,
+  // or Cloudflare Access may intercept the request and return its own login page
+  // with HTTP 200 on a cloudflareaccess.com host. That is a valid auth gate,
+  // provided the protected Agency OS shell is not present.
+  const finalAdminUrl=new URL(adminPage.url());
+  const isInternalLoginShell=/\/admin\/$/.test(finalAdminUrl.pathname);
+  const isCloudflareAccessLogin=finalAdminUrl.hostname.endsWith('.cloudflareaccess.com')
+    && finalAdminUrl.pathname.startsWith('/cdn-cgi/access/login/');
+  const protectedStatus=[401,302,303].includes(adminResponse.status());
+  if(!protectedStatus && !isInternalLoginShell && !isCloudflareAccessLogin){
     failures.push('anonymous admin page returned unexpected status '+adminResponse.status()+' at '+adminPage.url());
+  }
+  if(isCloudflareAccessLogin && anonymous.hasAgencyShell){
+    failures.push('Cloudflare Access login page unexpectedly exposed the authenticated Agency OS shell');
   }
   if(anonymous.hasAgencyShell && adminResponse.status()!==200) failures.push('anonymous admin page exposed an authenticated widget under unexpected status '+adminResponse.status());
 }
