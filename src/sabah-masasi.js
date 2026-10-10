@@ -40,6 +40,11 @@ const VARSAYILAN = Object.freeze({
 export const KATEGORILER = [
   { anahtar: 'balikesir', kategori: 'Yerel', kaynaklar: ['balikesir-bel', 'balikesir-valilik', 'btt', 'cumha-balikesir'] },
   { anahtar: 'gundem', kategori: 'Gündem', kaynaklar: ['trt-gundem', 'trt-turkiye', 'balikesir-valilik'] },
+  // 10 Ekim: site "Türkiye" kategorisini gösteriyordu ama otomasyon beslemiyordu;
+  // kategori zayıf kalıyordu. Ulusal gündem akışıyla beslenir (gundem ile ortak
+  // kaynaklar olabilir; sosyal-dedupe tekrarı ayıklar, haberKategoriAnahtari
+  // ankara/istanbul/meclis/ulusal sinyalini turkiye'ye yönlendirir).
+  { anahtar: 'turkiye', kategori: 'Türkiye', kaynaklar: ['trt-turkiye', 'trt-gundem'] },
   { anahtar: 'ekonomi', kategori: 'Ekonomi', kaynaklar: ['trt-ekonomi', 'balikesir-bel'] },
   // TRT kültür-sanat akışı günde bir-iki haber veriyor; AA, Sabah ve belediye yedek.
   { anahtar: 'kultur', kategori: 'Kültür', kaynaklar: ['trt-kultur', 'aa-kultur', 'sabah-kultur', 'balikesir-bel'] },

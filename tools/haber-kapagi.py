@@ -879,7 +879,7 @@ def manset_sosyal(h, cikti, **kaynak):
 
 
 KATEGORI_PLAKALARI = {
-    "gundem": "Gündem", "balikesir": "Balıkesir", "ekonomi": "Ekonomi", "spor": "Spor",
+    "gundem": "Gündem", "balikesir": "Balıkesir", "turkiye": "Türkiye", "ekonomi": "Ekonomi", "spor": "Spor",
     "kultur": "Kültür Sanat", "saglik": "Sağlık", "egitim": "Eğitim", "teknoloji": "Teknoloji",
     "dunya": "Dünya", "yasam": "Yaşam",
 }
