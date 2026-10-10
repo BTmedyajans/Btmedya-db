@@ -387,7 +387,7 @@ export async function processDirectSocialQueue(env,limit=10){
 
 /* Autopilot için Metricool'dan bağımsız sosyal yayın kuyruğu.
    Yalnızca kullanıcının OAuth ile bağladığı hesaplara kayıt oluşturur. */
-async function sonrakiDoğrudanYuva(env, simdi=Date.now()){
+async function sonrakiDogruYuva(env, simdi=Date.now()){
   const saatler=["10:00","12:00","18:00"];
   const ofset=180*60000;
   const yerel=new Date(simdi+ofset);
@@ -438,7 +438,7 @@ export async function queueAutopilotSocial(env,{
     if(!prior) fresh.push(c);
   }
   if(!fresh.length) return {ok:true,connected:true,duplicate:true,queued:0,reason:"Bu içerik bağlı hesaplarda daha önce kuyruğa alınmış veya yayımlanmış"};
-  const scheduledAt=await sonrakiDoğrudanYuva(env);
+  const scheduledAt=await sonrakiDogruYuva(env);
   if(!scheduledAt) return {ok:false,connected:true,queued:0,reason:"Önümüzdeki 30 gün için boş yayın saati bulunamadı"};
   const now=new Date().toISOString();
   const items=[];
