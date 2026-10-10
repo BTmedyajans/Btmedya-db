@@ -137,9 +137,11 @@
       parca + '<span aria-hidden="true" style="display:contents">' + parca.replace(/<a /g, '<a tabindex="-1" ') + '</span></div></div>';
   }
 
+  // Bu kartta başlık HTML olarak basılır; kapağın başlıklı sürümü kullanılırsa
+  // iki başlık üst üste biniyordu (10 Ekim, mobil). Yazısız "-foto" kare esas.
   function mansetKartBuyuk(n) {
     return '<a class="hm-manset-buyuk" data-kat="' + n._kat + '" href="' + adres(n) + '">' +
-      '<figure><img src="' + esc(kapak(n)) + '" alt="' + esc(n.title) + '" width="1200" height="675" fetchpriority="high" decoding="async"><span class="hm-manset-etiket">' + esc(AD[n._kat]) + '</span><span class="hm-manset-karartma"></span><figcaption><small>' + esc(formatEtiketi(n)) + ' · ' + esc(onceYaz(n)) + '</small><h3>' + esc(n.title) + '</h3><p>' + esc(n.excerpt || '') + '</p></figcaption></figure></a>';
+      '<figure><img src="' + esc(kare(n)) + '" alt="' + esc(n.title) + '" width="1200" height="675" fetchpriority="high" decoding="async"><span class="hm-manset-etiket">' + esc(AD[n._kat]) + '</span><span class="hm-manset-karartma"></span><figcaption><small>' + esc(formatEtiketi(n)) + ' · ' + esc(onceYaz(n)) + '</small><h3>' + esc(n.title) + '</h3><p>' + esc(n.excerpt || '') + '</p></figcaption></figure></a>';
   }
 
   function mansetKartYan(n) {
