@@ -68,3 +68,8 @@ body.bt-motion-ready main{animation:btPageIn .62s var(--bt-motion-ease) both}
    ve site-motion-v2.css içinde: dinamik haber sayfaları yalnız birincisini yükler). */
 html body .topbar .brand img.brand-logo{height:42px!important;width:auto!important;max-width:none!important;object-fit:contain}
 @media (max-width:760px){html body .topbar .brand img.brand-logo{height:32px!important;max-width:52vw!important}}
+
+/* Üst çubuk sabit kaldığı için (body perspective kaldırıldı) yarı saydam zemin
+   altından kayan yazıyı okunur gösteriyordu. Ana sayfa film üstü şeffaf
+   tasarımı (body.ana-sade) ve açık menü durumu korunur. */
+html body:not(.ana-sade):not(.menu-acik) .topbar{background:rgba(5,7,10,.9)}
