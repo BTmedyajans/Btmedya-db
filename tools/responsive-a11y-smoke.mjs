@@ -96,18 +96,24 @@ const adminResponse = await adminPage.goto(BASE+'/admin/agency-os/',{waitUntil:'
 if(!adminResponse){
   failures.push('anonymous admin page NO_RESPONSE');
 }else{
+  const finalUrl=new URL(adminPage.url());
   const anonymous=await adminPage.evaluate(()=>({
     status:document.readyState,
-    url:location.pathname,
+    path:location.pathname,
     noindex:!!document.querySelector('meta[name="robots"][content*="noindex"]'),
     loginForm:!!document.querySelector('form input[type="password"], input[name="password"], input[autocomplete="current-password"]'),
     hasAgencyShell:!!document.querySelector('#accessBrowserReadiness')
   }));
-  // The worker may use an internal 401 login shell or an explicit redirect.
-  if(adminResponse.status()!==401 && adminResponse.status()!==302 && adminResponse.status()!==303 && !/\/admin\/$/.test(new URL(adminPage.url()).pathname)){
-    failures.push('anonymous admin page returned unexpected status '+adminResponse.status()+' at '+adminPage.url());
+  // Either the Worker login shell/redirect or the account's Cloudflare Access
+  // login challenge is an acceptable auth boundary for a fresh anonymous browser.
+  const workerLogin=adminResponse.status()===401 || adminResponse.status()===302 || adminResponse.status()===303 ||
+    (finalUrl.origin===BASE && /^\/admin\/$/.test(finalUrl.pathname));
+  const cloudflareAccessLogin=finalUrl.hostname.endsWith('.cloudflareaccess.com') &&
+    finalUrl.pathname.startsWith('/cdn-cgi/access/login/');
+  if(!workerLogin && !cloudflareAccessLogin){
+    failures.push('anonymous admin page did not reach a recognized login boundary: HTTP '+adminResponse.status()+' at '+adminPage.url());
   }
-  if(anonymous.hasAgencyShell && adminResponse.status()!==200) failures.push('anonymous admin page exposed an authenticated widget under unexpected status '+adminResponse.status());
+  if(anonymous.hasAgencyShell && !workerLogin) failures.push('anonymous request exposed the authenticated Agency OS widget');
 }
 // Assert the Agency OS diagnostic exists in source without requiring an admin login cookie in CI.
 const sourceChecks=[
