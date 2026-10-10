@@ -15,6 +15,7 @@
 /* Kategori renkleri: kapak aracındaki KATEGORI_RENK ile aynı aile. */
 [data-kat=balikesir]{--kat:#64e4ff}[data-kat=gundem]{--kat:#ff4038}[data-kat=ekonomi]{--kat:#f2c14e}[data-kat=kultur]{--kat:#c77dff}
 [data-kat=egitim]{--kat:#50d6c8}[data-kat=saglik]{--kat:#ff7a6b}[data-kat=spor]{--kat:#65e6a4}[data-kat=teknoloji]{--kat:#5ca8ff}[data-kat=tumu]{--kat:#ffd400}
+[data-kat=turkiye]{--kat:#ffa24c}[data-kat=dunya]{--kat:#9fb4ff}[data-kat=yasam]{--kat:#ff8fc7}
 
 .hm{max-width:1440px;margin:0 auto;padding:calc(var(--hm-ust) + 14px) var(--hm-kenar) 72px;color:var(--hm-yazi)}
 .hm a{color:inherit;text-decoration:none}
@@ -210,10 +211,16 @@
 @media(max-width:720px){
   .hm-ozet{display:none}
   .hm-bas{padding-bottom:8px}
-  .hm-baslik{font-size:clamp(40px,12vw,56px)}
-  .hm-ray-iz,.hm-imlec{display:none}
-  .hm-katdugme{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0;border:0;background:none;color:#fff;font:400 18px/1 Anton,Impact,sans-serif;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
-  .hm-katdugme b{margin-left:auto;display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;background:var(--kat,var(--hm-sari));color:#0a0a0a;font:800 12px/1 Manrope,Inter,Arial,sans-serif;letter-spacing:.06em}
+  .hm-baslik{font-size:clamp(30px,9.4vw,40px)}
+  .hm-ray{display:flex;align-items:stretch}
+  .hm-katdugme{display:flex;align-items:center;justify-content:center;flex:none;width:46px;min-height:48px;margin-right:2px;padding:0;border:0;border-right:1px solid var(--hm-cizgi);background:none;color:#fff;cursor:pointer}
+  .hm-katdugme>span:not(.hm-hamburger),.hm-katdugme b{display:none}
+  .hm-ray-iz{flex:1;min-width:0}
+  .hm-ray a{min-height:48px;padding:0 11px;gap:7px;font-size:15px}
+  .hm-ray a::before{width:6px;height:6px}
+  .hm-kat-bas{margin:2px 0 14px;padding:12px 0 12px}
+  .hm-kat-bas h2{font-size:clamp(40px,12.5vw,58px)}
+  .hm-kat-bas h2 .hm-golge{display:none}
   .hm-katdugme:focus-visible{outline:2px solid var(--hm-sari);outline-offset:2px}
   .hm-hamburger{display:grid;gap:4px;width:22px}
   .hm-hamburger i{display:block;height:2px;border-radius:2px;background:var(--hm-sari)}
@@ -381,3 +388,50 @@ body>.hm-cekmece{position:fixed!important;inset:0;z-index:2147483000!important}
 @media(max-width:1000px){.hm-mt{grid-template-columns:1fr}.hm-mt-yan{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.hm-mt-numaralar{grid-template-columns:repeat(8,minmax(40px,1fr))}.hm-mt-no{min-height:44px;font-size:14px}.hm-mt-yan{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.hm-mt-slayt,.hm-mt-slayt.is-acik{transition:none}}
+
+/* Kategori sistemi v3 (10 Ekim): sayfa yolu, konu çipleri, bölüm manşeti,
+   diğer bölümler. Sunucu HTML'i ve haberler-akisi.js aynı sınıfları üretir. */
+.hm-kat-yol{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 0;color:var(--hm-soluk);font:700 11px/1.3 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase}
+.hm-kat-yol a{display:inline-flex;align-items:center;min-height:32px;color:var(--hm-soluk);text-decoration:none}
+.hm-kat-yol a:hover,.hm-kat-yol a:focus-visible{color:#fff}
+.hm-kat-yol [aria-current]{color:var(--kat,var(--hm-sari))}
+.hm-kat-konular{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 calc(var(--hm-kenar) * -1) 20px;padding:2px var(--hm-kenar) 4px}
+.hm-kat-konular::-webkit-scrollbar{display:none}
+.hm-kat-konular a,.hm-kat-konular button{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border:1px solid var(--hm-cizgi);border-radius:999px;background:var(--hm-panel);color:#dfe5ea;font:700 13px/1 Manrope,Inter,Arial,sans-serif;text-decoration:none;cursor:pointer;transition:background .2s,color .2s,border-color .2s}
+.hm-kat-konular small{color:var(--hm-soluk);font:700 11px/1 'JetBrains Mono',ui-monospace,monospace}
+.hm-kat-konular a:hover,.hm-kat-konular button:hover{border-color:var(--kat,var(--hm-sari))}
+.hm-kat-konular [aria-current=page],.hm-kat-konular [aria-pressed=true]{background:var(--kat,var(--hm-sari));border-color:transparent;color:#07090b}
+.hm-kat-konular [aria-current=page] small,.hm-kat-konular [aria-pressed=true] small{color:rgba(7,9,11,.7)}
+.hm-kat-konular a:focus-visible,.hm-kat-konular button:focus-visible{outline:2px solid var(--hm-sari);outline-offset:2px}
+.hm-kat-manset{margin:0 0 28px}
+.hm-kat-manset a{display:grid;gap:14px;color:inherit;text-decoration:none}
+.hm-kat-manset figure{position:relative;margin:0;border-radius:12px;overflow:hidden;background:var(--hm-panel);box-shadow:inset 0 -4px 0 var(--kat,var(--hm-sari))}
+.hm-kat-manset img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.hm-kat-manset a:hover img{transform:scale(1.025)}
+.hm-kat-manset figure .hm-kaynak{position:absolute;left:10px;bottom:12px;background:rgba(0,0,0,.72)}
+.hm-kat-manset h3{margin:10px 0 8px;font:800 clamp(22px,3.1vw,38px)/1.14 Manrope,Inter,Arial,sans-serif;letter-spacing:-.02em;text-wrap:balance}
+.hm-kat-manset a:hover h3{text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:5px;text-decoration-color:var(--kat,var(--hm-sari))}
+.hm-kat-manset p{margin:0;color:var(--hm-soluk);font:500 15px/1.55 Manrope,Inter,Arial,sans-serif;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+@media(min-width:900px){.hm-kat-manset a{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);align-items:center;gap:30px}}
+.hm-kat-diger{margin:42px 0 0;padding-top:18px;border-top:1px solid var(--hm-cizgi)}
+.hm-kat-diger strong{display:block;margin-bottom:12px;color:var(--hm-sari);font:800 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase}
+.hm-kat-diger div{display:flex;flex-wrap:wrap;gap:8px}
+.hm-kat-diger a{display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:0 14px;border:1px solid var(--hm-cizgi);border-radius:8px;color:#fff;font:400 16px/1 Anton,Impact,sans-serif;letter-spacing:.04em;text-transform:uppercase;text-decoration:none;transition:border-color .2s}
+.hm-kat-diger a::before{content:'';width:7px;height:7px;border-radius:2px;background:var(--kat);transform:rotate(45deg)}
+.hm-kat-diger a:hover,.hm-kat-diger a:focus-visible{border-color:var(--kat)}
+[data-hm-katsayfa] [data-konu][hidden]{display:none!important}
+/* Bölüm sayfasında odak bölümde: üst başlık küçülür, açıklama gizlenir. */
+.hm.kategori-modu .hm-baslik{font-size:clamp(30px,4.2vw,58px)}
+.hm.kategori-modu .hm-ozet{display:none}
+@media(min-width:721px){.hm-kat-bas h2{font-size:clamp(56px,9vw,128px)}}
+@media(max-width:720px){
+  /* Mobil ilk ekran içerikle başlar: satılmamış 970×250 yer tutucu gizlenir
+     (ulusal yayıncılar mobilde ilk ekranı habere ayırır). Akış içi alan kalır. */
+  .hm-reklam.hm-reklam-ust{display:none}
+  .hm-kat-manset{margin-bottom:22px}
+  .hm-kat-manset a{gap:10px}
+  .hm-kat-manset h3{font-size:22px;line-height:1.2}
+  .hm-kat-manset p{font-size:14px;-webkit-line-clamp:2}
+  .hm-kat-diger a{font-size:15px;min-height:42px;padding:0 12px}
+}
+@media(prefers-reduced-motion:reduce){.hm-kat-manset img{transition:none}}

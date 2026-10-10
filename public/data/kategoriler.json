@@ -1,0 +1,226 @@
+{
+  "surum": "2026-10-10.3",
+  "kaynak": "src/kategori-sistemi.js",
+  "kategoriler": [
+    {
+      "anahtar": "balikesir",
+      "ad": "Balıkesir",
+      "renk": "#64e4ff",
+      "grup": "yerel",
+      "ozet": "Şehir ve ilçe gündemi",
+      "aciklama": "Balıkesir merkez ve ilçelerinden güncel haberler, belediye hizmetleri, ulaşım, ekonomi ve kent yaşamı.",
+      "adres": "/haberler/balikesir/"
+    },
+    {
+      "anahtar": "turkiye",
+      "ad": "Türkiye",
+      "renk": "#ffa24c",
+      "grup": "haber",
+      "ozet": "Ulusal gündem",
+      "aciklama": "Türkiye genelindeki ulusal gündem, kamu, siyaset, toplum ve kentlerden gelişmeler.",
+      "adres": "/haberler/turkiye/"
+    },
+    {
+      "anahtar": "dunya",
+      "ad": "Dünya",
+      "renk": "#9fb4ff",
+      "grup": "haber",
+      "ozet": "Uluslararası gelişmeler",
+      "aciklama": "Dünyadan Türkiye’yi ve bölgeyi ilgilendiren gelişmeler, uluslararası gündem ve dış politika.",
+      "adres": "/haberler/dunya/"
+    },
+    {
+      "anahtar": "gundem",
+      "ad": "Gündem",
+      "renk": "#ff4038",
+      "grup": "konu",
+      "ozet": "Güncel olaylar ve kamu",
+      "aciklama": "Güvenlik, afet, yangın, kamu hizmetleri ve Balıkesir gündemindeki önemli gelişmeleri kaynaklarıyla takip edin.",
+      "adres": "/haberler/gundem/"
+    },
+    {
+      "anahtar": "ekonomi",
+      "ad": "Ekonomi",
+      "renk": "#f2c14e",
+      "grup": "konu",
+      "ozet": "Para, piyasa ve iş dünyası",
+      "aciklama": "Balıkesir ekonomisi, esnaf, tarım, fiyatlar, emlak, istihdam ve yerel iş dünyasındaki gelişmeler.",
+      "adres": "/haberler/ekonomi/"
+    },
+    {
+      "anahtar": "kultur",
+      "ad": "Kültür Sanat",
+      "renk": "#c77dff",
+      "grup": "konu",
+      "ozet": "Kültür, sanat ve etkinlik",
+      "aciklama": "Balıkesir kültür sanat gündemi: tiyatro, sinema, gastronomi, etkinlikler ve kentin hafızasını yaşatan hikâyeler.",
+      "adres": "/haberler/kultur/"
+    },
+    {
+      "anahtar": "egitim",
+      "ad": "Eğitim",
+      "renk": "#50d6c8",
+      "grup": "konu",
+      "ozet": "Okul, üniversite ve sınav",
+      "aciklama": "Okullar, üniversiteler, sınavlar ve öğrencilerin gündemindeki gelişmeleri BTMEDYA kaynaklarıyla izleyin.",
+      "adres": "/haberler/egitim/"
+    },
+    {
+      "anahtar": "saglik",
+      "ad": "Sağlık",
+      "renk": "#ff7a6b",
+      "grup": "konu",
+      "ozet": "Sağlık hizmetleri",
+      "aciklama": "Sağlık hizmetleri, uzman görüşleri ve günlük yaşamı ilgilendiren sağlık gelişmelerini kaynaklarıyla takip edin.",
+      "adres": "/haberler/saglik/"
+    },
+    {
+      "anahtar": "spor",
+      "ad": "Spor",
+      "renk": "#65e6a4",
+      "grup": "konu",
+      "ozet": "Takımlar, maçlar ve sporcular",
+      "aciklama": "Balıkesir ve Türkiye sporundan sonuçlar, takımlar, sporcular, karşılaşmalar ve etkinliklerden güncel haberler.",
+      "adres": "/haberler/spor/"
+    },
+    {
+      "anahtar": "teknoloji",
+      "ad": "Teknoloji",
+      "renk": "#5ca8ff",
+      "grup": "konu",
+      "ozet": "Dijital dünya ve yapay zekâ",
+      "aciklama": "Teknoloji, yapay zekâ, dijital dönüşüm ve yeni ürün ve hizmetleri anlaşılır haberler ve kaynaklarla takip edin.",
+      "adres": "/haberler/teknoloji/"
+    },
+    {
+      "anahtar": "yasam",
+      "ad": "Yaşam",
+      "renk": "#ff8fc7",
+      "grup": "konu",
+      "ozet": "Günlük yaşam ve insan hikâyeleri",
+      "aciklama": "Günlük yaşam, aile, moda, etkinlik, insan hikâyeleri ve şehir yaşamına dair haberler.",
+      "adres": "/haberler/yasam/"
+    }
+  ],
+  "ilceler": [
+    {
+      "anahtar": "altieylul",
+      "ad": "Altıeylül",
+      "adres": "/haberler/balikesir/altieylul/"
+    },
+    {
+      "anahtar": "karesi",
+      "ad": "Karesi",
+      "adres": "/haberler/balikesir/karesi/"
+    },
+    {
+      "anahtar": "ayvalik",
+      "ad": "Ayvalık",
+      "adres": "/haberler/balikesir/ayvalik/"
+    },
+    {
+      "anahtar": "balya",
+      "ad": "Balya",
+      "adres": "/haberler/balikesir/balya/"
+    },
+    {
+      "anahtar": "bandirma",
+      "ad": "Bandırma",
+      "adres": "/haberler/balikesir/bandirma/"
+    },
+    {
+      "anahtar": "bigadic",
+      "ad": "Bigadiç",
+      "adres": "/haberler/balikesir/bigadic/"
+    },
+    {
+      "anahtar": "burhaniye",
+      "ad": "Burhaniye",
+      "adres": "/haberler/balikesir/burhaniye/"
+    },
+    {
+      "anahtar": "dursunbey",
+      "ad": "Dursunbey",
+      "adres": "/haberler/balikesir/dursunbey/"
+    },
+    {
+      "anahtar": "edremit",
+      "ad": "Edremit",
+      "adres": "/haberler/balikesir/edremit/"
+    },
+    {
+      "anahtar": "erdek",
+      "ad": "Erdek",
+      "adres": "/haberler/balikesir/erdek/"
+    },
+    {
+      "anahtar": "gomec",
+      "ad": "Gömeç",
+      "adres": "/haberler/balikesir/gomec/"
+    },
+    {
+      "anahtar": "gonen",
+      "ad": "Gönen",
+      "adres": "/haberler/balikesir/gonen/"
+    },
+    {
+      "anahtar": "havran",
+      "ad": "Havran",
+      "adres": "/haberler/balikesir/havran/"
+    },
+    {
+      "anahtar": "ivrindi",
+      "ad": "İvrindi",
+      "adres": "/haberler/balikesir/ivrindi/"
+    },
+    {
+      "anahtar": "kepsut",
+      "ad": "Kepsut",
+      "adres": "/haberler/balikesir/kepsut/"
+    },
+    {
+      "anahtar": "manyas",
+      "ad": "Manyas",
+      "adres": "/haberler/balikesir/manyas/"
+    },
+    {
+      "anahtar": "marmara",
+      "ad": "Marmara",
+      "adres": "/haberler/balikesir/marmara/"
+    },
+    {
+      "anahtar": "savastepe",
+      "ad": "Savaştepe",
+      "adres": "/haberler/balikesir/savastepe/"
+    },
+    {
+      "anahtar": "sindirgi",
+      "ad": "Sındırgı",
+      "adres": "/haberler/balikesir/sindirgi/"
+    },
+    {
+      "anahtar": "susurluk",
+      "ad": "Susurluk",
+      "adres": "/haberler/balikesir/susurluk/"
+    }
+  ],
+  "esler": {
+    "balikesir": "balikesir",
+    "yerel": "balikesir",
+    "turkiye": "turkiye",
+    "ulusal": "turkiye",
+    "dunya": "dunya",
+    "uluslararasi": "dunya",
+    "gundem": "gundem",
+    "ekonomi": "ekonomi",
+    "kultur": "kultur",
+    "kultur sanat": "kultur",
+    "egitim": "egitim",
+    "saglik": "saglik",
+    "spor": "spor",
+    "teknoloji": "teknoloji",
+    "yapay zeka": "teknoloji",
+    "teknoloji ai": "teknoloji",
+    "yasam": "yasam"
+  }
+}

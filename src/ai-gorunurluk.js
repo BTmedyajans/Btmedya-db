@@ -222,7 +222,7 @@ export function haberLd(k, kok) {
     dateModified: k.updatedAt || undefined,
     inLanguage: 'tr-TR',
     author: { '@type': 'Organization', name: k.author, url: kok },
-    publisher: { '@type': 'NewsMediaOrganization', name: SITE_ADI, url: kok, logo: { '@type': 'ImageObject', url: `${kok}/assets/logo/bt-amblem-256.png` } },
+    publisher: { '@type': 'NewsMediaOrganization', name: SITE_ADI, url: kok, logo: { '@type': 'ImageObject', url: `${kok}/assets/logo/btmedya-logo-v4.png` } },
     isBasedOn: k.sourceUrl || undefined,
     creditText: k.archiveNote || undefined,
     isPartOf: { '@type': 'WebSite', name: SITE_ADI, url: kok }

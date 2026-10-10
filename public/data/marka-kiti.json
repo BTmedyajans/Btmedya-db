@@ -263,9 +263,11 @@
   }
  ],
  "logolar": [
-  "/assets/logo/btmedya-logo-yatay-pozitif.png",
-  "/assets/logo/btmedya-logo-yatay-negatif.png",
-  "/assets/logo/bt-amblem-256.png",
-  "/assets/logo/bt-amblem-daire.png"
+  "/assets/logo/btmedya-logo-v4.png",
+  "/assets/logo/btmedya-logo-v4-negatif.png",
+  "/assets/logo/btmedya-logo-yatay-v4.png",
+  "/assets/logo/btmedya-logo-yatay-v4-negatif.png",
+  "/assets/logo/bt-isaret-v4.png",
+  "/assets/logo/bt-isaret-v4-negatif.png"
  ]
 }

@@ -1,7 +1,10 @@
 /* BTMEDYA MOTION SYSTEM V2 · dynamic editorial navigation + CSS 3D model */
 :root{--bt-motion-ease:cubic-bezier(.16,1,.3,1);--bt-motion-lime:#d9ff3f;--bt-motion-cyan:#35d6ff;--bt-motion-bg:#050607}
 html{background:var(--bt-motion-bg)}
-body{--bt-mx:0;--bt-my:0;--bt-scroll:0;--bt-tilt-x:0deg;--bt-tilt-y:0deg;--bt-tilt-z:0deg;perspective:1200px}
+/* body'de perspective yok: perspective, position:fixed öğeler için kapsayıcı blok
+   oluşturur; üst çubuk, mobil hızlı menü ve çekmeceler sayfayla birlikte
+   kayıyordu (10 Ekim). Derinlik yalnız .bt-3d-model'in kendi transform'unda. */
+body{--bt-mx:0;--bt-my:0;--bt-scroll:0;--bt-tilt-x:0deg;--bt-tilt-y:0deg;--bt-tilt-z:0deg}
 /* Link-to-link editorial transition */
 /* overflow:hidden: :before 1.08 ölçekli; body perspective taşıdığı için sabit katman
    belge genişliğine sayılıyor ve 10 sayfayı yana kaydırıyordu (390 px'de +16 px). */
@@ -17,7 +20,7 @@ body{--bt-mx:0;--bt-my:0;--bt-scroll:0;--bt-tilt-x:0deg;--bt-tilt-y:0deg;--bt-ti
 [data-bt-parallax]{--bt-depth:10px;transform:translate3d(calc(var(--bt-mx) * var(--bt-depth)),calc(var(--bt-my) * var(--bt-depth) + var(--bt-scroll) * var(--bt-scroll-depth,0px)),0);transition:transform .35s var(--bt-motion-ease)}
 .bt-parallax-layer{will-change:transform;transform:translate3d(calc(var(--bt-mx) * 8px),calc(var(--bt-my) * 8px + var(--bt-scroll) * -10px),0)}
 /* CSS 3D model: abstract BTMEDYA signal/orbit, intentionally not a stock asset */
-.bt-3d-model{position:absolute;right:clamp(24px,7vw,110px);top:clamp(88px,15vh,160px);width:clamp(120px,16vw,240px);aspect-ratio:1;z-index:4;pointer-events:none;perspective:900px;opacity:.82;transform:translate3d(calc(var(--bt-mx) * 10px),calc(var(--bt-my) * 10px),0) rotateX(var(--bt-tilt-x)) rotateY(var(--bt-tilt-y)) rotateZ(var(--bt-tilt-z));transform-style:preserve-3d;transition:transform .32s var(--bt-motion-ease),filter .45s ease}
+.bt-3d-model{position:absolute;right:clamp(24px,7vw,110px);top:clamp(88px,15vh,160px);width:clamp(120px,16vw,240px);aspect-ratio:1;z-index:4;pointer-events:none;perspective:900px;opacity:.82;transform:perspective(1200px) translate3d(calc(var(--bt-mx) * 10px),calc(var(--bt-my) * 10px),0) rotateX(var(--bt-tilt-x)) rotateY(var(--bt-tilt-y)) rotateZ(var(--bt-tilt-z));transform-style:preserve-3d;transition:transform .32s var(--bt-motion-ease),filter .45s ease}
 .bt-3d-model .bt-orbit,.bt-3d-model .bt-core{position:absolute;inset:0;border:1px solid rgba(53,214,255,.7);border-radius:50%;transform-style:preserve-3d;box-shadow:0 0 28px rgba(53,214,255,.13),inset 0 0 22px rgba(217,255,63,.08)}
 .bt-3d-model .bt-orbit:nth-child(1){transform:rotateX(68deg) rotateZ(0deg);animation:btOrbitA 11s linear infinite}
 .bt-3d-model .bt-orbit:nth-child(2){transform:rotateY(68deg) rotateZ(24deg);border-color:rgba(217,255,63,.72);animation:btOrbitB 8s linear infinite reverse}
@@ -58,3 +61,10 @@ body.bt-motion-ready main{animation:btPageIn .62s var(--bt-motion-ease) both}
 @keyframes btPageIn{from{opacity:.84;transform:translateY(14px)}to{opacity:1;transform:none}}
 @media(max-width:720px){.bt-3d-model{right:16px;top:82px;width:108px;opacity:.48}.bt-3d-model:after{font-size:7px}.bt-transition-inner{width:calc(100% - 36px)}[data-bt-parallax],.bt-parallax-layer{transform:none!important;transition:none!important}.bt-3d-model{transform:translate3d(0,0,0) rotateX(var(--bt-tilt-x)) rotateY(var(--bt-tilt-y)) rotateZ(var(--bt-tilt-z))}}
 @media(prefers-reduced-motion:reduce){.bt-page-transition,.bt-page-transition:before,body.bt-motion-ready main{transition:none!important;animation:none!important}.bt-3d-model{display:none}.bt-3d-model *{animation:none!important}[data-bt-parallax],.bt-parallax-layer{transform:none!important;transition:none!important}}
+
+/* Logo v4 (10 Ekim, kullanıcının altın BT logosu): amblem baskın olduğu için
+   BTMEDYA yazısı 30 px başlıkta küçük kalıyordu. Yüksek seçicilik, dağınık
+   !important kurallarını tek yerden geçersiz kılar (aynı kural tipografi-v2.css
+   ve site-motion-v2.css içinde: dinamik haber sayfaları yalnız birincisini yükler). */
+html body .topbar .brand img.brand-logo{height:42px!important;width:auto!important;max-width:none!important;object-fit:contain}
+@media (max-width:760px){html body .topbar .brand img.brand-logo{height:32px!important;max-width:52vw!important}}
