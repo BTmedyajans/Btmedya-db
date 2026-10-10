@@ -540,6 +540,7 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
       if(social?.scheduled) result.social_scheduled++;
     }
     result.items.push({
+      slug:news.slug,
       source_url:candidate.source_url,title:draft.title,category,
       score:Number(candidate.score||0),risk:Number(candidate.risk||0),
       status:news.status,needsApproval,media:media?{key:media.key,ai_generated:media.ai_generated}:null,

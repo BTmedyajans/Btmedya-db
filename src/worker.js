@@ -9,6 +9,7 @@ import { merakRadariCalistir, merakRadariDurumu, ozelHaberPaketiUret } from "./m
 import { recoveryPasswordValid } from "./auth-recovery.js";
 import { runAutopilot, autopilotPolicy, setAutopilotPolicy, autopilotStatus, connectionMatrix, referenceDraft, generateAutopilotImage } from "./autopilot.js";
 import { salesApi, satisOzeti } from "./sales-router.js";
+import { aramaMotoruBildir } from "./arama-motoru.js";
 import { agencySupervisorApi, runAgencySupervisor } from "./agency-supervisor.js";
 import { ensureBtmedyaCore, btmedyaCoreApi } from "./btmedya-core.js";
 import { siteOsApi, runSiteOsChecks } from "./site-os.js";
@@ -267,20 +268,9 @@ async function workflowApi(request, env, url) {
    geregi public/57fb863171638cffa9cdfb3913627b57.txt olarak yayinda); gizli degil, alan adinin
    sahipligini kanitlar. Google IndexNow kullanmaz; Google icin site haritasi
    ve Search Console gecerlidir. Bildirim basarisiz olursa yayin etkilenmez. */
-const INDEXNOW_ANAHTAR = '57fb863171638cffa9cdfb3913627b57';
-function indexNowBildir(ctx, origin, slug){
-  if(!slug) return;
-  const host = new URL(origin).host;
-  if(host !== 'btmedya.com.tr') return; // yerel ve onizleme ortamlarindan bildirim gitmesin
-  const is = fetch('https://api.indexnow.org/indexnow', {
-    method:'POST', headers:{'content-type':'application/json; charset=utf-8'},
-    body: JSON.stringify({host, key:INDEXNOW_ANAHTAR, keyLocation:`https://${host}/${INDEXNOW_ANAHTAR}.txt`,
-      urlList:[`https://${host}/haberler/${encodeURIComponent(slug)}`]}),
-    signal: AbortSignal.timeout(5000)
-  }).then(r => { if(!r.ok && r.status!==202) console.error('[indexnow]', r.status); })
-    .catch(e => console.error('[indexnow]', e?.message || e));
-  if(ctx?.waitUntil) ctx.waitUntil(is);
-}
+// Tek bildirim yolu src/arama-motoru.js'dedir; admin ve otomasyon aynı
+// fonksiyonu kullanır (tek/çoklu slug kabul eder).
+function indexNowBildir(ctx, origin, slug){ return aramaMotoruBildir(ctx, origin, slug); }
 
 async function merakRadariApi(request, env, url){
   if(!url.pathname.startsWith('/api/admin/merak-radari')) return null;
@@ -1932,7 +1922,12 @@ export default { async scheduled(controller, env, ctx){
   if(cron==="0 5 * * *"){
     await ensureContentTaxonomy(env).catch(e=>console.error("[taxonomy] bootstrap:",e?.message||e));
     const results=await Promise.allSettled([
-      sabahMasasi(env).then(r=>console.log("[btmedya] sabah masasi",r.yayinlanan,"yayinda",r.taslak,"taslak",r.hatalar.length,"hata")),
+      sabahMasasi(env).then(r=>{
+        console.log("[btmedya] sabah masasi",r.yayinlanan,"yayinda",r.taslak,"taslak",r.hatalar.length,"hata");
+        // Otomatik yayınlananları IndexNow'a bildir (Bing/Yandex anında).
+        const sluglar=(r.secilen||[]).filter(s=>s.durum==="yayinlandi"&&s.slug).map(s=>s.slug);
+        if(sluglar.length){ aramaMotoruBildir(ctx,"https://btmedya.com.tr",sluglar); console.log("[btmedya] indexnow sabah",sluglar.length,"adres"); }
+      }),
       satisOzeti(env).then(r=>console.log("[btmedya] satis ozeti",JSON.stringify(r)))
     ]);
     for(const r of results) if(r.status==="rejected") console.error("[btmedya] daily job:",r.reason?.message||r.reason);
@@ -1959,6 +1954,9 @@ export default { async scheduled(controller, env, ctx){
       }else if(slot===3){
         const x=await runAutopilot(env,{force:false,limit:2,skipRecentIntelligence:true});
         console.log("[btmedya] autopilot",JSON.stringify({ok:x.ok,scanned:x.scanned,candidates:x.candidates,news:x.created_news,published:x.published_news,social:x.social_created,blocked:x.blocked,errors:x.error_count}));
+        // Autopilot otomatik yayınladıklarını IndexNow'a bildir.
+        const apSluglar=(x.items||[]).filter(it=>it.status==="published"&&it.slug).map(it=>it.slug);
+        if(apSluglar.length){ aramaMotoruBildir(ctx,"https://btmedya.com.tr",apSluglar); console.log("[btmedya] indexnow autopilot",apSluglar.length,"adres"); }
       }else if(slot===4){
         const x=await autoPrepareSocialDrafts(env,3);
         if(x?.created) console.log("[btmedya] social drafts",x.created,"hazırlandı");
