@@ -139,8 +139,8 @@ assert.equal(y.denetim.iddia.gecti, true);
 const kv = new Map([['sabah:ayarlar', JSON.stringify({ model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast', kategoriler: [] })]]);
 const ayar = await M.sabahAyarlari({ KV: { get: async k => kv.get(k) || null } });
 assert.equal(ayar.model, '@cf/openai/gpt-oss-120b');
-// 6 Ekim: Dünya ve Yaşam eklendi (ulusal haber sitesi bölümleri).
-assert.equal(ayar.kategoriler.length, 10);
+// Kategori listesi kaynak modülle birlikte büyür; sabit sayı yeni kategori eklenince CI'ı kırmasın.
+assert.equal(ayar.kategoriler.length, M.KATEGORILER.length);
 // Kapak: alakası doğrulanmamış Openverse fotoğrafı varsayılan olarak kapak
 // yapılmaz (3 Ekim denetimi: yanlış spor, yanlış şehir, tanınabilir kişiler).
 {
