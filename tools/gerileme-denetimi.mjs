@@ -547,7 +547,22 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   if (!/-genis\.webm(\?.*)?$/.test(webm)) bulgular.push(`public/index.html masaüstü filmin data-webm'i masaüstü kurgusu değil: ${webm || 'yok'}`);
   if (/data-src-hq="[^"]+\.mp4"/.test(ana)) bulgular.push('public/index.html data-src-hq MP4 kaynağı codec denetimi olmadan zorlanıyor; H.264 çözemeyen tarayıcıda film açılmaz.');
   }
-}if (bulgular.length) {
+}/* 21) Kalici haber kategori acilis sayfalari ana sitemap'te de bulunmali.
+   Sadece haber URL'lerini eklemek kategori girislerini Google'a bildirmez. */
+{
+  const bolum = worker.match(/const kategoriYollari = \[([\s\S]*?)\];/);
+  const gerekli = [
+    '/haberler/balikesir/', '/haberler/turkiye/', '/haberler/dunya/',
+    '/haberler/gundem/', '/haberler/ekonomi/', '/haberler/kultur/',
+    '/haberler/egitim/', '/haberler/saglik/', '/haberler/spor/',
+    '/haberler/teknoloji/', '/haberler/yasam/'
+  ];
+  if (!bolum || gerekli.some(yol => !bolum[1].includes(yol))) {
+    bulgular.push('src/worker.js sitemap uretimi tum 11 kanonik haber kategori rotasini kapsamiyor.');
+  }
+}
+
+if (bulgular.length) {
   console.error('GERILEME BULUNDU:\n');
   bulgular.forEach((b, i) => console.error(`  ${i + 1}. ${b}\n`));
   process.exit(1);

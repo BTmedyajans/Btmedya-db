@@ -2522,16 +2522,32 @@ async function haritayaPanelHaberleriniEkle(yol, metin, env, origin) {
   const adres = s => `${kok}/haberler/${encodeURIComponent(s)}`;
   // Statik dosyada zaten olan haber ikinci kez eklenmez.
   const eksik = satirlar.filter(r => !metin.includes(`/haberler/${r.slug}<`) && !metin.includes(`/haberler/${encodeURIComponent(r.slug)}<`));
-  if (!eksik.length) return metin;
   const tarih = r => { const d = new Date(r.published_at || r.updated_at || ''); return isNaN(d) ? null : d; };
 
   if (yol === '/sitemap.xml') {
-    const ek = eksik.map(r => {
+    const haberOgeleri = eksik.map(r => {
       const d = tarih(r);
       return `<url><loc>${xmlKac(adres(r.slug))}</loc>${d ? `<lastmod>${d.toISOString().slice(0, 10)}</lastmod>` : ''}<changefreq>weekly</changefreq><priority>0.7</priority></url>`;
-    }).join('\n');
-    return metin.replace('</urlset>', ek + '\n</urlset>');
+    });
+
+    // Temiz kategori sayfalari da kalici ve kanonik URL'lerdir. Statik sitemap
+    // yalnizca haberleri listeledigi icin bu acilis sayfalari ic linklerden
+    // bulunmak zorundaydi; burada ana kategori rotalarini da Google'a sunuyoruz.
+    // Bos ilce rotalari eklenmez: Worker bunlara noindex,follow verir.
+    const kategoriYollari = [
+      '/haberler/balikesir/', '/haberler/turkiye/', '/haberler/dunya/',
+      '/haberler/gundem/', '/haberler/ekonomi/', '/haberler/kultur/',
+      '/haberler/egitim/', '/haberler/saglik/', '/haberler/spor/',
+      '/haberler/teknoloji/', '/haberler/yasam/'
+    ];
+    const kategoriOgeleri = kategoriYollari
+      .filter(yol => !metin.includes(`<loc>${kok}${yol}</loc>`))
+      .map(yol => `<url><loc>${xmlKac(kok + yol)}</loc><changefreq>daily</changefreq><priority>0.7</priority></url>`);
+
+    const ek = [...haberOgeleri, ...kategoriOgeleri].join('\n');
+    return ek ? metin.replace('</urlset>', ek + '\n</urlset>') : metin;
   }
+  if (!eksik.length) return metin;
   // RSS: yeni ogeler kanalin basina, statik ogelerin onune girer.
   const ek = eksik.slice(0, 50).map(r => {
     const d = tarih(r);
