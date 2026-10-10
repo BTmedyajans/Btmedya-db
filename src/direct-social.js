@@ -33,7 +33,13 @@ const clean=(v,n=500)=>String(v??"").trim().slice(0,n);
 const base64url=(bytes)=>btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 const unb64=(s)=>{s=String(s).replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return Uint8Array.from(atob(s),c=>c.charCodeAt(0));};
 
-function secret(env){return String(env.SOCIAL_TOKEN_ENCRYPTION_KEY||"");}
+// Token şifreleme anahtarı. Ayrı bir SOCIAL_TOKEN_ENCRYPTION_KEY tercih edilir;
+// tanımlı değilse mevcut güçlü MEDIA_SIGNING_SECRET'a düşer (anahtar SHA ile
+// türetildiği için doğrudan tekrar kullanım değil). Böylece Meta bağlamak için
+// kullanıcının ayrı bir şifreleme anahtarı üretmesi gerekmez; yalnız App ID ve
+// App Secret yeterli. MEDIA_SIGNING_SECRET değişirse saklı tokenlar yeniden
+// yetkilendirme ister (editör panelden tek tıkla yeniden bağlar).
+function secret(env){return String(env.SOCIAL_TOKEN_ENCRYPTION_KEY||env.MEDIA_SIGNING_SECRET||"");}
 function graphVersion(env){return clean(env.META_GRAPH_VERSION||GRAPH_DEFAULT,20);}
 function originFrom(request,env){return String(env.BTMEDYA_PUBLIC_ORIGIN||new URL(request.url).origin).replace(/\/$/,"");}
 
