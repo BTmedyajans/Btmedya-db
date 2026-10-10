@@ -384,6 +384,74 @@ export async function processDirectSocialQueue(env,limit=10){
   return result;
 }
 
+
+/* Autopilot için Metricool'dan bağımsız sosyal yayın kuyruğu.
+   Yalnızca kullanıcının OAuth ile bağladığı hesaplara kayıt oluşturur. */
+async function sonrakiDogruYuva(env, simdi=Date.now()){
+  const saatler=["10:00","12:00","18:00"];
+  const ofset=180*60000;
+  const yerel=new Date(simdi+ofset);
+  for(let gun=0;gun<30;gun++){
+    for(const saat of saatler){
+      const [s,d]=saat.split(":").map(Number);
+      const t=Date.UTC(yerel.getUTCFullYear(),yerel.getUTCMonth(),yerel.getUTCDate()+gun,s,d)-ofset;
+      if(t<simdi+20*60000) continue;
+      const alt=new Date(t-30*60000).toISOString();
+      const ust=new Date(t+30*60000).toISOString();
+      const direct=await env.DB.prepare("SELECT 1 FROM social_direct_jobs WHERE status IN ('queued','publishing','published') AND scheduled_at BETWEEN ? AND ? LIMIT 1").bind(alt,ust).first().catch(()=>null);
+      const legacy=await env.DB.prepare("SELECT 1 FROM social_posts WHERE status IN ('planlandi','yayinlandi') AND scheduled_at BETWEEN ? AND ? LIMIT 1").bind(alt,ust).first().catch(()=>null);
+      if(!direct&&!legacy) return new Date(t).toISOString();
+    }
+  }
+  return null;
+}
+
+export async function queueAutopilotSocial(env,{
+  title="",body="",mediaKey="",sourceSlug="",networks=[],
+  workspace_type="agency",workspace_id="btmedya"
+}={}){
+  if(!env.DB) return {ok:false,connected:false,queued:0,reason:"D1 bağlantısı yok"};
+  if(!secret(env)) return {ok:false,connected:false,queued:0,reason:"SOCIAL_TOKEN_ENCRYPTION_KEY eksik"};
+  await ensureDirectTables(env);
+  const allowed=new Set(["facebook","instagram","tiktok","youtube","x"]);
+  const selected=[...new Set((Array.isArray(networks)?networks:[]).map(x=>String(x||"").toLowerCase()).filter(x=>allowed.has(x)))];
+  if(!selected.length) return {ok:false,connected:false,queued:0,reason:"Yayın platformu seçilmedi"};
+  const slots=selected.map(()=>"?").join(",");
+  const q=await env.DB.prepare("SELECT id,provider,external_id,account_name,page_id,ig_user_id FROM social_direct_connections WHERE workspace_type=? AND workspace_id=? AND status='active' AND provider IN ("+slots+") ORDER BY provider,account_name").bind(workspace_type,workspace_id,...selected).all();
+  const connections=q.results||[];
+  if(!connections.length) return {ok:false,connected:false,queued:0,reason:"Doğrudan bağlı sosyal hesap bulunamadı"};
+  const key=clean(mediaKey,500);
+  const eligible=connections.filter(c=>{
+    if((c.provider==="instagram")&&!key) return false;
+    if((c.provider==="tiktok"||c.provider==="youtube")&&!isVideoKey(key)) return false;
+    return true;
+  });
+  if(!eligible.length) return {ok:false,connected:true,queued:0,reason:"Bağlı hesaplar için uygun medya bulunamadı; Instagram görsel/video, TikTok ve YouTube video ister"};
+  const cleanTitle=clean(title,240);
+  const cleanBody=clean(body,63206);
+  const source=clean(sourceSlug,240);
+  const bytes=await crypto.subtle.digest("SHA-256",new TextEncoder().encode([source,cleanTitle,cleanBody,key].join("\n")));
+  const hash=Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,"0")).join("");
+  const fresh=[];
+  for(const c of eligible){
+    const prior=await env.DB.prepare("SELECT id,status,scheduled_at FROM social_direct_jobs WHERE connection_id=? AND source_slug=? AND content_hash=? AND status IN ('queued','publishing','published') LIMIT 1").bind(c.id,source,hash).first().catch(()=>null);
+    if(!prior) fresh.push(c);
+  }
+  if(!fresh.length) return {ok:true,connected:true,duplicate:true,queued:0,reason:"Bu içerik bağlı hesaplarda daha önce kuyruğa alınmış veya yayımlanmış"};
+  const scheduledAt=await sonrakiDogruYuva(env);
+  if(!scheduledAt) return {ok:false,connected:true,queued:0,reason:"Önümüzdeki 30 gün için boş yayın saati bulunamadı"};
+  const now=new Date().toISOString();
+  const items=[];
+  for(const c of fresh){
+    const id=crypto.randomUUID();
+    await env.DB.prepare("INSERT INTO social_direct_jobs(id,connection_id,title,body,media_key,scheduled_at,status,attempts,external_id,last_error,source_slug,content_hash,kind,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+      .bind(id,c.id,cleanTitle,cleanBody,key,scheduledAt,"queued",0,"","",source,hash,"autopilot",now,now).run();
+    await saveContentTaxonomy(env,"social_job",id,{path_key:"sosyal",group_key:"",item_key:"",secondary_json:"[]"}).catch(()=>{});
+    items.push({id,provider:c.provider,account_name:c.account_name,scheduled_at:scheduledAt});
+  }
+  return {ok:true,connected:true,created:true,queued:items.length,scheduled_at:scheduledAt,items};
+}
+
 async function apiAccounts(request,env,url){
   if(!(await validSession(request,env)))return j({ok:false,error:"Yetkisiz"},401);
   await ensureDirectTables(env);
