@@ -65,6 +65,11 @@ button[disabled]{opacity:.6;cursor:wait}
   const sonra=new URLSearchParams(location.search).get('sonra')||'';
   const hedef=/^\/admin\/(?!giris\/)[a-z0-9\-\/._?=&%]*$/i.test(sonra)?sonra:'/admin/agency-os/';
   document.getElementById(document.getElementById('kullanici').value?'sifre':'kullanici').focus();
+  // A missing session is handled by Worker/Cloudflare Access; credentials remain only in this form.
+  const urlParams=new URLSearchParams(location.search);
+  if(urlParams.get('oturum')==='yenile') {
+    mesaj.textContent='Güvenli oturum süreniz dolmuş. Şifreyi yeniden girerek oturumu yenileyin.';
+  }
   form.addEventListener('submit',async e=>{
     e.preventDefault();
     const sifre=document.getElementById('sifre').value;
