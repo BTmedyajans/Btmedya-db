@@ -1,0 +1,64 @@
+name: BTMedya haber kapak otomasyonu
+
+# Üretim zincirinin eksik halkası: Worker (Cloudflare) Python/Pillow
+# çalıştıramadığı için Sabah Masası ve Autopilot otomatik yayınladığında
+# haberin gerçek kapağı üretilemiyordu; kart genel kategori plakası
+# gösteriyordu. Bu iş, canlı yayın akışından kapaksız haberleri bulur,
+# gerçek rakamla kapak üretir ve main'e commit eder. Workers Builds dağıtınca
+# kapakSec (src/worker.js) gerçek kapağı otomatik servis eder.
+#
+# Döngü yok: tetikleyici yalnız zamanlı (schedule) ve manuel (dispatch);
+# push'la kendini tetiklemez. Yalnız public/assets/haber-kapak,
+# public/assets/sosyal-kart ve public/data/*.json yazar.
+
+on:
+  schedule:
+    # Sabah Masası 05:00 UTC (08:00 İstanbul) çalışır; sonrasında ve gün
+    # içinde Autopilot yayınlarını yakalamak için 6 saatte bir süpürür.
+    - cron: "40 5,11,17,23 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: btmedya-haber-kapak-otomasyonu
+  cancel-in-progress: false
+
+jobs:
+  kapak:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Pillow kur
+        run: python -m pip install --quiet "Pillow>=10,<12"
+
+      - name: Kapaksız haberlere kapak üret
+        run: python3 tools/kapak-otomasyonu.py
+
+      - name: Asset referanslarını doğrula
+        run: python3 tools/validate-assets.py
+
+      - name: Üretilen kapakları commit et
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json; then
+            echo "Üretilecek yeni kapak yok; akış güncel."
+            exit 0
+          fi
+          git config user.name "BTMEDYA Kapak Otomasyonu"
+          git config user.email "actions@users.noreply.github.com"
+          git add public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json
+          git commit -m "chore: otomatik haber kapakları üretildi"
+          # İş çalışırken main ilerlediyse güncel kaynağın üstüne otur.
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
