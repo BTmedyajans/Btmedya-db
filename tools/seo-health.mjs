@@ -62,6 +62,8 @@ for (const path of pages) {
   } catch (e) { fail(`${path} fetch failed: ${e.message}`); }
 }
 
+let newsSitemapBody = "";
+let rssBody = "";
 for (const path of ["/robots.txt", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml"]) {
   try {
     const r = await get(path);
@@ -84,16 +86,87 @@ for (const path of ["/robots.txt", "/sitemap.xml", "/news-sitemap.xml", "/rss.xm
       }
       console.log(`PASS: /sitemap.xml HTTP 200; ${urls.length} URLs`);
     } else if (path === "/news-sitemap.xml") {
-      if (!/urlset/i.test(r.body)) fail("news-sitemap.xml is not a URL set");
+      newsSitemapBody = r.body;
+      if (!/<urlset\b/i.test(r.body)) fail("news-sitemap.xml is not a URL set");
+      if (!/xmlns:news=["']http:\/\/www\.google\.com\/schemas\/sitemap-news\/0\.9["']/i.test(r.body)) fail("news-sitemap.xml is missing the Google News namespace");
       const count = (r.body.match(/<news:news>/gi) || []).length;
-      if (!count) warn("news-sitemap.xml has no recent news entries; check that published news is updated within Google's news-sitemap window");
-      console.log(`PASS: /news-sitemap.xml HTTP 200; recent news entries=${count}`);
+      console.log("PASS: /news-sitemap.xml HTTP 200; recent news entries=" + count);
     } else {
+      rssBody = r.body;
       if (!/<rss\b/i.test(r.body) || !/<channel>/i.test(r.body)) fail("rss.xml is not a valid RSS feed");
       console.log("PASS: /rss.xml HTTP 200; RSS markers checked");
     }
   } catch (e) { fail(`${path} fetch failed: ${e.message}`); }
 }
+
+// D1'de yakın zamanda yayımlanan haber varsa News sitemap ve RSS bununla eşleşmeli.
+try {
+  const health = await get("/api/health");
+  if (health.status !== 200) fail(`/api/health returned HTTP ${health.status}`);
+  else {
+    let h;
+    try { h = JSON.parse(health.body); } catch { fail("/api/health did not return JSON"); }
+    if (h && h.ok !== true) fail("/api/health ok is not true");
+    if (h && h.cms !== true) fail("/api/health CMS/D1 is not ready");
+    if (h && h.r2 !== true) fail("/api/health R2 is not ready");
+    if (h && h.admin !== true) fail("/api/health admin authentication is not configured");
+    if (h && h.readiness?.metricool?.userToken !== true) fail("Metricool automation is not ready: Worker secret METRICOOL_USER_TOKEN is missing");
+    if (h && h.readiness?.windsor && h.readiness.windsor.apiKey !== true) fail("Windsor analytics is not ready: Worker secret WINDSOR_API_KEY is missing");
+    const windsorState = h?.readiness?.windsor ? String(Boolean(h.readiness.windsor.apiKey)) : "not-exposed-by-live-version";
+    console.log(`PASS: /api/health HTTP ${health.status}; cms=${Boolean(h?.cms)} r2=${Boolean(h?.r2)} admin=${Boolean(h?.admin)} metricoolToken=${Boolean(h?.readiness?.metricool?.userToken)} windsorKey=${windsorState}`);
+  }
+} catch (e) { fail(`/api/health fetch failed: ${e.message}`); }
+
+// Admin kapısı: login/Access yönlendirmesi beklenir; 404 veya sunucu hatası kabul edilmez.
+try {
+  const response = await fetch(origin + "/admin/", {
+    redirect: "manual",
+    headers: { "user-agent": "BTMEDYA-SEO-Health/1.0" },
+    signal: AbortSignal.timeout(15000)
+  });
+  const location = response.headers.get("location") || "";
+  if (response.status === 404 || response.status >= 500) fail(`/admin/ returned HTTP ${response.status}`);
+  else if (response.status >= 300 && response.status < 400 && !location) fail("/admin/ redirect has no Location header");
+  else if (response.status === 200) {
+    const body = await response.text();
+    if (!/admin|login|noindex/i.test(body)) fail("/admin/ returned 200 without admin/login/noindex evidence");
+  }
+  console.log("PASS: /admin/ gate HTTP " + response.status + "; redirect=" + Boolean(location));
+} catch (e) { fail(`/admin/ fetch failed: ${e.message}`); }
+
+// Giriş filmi gerçek dosya olarak canlıda açılabilmeli; küçük Range isteğiyle tüm filmi indirmeyiz.
+try {
+  const videoPath = "/assets/media/web/state-produksiyon.mp4?v=20261008-archive-hero";
+  const response = await fetch(origin + videoPath, {
+    headers: { "user-agent": "BTMEDYA-SEO-Health/1.0", "range": "bytes=0-0" },
+    signal: AbortSignal.timeout(20000)
+  });
+  const type = response.headers.get("content-type") || "";
+  if (![200, 206].includes(response.status)) fail(`hero video HTTP ${response.status}`);
+  if (!/^video\//i.test(type)) fail(`hero video has unexpected content-type: ${type}`);
+  console.log("PASS: hero video HTTP " + response.status + "; content-type=" + type);
+} catch (e) { fail(`hero video fetch failed: ${e.message}`); }
+
+try {
+  const api = await get("/api/news?limit=100&ozet=1");
+  if (api.status !== 200) fail(`/api/news HTTP ${api.status}`);
+  else {
+    let data;
+    try { data = JSON.parse(api.body); } catch { fail("/api/news did not return JSON"); }
+    const items = Array.isArray(data?.items) ? data.items : [];
+    const now = Date.now();
+    const recent = items.filter(n => {
+      const t = Date.parse(n.published_at || "");
+      return Number.isFinite(t) && t <= now + 3600000 && t >= now - 48 * 3600000;
+    }).sort((a,b) => Date.parse(b.published_at || "") - Date.parse(a.published_at || ""));
+    const latest = recent[0];
+    const newsCount = (newsSitemapBody.match(/<news:news>/gi) || []).length;
+    if (latest && newsCount === 0) fail("published news is within 48 hours but news-sitemap.xml has zero entries");
+    if (latest && !rssBody.includes(latest.slug)) fail(`RSS does not include the latest recent published news: ${latest.slug}`);
+    if (!items.length) warn("/api/news returned no items");
+    console.log(`PASS: /api/news HTTP ${api.status}; items=${items.length}; recent=${recent.length}; news-sitemap=${newsCount}`);
+  }
+} catch (e) { fail(`/api/news fetch failed: ${e.message}`); }
 
 console.log(JSON.stringify({ origin, checkedAt: new Date().toISOString(), pagesChecked: report.length, warnings, failures }, null, 2));
 if (failures.length) process.exit(1);

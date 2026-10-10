@@ -84,4 +84,5 @@ assert.match(kabuk, /location\.replace\('\/admin\/agency-os\//);
 const merkezStil = readFileSync('public/admin/agency-os/agency-os.css', 'utf8');
 for (const parca of [':root{', '--lime:', 'body{', '.top{']) assert.ok(merkezStil.includes(parca), `agency-os.css taban kuralı eksik: ${parca}`);
 
+
 console.log('ADMIN GIRIS TESTI GECTI');

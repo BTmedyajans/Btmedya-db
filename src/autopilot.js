@@ -108,6 +108,11 @@ async function ensureTables(env){
     error_count INTEGER NOT NULL DEFAULT 0,
     detail TEXT NOT NULL DEFAULT '{}'
   )`).run().catch(()=>{});
+  // Recover only stale unfinished rows (> 60 min). Preserve the existing JSON audit detail.
+  const staleBefore=new Date(Date.now()-60*60*1000).toISOString();
+  const recoveredAt=nowIso();
+  await env.DB.prepare("UPDATE autopilot_runs SET finished_at=?,error_count=error_count+1,detail=json_set(CASE WHEN json_valid(detail) THEN detail ELSE '{}' END,'$.recovery_note','Stale run closed by autopilot guard','$.recovered_at',?) WHERE finished_at IS NULL AND started_at < ?")
+    .bind(recoveredAt,recoveredAt,staleBefore).run().catch(()=>{});
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS autopilot_competitors (
     host TEXT PRIMARY KEY,
     label TEXT NOT NULL DEFAULT '',
@@ -434,20 +439,46 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
   const runKey="run:"+Math.floor(Date.now()/60000);
   const started=nowIso();
   let runId=null;
+  let runClaimed=!env.DB;
+  let claimError="";
   if(env.DB){
-    const ins=await env.DB.prepare("INSERT OR IGNORE INTO autopilot_runs(run_key,started_at) VALUES(?,?)").bind(runKey,started).run().catch(()=>null);
-    runId=ins?.meta?.last_row_id||null;
+    let ins=null;
+    try{
+      ins=await env.DB.prepare("INSERT OR IGNORE INTO autopilot_runs(run_key,started_at) VALUES(?,?)").bind(runKey,started).run();
+    }catch(e){
+      claimError=String(e?.message||e).slice(0,240);
+    }
+    // D1's changes count, not last_row_id alone, tells us whether this invocation
+    // actually acquired the unique minute key. INSERT OR IGNORE can leave a prior last_row_id.
+    runClaimed=Boolean(ins && Number(ins.meta?.changes)>0 && Number(ins.meta?.last_row_id)>0);
+    if(runClaimed) runId=Number(ins.meta.last_row_id);
   }
   const result={
     ok:true,enabled:policy.enabled,runKey,runId,scanned:0,candidates:0,created_news:0,published_news:0,
     social_created:0,social_scheduled:0,blocked:0,error_count:0,items:[],competitors:[],policy
   };
-  try {
-  if(!force && !policy.enabled){
-    result.ok=true; result.skipped=true; result.reason="Autopilot kapalı.";
+  // Do not run discovery or auto-publishing without acquiring the unique audit row.
+  // Return before the finalize block so a duplicate cannot overwrite the owner's record.
+  if(env.DB && !runClaimed){
+    result.skipped=true;
+    result.reason=claimError
+      ? "D1 çalışma kilidi alınamadı; otomasyon güvenli biçimde atlandı."
+      : "Bu dakika için başka bir otomasyon çalışması zaten kayıtlı; yinelenen çağrı atlandı.";
+    if(claimError){
+      result.ok=false;
+      result.error_count=1;
+      result.errors=[claimError];
+    }
     return result;
   }
   try{
+    if(!force && !policy.enabled){
+      result.ok=true;
+      result.skipped=true;
+      result.reason="Autopilot kapalı.";
+      return result;
+    }
+    try{
     let recentScan=null;
     if(skipRecentIntelligence && env.KV){
       const raw=await env.KV.get("news-intelligence:last").catch(()=>null);
@@ -458,7 +489,7 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
       result.scanned=0;
       result.intelligenceSkipped=true;
     }else{
-      const intel=await runNewsIntelligence(env,{limit:Math.max(12,Number(limit)||policy.maxItemsPerRun*4)});
+      const intel=await runNewsIntelligence(env,{limit:Math.min(8,Math.max(4,Number(limit)||policy.maxItemsPerRun*2))});
       result.scanned=Number(intel.scanned||0);
     }
   }catch(e){
@@ -466,19 +497,19 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
   }
 
   let candidates=[];
+  // Keep per-run AI work, media selection, D1 writes and social scheduling bounded.
+  const candidateLimit=Math.max(1,Math.min(2,policy.maxItemsPerRun,Number(limit)||policy.maxItemsPerRun));
   if(env.DB){
     candidates=(await env.DB.prepare(
       "SELECT ni.* FROM news_intelligence ni LEFT JOIN news n ON n.source_url=ni.source_url WHERE n.id IS NULL AND ni.score>=? ORDER BY ni.score DESC, ni.updated_at DESC LIMIT ?"
-    ).bind(policy.minScore,policy.maxItemsPerRun).all().catch(()=>({results:[]}))).results||[];
+    ).bind(policy.minScore,candidateLimit).all().catch(()=>({results:[]}))).results||[];
   }
   result.candidates=candidates.length;
 
   let i=0;
-  // Bound per-run D1 writes and AI work so a single scheduled invocation
-  // stays inside the Workers Free CPU/subrequest budget.
-  const processLimit=Math.max(1,Math.min(12,Number(limit)||policy.maxItemsPerRun));
-  for(const candidate of candidates.slice(0,processLimit)){
+  for(const candidate of candidates.slice(0,candidateLimit)){
     i++;
+    try{
     const sensitive=sensitiveText(candidate.title,candidate.excerpt);
     const category=categoryFor(candidate);
     const tier=String(candidate.source_tier||"discovery");
@@ -523,16 +554,31 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
     await log(env,runId,"news",news.slug,news.status,auto?"kriterler sağlandı":"editör onayı gerektiriyor",{
       source:candidate.source_url,score:candidate.score,category,media:media?.key||""
     });
+    }catch(e){
+      result.error_count++;
+      result.ok=false;
+      result.errors=[...(result.errors||[]),String(e?.message||e).slice(0,240)].slice(-10);
+      try{
+        await log(env,runId,"candidate",candidate.source_url,"error","aday işlenemedi; sonraki adaya devam ediliyor",{
+          error:String(e?.message||e).slice(0,240)
+        });
+      }catch{}
+    }
   }
 
   if(env.DB){
     // Rakip kaynakları kamuya açık RSS üzerinden yalnızca başlık sıklığı için izlenir.
-    const hosts=policy.competitorHosts;
+    // Her çalışmada en fazla iki RSS; sonraki zamanlanmış çalışmada kalan kaynaklar taranır.
+    const hostList=policy.competitorHosts;
+    const start=hostList.length ? Math.floor(Date.now()/900000)%hostList.length : 0;
+    const hosts=hostList.length
+      ? Array.from({length:Math.min(2,hostList.length)},(_,n)=>hostList[(start+n)%hostList.length])
+      : [];
     const rows=[];
     for(const host of hosts){
       const url="https://news.google.com/rss/search?q=site%3A"+encodeURIComponent(host)+"&hl=tr&gl=TR&ceid=TR:tr";
       try{
-        const r=await fetch(url,{headers:{accept:"application/rss+xml, text/xml","user-agent":"BTMEDYA-CompetitorRadar/1.0"},signal:AbortSignal.timeout(8000)});
+        const r=await fetch(url,{headers:{accept:"application/rss+xml, text/xml","user-agent":"BTMEDYA-CompetitorRadar/1.0"},signal:AbortSignal.timeout(6500)});
         const xml=await r.text();
         const items=[...xml.matchAll(/<item>[\s\S]*?<\/item>/gi)].slice(0,12).map(m=>m[0])
           .map(b=>({

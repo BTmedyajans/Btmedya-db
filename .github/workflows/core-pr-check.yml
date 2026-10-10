@@ -8,11 +8,13 @@ on:
       - "migrations/**"
       - "tools/site-os-migration-test.py"
       - "tools/admin-giris-testi.mjs"
+      - "tools/consent-gate-smoke.mjs"
       - "public/admin/agency-os/**"
-      - "public/home.js"
+      - "public/**"
       - "public/kategori-menu.js"
       - "public/data/youtube-portfoy.json"
       - "wrangler.toml"
+      - "package.json"
       - ".github/workflows/**"
 
 permissions:
@@ -26,6 +28,21 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
+      - name: Guard production deploy against implicit migrations
+        run: |
+          node - <<'NODE'
+          const p = require('./package.json');
+          const deploy = String(p.scripts?.deploy || '');
+          if (/db:migrations:apply|d1 migrations apply/i.test(deploy)) {
+            console.error('Production deploy must not apply D1 migrations automatically.');
+            process.exit(1);
+          }
+          if (!/wrangler/.test(deploy) || !/deploy/.test(deploy)) {
+            console.error('Expected the deploy script to invoke Wrangler.');
+            process.exit(1);
+          }
+          console.log('PASS: production deploy does not run D1 migrations.');
+          NODE
       - name: Node syntax
         run: |
           set -euo pipefail
@@ -39,6 +56,8 @@ jobs:
           node --check public/home.js
           node --check public/kategori-menu.js
           node --check public/admin/agency-os/agency-os.js
+      - name: Consent-first analytics regression
+        run: node tools/consent-gate-smoke.mjs
       - name: Admin login and static asset route regression
         run: node tools/admin-giris-testi.mjs
       - name: Site OS migration and taxonomy regression

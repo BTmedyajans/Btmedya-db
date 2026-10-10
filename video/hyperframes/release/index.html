@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1920,height=1080">
+  <title>BTMEDYA Release Video</title>
+  <style>
+    html,body{margin:0;width:1920px;height:1080px;background:#080808;color:#f5f5f5;overflow:hidden;font-family:Arial,sans-serif}
+    #root{position:relative;width:1920px;height:1080px;overflow:hidden;background:radial-gradient(circle at 72% 32%,#2b2b2b 0,#101010 34%,#050505 78%)}
+    .clip{position:absolute;inset:0;display:flex;align-items:center;padding:0 150px;box-sizing:border-box}
+    .brand{position:absolute;top:90px;left:150px;font-size:28px;letter-spacing:.28em;font-weight:700}
+    .eyebrow{font-size:24px;letter-spacing:.18em;text-transform:uppercase;opacity:.65;margin-bottom:28px}
+    h1{font-size:92px;line-height:1.02;max-width:1450px;margin:0 0 34px;font-weight:800;letter-spacing:-.04em}
+    .meta{font-size:30px;opacity:.72}
+    .bar{position:absolute;left:150px;right:150px;bottom:100px;top:auto;height:4px;background:#444;padding:0;display:block}
+    .progress{height:100%;width:100%;transform-origin:left;background:#fff}
+    .orb{position:absolute;width:520px;height:520px;border-radius:50%;right:170px;top:260px;border:1px solid #555;box-shadow:0 0 120px #333 inset,0 0 90px #222}\n    .orb.clip{inset:260px 170px auto auto;padding:0;display:block}\n    .bar.clip{inset:auto 150px 100px;height:4px;padding:0;display:block}
+  </style>
+</head>
+<body>
+  <div id="root" data-composition-id="main" data-start="0" data-duration="8" data-width="1920" data-height="1080">
+    <div id="orb" class="orb clip" data-start="0" data-duration="8" data-track-index="1"></div>
+    <div id="content-clip" class="clip" data-start="0" data-duration="8" data-track-index="2">
+      <div>
+        <div class="brand">BTMEDYA</div>
+        <div class="eyebrow">Dijital medya • AI • prodüksiyon</div>
+        <h1 id="title">Yeni üretim kaydı</h1>
+        <div class="meta" id="meta">BTMEDYA otomasyon hattı</div>
+      </div>
+    </div>
+    <div id="progress-clip" class="bar clip" data-start="0" data-duration="8" data-track-index="3"><div id="progress" class="progress"></div></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    window.__timelines = window.__timelines || {};
+    const timeline = gsap.timeline({ paused: true });
+    timeline.fromTo("#title", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.2);
+    timeline.fromTo("#meta", { opacity: 0, x: -24 }, { opacity: 0.72, x: 0, duration: 0.6, ease: "power2.out" }, 0.85);
+    timeline.fromTo("#orb", { opacity: 0.15, scale: 0.72, rotation: -10 }, { opacity: 1, scale: 1, rotation: 0, duration: 3.6, ease: "power2.out" }, 0);
+    timeline.fromTo("#progress", { scaleX: 0 }, { scaleX: 1, duration: 8, ease: "none" }, 0);
+    window.__timelines["main"] = timeline;
+  </script>
+</body>
+</html>

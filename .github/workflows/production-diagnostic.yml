@@ -5,10 +5,14 @@ on:
     branches: ["main"]
     paths:
       - "wrangler.toml"
+      - "package.json"
+      - "package-lock.json"
       - "migrations/**"
       - "control-plane/**"
+      - "src/**"
       - "public/**"
-      - ".github/workflows/production-diagnostic.yml"
+      - "tools/**"
+      - ".github/workflows/**"
   workflow_dispatch:
   schedule:
     - cron: "17 */6 * * *"

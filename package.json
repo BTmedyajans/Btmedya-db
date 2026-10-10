@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "db:migrations:apply": "wrangler d1 migrations apply DB --remote --config wrangler.toml",
-    "deploy": "npm run db:migrations:apply && wrangler deploy --config wrangler.toml"
+    "deploy": "wrangler deploy --config wrangler.toml"
   },
   "devDependencies": {
     "wrangler": "4.142.0"

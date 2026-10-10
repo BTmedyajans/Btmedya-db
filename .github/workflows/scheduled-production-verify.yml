@@ -1,0 +1,74 @@
+name: BTMEDYA Scheduled Production Verify
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "tools/**"
+      - ".github/workflows/scheduled-production-verify.yml"
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btmedya-production-verify
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify public production surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://btmedya.com.tr"
+          tmp="$(mktemp -d)"
+          home_code="$(curl -sS --retry 2 -o "$tmp/home.html" -w '%{http_code}' "$base/")"
+          test "$home_code" = "200"
+          for term in 'HABER' 'TANITIM' '/haberler/' '/sosyal-medya/' '/video-produksiyon/'; do
+            grep -qiF "$term" "$tmp/home.html"
+          done
+          curl -fsSL --retry 2 "$base/robots.txt" -o "$tmp/robots.txt"
+          curl -fsSL --retry 2 "$base/sitemap.xml" -o "$tmp/sitemap.xml"
+          for path in /robots.txt /sitemap.xml /news-sitemap.xml /rss.xml /api/health /haberler/ /sosyal-medya/ /video-produksiyon/; do
+            code="$(curl -sS --retry 2 -o /dev/null -w '%{http_code}' "$base$path")"
+            case "$code" in
+              2??) ;;
+              *) echo "::error::Production route $path returned HTTP $code"; exit 1 ;;
+            esac
+          done
+          admin_code="$(curl -sS -o /dev/null -w '%{http_code}' "$base/admin/agency-os/")"
+          case "$admin_code" in
+            200|301|302|303|307|308|401|403) ;;
+            *) echo "::error::Unexpected admin auth barrier HTTP $admin_code"; exit 1 ;;
+          esac
+          grep -qi 'Sitemap:' "$tmp/robots.txt"
+          grep -q 'btmedya.com.tr' "$tmp/sitemap.xml"
+          echo "PASS: current production home, key routes, feeds and admin auth barrier responded as expected."
+
+      - name: Checkout source for release contract checks
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Validate Worker and browser scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check src/worker.js
+          node --check src/autopilot.js
+          node --check public/home.js
+          node --check public/kategori-menu.js
+          node --check public/olcum.js
+          node --check public/cerez-tercihleri.js
+          node tools/consent-gate-smoke.mjs

@@ -117,6 +117,8 @@ async function listR2Media(bucket, source, {q='',cat=''}={}){
          Geçerli prodüksiyon videoları bu boyutun çok üzerinde; bozuk/test
          videoların public arşivde kart olarak görünmesini engelle. */
       if(isVideo && Number(x.size||0) < 10 * 1024) continue;
+      const aiGenerated=/^(ai-video|ai-lab)(?:\/|$)/i.test(key);
+      const originTag=aiGenerated?'ai-uretimi':(source==='r2-legacy'?'r2-arsiv':'gercek');
       out.push({
         id:(source==='r2-legacy'?'legacy-':'r2-')+b64url(new TextEncoder().encode(key)).slice(0,24),
         key,
@@ -124,17 +126,17 @@ async function listR2Media(bucket, source, {q='',cat=''}={}){
         mime:mime || (isVideo?'video/mp4':'image/webp'),
         size:Number(x.size||0),
         category,
-        tags:['BTMEDYA','gercek',source==='r2-legacy'?'r2-arsiv':'r2'],
+        tags:['BTMEDYA',originTag,source==='r2-legacy'?'r2-arsiv':'r2'],
         title:(key.split('/').pop()||key).replace(/\.[^.]+$/,'').replace(/[-_]+/g,' '),
-        description:source==='r2-legacy'?'BTMEDYA gerçek R2 arşiv medyası':'BTMEDYA gerçek R2 medya nesnesi',
-        alt_text:'BTMEDYA gerçek medya',
+        description:aiGenerated?'BTMEDYA AI üretimi medya nesnesi':(source==='r2-legacy'?'BTMEDYA gerçek R2 arşiv medyası':'BTMEDYA gerçek R2 medya nesnesi'),
+        alt_text:aiGenerated?'BTMEDYA AI üretimi medya':'BTMEDYA gerçek medya',
         slot:category==='video'?'medya':category==='portfoy'?'portfoy':category==='haber'?'haber':'',
         sort_order:out.length,
         created_at:x.uploaded?new Date(x.uploaded).toISOString():null,
         updated_at:x.uploaded?new Date(x.uploaded).toISOString():null,
         url:null,
         source,
-        ai_generated:false
+        ai_generated:aiGenerated
       });
       if(out.length>=500) return out;
     }
@@ -1395,7 +1397,8 @@ async function mediaApi(request, env){
   if(path==='/api/public/media' && request.method==='GET') {
     const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'};
     const q=(u.searchParams.get('q')||'').toLowerCase(); const cat=u.searchParams.get('category')||'';
-    const staticItems=(await medyaListesi(env,u.origin))
+    const staticCatalog=await medyaListesi(env,u.origin);
+    const staticItems=staticCatalog
       .filter(x=>!cat || x.category===cat)
       .filter(x=>!q || x.path.toLowerCase().includes(q))
       .map((x,i)=>({id:x.id,key:'static/'+x.path,original_name:x.path.split('/').pop(),mime:/\.(mp4|webm)$/i.test(x.path)?'video/'+(x.path.endsWith('.webm')?'webm':'mp4'):'image/webp',size:0,category:x.category,tags:['BTMEDYA',x.gercek?'gercek':'ai-uretimi','arsiv'],title:x.baslik||x.path.split('/').pop().replace(/\.[^.]+$/,'').replace(/[-_]+/g,' '),description:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',alt_text:x.gercek?'BTMEDYA gerçek çekim arşiv medyası':'BTMEDYA AI üretimi arşiv medyası',slot:x.category==='hero'?'hero':x.category==='video'?'medya':x.category==='portfoy'?'portfoy':'haber',sort_order:i,created_at:null,updated_at:null,url:'/assets/'+x.path,source:'github-static',ai_generated:!x.gercek,vitrin:x.vitrin!==false,sira:x.sira,poster:x.poster?'/assets/'+x.poster:null}));
@@ -1407,7 +1410,24 @@ async function mediaApi(request, env){
         if(q){sql+=' AND (original_name LIKE ? OR title LIKE ? OR description LIKE ? OR tags LIKE ?)'; const x='%'+q+'%'; args.push(x,x,x,x);}
         if(cat){sql+=' AND category=?'; args.push(cat);} sql+=' ORDER BY created_at DESC LIMIT 200';
         const r=await env.DB.prepare(sql).bind(...args).all();
-        r2Items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600)),source:'r2',ai_generated:!!x.ai_generated})));
+        r2Items=(await Promise.all((r.results||[]).map(async x=>{
+          const key=String(x.key||'');
+          const tags=JSON.parse(x.tags||'[]');
+          // "static/" keys are served from public/assets, never from the R2 bucket.
+          // Older D1 rows incorrectly signed these as R2 URLs, making valid public videos return 404.
+          if(key.startsWith(STATIK_ONEK)){
+            const asset=staticCatalog.find(m=>String(m.path||'').replace(/^\/+/, '')===key.slice(STATIK_ONEK.length));
+            if(!asset) return null;
+            return {...x,tags,url:medyaAdresi(key),source:'github-static',ai_generated:!!x.ai_generated};
+          }
+          // Do not publish signed links for records whose R2 object is gone.
+          const exists=await env.MEDIA.head(key).catch(()=>null);
+          if(!exists){
+            console.warn('[public-media] R2 nesnesi bulunamadı, yayın listesinden çıkarıldı:',key);
+            return null;
+          }
+          return {...x,tags,url:await signedMediaUrl(request,key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||3600)),source:'r2',ai_generated:!!x.ai_generated};
+        }))).filter(Boolean);
       }catch(e){
         d1MediaError=String(e?.message||e);
         console.error('[public-media] D1 metadata okunamadı; R2/static katmanı kullanılacak:',d1MediaError);
@@ -1433,7 +1453,7 @@ async function mediaApi(request, env){
     return json({
       brand:'BTMedya',
       generated_at:new Date().toISOString(),
-      source:r2Items.length?'r2+github-static':'github-static',
+      source:r2Items.some(x=>String(x.source||'').startsWith('r2'))?'r2+github-static':'github-static',
       items,
       degraded:Boolean(d1MediaError),
       ...(d1MediaError?{warning:'D1 medya metadata katmanı okunamadı; statik/R2 yayın katmanı kullanıldı.'}:{})
@@ -1661,7 +1681,14 @@ async function mediaApi(request, env){
     if(!auth) return json({error:'Yetkisiz'},401);
     if(!mediaSec) return json({error:'Sunucu yapılandırma hatası'},503);
     const r=await env.DB.prepare('SELECT * FROM media WHERE published=1 ORDER BY created_at DESC').all();
-    const items=await Promise.all((r.results||[]).map(async x=>({...x,tags:JSON.parse(x.tags||'[]'),url:await signedMediaUrl(request,x.key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||86400))})));
+    const items=(await Promise.all((r.results||[]).map(async x=>{
+      const key=String(x.key||'');
+      const tags=JSON.parse(x.tags||'[]');
+      if(key.startsWith(STATIK_ONEK)) return {...x,tags,url:medyaAdresi(key),source:'github-static'};
+      const exists=await env.MEDIA.head(key).catch(()=>null);
+      if(!exists) return null;
+      return {...x,tags,url:await signedMediaUrl(request,key,mediaSec,Number(env.MEDIA_PUBLIC_TTL||86400)),source:'r2'};
+    }))).filter(Boolean);
     return json({generated_at:new Date().toISOString(),brand:'BTMedya',items});
   }
   return null;

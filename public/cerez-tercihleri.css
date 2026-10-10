@@ -1,0 +1,135 @@
+.bt-consent-root [hidden] { display: none !important; }
+.bt-consent-banner,
+.bt-consent-preferences {
+  position: fixed;
+  z-index: 99999;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  box-sizing: border-box;
+  width: min(920px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 20px;
+  color: #f7f7f7;
+  background: #111315;
+  border: 1px solid #555b60;
+  border-radius: 16px;
+  box-shadow: 0 16px 54px rgba(0,0,0,.46);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.bt-consent-copy h2,
+.bt-consent-preferences h2 {
+  margin: 3px 0 8px;
+  font-size: clamp(18px, 2.4vw, 22px);
+  line-height: 1.25;
+  color: #fff;
+}
+.bt-consent-copy p,
+.bt-consent-preferences p {
+  max-width: 72ch;
+  margin: 7px 0 10px;
+  color: #dedede;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.bt-consent-eyebrow {
+  margin: 0 !important;
+  color: #c5c9cd !important;
+  font-size: 11px !important;
+  font-weight: 700;
+  letter-spacing: .13em;
+}
+.bt-consent-policy {
+  display: inline-block;
+  margin-top: 4px;
+  color: #e7e7e7;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.bt-consent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.bt-consent-button {
+  flex: 1 1 150px;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid #85898d;
+  border-radius: 9px;
+  color: #fff;
+  background: #272a2d;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.bt-consent-button:hover { background: #3a3e42; }
+.bt-consent-button:focus-visible,
+.bt-consent-settings:focus-visible,
+.bt-consent-policy:focus-visible {
+  outline: 3px solid #f4f4f4;
+  outline-offset: 3px;
+}
+.bt-consent-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 14px 0 5px;
+  color: #f7f7f7;
+  cursor: pointer;
+}
+.bt-consent-option input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: #ddd;
+  flex: 0 0 auto;
+}
+.bt-consent-option strong { display: block; font-size: 14px; }
+.bt-consent-option small {
+  display: block;
+  margin-top: 3px;
+  color: #d2d2d2;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.bt-consent-settings {
+  position: fixed;
+  z-index: 99998;
+  left: 12px;
+  bottom: 12px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #777;
+  border-radius: 9px;
+  color: #fff;
+  background: #151719;
+  box-shadow: 0 5px 20px rgba(0,0,0,.24);
+  font: 600 12px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+@media (max-width: 720px) {
+  .bt-consent-banner,
+  .bt-consent-preferences {
+    left: 8px;
+    right: 8px;
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    max-height: min(68svh, 540px);
+    overflow-y: auto;
+    padding: 15px;
+    border-radius: 13px;
+  }
+  .bt-consent-actions { gap: 7px; }
+  .bt-consent-button { flex-basis: 100%; min-height: 40px; }
+  .bt-consent-settings {
+    left: 8px;
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bt-consent-root * { scroll-behavior: auto !important; }
+}
