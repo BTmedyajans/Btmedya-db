@@ -35,6 +35,8 @@ jobs:
           for term in 'HABER' 'TANITIM' '/haberler/' '/sosyal-medya/' '/video-produksiyon/'; do
             grep -qiF "$term" "$tmp/home.html"
           done
+          curl -fsSL --retry 2 "$base/robots.txt" -o "$tmp/robots.txt"
+          curl -fsSL --retry 2 "$base/sitemap.xml" -o "$tmp/sitemap.xml"
           for path in /robots.txt /sitemap.xml /news-sitemap.xml /rss.xml /api/health /haberler/ /sosyal-medya/ /video-produksiyon/; do
             code="$(curl -sS --retry 2 -o /dev/null -w '%{http_code}' "$base$path")"
             case "$code" in
