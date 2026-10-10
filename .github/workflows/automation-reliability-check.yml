@@ -42,7 +42,11 @@ jobs:
         run: |
           set -euo pipefail
           grep -q 'Every run is finalized' src/autopilot.js
-          grep -q 'AbortSignal.timeout(8000)' src/autopilot.js
+          grep -q 'runClaimed=Boolean(ins && Number(ins.meta?.changes)>0' src/autopilot.js
+          grep -q 'Math.min(8,Math.max(4,Number(limit)||policy.maxItemsPerRun\*2))' src/autopilot.js
+          grep -q 'Math.min(2,policy.maxItemsPerRun,Number(limit)||policy.maxItemsPerRun)' src/autopilot.js
+          grep -q 'Math.min(2,hostList.length)' src/autopilot.js
+          grep -q 'AbortSignal.timeout(6500)' src/autopilot.js
           grep -q 'feedBatchSize=6' src/news-intelligence.js
           grep -q 'Promise.all(activeFeeds.map' src/news-intelligence.js
           grep -q 'processCandidates=candidates.slice(0,12)' src/news-intelligence.js
