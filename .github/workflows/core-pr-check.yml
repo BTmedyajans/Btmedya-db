@@ -8,8 +8,9 @@ on:
       - "migrations/**"
       - "tools/site-os-migration-test.py"
       - "tools/admin-giris-testi.mjs"
+      - "tools/consent-gate-smoke.mjs"
       - "public/admin/agency-os/**"
-      - "public/home.js"
+      - "public/**"
       - "public/kategori-menu.js"
       - "public/data/youtube-portfoy.json"
       - "wrangler.toml"
@@ -55,6 +56,8 @@ jobs:
           node --check public/home.js
           node --check public/kategori-menu.js
           node --check public/admin/agency-os/agency-os.js
+      - name: Consent-first analytics regression
+        run: node tools/consent-gate-smoke.mjs
       - name: Admin login and static asset route regression
         run: node tools/admin-giris-testi.mjs
       - name: Site OS migration and taxonomy regression
