@@ -720,24 +720,22 @@ def golgeli_yazi(im, xy, metin, font, dolgu=INK, kontur=4):
 
 def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
     """Ulusal kanal (CNN Türk / Habertürk) manşet dili (10 Ekim, kullanıcı
-    isteği): GÖRSEL ÜSTTE ve kapanmaz; başlık fotoğrafın üstüne binmez.
-    Altta kırmızı bantta beyaz BÜYÜK ana başlık, onun altında sarı şeritte
-    koyu KÜÇÜK alt başlık, en altta tarih · kaynak · alan adı.
-    Haberde geçen kişi ve kurum fotoğrafı: temsili.dosya2 varsa foto alanı
-    ikiye bölünür (kişi + kurum yan yana)."""
-    dikey = H > W
+    isteği: "blok çekme, sadece hafif siyah gölgelendirme ekle, ulusal
+    kanalları örnek al"). Eski sürümde alta solid kırmızı + sarı bant
+    basılıyordu; kullanıcı bunu "blok" olarak tanımladı. Artık:
 
-    # Dikey bölüm yükseklikleri (orana göre; 16:9 ve 4:5'te çalışır).
-    foto_h = int(H * (0.56 if dikey else 0.56))
-    footer_h = max(26, int(H * 0.045))
-    sari_h = max(46, int(H * 0.085))
-    footer_y = H - footer_h
-    sari_y = footer_y - sari_h
-    bant_y = foto_h  # kırmızı bant foto_h'tan sari_y'ye kadar
+      - Fotoğraf TAM KADRAJ, kapanmaz; alta yalnızca hafif siyah degrade
+        (blok değil, okunurluk için yumuşak gölge) iner.
+      - Başlık + alt başlık + künye bu gölgenin üstüne biner (lower-third).
+      - Ana başlık büyük KIRMIZI (kullanıcı isteği), siyah konturla okunur;
+        alt başlık daha küçük SARI. Kategori sol üstte kırmızı eğik şerit,
+        logo sağ üstte plaka. Hiçbir yerde tam en solid renk bandı yok.
+      - temsili.dosya2 varsa kadraj ikiye bölünür (kişi + kurum yan yana)."""
+    dikey = H > W
 
     im = Image.new("RGB", (W, H), (9, 14, 24))
 
-    # --- Fotoğraf alanı: üstte, kapanmaz ---
+    # --- Fotoğraf alanı: tam kadraj, kapanmaz ---
     fotolar = []
     odak_v = (h.get("temsili") or {}).get("odak", 0.3)
     if temsili_yolu and os.path.exists(temsili_yolu):
@@ -750,40 +748,37 @@ def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
     if portre and os.path.exists(portre[0]):
         fotolar.append((portre[0], portre[1]))
 
+    foto_var = True
     if len(fotolar) >= 2:
         fw = W // 2
         for i, (yol, ust) in enumerate(fotolar[:2]):
             gw = fw if i == 0 else W - fw
-            kare = kapla(Image.open(yol).convert("RGB"), gw, foto_h, ust)
+            kare = kapla(Image.open(yol).convert("RGB"), gw, H, ust)
             im.paste(ImageEnhance.Contrast(kare).enhance(1.05), (i * fw, 0))
-        ImageDraw.Draw(im).rectangle([fw - 2, 0, fw + 1, foto_h], fill=(246, 239, 230))
+        ImageDraw.Draw(im).rectangle([fw - 2, 0, fw + 1, H], fill=(246, 239, 230))
     elif len(fotolar) == 1:
         yol, ust = fotolar[0]
-        kare = kapla(Image.open(yol).convert("RGB"), W, foto_h, ust)
+        kare = kapla(Image.open(yol).convert("RGB"), W, H, ust)
         im.paste(ImageEnhance.Contrast(kare).enhance(1.05), (0, 0))
     else:
-        im.paste(editoryal_zemin().resize((W, foto_h)), (0, 0))
+        foto_var = False
+        im.paste(editoryal_zemin(), (0, 0))
         # Fotoğraf yoksa (grafik haber) üst alan boş kalmasın: haberin
-        # rakamı dev ve sarı. Metin plandaki gerçek değerdir, tık tuzağı değil.
+        # rakamı dev ve sarı, üst-ortada (alttaki başlığa girmesin).
         dv = buyuk((h.get("vurgu") or {}).get("deger") or "")
         if dv:
             dd = ImageDraw.Draw(im)
-            df = f_baslik(int(foto_h * 0.6))
+            df = f_baslik(int(H * 0.37))
             while df.size > 40 and dd.textlength(dv, font=df) > W - 2 * KEN:
                 df = f_baslik(df.size - 6)
             db = dd.textbbox((0, 0), dv, font=df)
-            golgeli_yazi(im, ((W - (db[2] - db[0])) // 2 - db[0], (foto_h - (db[3] - db[1])) // 2 - db[1]), dv, df, SARI_M, 4)
+            golgeli_yazi(im, ((W - (db[2] - db[0])) // 2 - db[0], int(H * 0.24) - db[1]), dv, df, SARI_M, 4)
 
+    # --- Hafif siyah alt gölge (blok değil): başlığın altını okunur kılar ---
+    im = alt_gecis(im, 0.40 if dikey else 0.34, 206 if foto_var else 150)
     d = ImageDraw.Draw(im)
 
-    # --- Kırmızı bant (ana başlık), sarı şerit, footer ---
-    d.rectangle([0, bant_y, W, sari_y], fill=KIRMIZI_M)
-    d.rectangle([0, sari_y, W, footer_y], fill=SARI_M)
-    d.rectangle([0, footer_y, W, H], fill=(11, 16, 27))
-    # Foto ile bant arasında ince beyaz ayraç çizgisi.
-    d.rectangle([0, bant_y, W, bant_y + 3], fill=(246, 239, 230))
-
-    # Kategori etiketi: fotoğrafın sol üstünde kırmızı eğik şerit.
+    # Kategori etiketi: sol üstte kırmızı eğik şerit.
     vurgu = h.get("vurgu") or {}
     yer = (vurgu.get("yer") or "").strip()
     serit = "SON DAKİKA" if h.get("son_dakika") else buyuk(h["kategori"].split("·")[0].strip())
@@ -794,40 +789,10 @@ def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
         egik_serit(im, sx + 8, 28, "▶ VİDEO", f_baslik(int(H * 0.05)), (255, 255, 255), (12, 12, 12))
     logo_plakasi(im)
 
-    # --- Ana başlık: kırmızı bantta beyaz, büyük, Big Shoulders ---
     ic_x = KEN
     ic_gen = W - 2 * KEN
-    baslik = buyuk(h["baslik"])
-    azami_satir = 4 if dikey else 3
-    punto = int(H * (0.058 if dikey else 0.082))
-    while punto > int(H * 0.03):
-        bf = f_baslik(punto)
-        if len(sar(d, baslik, bf, ic_gen)) <= azami_satir:
-            break
-        punto -= 2
-    bf = f_baslik(punto)
-    satirlar = sar(d, baslik, bf, ic_gen)[:azami_satir]
-    sat_y = int(punto * 1.02)
-    blok = len(satirlar) * sat_y
-    y = bant_y + (sari_y - bant_y - blok) // 2 + int(punto * BASLIK_KAYMA)
-    for s in satirlar:
-        d.text((ic_x, y), s, font=bf, fill=(255, 255, 255))
-        y += sat_y
 
-    # --- Alt başlık: sarı şeritte koyu, küçük ---
-    alt = ""
-    if vurgu.get("deger"):
-        alt = buyuk(vurgu["deger"])
-        if vurgu.get("etiket"):
-            alt += "  ·  " + buyuk(vurgu["etiket"].split("·")[0].strip())
-    elif h.get("spot"):
-        alt = buyuk(str(h["spot"]).split(".")[0])
-    if alt:
-        af = sigdir(d, alt, f_baslik, ic_gen, int(sari_h * 0.62), int(sari_h * 0.34))
-        ab = d.textbbox((0, 0), alt, font=af)
-        d.text((ic_x, sari_y + (sari_h - (ab[3] - ab[1])) // 2 - ab[1]), alt, font=af, fill=(18, 18, 18))
-
-    # --- Footer: tarih · kaynak solda, alan adı sağda ---
+    # --- Künye: en altta, küçük, gölge üstünde ---
     if temsili_yolu:
         kaynak = kunye_satiri(h["temsili"])
     elif portre:
@@ -835,13 +800,49 @@ def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
     else:
         kaynak = "BTMEDYA GRAFİK"
     sol = f"{h.get('altbilgi', '')} · {kaynak}".strip(" ·")
-    kf = sigdir(d, sol, f_mr, W - 2 * KEN - int(W * 0.26), int(footer_h * 0.5), 11)
-    fb = d.textbbox((0, 0), sol, font=kf)
-    d.text((KEN, footer_y + (footer_h - (fb[3] - fb[1])) // 2 - fb[1]), sol, font=kf, fill=(214, 222, 232))
-    sf = f_sg(int(footer_h * 0.52))
     dm = "BTMEDYA.COM.TR"
+    kf = sigdir(d, sol, f_mr, W - 2 * KEN - int(W * 0.24), max(13, int(H * 0.026)), 11)
+    sf = f_sg(max(14, int(H * 0.028)))
+    kb = d.textbbox((0, 0), sol, font=kf)
+    kunye_y = H - int(H * 0.035) - (kb[3] - kb[1])
+    golgeli_yazi(im, (ic_x, kunye_y - kb[1]), sol, kf, (223, 230, 240), 1)
     db = d.textbbox((0, 0), dm, font=sf)
-    d.text((W - KEN - d.textlength(dm, font=sf), footer_y + (footer_h - (db[3] - db[1])) // 2 - db[1]), dm, font=sf, fill=SARI_M)
+    golgeli_yazi(im, (W - KEN - (db[2] - db[0]), kunye_y - db[1]), dm, sf, SARI_M, 1)
+
+    # --- Alt başlık: SARI, küçük, künyenin üstünde ---
+    altm = ""
+    if vurgu.get("deger"):
+        altm = buyuk(vurgu["deger"])
+        if vurgu.get("etiket"):
+            altm += "  ·  " + buyuk(vurgu["etiket"].split("·")[0].strip())
+    elif h.get("spot"):
+        altm = buyuk(str(h["spot"]).split(".")[0])
+    sub_bottom = kunye_y - int(H * 0.018)
+    if altm:
+        af = sigdir(d, altm, f_baslik, ic_gen, int(H * 0.058), int(H * 0.032))
+        ab = d.textbbox((0, 0), altm, font=af)
+        sub_top = sub_bottom - (ab[3] - ab[1])
+        golgeli_yazi(im, (ic_x, sub_top - ab[1]), altm, af, SARI_M, 2)
+    else:
+        sub_top = sub_bottom
+
+    # --- Ana başlık: büyük KIRMIZI, siyah konturla; lower-third ---
+    baslik = buyuk(h["baslik"])
+    azami_satir = 4 if dikey else 3
+    punto = int(H * (0.072 if dikey else 0.098))
+    while punto > int(H * 0.035):
+        bf = f_baslik(punto)
+        if len(sar(d, baslik, bf, ic_gen)) <= azami_satir:
+            break
+        punto -= 2
+    bf = f_baslik(punto)
+    satirlar = sar(d, baslik, bf, ic_gen)[:azami_satir]
+    sat_y = int(punto * 1.02)
+    y = sub_top - int(H * 0.02) - len(satirlar) * sat_y
+    kontur = max(3, int(punto * 0.045))
+    for s in satirlar:
+        golgeli_yazi(im, (ic_x, y), s, bf, KIRMIZI_M, kontur)
+        y += sat_y
 
     os.makedirs(os.path.dirname(cikti), exist_ok=True)
     if bicim == "JPEG":
