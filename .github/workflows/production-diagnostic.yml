@@ -163,8 +163,16 @@ jobs:
       - name: Report D1 audit credential availability (value hidden)
         env:
           D1_AUDIT_TOKEN_SET: ${{ secrets.CLOUDFLARE_D1_API_TOKEN != '' && 'yes' || 'no' }}
+          DEPLOY_TOKEN_SET: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN != '' && 'yes' || 'no' }}
+          API_TOKEN_SET: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && 'yes' || 'no' }}
         run: |
           echo "CLOUDFLARE_D1_API_TOKEN configured: $D1_AUDIT_TOKEN_SET"
+          echo "CLOUDFLARE_DEPLOY_TOKEN configured: $DEPLOY_TOKEN_SET"
+          echo "CLOUDFLARE_API_TOKEN configured: $API_TOKEN_SET"
+          if [ "$D1_AUDIT_TOKEN_SET" != "yes" ]; then
+            echo "::error::D1 audit requires GitHub Actions secret CLOUDFLARE_D1_API_TOKEN with Cloudflare Account > D1 > Read permission."
+            exit 1
+          fi
 
       - name: Run read-only D1 schema and integration audit
         env:
