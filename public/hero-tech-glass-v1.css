@@ -309,3 +309,6 @@
   .bt-intro-audio-control{top:calc(14px + env(safe-area-inset-top,0px));right:14px;width:44px;height:44px}
 }
 @media(prefers-reduced-motion:reduce){.bt-intro-audio-control{transition:none}}
+
+.cinematic-hero.is-finished .bt-intro-audio-control,
+.bt-clean-hero-finished .bt-intro-audio-control{opacity:0!important;pointer-events:none!important;transform:translateY(-8px)}
