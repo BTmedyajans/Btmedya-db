@@ -314,7 +314,6 @@ async function createSocialDraft(env,news,media,policy,runId){
   const scheduled=policy.autoScheduleSocial ? await sonrakiYuva(env,ayar) : null;
   if(policy.autoScheduleSocial && !scheduled) return {created:false,scheduled:false,reason:"Boş sosyal yayın yuvası bulunamadı."};
   const platformSlugs=ayar.aglar.map(n=>n==="youtube"?"youtube":n);
-  const mediaKey=String(media?.social_key||media?.key||"");
   if(platformSlugs.some(x=>["youtube","tiktok"].includes(x)) && !mediaKey)
     return {created:false,scheduled:false,reason:"YouTube/TikTok için medya gerekli."};
 
@@ -326,9 +325,6 @@ async function createSocialDraft(env,news,media,policy,runId){
     return {created:false,scheduled:false,reason:"BTMEDYA şirket Metricool Brand ID eksik."};
 
   const postId=crypto.randomUUID();
-  const socialCopy=String(news.social_caption||news.excerpt||news.title||"").trim();
-  const body=socialCopy+"\n\nHaber: https://btmedya.com.tr/haberler/"+news.slug;
-  const format=platformSlugs.some(x=>x==="youtube" || x==="tiktok") ? "9:16" : "4:5";
   const status=policy.autoScheduleSocial && scheduled ? "planlandi" : "onayda";
   const rezerv=await sosyalTekillemeAyir(env,{post_id:postId,source_slug:news.slug,title:String(news.title||""),body,format,platforms:platformSlugs,account_scope:accountScope,metricool_brand_id:metricoolBrandId});
   if(!rezerv.allowed) return {created:false,scheduled:false,reason:"Aynı haber için aynı sosyal içeriğin kaydı zaten mevcut.",duplicate_of:rezerv.existing_post_id||null};
