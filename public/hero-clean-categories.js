@@ -17,11 +17,65 @@
     {n:2,start:10.02,end:10.84,label:'SOSYAL & DİJİTAL'},
     {n:3,start:15.44,end:16.26,label:'MARKA & PRODÜKSİYON'}
   ];
+  const taxonomyReady=window.BTMEDYA_TAXONOMY?Promise.resolve(window.BTMEDYA_TAXONOMY):new Promise(resolve=>{
+    const existing=document.querySelector('script[data-bt-taxonomy-loader]');
+    if(existing){existing.addEventListener('load',()=>resolve(window.BTMEDYA_TAXONOMY||null),{once:true});existing.addEventListener('error',()=>resolve(null),{once:true});return;}
+    const s=document.createElement('script');s.src='/data/btmedya-taxonomy.js?v=20261010-1';s.dataset.btTaxonomyLoader='1';
+    s.onload=()=>resolve(window.BTMEDYA_TAXONOMY||null);s.onerror=()=>resolve(null);document.head.appendChild(s);
+  });
   const finishPanel=document.createElement('div');
   finishPanel.className='bt-clean-finish-panel';
   finishPanel.hidden=true;
   finishPanel.setAttribute('aria-label','BTMEDYA üç ana yol');
-  finishPanel.innerHTML='<div class="bt-clean-finish-inner"><p class="bt-clean-finish-kicker">BTMEDYA · ÜÇ ANA YOL</p><h2>Şimdi nereye?</h2><nav aria-label="Film sonu yönlendirme"><a href="/haberler/"><span>01</span><strong>HABER</strong><small>Haber &amp; Medya</small><i aria-hidden="true">↗</i></a><a href="/sosyal-medya/"><span>02</span><strong>SOSYAL MEDYA</strong><small>Sosyal &amp; Dijital</small><i aria-hidden="true">↗</i></a><a href="/video-produksiyon/"><span>03</span><strong>TANITIM</strong><small>Marka &amp; Prodüksiyon</small><i aria-hidden="true">↗</i></a></nav></div>';
+  const fallbackPaths=[
+    {key:'haber',number:'01',label:'HABER & MEDYA',description:'Balıkesir, Türkiye ve dünya gündemi.',publicHref:'/haberler/',groups:[]},
+    {key:'sosyal',number:'02',label:'SOSYAL & DİJİTAL',description:'İçerik üretimi, sosyal kanallar ve dijital büyüme.',publicHref:'/sosyal-medya/',groups:[]},
+    {key:'tanitim',number:'03',label:'MARKA & PRODÜKSİYON',description:'Marka filmi, etkinlik, fotoğraf ve video üretimi.',publicHref:'/video-produksiyon/',groups:[]}
+  ];
+  const escapeHtml=v=>String(v??'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+  const renderTaxonomy=T=>{
+    const paths=T&&Array.isArray(T.paths)?T.paths:fallbackPaths;
+    finishPanel.innerHTML='<div class="bt-clean-finish-inner"><p class="bt-clean-finish-kicker">BTMEDYA · ÜÇ ANA YOL</p><h2>Şimdi nereye?</h2><p class="bt-clean-finish-intro">Önce ana alanı seçin; ardından alt başlıkları açarak ilgili sayfaya geçin.</p><nav class="bt-clean-finish-paths" aria-label="Film sonu üç ana kategori">'+
+      paths.map((p,i)=>'<section class="bt-clean-finish-path" data-finish-path="'+escapeHtml(p.key)+'">'+
+        '<button type="button" class="bt-clean-finish-path-button" aria-expanded="false" aria-controls="bt-clean-finish-branch-'+i+'"><span class="bt-clean-finish-number">'+escapeHtml(p.number||String(i+1).padStart(2,'0'))+'</span><strong>'+escapeHtml(p.label)+'</strong><small>'+escapeHtml(p.description||'Alt kategorileri görüntüle')+'</small><i aria-hidden="true">＋</i></button>'+
+        '<div class="bt-clean-finish-branch" id="bt-clean-finish-branch-'+i+'" hidden>'+
+          (p.groups||[]).map((g,j)=>'<section class="bt-clean-finish-group"><button type="button" class="bt-clean-finish-group-button" aria-expanded="false" aria-controls="bt-clean-finish-items-'+i+'-'+j+'"><span>'+escapeHtml(g.label)+'</span><i aria-hidden="true">＋</i></button>'+
+            '<ul id="bt-clean-finish-items-'+i+'-'+j+'" hidden>'+((g.items||[]).map(it=>'<li><a href="'+escapeHtml(it.href||p.publicHref||'/')+'"><span>'+escapeHtml(it.label)+'</span><i aria-hidden="true">↗</i></a></li>').join(''))+'</ul></section>').join('')+
+          '<a class="bt-clean-finish-all" href="'+escapeHtml(p.publicHref||'/')+'">Tüm '+escapeHtml(p.shortLabel||p.label)+' alanı <span aria-hidden="true">↗</span></a>'+
+        '</div></section>').join('')+
+      '</nav><div class="bt-clean-finish-actions"><a href="/teklif-al/?kaynak=film-sonu">Proje / teklif oluştur ↗</a><a href="https://wa.me/905416401029?text=Merhaba%20BTMEDYA" target="_blank" rel="noopener">WhatsApp</a></div></div>';
+    const mainButtons=[...finishPanel.querySelectorAll('.bt-clean-finish-path-button')];
+    const closePath=(section)=>{
+      section.querySelector('.bt-clean-finish-path-button').setAttribute('aria-expanded','false');
+      section.querySelector('.bt-clean-finish-branch').hidden=true;
+      section.classList.remove('is-selected');
+    };
+    mainButtons.forEach(button=>button.addEventListener('click',()=>{
+      const section=button.closest('.bt-clean-finish-path'),opening=button.getAttribute('aria-expanded')!=='true';
+      finishPanel.querySelectorAll('.bt-clean-finish-path').forEach(other=>{if(other!==section)closePath(other);});
+      button.setAttribute('aria-expanded',String(opening));
+      section.querySelector('.bt-clean-finish-branch').hidden=!opening;
+      section.classList.toggle('is-selected',opening);
+    }));
+    finishPanel.querySelectorAll('.bt-clean-finish-group-button').forEach(button=>button.addEventListener('click',()=>{
+      const group=button.closest('.bt-clean-finish-group'),opening=button.getAttribute('aria-expanded')!=='true';
+      const branch=button.closest('.bt-clean-finish-branch');
+      branch.querySelectorAll('.bt-clean-finish-group-button').forEach(other=>{
+        const otherGroup=other.closest('.bt-clean-finish-group');
+        other.setAttribute('aria-expanded','false');
+        otherGroup.querySelector('ul').hidden=true;
+        other.querySelector('i').textContent='＋';
+      });
+      button.setAttribute('aria-expanded',String(opening));group.querySelector('ul').hidden=!opening;
+      button.querySelector('i').textContent=opening?'−':'＋';
+    }));
+    const firstPath=finishPanel.querySelector('.bt-clean-finish-path-button');
+    if(firstPath){
+      firstPath.setAttribute('aria-expanded','false');
+    }
+  };
+  renderTaxonomy(window.BTMEDYA_TAXONOMY||null);
+  taxonomyReady.then(T=>{if(T)renderTaxonomy(T);});
   root.appendChild(finishPanel);
   const layer=document.createElement('div');
   layer.className='bt-clean-hero-surface';
