@@ -108,6 +108,11 @@ async function ensureTables(env){
     error_count INTEGER NOT NULL DEFAULT 0,
     detail TEXT NOT NULL DEFAULT '{}'
   )`).run().catch(()=>{});
+  // Recover only stale unfinished rows (> 60 min). Preserve the existing JSON audit detail.
+  const staleBefore=new Date(Date.now()-60*60*1000).toISOString();
+  const recoveredAt=nowIso();
+  await env.DB.prepare("UPDATE autopilot_runs SET finished_at=?,error_count=error_count+1,detail=json_set(CASE WHEN json_valid(detail) THEN detail ELSE '{}' END,'$.recovery_note','Stale run closed by autopilot guard','$.recovered_at',?) WHERE finished_at IS NULL AND started_at < ?")
+    .bind(recoveredAt,recoveredAt,staleBefore).run().catch(()=>{});
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS autopilot_competitors (
     host TEXT PRIMARY KEY,
     label TEXT NOT NULL DEFAULT '',
