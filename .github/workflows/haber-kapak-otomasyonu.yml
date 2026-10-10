@@ -20,6 +20,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: btmedya-haber-kapak-otomasyonu
@@ -46,19 +47,34 @@ jobs:
       - name: Asset referanslarını doğrula
         run: python3 tools/validate-assets.py
 
-      - name: Üretilen kapakları commit et
+      # main korumalı (PR zorunlu + imzalı commit): doğrudan push reddedilir.
+      # Kapaklar dönen bir otomasyon dalına yazılır ve PR açılır; squash
+      # birleştirmede GitHub imzalı commit üretir. Günlük süpervizör turu
+      # açık otomasyon PR'ını birleştirir (hero-video-quality ile aynı desen).
+      - name: Üretilen kapakları PR olarak yayınla
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          if git diff --quiet -- public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json; then
+          YOLLAR="public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json"
+          if [ -z "$(git status --porcelain -- $YOLLAR)" ]; then
             echo "Üretilecek yeni kapak yok; akış güncel."
             exit 0
           fi
           git config user.name "BTMEDYA Kapak Otomasyonu"
           git config user.email "actions@users.noreply.github.com"
-          git add public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json
+          DAL="automation/haber-kapaklari"
+          git checkout -B "$DAL"
+          git add $YOLLAR
           git commit -m "chore: otomatik haber kapakları üretildi"
-          # İş çalışırken main ilerlediyse güncel kaynağın üstüne otur.
-          git fetch origin main
-          git rebase origin/main
-          git push origin HEAD:main
+          git push origin "HEAD:$DAL" --force
+          PR="$(gh pr list --base main --head "$DAL" --state open --json number --jq '.[0].number')"
+          if [ -z "$PR" ]; then
+            gh pr create --base main --head "$DAL" \
+              --title "chore: otomatik haber kapakları" \
+              --body "BTMEDYA haber kapak otomasyonu, kapaksız yayımlanan haberler için kapak üretti (vurgu rakamları yalnız haber metninden). main korumalı olduğu için doğrudan yazılmaz; bu PR süpervizör turu tarafından birleştirilir." \
+              || echo "::warning::PR açılamadı (Actions PR izni kapalı olabilir); kapaklar $DAL dalında hazır."
+          else
+            echo "Açık kapak PR'ı #$PR güncellendi."
+          fi

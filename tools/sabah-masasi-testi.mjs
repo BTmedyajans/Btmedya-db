@@ -140,7 +140,9 @@ const kv = new Map([['sabah:ayarlar', JSON.stringify({ model: '@cf/meta/llama-3.
 const ayar = await M.sabahAyarlari({ KV: { get: async k => kv.get(k) || null } });
 assert.equal(ayar.model, '@cf/openai/gpt-oss-120b');
 // 6 Ekim: Dünya ve Yaşam eklendi (ulusal haber sitesi bölümleri).
-assert.equal(ayar.kategoriler.length, 10);
+// 10 Ekim: Türkiye eklendi (site gösteriyordu, otomasyon beslemiyordu).
+assert.equal(ayar.kategoriler.length, 11);
+assert.ok(M.KATEGORILER.some(k => k.anahtar === 'turkiye'), 'Türkiye kategorisi otomasyonda olmalı');
 // Kapak: alakası doğrulanmamış Openverse fotoğrafı varsayılan olarak kapak
 // yapılmaz (3 Ekim denetimi: yanlış spor, yanlış şehir, tanınabilir kişiler).
 {
