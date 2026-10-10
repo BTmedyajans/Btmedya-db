@@ -472,6 +472,13 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
     return result;
   }
   try{
+    if(!force && !policy.enabled){
+      result.ok=true;
+      result.skipped=true;
+      result.reason="Autopilot kapalı.";
+      return result;
+    }
+    try{
     let recentScan=null;
     if(skipRecentIntelligence && env.KV){
       const raw=await env.KV.get("news-intelligence:last").catch(()=>null);
