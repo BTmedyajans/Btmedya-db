@@ -62,12 +62,12 @@ body.bt-motion-ready main{animation:btPageIn .62s var(--bt-motion-ease) both}
 @media(max-width:720px){.bt-3d-model{right:16px;top:82px;width:108px;opacity:.48}.bt-3d-model:after{font-size:7px}.bt-transition-inner{width:calc(100% - 36px)}[data-bt-parallax],.bt-parallax-layer{transform:none!important;transition:none!important}.bt-3d-model{transform:translate3d(0,0,0) rotateX(var(--bt-tilt-x)) rotateY(var(--bt-tilt-y)) rotateZ(var(--bt-tilt-z))}}
 @media(prefers-reduced-motion:reduce){.bt-page-transition,.bt-page-transition:before,body.bt-motion-ready main{transition:none!important;animation:none!important}.bt-3d-model{display:none}.bt-3d-model *{animation:none!important}[data-bt-parallax],.bt-parallax-layer{transform:none!important;transition:none!important}}
 
-/* Logo v4 (10 Ekim, kullanıcının altın BT logosu): amblem baskın olduğu için
-   BTMEDYA yazısı 30 px başlıkta küçük kalıyordu. Yüksek seçicilik, dağınık
+/* Logo v5 (10 Ekim): amblem + MEDYA business kilidi; MEDYA harfleri kilit
+   yüksekliğinin ~%70'i, 28 px'de bile okunur. Yüksek seçicilik, dağınık
    !important kurallarını tek yerden geçersiz kılar (aynı kural tipografi-v2.css
    ve site-motion-v2.css içinde: dinamik haber sayfaları yalnız birincisini yükler). */
-html body .topbar .brand img.brand-logo{height:42px!important;width:auto!important;max-width:none!important;object-fit:contain}
-@media (max-width:760px){html body .topbar .brand img.brand-logo{height:32px!important;max-width:52vw!important}}
+html body .topbar .brand img.brand-logo{height:36px!important;width:auto!important;max-width:none!important;object-fit:contain}
+@media (max-width:760px){html body .topbar .brand img.brand-logo{height:28px!important;max-width:48vw!important}}
 
 /* Üst çubuk sabit kaldığı için (body perspective kaldırıldı) yarı saydam zemin
    altından kayan yazıyı okunur gösteriyordu. Ana sayfa film üstü şeffaf
