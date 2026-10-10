@@ -60,6 +60,8 @@ jobs:
           node --check public/kategori-menu.js
           node --check public/film-secim.js
           node --check public/hero-three-choice.js
+          node --check public/hero-restore-v1.js
+          node tools/homepage-hero-review-contract.mjs
           python3 tools/validate-assets.py
           node tools/a11y-denetimi.mjs
           node tools/gerileme-denetimi.mjs

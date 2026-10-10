@@ -101,6 +101,17 @@ if (index.includes("data-bt-clean-hero")) {
       !/\bmuted\b/.test(vids[0] || '') || !/\bplaysinline\b/.test(vids[0] || ''))
     fail("clean hero must expose one muted inline video connected to hero-video slot");
   else ok("clean hero has one muted inline video connected to hero-video slot");
+  if (index.includes("data-click-to-play")) {
+    if (/\bautoplay\b/i.test(vids[0] || '') || !/preload="none"/.test(vids[0] || '') ||
+        !/aria-controls="heroVideo"/.test(index) || !/hero-review-v1/.test(index) && !/hero-restore-v1\.js/.test(index))
+      fail("restored hero must be poster-first, click-to-play, and avoid eager/autoplay video");
+    else ok("restored hero is poster-first and user-started without eager/autoplay video");
+    if (!/media="\(max-width: 720px\)" srcset="\/assets\/hero\/btmedya-hero-mobile-poster\.jpg"/.test(index) ||
+        !/src="\/assets\/hero\/btmedya-hero-web-poster\.jpg"/.test(index) ||
+        !/prefers-reduced-motion:reduce/.test(read("public/hero-restore-v1.css")))
+      fail("restored hero responsive posters or reduced-motion styling missing");
+    else ok("restored hero has separate mobile/desktop posters and reduced-motion support");
+  }
   if (!/body\.ana-sade #hero\{[^}]*height:100svh/.test(read("public/ana-sade.css")))
     fail("clean hero viewport sizing contract missing");
   else ok("clean hero uses full viewport sizing");
