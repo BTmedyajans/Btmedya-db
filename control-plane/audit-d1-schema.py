@@ -170,7 +170,14 @@ def main() -> int:
             print("WARN: Worker secret metadata could not be checked: " + str(exc))
 
     except Exception as exc:
-        print("BLOCKER: Audit could not complete: " + str(exc))
+        detail = str(exc)
+        if ("7403" in detail or "not authorized to access this service" in detail
+                or "CLOUDFLARE_API_TOKEN is not configured" in detail):
+            print("BLOCKER: GitHub Actions D1 audit credential is missing or lacks D1 access.")
+            print("ACTION REQUIRED: Add GitHub Actions secret CLOUDFLARE_D1_API_TOKEN with Cloudflare Account > D1 > Read permission for the configured account.")
+            print("The existing deploy/diagnostic token is not necessarily authorized for D1. No production data was modified by this audit.")
+        else:
+            print("BLOCKER: Audit could not complete: " + detail)
         return 2
 
     print(f"SUMMARY: {len(BLOCKERS)} blocker(s), {len(WARNINGS)} warning(s).")
