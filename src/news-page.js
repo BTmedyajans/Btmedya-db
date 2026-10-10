@@ -105,10 +105,10 @@ export function renderNewsPage(n, origin, vlib, related=[]){
     "@context":"https://schema.org","@type":"NewsArticle",
     headline:baslik, description:ozet, url,
     ...(tarihIso?{datePublished:tarihIso,dateModified:guncelIso}:{}),
-    author:(n.author&&/buse\s+tuncay/i.test(n.author))?{"@type":"Person",name:n.author,url:`${origin}/portfoy/buse-tuncay/`,sameAs:["https://tr.linkedin.com/in/buse-tuncay-6b217623","https://www.instagram.com/busetuncayy10/","https://www.youtube.com/@BTmedyaAjans"]}:{"@type":"Organization",name:n.author||'BTMEDYA',url:origin,sameAs:["https://www.instagram.com/btmedyajans/","https://www.youtube.com/@BTmedyaAjans","https://www.tiktok.com/@btmedya1010"],logo:{"@type":"ImageObject",url:`${origin}/assets/logo/bt-amblem-256.png`}},
+    author:(n.author&&/buse\s+tuncay/i.test(n.author))?{"@type":"Person",name:n.author,url:`${origin}/portfoy/buse-tuncay/`,sameAs:["https://tr.linkedin.com/in/buse-tuncay-6b217623","https://www.instagram.com/busetuncayy10/","https://www.youtube.com/@BTmedyaAjans"]}:{"@type":"Organization",name:n.author||'BTMEDYA',url:origin,sameAs:["https://www.instagram.com/btmedyajans/","https://www.youtube.com/@BTmedyaAjans","https://www.tiktok.com/@btmedya1010"],logo:{"@type":"ImageObject",url:`${origin}/assets/logo/btmedya-logo-v4.png`}},
     publisher:{"@type":"Organization",name:"BTMEDYA",url:origin,
       sameAs:["https://www.instagram.com/btmedyajans/","https://www.youtube.com/@BTmedyaAjans","https://www.tiktok.com/@btmedya1010"],
-      logo:{"@type":"ImageObject",url:`${origin}/assets/logo/bt-amblem-256.png`}},
+      logo:{"@type":"ImageObject",url:`${origin}/assets/logo/btmedya-logo-v4.png`}},
     ...(n.category?{articleSection:n.category}:{}),
     ...(ogImg?{image:ogImg}:{}),
     mainEntityOfPage:{"@type":"WebPage","@id":url},
@@ -217,7 +217,7 @@ ${ldYaz(videoLd)}
 <a class="skip-link" href="#main">İçeriğe geç</a>
 <div class="noise" aria-hidden="true"></div>
 <header class="topbar">
-  <a class="brand" href="/" aria-label="BTMEDYA ana sayfa"><img class="brand-logo" src="/assets/logo/btmedya-logo-v2-negatif.svg?v=1" alt="BTMEDYA" width="172" height="37" decoding="async">
+  <a class="brand" href="/" aria-label="BTMEDYA ana sayfa"><img class="brand-logo" src="/assets/logo/btmedya-logo-yatay-v4-negatif.webp" alt="BTMEDYA" width="172" height="37" decoding="async">
   </a>
   <button class="menu-toggle" type="button" aria-label="Menüyü aç" aria-expanded="false" aria-controls="anaMenu">☰</button>
   <a class="quote" href="/haberler/">HABER ARŞİVİ ↗</a>
@@ -266,7 +266,7 @@ ${relatedHtml}</article>
 </main>
 <footer class="final-footer">
   <div class="footer-brand">
-    <img class="footer-logo" src="/assets/logo/btmedya-logo-v2-negatif.svg?v=1" alt="BTMEDYA — Hikâyeleri yaşatıyoruz" width="224" height="48" loading="lazy" decoding="async">
+    <img class="footer-logo" src="/assets/logo/btmedya-logo-yatay-v4-negatif.webp" alt="BTMEDYA — Hikâyeleri yaşatıyoruz" width="224" height="48" loading="lazy" decoding="async">
     <div><span>Balıkesir · Haber, prodüksiyon, yapay zekâ</span></div>
   </div>
   <div class="footer-contact"><a href="/iletisim/">İletişim</a><a href="/hakkimizda/">Hakkımızda</a></div>

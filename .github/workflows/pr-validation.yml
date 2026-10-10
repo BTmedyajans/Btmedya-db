@@ -51,6 +51,10 @@ jobs:
           python3 tools/site-os-migration-test.py
           node tools/marka-kiti-testi.mjs
           node tools/haber-portali-testi.mjs
+          # Kategori sistemi v3: tek kaynak (src/kategori-sistemi.js) ile portal,
+          # renkler, Sabah Masası, menü ve kapak aracı aynı kalmalı.
+          node --check src/kategori-sistemi.js
+          node tools/kategori-sistemi.mjs --kontrol
           node tools/admin-giris-testi.mjs
           # Agency OS browser/access widget is available after admin login; CI verifies source without passwords.
           grep -q 'id="accessBrowserReadiness"' public/admin/agency-os/index.html

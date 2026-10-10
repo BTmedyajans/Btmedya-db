@@ -177,7 +177,7 @@ footer{{padding:32px 16px 96px;color:var(--g);font-size:14px;border-top:1px soli
 @media (prefers-reduced-motion:reduce){{*{{transition:none!important}}}}
 </style><link rel="stylesheet" href="/site-motion-v2.css?v=20261005-1"><link rel="stylesheet" href="/mobil-tipografi.css?v=20261006-1"><link rel="stylesheet" href="/kategori-menu.css?v=20261006-1"><script src="/kategori-menu.js?v=20261006-1" defer></script>
 </head><body>
-<header><a href="/" aria-label="BTMEDYA ana sayfa"><img src="/assets/logo/btmedya-logo-baslik.webp" alt="BTMEDYA" width="154" height="37"></a><nav aria-label="Marka kiti"><a href="/basin-kiti/">Basın kiti</a><a href="/teklif-al/?kaynak=/marka-kiti/">Teklif al</a></nav></header>
+<header><a href="/" aria-label="BTMEDYA ana sayfa"><img src="/assets/logo/btmedya-logo-yatay-v4-negatif.webp" alt="BTMEDYA" width="172" height="37"></a><nav aria-label="Marka kiti"><a href="/basin-kiti/">Basın kiti</a><a href="/teklif-al/?kaynak=/marka-kiti/">Teklif al</a></nav></header>
 <main id="icerik">
 <div class="hero"><p class="ust">BTMEDYA · MARKA KİTİ · SÜRÜM {veri["surum"]}</p><h1>Tek marka,<br><span>dört ses.</span></h1><p>Haber kapağından sosyal karta, dikey videodan paylaşım görseline kadar BTMEDYA'nın görsel dili. Değerler sitede ve kapak araçlarında kullanılanlardır; ölçüler projenin kendi tanımlarından gelir.</p></div>
 <section aria-labelledby="logo"><h2 id="logo">Logo</h2><p>Koyu zeminde negatif, açık zeminde pozitif logo kullanılır. Logonun çevresinde en az logo yüksekliğinin yarısı kadar boşluk bırakılır; dijitalde en küçük yükseklik 24 px. Logo eğilmez, gölge ya da başka renk eklenmez, fotoğrafın meşgul bir alanına konmaz; manşet kapaklarında sağ üstteki beyaz plaka kullanılır.</p><ul class="izgara logo">{logo}</ul></section>
@@ -208,8 +208,11 @@ if __name__ == "__main__":
     # markayi degil yalnizca bir cumleyi gosteriyordu; burada uretilmez.
     veri = {"surum": "2.0", "tarih": "2026-10-05", "renkler": RENKLER, "tipografi": TIPOGRAFI, "kapak_dilleri": KAPAK_DILLERI,
             "etiketler": ETIKETLER, "olculer": OLCULER, "foto_yuvalari": FOTO_YUVALARI,
-            "logolar": ["/assets/logo/btmedya-logo-yatay-pozitif.png", "/assets/logo/btmedya-logo-yatay-negatif.png",
-                        "/assets/logo/bt-amblem-256.png", "/assets/logo/bt-amblem-daire.png"]}
+            # Resmî logo (10 Ekim, kullanıcının gönderdiği özgün dosya; şeffaf zemin):
+            # tools/logo/logo-v4-uret.py üretir.
+            "logolar": ["/assets/logo/btmedya-logo-v4.png", "/assets/logo/btmedya-logo-v4-negatif.png",
+                        "/assets/logo/btmedya-logo-yatay-v4.png", "/assets/logo/btmedya-logo-yatay-v4-negatif.png",
+                        "/assets/logo/bt-isaret-v4.png", "/assets/logo/bt-isaret-v4-negatif.png"]}
     with open(os.path.join(KOK, "public", "data", "marka-kiti.json"), "w", encoding="utf-8") as f:
         json.dump(veri, f, ensure_ascii=False, indent=1)
         f.write("\n")

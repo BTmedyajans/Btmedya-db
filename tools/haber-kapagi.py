@@ -878,11 +878,13 @@ def manset_sosyal(h, cikti, **kaynak):
         W, H = eski
 
 
-KATEGORI_PLAKALARI = {
-    "gundem": "Gündem", "balikesir": "Balıkesir", "turkiye": "Türkiye", "ekonomi": "Ekonomi", "spor": "Spor",
-    "kultur": "Kültür Sanat", "saglik": "Sağlık", "egitim": "Eğitim", "teknoloji": "Teknoloji",
-    "dunya": "Dünya", "yasam": "Yaşam",
-}
+def _kategori_plakalari():
+    """Plaka adları tek kaynaktan (src/kategori-sistemi.js -> kategoriler.json)."""
+    with open(os.path.join(KOK, "public", "data", "kategoriler.json"), encoding="utf-8") as f:
+        return {k["anahtar"]: k["ad"] for k in json.load(f)["kategoriler"]}
+
+
+KATEGORI_PLAKALARI = _kategori_plakalari()
 
 
 def kategori_plakalari():
