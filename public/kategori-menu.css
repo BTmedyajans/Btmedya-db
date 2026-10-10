@@ -157,3 +157,20 @@ html.btkm-acik{overflow:hidden}
 .btkm :is(.btkm-sayac,.btkm-grup-etiket,.btkm-cip small,.btkm-yol-no,.btkm-altgrup h3){font-family:var(--bt-yazi,Manrope,'Segoe UI',system-ui,Arial,sans-serif)!important;font-weight:600;letter-spacing:.04em}
 .btkm-panel{background:var(--btkm-zemin)!important}
 .btkm-imlec{box-shadow:none}
+
+
+/* 2026-10-10 · Alt kategori grupları akordeon: daha kısa ve net menü. */
+.btkm-yol-pano{grid-template-columns:1fr;gap:8px}
+.btkm-altgrup{padding:0;overflow:hidden;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.018)}
+.btkm-altgrup-baslik{width:100%;min-height:46px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 13px;border:0;background:transparent;color:#e8eef2;text-align:left;cursor:pointer;font:700 12px/1.25 Manrope,Inter,Arial,sans-serif;letter-spacing:.045em}
+.btkm-altgrup-baslik i{display:grid;place-items:center;width:24px;height:24px;border:1px solid var(--btkm-cizgi);border-radius:50%;font:400 16px/1 Manrope,Inter,Arial,sans-serif;color:var(--btkm-soluk);font-style:normal}
+.btkm-altgrup[data-expanded="true"]>.btkm-altgrup-baslik{color:var(--btkm-mavi)}
+.btkm-altgrup ul{list-style:none;margin:0;padding:0 12px 8px;border-top:1px solid rgba(255,255,255,.06)}
+.btkm-altgrup ul[hidden]{display:none!important}
+.btkm-altgrup li{border-bottom:1px solid rgba(255,255,255,.055)}
+.btkm-altgrup li:last-child{border-bottom:0}
+.btkm-altgrup a{min-height:42px;padding:7px 2px;font-size:14px}
+.btkm-altgrup-baslik:focus-visible{outline:2px solid var(--btkm-mavi);outline-offset:-3px}
+@media(min-width:900px){.btkm-yol-pano{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+@media(max-width:720px){.btkm-yol-pano{grid-template-columns:1fr;padding:0 0 16px 42px;gap:7px}.btkm-altgrup-baslik{min-height:46px;font-size:12px}.btkm-altgrup a{font-size:14px;min-height:44px}}
+@media(prefers-reduced-motion:reduce){.btkm-altgrup-baslik i{transition:none}}
