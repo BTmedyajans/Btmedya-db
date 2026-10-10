@@ -2,9 +2,9 @@
    Eski news.category korunur; path/group/item yeni ortak dil olarak kaydedilir. */
 
 export const CONTENT_TAXONOMY_FALLBACK={
-  'Balıkesir':{path_key:'haber',group_key:'haber-bul',item_key:'balikesir'},
-  'Yerel':{path_key:'haber',group_key:'haber-bul',item_key:'balikesir'},
-  'Marmara':{path_key:'haber',group_key:'haber-bul',item_key:'marmara'},
+  'Balıkesir':{path_key:'haber',group_key:'balikesir',item_key:'balikesir'},
+  'Yerel':{path_key:'haber',group_key:'balikesir',item_key:'balikesir'},
+  'Marmara':{path_key:'haber',group_key:'haber-bul',item_key:'turkiye'},
   'Türkiye':{path_key:'haber',group_key:'haber-bul',item_key:'turkiye'},
   'Dünya':{path_key:'haber',group_key:'haber-bul',item_key:'dunya'},
   'Gündem':{path_key:'haber',group_key:'topic',item_key:'gundem'},
