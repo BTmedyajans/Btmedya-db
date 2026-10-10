@@ -17,6 +17,7 @@ account_id = "b239acae17aebe894ea76309fe32cdce"
 
 [observability]
 enabled = true
+redact_query_string = true
 
 [assets]
 directory = "public"
