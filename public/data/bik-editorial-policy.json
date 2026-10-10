@@ -1,0 +1,32 @@
+{
+  "surum": "2026-10-03",
+  "amac": "BTMEDYA'nın BİK hazırlığını destekleyen, gerçek okuyucu ve özgün yerel habercilik odaklı editoryal seçim çerçevesi.",
+  "uyari": "Bu dosya BİK uygunluğu veya resmî ilan yayınlama hakkı garantisi değildir; güncel mevzuat ve Kurum değerlendirmesi esas alınır.",
+  "yayina_alma_kurallari": [
+    "Her haberin yayın tarihi ve kaynağı görünür olacak.",
+    "Kaynak haber kopyalanmayacak; doğrulanabilir bilgi yeniden yazılacak ve gerektiğinde atıf yapılacak.",
+    "Siyasi ve tartışmalı konularda görüş yerine doğrulanabilir olgu, belge ve tarafların açıklamaları esas alınacak.",
+    "Suç, soruşturma, gözaltı, tutuklama ve mağduriyet haberlerinde iddia ile kesinleşmiş olgu birbirinden ayrılacak.",
+    "Kamu kurumu açıklaması bağımsız doğrulama gibi sunulmayacak; açıklamanın kaynağı açıkça gösterilecek.",
+    "AI ile hazırlanan içerik editör kontrolünden geçmeden kesin haber olarak otomatik yayımlanmayacak.",
+    "Telif/lisans durumu belirsiz görsel kullanılmayacak.",
+    "Ticari içerik haberden ayrılacak ve açık biçimde sponsorlu/tanıtım içeriği olarak etiketlenecek."
+  ],
+  "otomatik_akistan_cikis": [
+    "kaynak doğrulanamıyorsa",
+    "başlık kaynakta bulunmayan kesinlik içeriyorsa",
+    "iddia açıkça atfedilmemişse",
+    "kişisel veri veya hassas mağdur bilgisi gereksizse",
+    "telif/lisans durumu belirsizse",
+    "ticari tanıtım haber gibi sunuluyorsa"
+  ],
+  "haber_secim_skoru": {
+    "guncellik": 25,
+    "yerel_etki": 25,
+    "kamusal_onem": 20,
+    "kaynak_guveni": 15,
+    "ozgunluk": 10,
+    "multimedya_degeri": 5,
+    "not": "Bu skor editoryal iş akışı içindir; siyasi tercih, aday/parti sıralaması veya kamu kurumuna ticari ayrıcalık üretmez."
+  }
+}
