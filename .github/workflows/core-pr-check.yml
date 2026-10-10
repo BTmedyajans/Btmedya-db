@@ -38,7 +38,7 @@ jobs:
             process.exit(1);
           }
           if (!/wrangler/.test(deploy) || !/deploy/.test(deploy)) {
-            console.error('Expected the deploy script to invoke wrangler deploy.');
+            console.error('Expected the deploy script to invoke Wrangler.');
             process.exit(1);
           }
           console.log('PASS: production deploy does not run D1 migrations.');
