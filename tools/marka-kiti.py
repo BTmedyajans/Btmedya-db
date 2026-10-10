@@ -138,7 +138,7 @@ def sayfa(veri):
         f'<small>{e(d["font"])} · {e(" + ".join(d["renkler"]))}</small><p>{e(d["kompozisyon"])}</p></li>' for d in veri["kapak_dilleri"])
     foto = "".join(f'<tr><td>{e(f["ad"])}</td><td>{f["w"]}×{f["h"]}</td><td>{e(f["not"])}</td></tr>' for f in veri["foto_yuvalari"])
     logo = "".join(
-        f'<li class="{"koyu" if "negatif" in l or "daire" in l else "acik"}"><img src="{l}" alt="BTMEDYA logo dosyası" loading="lazy">'
+        f'<li class="{"koyu" if "negatif" in l or "daire" in l or "v5" in l else "acik"}"><img src="{l}" alt="BTMEDYA logo dosyası" loading="lazy">'
         f'<a href="{l}" download>{e(l.rsplit("/", 1)[1])} ↓</a></li>' for l in veri["logolar"])
     baslik = "BTMEDYA Marka Kiti | Logo, Renk, Yazı Tipi ve Şablon Ölçüleri"
     acik = "BTMEDYA marka kiti: logo dosyaları, renkler, yazı tipleri, kaynak etiketleri ve haber kapağı, sosyal kart, dikey video ile paylaşım görseli şablonları."
@@ -180,7 +180,7 @@ footer{{padding:32px 16px 96px;color:var(--g);font-size:14px;border-top:1px soli
 <header><a href="/" aria-label="BTMEDYA ana sayfa"><img src="/assets/logo/btmedya-logo-yatay-v4-negatif.webp" alt="BTMEDYA" width="172" height="37"></a><nav aria-label="Marka kiti"><a href="/basin-kiti/">Basın kiti</a><a href="/teklif-al/?kaynak=/marka-kiti/">Teklif al</a></nav></header>
 <main id="icerik">
 <div class="hero"><p class="ust">BTMEDYA · MARKA KİTİ · SÜRÜM {veri["surum"]}</p><h1>Tek marka,<br><span>dört ses.</span></h1><p>Haber kapağından sosyal karta, dikey videodan paylaşım görseline kadar BTMEDYA'nın görsel dili. Değerler sitede ve kapak araçlarında kullanılanlardır; ölçüler projenin kendi tanımlarından gelir.</p></div>
-<section aria-labelledby="logo"><h2 id="logo">Logo</h2><p>Koyu zeminde negatif, açık zeminde pozitif logo kullanılır. Logonun çevresinde en az logo yüksekliğinin yarısı kadar boşluk bırakılır; dijitalde en küçük yükseklik 24 px. Logo eğilmez, gölge ya da başka renk eklenmez, fotoğrafın meşgul bir alanına konmaz; manşet kapaklarında sağ üstteki beyaz plaka kullanılır.</p><ul class="izgara logo">{logo}</ul></section>
+<section aria-labelledby="logo"><h2 id="logo">Logo</h2><p>Ana logo amblem + MEDYA kilididir; altın tonlarında, şeffaf zeminli tek dosya koyu ve açık zeminde kullanılır. Tam logo (slogan dahil) büyük alanlarda, amblem simge ve profil görsellerinde kullanılır; son dosya kaynak logonun orijinal renkleridir. Logonun çevresinde en az logo yüksekliğinin yarısı kadar boşluk bırakılır; dijitalde en küçük yükseklik 24 px. Logo eğilmez, gölge ya da başka renk eklenmez, fotoğrafın meşgul bir alanına konmaz; manşet kapaklarında sağ üstteki beyaz plaka kullanılır.</p><ul class="izgara logo">{logo}</ul></section>
 <section aria-labelledby="ses"><h2 id="ses">İçerik sesleri</h2><p>Görsel Kimlik 2.0: kapak, başlık okunmadan türünü söyler. Her içerik türünün kendi yazı tipi, rengi ve kompozisyonu var; logo, sağ üst plaka ve kaynak etiketi hepsinde aynı kalır. YouTube kapaklarında sağ alt köşe süre rozeti için boş bırakılır.</p><ul class="sesler">{ses}</ul></section>
 <section aria-labelledby="renk"><h2 id="renk">Renkler</h2><p>Haber dili kırmızı, sarı ve lacivert; ajans ve site dili siyah, camgöbeği ve lime. Altın logoda ve Prodüksiyon sesinde, mor yalnız AI LAB işlerinde. Lime haber kapağında kullanılmaz.</p><ul class="izgara">{renk}</ul></section>
 <section aria-labelledby="tip"><h2 id="tip">Yazı tipleri</h2><p>Tamamı açık lisanslı (SIL OFL 1.1). Türkçe karakterlerin tamamı desteklenir. İçerik seslerinin yazı tipleri sitede barındırılır (/assets/fonts/marka2/, lisans metniyle).</p><ul class="tip">{tip}</ul></section>
@@ -208,11 +208,9 @@ if __name__ == "__main__":
     # markayi degil yalnizca bir cumleyi gosteriyordu; burada uretilmez.
     veri = {"surum": "2.0", "tarih": "2026-10-05", "renkler": RENKLER, "tipografi": TIPOGRAFI, "kapak_dilleri": KAPAK_DILLERI,
             "etiketler": ETIKETLER, "olculer": OLCULER, "foto_yuvalari": FOTO_YUVALARI,
-            # Resmî logo (10 Ekim, kullanıcının gönderdiği özgün dosya; şeffaf zemin):
-            # tools/logo/logo-v4-uret.py üretir.
-            "logolar": ["/assets/logo/btmedya-logo-v4.png", "/assets/logo/btmedya-logo-v4-negatif.png",
-                        "/assets/logo/btmedya-logo-yatay-v4.png", "/assets/logo/btmedya-logo-yatay-v4-negatif.png",
-                        "/assets/logo/bt-isaret-v4.png", "/assets/logo/bt-isaret-v4-negatif.png"]}
+            # Resmî logo v5 (10 Ekim): amblem + MEDYA, altın tonları, şeffaf zemin
+            # (tools/logo/logo-v5-uret.py); son dosya orijinal renkler (logo-v4-uret.py).
+            "logolar": ["/assets/logo/btmedya-logo-v5.png", "/assets/logo/btmedya-logo-v5-tam.png", "/assets/logo/bt-amblem-v5.png", "/assets/logo/btmedya-logo-v4.png"]}
     with open(os.path.join(KOK, "public", "data", "marka-kiti.json"), "w", encoding="utf-8") as f:
         json.dump(veri, f, ensure_ascii=False, indent=1)
         f.write("\n")

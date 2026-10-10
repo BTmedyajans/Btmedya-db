@@ -13,7 +13,7 @@
   "dir": "ltr",
   "icons": [
     {"src":"/assets/logo/bt-amblem-256.png","sizes":"192x192","type":"image/png","purpose":"any"},
-    {"src":"/assets/favicon.png","sizes":"256x256","type":"image/png","purpose":"any"},
+    {"src":"/assets/favicon-v5.png","sizes":"256x256","type":"image/png","purpose":"any"},
     {"src":"/assets/logo/bt-amblem-daire.png","sizes":"256x256","type":"image/png","purpose":"maskable"}
   ],
   "shortcuts": [
