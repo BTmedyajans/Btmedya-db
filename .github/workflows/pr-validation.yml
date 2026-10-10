@@ -47,6 +47,8 @@ jobs:
           node --check src/sales-router.js
           node tools/teklif-testi.mjs
           node tools/temas-testi.mjs
+          test -s migrations/0030_taxonomy_group_key_correction.sql
+          python3 tools/site-os-migration-test.py
           node tools/marka-kiti-testi.mjs
           node tools/haber-portali-testi.mjs
           node tools/admin-giris-testi.mjs
