@@ -1,0 +1,72 @@
+name: BTMEDYA Scheduled Production Verify
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btmedya-production-verify
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify public production surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://btmedya.com.tr"
+          tmp="$(mktemp -d)"
+          curl -fsSL --retry 3 --retry-delay 2 "$base/" -o "$tmp/home.html"
+          curl -fsSL --retry 3 --retry-delay 2 "$base/robots.txt" -o "$tmp/robots.txt"
+          curl -fsSL --retry 3 --retry-delay 2 "$base/sitemap.xml" -o "$tmp/sitemap.xml"
+          curl -fsSL --retry 3 --retry-delay 2 "$base/news-sitemap.xml" -o "$tmp/news-sitemap.xml"
+          grep -q 'HABER' "$tmp/home.html"
+          grep -q 'SOSYAL MEDYA' "$tmp/home.html"
+          grep -q 'TANITIM' "$tmp/home.html"
+          grep -q '/haberler/' "$tmp/home.html"
+          grep -q '/sosyal-medya/' "$tmp/home.html"
+          grep -q '/video-produksiyon/' "$tmp/home.html"
+          grep -q 'btmedya.com.tr' "$tmp/sitemap.xml"
+          grep -q 'Sitemap:' "$tmp/robots.txt"
+
+      - name: Verify critical public routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://btmedya.com.tr"
+          for path in /haberler/ /sosyal-medya/ /video-produksiyon/ /admin/agency-os/ /api/health; do
+            code="$(curl -sS -L --retry 2 -o /dev/null -w '%{http_code}' "$base$path")"
+            case "$path" in
+              /admin/agency-os/) test "$code" = "200" || test "$code" = "302" || test "$code" = "301" ;;
+              /api/health) test "$code" = "200" || test "$code" = "401" || test "$code" = "403" ;;
+              *) test "$code" -ge 200 -a "$code" -lt 400 ;;
+            esac
+          done
+
+      - name: Verify repository production contract
+        uses: actions/checkout@v7
+        with:
+          ref: main
+      - name: Static regression checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check src/worker.js
+          node --check public/home.js
+          node --check public/kategori-menu.js
+          node --check public/film-secim.js
+          node --check public/hero-three-choice.js
+          grep -q 'HABER' public/index.html
+          grep -q 'SOSYAL MEDYA' public/index.html
+          grep -q 'TANITIM' public/index.html
+          grep -q '/sosyal-medya/' public/kategori-menu.js
+          grep -q 'niyet=dugun' public/kategori-menu.js
+          npx --yes wrangler@4.142.0 deploy --dry-run --outdir "$RUNNER_TEMP/kuru-derleme"
+          ! grep -RIlE --exclude=pr-validation.yml --exclude=scheduled-production-verify.yml 'wrangler(@[^ ]*)? deploy' .github/workflows
