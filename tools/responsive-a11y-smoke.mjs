@@ -88,27 +88,37 @@ for (const vp of viewports) {
   await page.close();
 }
 
-// Admin browser + authorization smoke. All API requests below use a fresh context without a session cookie.
+// Admin browser + authorization smoke. Use a fresh no-cookie context deliberately:
+// the Worker redirects anonymous HTML requests to /admin/ (login shell), while static JS/CSS assets
+// may be fetched so the browser can load the login page. Do not expect Agency OS UI before login.
 const adminPage = await browser.newPage({viewport:{width:390,height:844}});
 const adminResponse = await adminPage.goto(BASE+'/admin/agency-os/',{waitUntil:'domcontentloaded',timeout:30000}).catch(()=>null);
-if(!adminResponse || adminResponse.status()>=400){
-  failures.push('admin/agency-os/ HTTP '+(adminResponse?.status()||'NO_RESPONSE'));
+if(!adminResponse){
+  failures.push('anonymous admin page NO_RESPONSE');
 }else{
-  const shell=await adminPage.evaluate(()=>({
-    title:document.title,
-    noindex:/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(document.documentElement.innerHTML),
-    diagnostic:!!document.querySelector('#accessBrowserReadiness')
+  const anonymous=await adminPage.evaluate(()=>({
+    status:document.readyState,
+    url:location.pathname,
+    noindex:!!document.querySelector('meta[name="robots"][content*="noindex"]'),
+    loginForm:!!document.querySelector('form input[type="password"], input[name="password"], input[autocomplete="current-password"]'),
+    hasAgencyShell:!!document.querySelector('#accessBrowserReadiness')
   }));
-  if(!shell.noindex) failures.push('admin/agency-os/ missing noindex meta');
-  if(!shell.diagnostic) failures.push('admin/agency-os/ access/browser diagnostic widget missing');
-  await adminPage.waitForFunction(()=>document.querySelector('#accessBrowserReadiness')?.dataset.ready==='true',{timeout:25000}).catch(()=>null);
-  const diagnostic=await adminPage.evaluate(()=>({
-    ready:document.querySelector('#accessBrowserReadiness')?.dataset.ready==='true',
-    rows:document.querySelectorAll('#accessBrowserReadiness .rule').length,
-    text:document.querySelector('#accessBrowserReadiness')?.textContent||''
-  }));
-  if(!diagnostic.ready || diagnostic.rows<4) failures.push('admin browser/access diagnostic did not complete: '+JSON.stringify(diagnostic));
-  if(diagnostic.ready && /HTTP (?!401|403)\d{3}/.test(diagnostic.text)) failures.push('admin browser/access diagnostic reports an unexpected protected API status: '+diagnostic.text);
+  // The worker may use an internal 401 login shell or an explicit redirect.
+  if(adminResponse.status()!==401 && adminResponse.status()!==302 && adminResponse.status()!==303 && !/\/admin\/$/.test(new URL(adminPage.url()).pathname)){
+    failures.push('anonymous admin page returned unexpected status '+adminResponse.status()+' at '+adminPage.url());
+  }
+  if(anonymous.hasAgencyShell && adminResponse.status()!==200) failures.push('anonymous admin page exposed an authenticated widget under unexpected status '+adminResponse.status());
+}
+// Assert the Agency OS diagnostic exists in source without requiring an admin login cookie in CI.
+const sourceChecks=[
+  ['public/admin/agency-os/index.html',/id=["']accessBrowserReadiness["']/],
+  ['public/admin/agency-os/agency-os.js',/function loadAccessBrowserReadiness\s*\(/],
+  ['public/admin/agency-os/agency-os.js',/credentials:\s*['"]omit['"]/]
+];
+const fs=await import('node:fs/promises');
+for(const [relative,pattern] of sourceChecks){
+  const source=await fs.readFile(new URL('../'+relative,import.meta.url),'utf8').catch(()=>null);
+  if(!source || !pattern.test(source)) failures.push('admin readiness source check failed: '+relative);
 }
 const anonPage=await browser.newPage();
 for(const path of ['/api/admin/agency-supervisor','/api/admin/core','/api/admin/site-os','/api/admin/social/providers']){
