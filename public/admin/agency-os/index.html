@@ -167,6 +167,12 @@ let saved='haber';try{saved=sessionStorage.getItem('btmedya-admin-category')||'h
     <div id="platformReadiness" class="system-snapshot"><div class="rec"><b>Platform durumları okunuyor…</b></div></div>
   </section>
 
+  <section class="panel" aria-labelledby="accessBrowserReadinessTitle">
+    <div class="panel-head"><div><div class="eyebrow">02 · TARAYICI + ERİŞİM DENETİMİ</div><h2 id="accessBrowserReadinessTitle">Yetkiler ve canlı uçlar</h2></div><span class="pill">SALT OKUNUR</span></div>
+    <p class="mut">Bu kontrol kullanıcı oturumunu kullanmadan yönetici API kapılarını sınar; sayfa, robots ve site haritalarının erişilebilirliğini de gözlemler. Hiçbir içerik yayımlamaz veya ayar değiştirmez.</p>
+    <div id="accessBrowserReadiness" class="system-snapshot" data-ready="false" aria-live="polite"><div class="rec"><b>Tarayıcı ve yetki kontrolleri çalıştırılıyor…</b></div></div>
+  </section>
+
   <section class="panel" id="btCorePanel" aria-labelledby="btCoreTitle">
   <div class="panel-head"><div><div class="eyebrow">CORE · CLOUDFLARE NATIVE</div><h2 id="btCoreTitle">BTMEDYA işletim çekirdeği</h2></div><span id="btCoreStatus" class="pill">KONTROL</span></div>
   <div id="btCoreGrid" class="grid"></div>
