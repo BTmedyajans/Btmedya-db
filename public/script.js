@@ -1,3 +1,19 @@
+(() => {
+  if (!document.querySelector('link[data-bt-ux-discovery]')) {
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = '/ux-discovery.css?v=20261010-1';
+    css.dataset.btUxDiscovery = '1';
+    document.head.appendChild(css);
+  }
+  if (!document.querySelector('script[data-bt-ux-discovery]')) {
+    const script = document.createElement('script');
+    script.src = '/ux-discovery.js?v=20261010-1';
+    script.dataset.btUxDiscovery = '1';
+    document.head.appendChild(script);
+  }
+})();
+
 document.addEventListener('DOMContentLoaded',()=>{
   const pre=document.getElementById('preloader');
   setTimeout(()=>pre&&pre.classList.add('done'),450);

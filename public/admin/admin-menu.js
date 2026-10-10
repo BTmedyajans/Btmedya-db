@@ -27,7 +27,7 @@
 
     root.innerHTML='<div class="bam-perde" data-bam-kapat></div><div class="bam-panel">'+
       '<div class="bam-ust"><span class="bam-marka">BT<span>MEDYA</span></span><button type="button" class="bam-kapat" data-bam-kapat>Kapat ×</button></div>'+
-      '<div class="bam-rehber"><b>BTMEDYA KATEGORİLERİ</b><span>Web sitesindeki kategori yapısıyla aynı sırayı kullan.</span></div>'+
+      '<div class="bam-rehber"><b>BTMEDYA KATEGORİLERİ</b><span>Web sitesindeki kategori yapısıyla aynı sırayı kullan.</span><label class="bam-ara"><span aria-hidden="true">⌕</span><input id="bamAra" type="search" autocomplete="off" placeholder="Yönetimde ara: haber, sosyal, teklif…" aria-label="Yönetim işlemlerinde ara"><kbd>⌘K</kbd></label></div>'+
       '<nav class="bam-kategoriler" aria-label="BTMEDYA üç ana kategori">'+
       T.paths.map((p,i)=>
         '<section class="bam-kategori">'+
@@ -67,6 +67,22 @@
     '</div>';
 
     document.documentElement.appendChild(root);
+    const adminSearch=root.querySelector('#bamAra');
+    const adminGroups=[...root.querySelectorAll('.bam-alt-grup')];
+    const adminCats=[...root.querySelectorAll('.bam-kategori')];
+    const adminNorm=s=>String(s||'').toLocaleLowerCase('tr-TR').replace(/ı/g,'i').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const adminFilter=()=>{
+      const q=adminNorm(adminSearch?.value.trim());
+      if(!q){adminGroups.forEach(g=>{g.style.display='';});adminCats.forEach(c=>c.style.display='');return;}
+      adminCats.forEach(cat=>{
+        let has=false;
+        cat.querySelectorAll('.bam-alt-grup').forEach(group=>{const match=adminNorm(group.textContent).includes(q);group.style.display=match?'':'none';if(match)has=true;});
+        cat.style.display=has?'':'none';
+        if(has){const catBtn=cat.querySelector('.bam-kat-baslik');const catBox=cat.querySelector('.bam-alt');if(catBtn)catBtn.setAttribute('aria-expanded','true');if(catBox)catBox.hidden=false;cat.querySelectorAll('.bam-grup-baslik').forEach(btn=>btn.setAttribute('aria-expanded','true'));cat.querySelectorAll('.bam-grup-items').forEach(box=>box.hidden=false);}
+      });
+    };
+    adminSearch?.addEventListener('input',adminFilter);
+    adminSearch?.addEventListener('keydown',e=>{if(e.key==='Escape'){adminSearch.value='';adminFilter();e.stopPropagation();}});
     const currentLink=root.querySelector('[aria-current="page"]');
     if(currentLink){
       const groupBox=currentLink.closest('.bam-grup-items');
@@ -80,7 +96,7 @@
     const allTriggers='#adminMenuToggle,.menu-toggle,.bam-dugme';
     const setExpanded=a=>document.querySelectorAll(allTriggers).forEach(x=>x.setAttribute('aria-expanded',String(a)));
     let trigger=null;
-    const open=t=>{trigger=t||null;root.hidden=false;document.documentElement.classList.add('bam-acik');requestAnimationFrame(()=>root.classList.add('is-acik'));setExpanded(true);(root.querySelector('[aria-current]')||root.querySelector('.bam-kat-baslik')).focus()};
+    const open=t=>{trigger=t||null;root.hidden=false;document.documentElement.classList.add('bam-acik');requestAnimationFrame(()=>root.classList.add('is-acik'));setExpanded(true);(adminSearch||root.querySelector('[aria-current]')||root.querySelector('.bam-kat-baslik')).focus()};
     const close=()=>{root.classList.remove('is-acik');document.documentElement.classList.remove('bam-acik');setExpanded(false);setTimeout(()=>{if(!root.classList.contains('is-acik'))root.hidden=true},220);trigger&&trigger.focus()};
 
     root.addEventListener('click',e=>{

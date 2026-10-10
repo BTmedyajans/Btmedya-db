@@ -41,8 +41,9 @@ html.bam-acik{overflow:hidden}
  border-right:1px solid #243139}
 .bam-ust{height:72px;padding:0 20px;background:rgba(5,7,8,.82);backdrop-filter:blur(14px)}
 .bam-marka{font-size:18px;letter-spacing:.08em}.bam-kapat{height:40px;min-height:40px;border-radius:8px;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
-.bam-rehber{padding:18px 20px;background:linear-gradient(90deg,rgba(217,255,63,.07),transparent 70%);border-bottom-color:#202b31}
-.bam-rehber b{font-size:9px;letter-spacing:.18em}.bam-rehber span{font-size:11px}
+ .bam-rehber{padding:18px 20px;background:linear-gradient(90deg,rgba(217,255,63,.07),transparent 70%);border-bottom-color:#202b31}
+ .bam-rehber b{font-size:9px;letter-spacing:.18em}.bam-rehber span{font-size:11px}
+ .bam-ara{display:flex;align-items:center;gap:8px;margin-top:8px;padding:0 10px;border:1px solid #2a3d43;border-radius:9px;background:#070d0f;color:#d9ff3f}.bam-ara>span{font-size:20px}.bam-ara input{width:100%;min-width:0;height:42px;border:0;outline:0;background:transparent;color:#f4f7f8;font:600 12px/1 Manrope,system-ui,sans-serif}.bam-ara input::placeholder{color:#71818a}.bam-ara kbd{padding:4px 5px;border:1px solid #35434a;border-radius:4px;color:#81939b;font:700 8px/1 ui-monospace,monospace;white-space:nowrap}.bam-ara:focus-within{border-color:#d9ff3f;box-shadow:0 0 0 2px rgba(217,255,63,.12)}
 .bam-kategoriler{padding:8px 18px 28px}.bam-kategori{padding:9px 0 14px}
 .bam-kat-baslik{min-height:72px;padding:8px 4px}.bam-kat-baslik b{font-size:16px;letter-spacing:.06em}.bam-kat-baslik small{border-radius:7px}
 .bam-kat-aciklama{margin-left:54px;font-size:10px}
