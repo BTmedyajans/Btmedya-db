@@ -50,13 +50,25 @@
                 '<i aria-hidden="true">+</i>'+
               '</button>'+
               '<div class="btkm-yol-pano" id="btkm-yol-pano-'+i+'"'+(i===etkin?'':' hidden')+'>'+
-                k.groups.map(g=>
-                  '<section class="btkm-altgrup"><h3>'+kac(g.ad)+'</h3><ul>'+
-                    g.items.map(([ad,y])=>
-                      '<li><a href="'+y+'"'+(y===yolu?' aria-current="page"':'')+'>'+yuvarla(ad)+'<i aria-hidden="true">↗</i></a></li>'
-                    ).join('')+
-                  '</ul></section>'
-                ).join('')+
+                (()=>{
+                  let activeGroupIndex=-1,activePathLength=0;
+                  k.groups.forEach((group,groupIndex)=>group.items.forEach(([,href])=>{
+                    if(href!=='/'&&yolu.startsWith(href)&&href.length>activePathLength){
+                      activePathLength=href.length;activeGroupIndex=groupIndex;
+                    }
+                  }));
+                  return k.groups.map((g,gi)=>{
+                    const aktifGrup=gi===activeGroupIndex;
+                    const grupId='btkm-altgrup-'+i+'-'+gi;
+                    return '<section class="btkm-altgrup" data-expanded="'+(aktifGrup?'true':'false')+'">'+
+                      '<button type="button" class="btkm-altgrup-baslik" aria-expanded="'+(aktifGrup?'true':'false')+'" aria-controls="'+grupId+'"><span>'+kac(g.ad)+'</span><i aria-hidden="true">'+(aktifGrup?'−':'+')+'</i></button>'+
+                      '<ul id="'+grupId+'"'+(aktifGrup?'':' hidden')+'>'+
+                        g.items.map(([ad,y])=>
+                          '<li><a href="'+y+'"'+(y===yolu?' aria-current="page"':'')+'>'+yuvarla(ad)+'<i aria-hidden="true">↗</i></a></li>'
+                        ).join('')+
+                      '</ul></section>';
+                  }).join('');
+                })()+
               '</div>'+
             '</section>'
           ).join('')+
@@ -80,6 +92,15 @@
       if(focus)yolButtons[i].focus();
     };
     yolButtons.forEach((b,i)=>b.addEventListener('click',()=>setYol(i)));
+    kok.querySelectorAll('.btkm-altgrup-baslik').forEach(b=>b.addEventListener('click',()=>{
+      const opening=b.getAttribute('aria-expanded')!=='true';
+      b.setAttribute('aria-expanded',String(opening));
+      const list=document.getElementById(b.getAttribute('aria-controls'));
+      if(list)list.hidden=!opening;
+      const section=b.closest('.btkm-altgrup');
+      if(section)section.dataset.expanded=String(opening);
+      const icon=b.querySelector('i');if(icon)icon.textContent=opening?'−':'+';
+    }));
     yolButtons.forEach((b,i)=>b.addEventListener('keydown',e=>{
       if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();setYol(i+1,true)}
       else if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();setYol(i-1,true)}
