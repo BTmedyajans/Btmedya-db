@@ -81,8 +81,8 @@ for (const vp of viewports) {
           poster:v.poster||'',
           hasFallbackPanel:!!document.querySelector('.bt-clean-finish-panel')
         }));
-        const sourcePath=media.source ? new URL(media.source,location.origin).pathname : '';
-        const posterPath=media.poster ? new URL(media.poster,location.origin).pathname : '';
+        const sourcePath=media.source ? new URL(media.source,BASE).pathname : '';
+        const posterPath=media.poster ? new URL(media.poster,BASE).pathname : '';
         if(!sourcePath.endsWith('/btmedya-ai-film.mp4')) failures.push('mobile home hero selected unexpected film source '+(sourcePath||'NONE'));
         if(!posterPath.endsWith('/btmedya-ai-film-poster.jpg')) failures.push('mobile home hero selected unexpected poster '+(posterPath||'NONE'));
         if(!media.hasFallbackPanel) failures.push('mobile home hero has no static finish/fallback panel');
