@@ -435,3 +435,16 @@ body>.hm-cekmece{position:fixed!important;inset:0;z-index:2147483000!important}
   .hm-kat-diger a{font-size:15px;min-height:42px;padding:0 12px}
 }
 @media(prefers-reduced-motion:reduce){.hm-kat-manset img{transition:none}}
+
+/* Türkiye manşeti: görsel üstte, başlık altta. Başlık kapak görselinin
+   üstüne bindiğinde grafik kapaklardaki rakam/alt satırla ve kategori
+   etiketiyle çakışıyordu (10 Ekim; mobilde iki başlık üst üste). */
+.hm .hm-manset-buyuk figure{aspect-ratio:auto}
+.hm .hm-manset-buyuk img{display:block;height:auto;aspect-ratio:16/9}
+.hm .hm-manset-buyuk .hm-manset-karartma{display:none}
+.hm .hm-manset-buyuk figcaption{position:static;padding:16px 20px 20px;background:#101318;border-top:3px solid var(--kat,var(--hm-kirmizi))}
+.hm .hm-manset-buyuk figcaption h3{font-size:clamp(24px,2.6vw,38px);line-height:1.12}
+@media(max-width:720px){
+  .hm .hm-manset-buyuk figcaption{padding:13px 14px 16px}
+  .hm .hm-manset-buyuk figcaption h3{font-size:clamp(22px,6.4vw,28px);line-height:1.16}
+}
