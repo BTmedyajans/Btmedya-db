@@ -30,11 +30,19 @@ async function load(){try{state=await api('/api/admin/agency-supervisor');render
 async function loadSystemSnapshot(){
  const el=$('#systemSnapshot'); if(!el)return;
  try{
-  const d=await api('/api/admin/control-center');
+  const [d,native]=await Promise.all([
+   api('/api/admin/control-center'),
+   api('/api/social/direct/health').catch(()=>({configured:false,setup:{missing:['health endpoint yanıt vermedi']}}))
+  ]);
   const m=d.metricool||{}; const s=d.storage||{}; const a=d.automation||{}; const site=d.site||{};
+  const missing=Array.isArray(native.setup?.missing)?native.setup.missing:[];
+  const nativeLabel=native.configured
+   ? '✓ Meta Direct hazır'
+   : '⚠ Meta Direct eksik: '+(missing.length?missing.join(', '):'bağlantı/secret kontrolü gerekli');
   el.innerHTML='<div class="rule"><b>CANONICAL</b><span>'+esc(site.url||'https://btmedya.com.tr')+' · '+esc(site.worker||'btmedya-db')+'</span></div>'+
     '<div class="rule"><b>DATA</b><span>D1 '+(s.d1?'✓':'✗')+' · R2 '+(s.r2?'✓':'✗')+' · KV '+(s.kv?'✓':'✗')+'</span></div>'+
-    '<div class="rule"><b>METRICOOL</b><span>'+ (m.yapilandirildi?'✓ Worker bağlantısı hazır':'⚠ Secret/bağlantı bekliyor') +'</span></div>'+
+    '<div class="rule"><b>NATIVE SOCIAL</b><span>'+esc(nativeLabel)+'</span></div>'+
+    '<div class="rule"><b>METRICOOL</b><span>'+ (m.yapilandirildi?'✓ Worker bağlantısı hazır':'⚠ Secret/bağlantı bekliyor; ücretsiz yerel yayın için Meta Direct kullanılabilir') +'</span></div>'+
     '<div class="rule"><b>OTOMASYON</b><span>'+esc(a.cron||'*/5 * * * *')+' · '+(ageMinutes(a.heartbeatAt)!==null?ageMinutes(a.heartbeatAt)+' dk önce':'heartbeat bekleniyor')+(Number(a.overdue||0)?' · '+Number(a.overdue)+' gecikmiş':' · kuyruk temiz')+'</span></div>';
  }catch(e){el.innerHTML='<div class="rec"><b>Sistem sağlık verisi okunamadı.</b><span class="meta">'+esc(e.message)+'</span></div>'}
 }
