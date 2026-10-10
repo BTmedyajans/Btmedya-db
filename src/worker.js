@@ -2000,6 +2000,15 @@ export default { async scheduled(controller, env, ctx){
 }, async fetch(request, env, ctx){
   const url = new URL(request.url);
 
+  // Tek kanonik origin: www ve ikincil hostlardan gelen tüm istekleri,
+  // admin oturumu veya API işlemi başlamadan önce ana domaine taşı.
+  // Path ve query aynen korunur; admin çerezleri tek hostta kalır.
+  const hedefHost = kanonikHedef(url.hostname);
+  if(hedefHost){
+    url.hostname = hedefHost;
+    return Response.redirect(url.toString(), 301);
+  }
+
   // Admin alt sayfaları doğrudan URL ile erişilebilir olmamalı. Giriş ekranı
   // (/admin/) açık kalır; gerçek yönetim alt yolları imzalı oturum olmadan
   // giriş ekranına döner. API'ler ayrıca kendi session kontrollerini uygular.
@@ -2019,12 +2028,6 @@ export default { async scheduled(controller, env, ctx){
   const coreApi=await btmedyaCoreApi(request,env,url,validSession); if(coreApi) return coreApi;
   const siteOs=await siteOsApi(request,env,url); if(siteOs) return siteOs;
   const windsorApi=await windsorAnalyticsApi(request,env,url,validSession,oturumAnahtari(env)); if(windsorApi) return audit(windsorApi);
-
-  const hedefHost = kanonikHedef(url.hostname);
-  if(hedefHost){
-    url.hostname = hedefHost;
-    return Response.redirect(url.toString(), 301);
-  }
 
   // Kaynak Masası'nın eski adresini kalıcı olarak yeni kanonik adrese taşı.
   // Böylece eski bağlantılar korunur, Google iki ayrı içerik URL'si görmez.
