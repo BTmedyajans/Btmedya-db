@@ -52,6 +52,10 @@ jobs:
           node tools/marka-kiti-testi.mjs
           node tools/haber-portali-testi.mjs
           node tools/admin-giris-testi.mjs
+          # Agency OS browser/access widget is available after admin login; CI verifies source without passwords.
+          grep -q 'id="accessBrowserReadiness"' public/admin/agency-os/index.html
+          grep -q 'loadAccessBrowserReadiness' public/admin/agency-os/agency-os.js
+          grep -q "credentials:'omit'" public/admin/agency-os/agency-os.js
           node --check public/home.js
           node --check public/kategori-menu.js
           node --check public/film-secim.js
