@@ -13,6 +13,7 @@ MIGRATIONS = [
     "0027_client_project_delivery.sql",
     "0028_site_os_schema_integrity.sql",
     "0029_news_taxonomy_backfill.sql",
+    "0030_taxonomy_group_key_correction.sql",
 ]
 
 db = sqlite3.connect(":memory:")
@@ -173,15 +174,15 @@ for table in ("client_projects", "client_publications", "client_reports"):
 
 # Legacy news rows get mapped; explicit canonical mappings are never overwritten.
 expected = {
-    "local-1": ("haber-bul", "balikesir"),
+    "local-1": ("balikesir", "balikesir"),
     "ai-1": ("topic", "teknoloji-ai"),
     "economy-1": ("topic", "ekonomi"),
     "culture-1": ("topic", "kultur-sanat"),
     "health-1": ("topic", "saglik"),
     "life-1": ("topic", "yasam"),
     "sports-1": ("topic", "spor"),
-    "turkey-1": ("topic", "turkiye"),
-    "world-1": ("topic", "dunya"),
+    "turkey-1": ("haber-bul", "turkiye"),
+    "world-1": ("haber-bul", "dunya"),
     "already-classified": ("topic", "spor"),
 }
 for slug, want in expected.items():
