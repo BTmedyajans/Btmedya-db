@@ -3,7 +3,7 @@
    end-frame of each of the three story beats. */
 (()=>{
   const root=document.querySelector('.cinematic-hero[data-bt-clean-hero]');
-  if(!root)return;
+  if(!root||root.hasAttribute('data-click-to-play'))return;
   const film=root.querySelector('.bt-clean-hero-video');
   if(!film)return;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;

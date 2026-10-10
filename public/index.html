@@ -72,13 +72,14 @@
 @media(max-width:720px){.bt-home-hero{height:100svh;min-height:0}.bt-home-hero-layer{object-fit:cover}.bt-home-hero-scrim{background:linear-gradient(180deg,rgba(0,0,0,.05),transparent 40%,rgba(0,0,0,.12))}}
 @media(prefers-reduced-motion:reduce){.bt-home-hero-layer{transition:none}.bt-home-hero-layer:nth-child(2){display:none}}
 </style>
+<link rel="stylesheet" href="/hero-restore-v1.css?v=20261010-1">
 </head>
 <!-- BTMEDYA accessibility/link guard verified: 2026-09-28 -->
 <!-- BTMEDYA accessibility/link guard verified: 2026-09-28-r2 -->
 <!-- BTMEDYA accessibility/link guard verified: 2026-09-28-r3 -->
 <!-- BTMEDYA live-repair marker: 2026-09-30 — Workers Builds reconciliation trigger r2 -->
 <!-- BTMEDYA SEO route sync 2026-10-04 — clean category URLs -->
-<body class="ana-sade bt-clean-intro-active">
+<body class="ana-sade film-bitti">
 <a class="skip" href="#icerik">İçeriğe geç</a>
 <header class="topbar"><a class="brand" href="/"><img class="brand-logo" src="/assets/logo/btmedya-logo-v5-baslik.webp" alt="BTMEDYA" width="176" height="32" decoding="async"></a><div class="top-meta">BALIKESİR / TÜRKİYE · <i></i> LIVE DESK</div><div class="topbar-right"><nav class="language-switch" aria-label="Dil seçimi"><a href="/" aria-current="page">TR</a><span aria-hidden="true">/</span><a href="/en/">EN</a></nav><button class="hamburger" id="menuToggle" type="button" aria-expanded="false" aria-controls="siteMenu">☰ MENÜ</button><a class="top-cta" href="/admin/">YÖNETİM ↗</a><a class="top-cta" href="/iletisim/">PROJE ANLAT ↗</a></div></header>
 
@@ -95,19 +96,30 @@
 <section class="bt-breaking" aria-label="Haber akışına hızlı erişim">
   <div class="bt-breaking-inner"><b>SAHADAN HABERLER</b><a href="/haberler/">Balıkesir, Türkiye ve dünya gündemini kaynak + tarih + görsel kaynağıyla takip et ↗</a></div>
 </section>
-<section class="cinematic-hero bt-home-hero bt-clean-hero" id="hero" data-tek-film data-bt-home-hero-v3 data-bt-clean-hero aria-label="BTMEDYA giriş filmi">
-  <div class="bt-clean-hero-video-wrap">
-    <video class="bt-clean-hero-video" data-slot="hero-video" data-slot-poster="hero-poster" muted autoplay playsinline preload="auto"
-      data-kart-gomulu data-kendi-sesi
-      data-desktop-mp4="/assets/media/web/btmedya-ai-film-genis.mp4?v=20261009-ai"
-      data-mobile-mp4="/assets/media/web/btmedya-ai-film.mp4?v=20261009-ai"
-      data-desktop-poster="/assets/media/web/btmedya-ai-film-genis-poster.jpg?v=20261009-ai"
-      data-mobile-poster="/assets/media/web/btmedya-ai-film-poster.jpg?v=20261009-ai"
-      aria-label="BTMEDYA giriş filmi: Buse Tuncay gazeteci, sunucu, sosyal medya uzmanı ve dijital yapımcı rollerinde. Planların tamamı AI üretimi."></video>
+<section class="cinematic-hero bt-home-hero bt-clean-hero hero-review" id="hero" data-tek-film data-bt-home-hero-v3 data-bt-clean-hero data-click-to-play aria-labelledby="hero-review-title">
+  <div class="bt-home-hero-video" aria-hidden="true">
+    <picture class="hero-review-poster">
+      <source media="(max-width: 720px)" srcset="/assets/hero/btmedya-hero-mobile-poster.jpg">
+      <img src="/assets/hero/btmedya-hero-web-poster.jpg" alt="" width="1920" height="1080" fetchpriority="high" decoding="async">
+    </picture>
+    <video id="heroVideo" class="bt-clean-hero-video" data-slot="hero-video" data-slot-poster="hero-poster" muted playsinline preload="none" poster="/assets/hero/btmedya-hero-web-poster.jpg" tabindex="-1" data-kendi-sesi></video>
+  </div>
+  <div class="bt-home-hero-scrim" aria-hidden="true"></div>
+  <div class="hero-review-copy">
+    <p class="hero-review-kicker">BTMEDYA <span aria-hidden="true">·</span> BALIKESİR / TÜRKİYE</p>
+    <p class="hero-review-asset-label">AI ÜRETİMİ · KONSEPT TANITIMI · TEMSİLİ GÖRSELLER</p>
+    <h1 id="hero-review-title">Haber, medya ve<br class="desktop-break"> prodüksiyon.</h1>
+    <p class="hero-review-sub">Üç alanda, tek çatı altında.</p>
+    <p class="hero-review-sr" id="heroVideoDescription">Tanıtım filminde görünen hizmet metinleri: BTMEDYA; üç alanda, tek çatı altında. Haber: Güncel, doğrulanmış, anında. Medya: Marka ve içerik yönetimi. Prodüksiyon: Fikirden ekrana görüntü.</p>
+    <div class="hero-review-actions">
+      <button id="heroToggle" type="button" aria-controls="heroVideo" aria-describedby="heroVideoDescription" aria-pressed="false" hidden>Filmi başlat · sessiz</button>
+      <a href="/iletisim/">İletişime geç ↗</a>
+    </div>
+    <p class="hero-review-status" id="heroStatus" role="status" aria-live="polite">Video oynatımı için JavaScript gerekir; poster ve hizmet bilgileri görünür.</p>
   </div>
 </section>
 <section class="hero-paths-static" aria-labelledby="hero-paths-title">
-  <div class="hero-paths-head"><p class="kicker">ÜÇ ANA YOL</p><h1 id="hero-paths-title">ARADIĞINI<br><span>HIZLICA BUL.</span></h1><p>BTMEDYA'da önce amacını seç; içerik, portföy ve teklif akışı otomatik olarak doğru kapıya yönlensin.</p></div>
+  <div class="hero-paths-head"><p class="kicker">ÜÇ ANA YOL</p><h2 id="hero-paths-title">ARADIĞINI<br><span>HIZLICA BUL.</span></h2><p>BTMEDYA'da önce amacını seç; içerik, portföy ve teklif akışı otomatik olarak doğru kapıya yönlensin.</p></div>
   <nav class="hero-paths-grid" aria-label="BTMEDYA üç ana yol">
     <a href="/haberler/"><span>01</span><b>HABER &amp; MEDYA</b><small>Haber → röportaj → özel dosya → arşiv</small><i aria-hidden="true">↗</i></a>
     <a href="/sosyal-medya/"><span>02</span><b>SOSYAL &amp; DİJİTAL</b><small>İçerik → kanallar → SEO → AI → otomasyon</small><i aria-hidden="true">↗</i></a>
@@ -250,7 +262,7 @@
   <a href="/video-produksiyon/" data-mobile-nav="production" data-accent="#65e6a4" aria-label="Tanıtım"><span aria-hidden="true">✦</span><small>TANITIM</small></a>
   <a class="mobile-quick-cta" href="/teklif-al/?kaynak=mobile-nav" data-mobile-nav="contact" data-accent="#d9ff3f" aria-label="Teklif al"><span aria-hidden="true">↗</span><small>TEKLİF</small></a>
 </nav>
-<script src="/hero-music.js?v=20261009-ai" defer></script><script src="/home.js?v=20261007-2" defer></script><script src="/mobile-motion.js?v=20261007-2" defer></script><script src="/mobile-ux-v4.js?v=20261007-1" defer></script><link rel="stylesheet" href="/editorial-cover-system.css?v=20261003-1"><script src="/editorial-cover-system.js?v=20261004-1" defer></script><script src="/olcum.js?v=20261003-2" defer></script><script src="/site-motion-v2.js?v=20261005-2" defer></script><script src="/hero-clean-categories.js?v=20261010-category-tree" defer></script>
+<script src="/hero-music.js?v=20261009-ai" defer></script><script src="/home.js?v=20261007-2" defer></script><script src="/mobile-motion.js?v=20261007-2" defer></script><script src="/mobile-ux-v4.js?v=20261007-1" defer></script><link rel="stylesheet" href="/editorial-cover-system.css?v=20261003-1"><script src="/editorial-cover-system.js?v=20261004-1" defer></script><script src="/olcum.js?v=20261003-2" defer></script><script src="/site-motion-v2.js?v=20261005-2" defer></script><script src="/hero-clean-categories.js?v=20261010-category-tree" defer></script><script src="/hero-restore-v1.js?v=20261010-1" defer></script>
 
 
 <link rel="stylesheet" href="/ux-discovery.css?v=20261010-1"><script src="/ux-discovery.js?v=20261010-1" defer></script>
