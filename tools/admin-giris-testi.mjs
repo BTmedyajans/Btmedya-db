@@ -84,4 +84,13 @@ assert.match(kabuk, /location\.replace\('\/admin\/agency-os\//);
 const merkezStil = readFileSync('public/admin/agency-os/agency-os.css', 'utf8');
 for (const parca of [':root{', '--lime:', 'body{', '.top{']) assert.ok(merkezStil.includes(parca), `agency-os.css taban kuralı eksik: ${parca}`);
 
+
+/* 9) Agency OS renews its HttpOnly session only while active; it does not persist credentials. */
+const agencyHtml=readFileSync('public/admin/agency-os/index.html','utf8');
+assert.match(agencyHtml,/\/api\/refresh/,'Agency OS must refresh the signed server session');
+assert.match(agencyHtml,/credentials:'same-origin'/,'refresh must send only same-origin cookies');
+assert.match(agencyHtml,/10\*60\*1000/,'active session refresh cadence must be bounded');
+assert.doesNotMatch(agencyHtml,/localStorage\.setItem\([^)]*(password|token|cookie)/i,'session secrets must not be stored in web storage');
+assert.match(agencyHtml,/visibilityState/,'session refresh must respect page visibility');
+
 console.log('ADMIN GIRIS TESTI GECTI');
