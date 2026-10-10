@@ -467,16 +467,40 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
 
   let candidates=[];
   if(env.DB){
-    candidates=(await env.DB.prepare(
-      "SELECT ni.* FROM news_intelligence ni LEFT JOIN news n ON n.source_url=ni.source_url WHERE n.id IS NULL AND ni.score>=? ORDER BY ni.score DESC, ni.updated_at DESC LIMIT ?"
-    ).bind(policy.minScore,policy.maxItemsPerRun).all().catch(()=>({results:[]}))).results||[];
+    const selectCandidates=async(minimumScore,limit=policy.maxItemsPerRun)=>{
+      const query=await env.DB.prepare(
+        "SELECT ni.* FROM news_intelligence ni LEFT JOIN news n ON n.source_url=ni.source_url WHERE n.id IS NULL AND ni.status='new' AND ni.score>=? AND julianday(ni.first_seen_at)>=julianday('now','-48 hours') ORDER BY ni.score DESC, ni.updated_at DESC LIMIT ?"
+      ).bind(minimumScore,limit).all().catch(()=>({results:[]}));
+      return query.results||[];
+    };
+    candidates=await selectCandidates(policy.minScore);
+    // Keep the configured high-score path first. If it produces nothing, create
+    // one fresh review draft from the lower-score queue instead of letting the
+    // newsroom autopilot run idle. The fallback never lowers the auto-publish
+    // threshold and only considers sources first seen within the last 48 hours.
+    if(!candidates.length && policy.minScore>45){
+      candidates=await selectCandidates(45);
+      if(candidates.length){
+        result.discoveryFallback={
+          used:true,
+          configuredMinScore:policy.minScore,
+          draftFloor:45,
+          sourceWindowHours:48,
+          candidates:candidates.length
+        };
+      }
+    }
   }
   result.candidates=candidates.length;
 
   let i=0;
   // Bound per-run D1 writes and AI work so a single scheduled invocation
   // stays inside the Workers Free CPU/subrequest budget.
-  const processLimit=Math.max(1,Math.min(12,Number(limit)||policy.maxItemsPerRun));
+  // A fallback cycle intentionally produces one review draft, preventing a
+  // large catch-up burst when the normal high-score lane has no fresh stories.
+  const processLimit=result.discoveryFallback
+    ? 1
+    : Math.max(1,Math.min(12,Number(limit)||policy.maxItemsPerRun));
   for(const candidate of candidates.slice(0,processLimit)){
     i++;
     const sensitive=sensitiveText(candidate.title,candidate.excerpt);
@@ -486,6 +510,7 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
       candidate.score>=policy.autoPublishMinScore &&
       policy.autoPublishCategories.includes(category) &&
       policy.autoPublishSourceTiers.includes(tier) &&
+      !policy.approvalRequiredCategories.includes(category) &&
       !sensitive;
     if(policy.neverAutoPublishSensitive && sensitive) auto=false;
 
