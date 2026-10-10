@@ -29,7 +29,32 @@
 .autonomous-status b{color:#d9ff4f}
 @media(max-width:1050px){.autonomous-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.autonomous-grid{grid-template-columns:1fr}.autonomous-status{align-items:flex-start;flex-direction:column;gap:2px}}\n/* Hamburger-first: top-level navigation is the only module launcher. */\n.quick-actions{display:none!important}
-</style></head>
+</style><script>
+/* BTMEDYA admin idle-session guard. Refreshes only a currently valid HttpOnly session;
+   never stores credentials or the session token in page storage. */
+(()=> {
+ const LIMIT_MS=12*60*60*1000;
+ const IDLE_MS=60*60*1000;
+ let lastActivity=Date.now(), refreshing=false, timer=0;
+ const ping=()=>{lastActivity=Date.now()};
+ ['pointerdown','keydown','touchstart','scroll'].forEach(n=>addEventListener(n,ping,{passive:true}));
+ async function refresh(){
+  if(refreshing||document.visibilityState==='hidden')return;
+  if(Date.now()-lastActivity>IDLE_MS)return;
+  refreshing=true;
+  try{
+   const r=await fetch('/api/refresh',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'accept':'application/json'}});
+   if(r.status===401){clearInterval(timer);return}
+   if(!r.ok)throw new Error('refresh failed');
+  }catch(_){
+   // A transient network error must not log the editor out or weaken API checks.
+  }finally{refreshing=false}
+ }
+ timer=setInterval(refresh,10*60*1000);
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh()});
+})();
+</script>
+</head>
 <style>
 .admin-category-system{margin-top:18px;padding:16px;border:1px solid #28322f;border-radius:18px;background:rgba(10,14,14,.82)}
 .category-system-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
