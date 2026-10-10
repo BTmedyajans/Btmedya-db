@@ -180,3 +180,49 @@ function bindAdminSession(){const b=$('#adminLogout');if(b)b.addEventListener('c
  }
  buttons.forEach(b=>b.addEventListener('click',()=>execute(b.dataset.autoCommand)));
 })();
+
+
+/* Browser + access guard: read-only checks from the administrator's current browser.
+   credentials:'omit' deliberately verifies that protected APIs deny requests without the admin cookie. */
+async function loadAccessBrowserReadiness(){
+ const el=$('#accessBrowserReadiness');if(!el)return;
+ el.dataset.ready='false';
+ try{
+  const protectedRoutes=[
+   ['Ajans süpervizörü','/api/admin/agency-supervisor'],
+   ['BTMEDYA Core','/api/admin/core'],
+   ['Site OS','/api/admin/site-os'],
+   ['Sosyal sağlayıcılar','/api/admin/social/providers']
+  ];
+  const accessChecks=await Promise.all(protectedRoutes.map(async ([label,path])=>{
+   const r=await fetch(path,{method:'GET',credentials:'omit',cache:'no-store',headers:{'accept':'application/json'}});
+   let d={};try{d=await r.clone().json()}catch{}
+   return {label,status:r.status,ok:(r.status===401||r.status===403)&&d.ok===false};
+  }));
+  const urls=['/robots.txt','/sitemap.xml','/news-sitemap.xml'];
+  const publicChecks=await Promise.all(urls.map(async path=>{
+   const r=await fetch(path,{method:'GET',credentials:'omit',cache:'no-store'});
+   const body=path==='/robots.txt'?await r.clone().text():'';
+   return {path,status:r.status,ok:r.status===200,body};
+  }));
+  const adminResponse=await fetch('/admin/agency-os/',{method:'GET',credentials:'omit',cache:'no-store'});
+  const adminHtml=await adminResponse.text();
+  const noindex=adminResponse.ok&&/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(adminHtml);
+  const robots=publicChecks.find(x=>x.path==='/robots.txt');
+  const robotRules=!!robots&&/Disallow:\s*\/admin\//i.test(robots.body)&&/Disallow:\s*\/api\//i.test(robots.body);
+  const publicOk=publicChecks.every(x=>x.ok);
+  const accessOk=accessChecks.every(x=>x.ok);
+  const browserOk=window.isSecureContext&&navigator.onLine&&!!document.querySelector('meta[name="viewport"]');
+  const row=(label,ok,detail)=>'<div class="rule"><b>'+esc(label)+'</b><span class="'+(ok?'ok':'warn')+'">'+(ok?'✓ ':'⚠ ')+esc(detail)+'</span></div>';
+  el.innerHTML=
+   row('TARAYICI',browserOk,browserOk?'HTTPS güvenli bağlamı, bağlantı ve viewport hazır':'Güvenli bağlam / bağlantı / viewport kontrolü başarısız')+
+   row('ADMIN YETKİ KAPISI',accessOk,accessOk?'Oturumsuz istekler reddedildi ('+accessChecks.length+'/'+accessChecks.length+')':accessChecks.filter(x=>!x.ok).map(x=>x.label+': HTTP '+x.status).join(' · ')||'Yetki yanıtı beklenen biçimde değil')+
+   row('ADMIN NOINDEX',noindex,noindex?'Yönetim sayfası arama indeksinden hariç':'Yönetim sayfası noindex doğrulaması başarısız')+
+   row('SEO UÇLARI',publicOk&&robotRules,publicOk&&robotRules?'robots.txt ve iki sitemap 200; admin/API robots kuralları mevcut':publicChecks.filter(x=>!x.ok).map(x=>x.path+' HTTP '+x.status).join(' · ')||'robots.txt erişimi veya yönetim kuralları eksik');
+  el.dataset.ready='true';
+ }catch(e){
+  el.innerHTML='<div class="rec"><b>Tarayıcı / yetki kontrolü tamamlanamadı.</b><span class="meta">'+esc(e?.message||'Bilinmeyen hata')+'</span></div>';
+  el.dataset.ready='true';
+ }
+}
+loadAccessBrowserReadiness();setInterval(loadAccessBrowserReadiness,60000);

@@ -87,6 +87,39 @@ for (const vp of viewports) {
   }
   await page.close();
 }
+
+// Admin browser + authorization smoke. All API requests below use a fresh context without a session cookie.
+const adminPage = await browser.newPage({viewport:{width:390,height:844}});
+const adminResponse = await adminPage.goto(BASE+'/admin/agency-os/',{waitUntil:'domcontentloaded',timeout:30000}).catch(()=>null);
+if(!adminResponse || adminResponse.status()>=400){
+  failures.push('admin/agency-os/ HTTP '+(adminResponse?.status()||'NO_RESPONSE'));
+}else{
+  const shell=await adminPage.evaluate(()=>({
+    title:document.title,
+    noindex:/<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(document.documentElement.innerHTML),
+    diagnostic:!!document.querySelector('#accessBrowserReadiness')
+  }));
+  if(!shell.noindex) failures.push('admin/agency-os/ missing noindex meta');
+  if(!shell.diagnostic) failures.push('admin/agency-os/ access/browser diagnostic widget missing');
+  await adminPage.waitForFunction(()=>document.querySelector('#accessBrowserReadiness')?.dataset.ready==='true',{timeout:25000}).catch(()=>null);
+  const diagnostic=await adminPage.evaluate(()=>({
+    ready:document.querySelector('#accessBrowserReadiness')?.dataset.ready==='true',
+    rows:document.querySelectorAll('#accessBrowserReadiness .rule').length,
+    text:document.querySelector('#accessBrowserReadiness')?.textContent||''
+  }));
+  if(!diagnostic.ready || diagnostic.rows<4) failures.push('admin browser/access diagnostic did not complete: '+JSON.stringify(diagnostic));
+  if(diagnostic.ready && /HTTP (?!401|403)\d{3}/.test(diagnostic.text)) failures.push('admin browser/access diagnostic reports an unexpected protected API status: '+diagnostic.text);
+}
+const anonPage=await browser.newPage();
+for(const path of ['/api/admin/agency-supervisor','/api/admin/core','/api/admin/site-os','/api/admin/social/providers']){
+  const res=await anonPage.request.get(BASE+path,{timeout:30000,failOnStatusCode:false}).catch(()=>null);
+  const status=res?.status()||0;
+  if(!res) failures.push('anonymous API guard NO_RESPONSE '+path);
+  else if(status!==401&&status!==403) failures.push('anonymous API guard '+path+' returned '+status+' (expected 401/403)');
+}
+await anonPage.close();
+await adminPage.close();
+
 await browser.close();
 if(failures.length){ console.error('RESPONSIVE_A11Y_SMOKE_FAILED'); failures.forEach(x=>console.error(x)); process.exit(1); }
 console.log('BTMEDYA responsive/a11y smoke: OK · 3 viewports · 11 routes · no horizontal overflow or unnamed controls');
