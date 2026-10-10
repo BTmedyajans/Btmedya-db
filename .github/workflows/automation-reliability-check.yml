@@ -10,6 +10,10 @@ on:
       - "wrangler.toml"
       - ".github/workflows/d1-migrations.yml"
       - ".github/workflows/automation-reliability-check.yml"
+      - ".github/workflows/production-diagnostic.yml"
+      - "migrations/**"
+      - "tools/site-os-migration-test.py"
+      - "control-plane/audit-d1-schema.py"
   workflow_dispatch:
 
 permissions:
@@ -29,6 +33,10 @@ jobs:
           node --check src/worker.js
           node --check src/autopilot.js
           node --check src/news-intelligence.js
+      - name: Validate production schema repair migrations against a drift fixture
+        run: python3 tools/site-os-migration-test.py
+      - name: Compile read-only production D1 audit
+        run: python3 -m py_compile control-plane/audit-d1-schema.py
       - name: Reliability and migration guard checks
         shell: bash
         run: |
