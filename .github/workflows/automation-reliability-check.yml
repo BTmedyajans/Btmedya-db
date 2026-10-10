@@ -43,6 +43,7 @@ jobs:
           set -euo pipefail
           grep -q 'Every run is finalized' src/autopilot.js
           grep -q 'runClaimed=Boolean(ins && Number(ins.meta?.changes)>0' src/autopilot.js
+          grep -q 'recovery_note' src/autopilot.js
           grep -q 'Math.min(8,Math.max(4,Number(limit)||policy.maxItemsPerRun\*2))' src/autopilot.js
           grep -q 'Math.min(2,policy.maxItemsPerRun,Number(limit)||policy.maxItemsPerRun)' src/autopilot.js
           grep -q 'Math.min(2,hostList.length)' src/autopilot.js
