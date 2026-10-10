@@ -31,22 +31,13 @@ jobs:
             exit 1
           }
 
-      - name: Resolve zone
+      - name: Resolve configured zone
         id: zone
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN || secrets.BTMEDYA_DB1 || secrets.BTMEDYA_D1 }}
         run: |
           set -euo pipefail
-          api="https://api.cloudflare.com/client/v4"
-          response="$(curl -fsS --retry 2 --connect-timeout 15 --max-time 45 \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            -H "Content-Type: application/json" \
-            "$api/zones?name=btmedya.com.tr&per_page=10")"
-          success="$(jq -r '.success // false' <<<"$response")"
-          zone_id="$(jq -r '.result[0].id // empty' <<<"$response")"
-          test "$success" = "true"
-          test -n "$zone_id"
-          echo "zone_id=$zone_id" >> "$GITHUB_OUTPUT"
+          # Public Cloudflare Zone ID verified for btmedya.com.tr.
+          # Avoid requiring Zone:Read solely to look up this stable identifier.
+          echo "zone_id=23c8b76d1d8ba4e41f04973a160db1f3" >> "$GITHUB_OUTPUT"
 
       - name: Revalidate live HTML
         env:
