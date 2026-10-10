@@ -1,0 +1,126 @@
+name: BTMEDYA HyperFrames Release Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: "Videoda gösterilecek kısa başlık"
+        required: false
+        default: "BTMEDYA yeni üretim"
+  workflow_call:
+    inputs:
+      title:
+        required: false
+        type: string
+        default: "BTMEDYA yeni üretim"
+  pull_request:
+    paths:
+      - "video/hyperframes/**"
+      - "tools/hyperframes-release.mjs"
+      - ".github/workflows/hyperframes-release-video.yml"
+  push:
+    branches: [main]
+    paths:
+      - "video/hyperframes/**"
+      - "tools/hyperframes-release.mjs"
+      - ".github/workflows/hyperframes-release-video.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Prepare composition metadata
+        env:
+          BTMEDYA_VIDEO_TITLE: "BTMEDYA PR doğrulaması"
+          BTMEDYA_COMMIT: ${{ github.event.pull_request.head.sha }}
+          BTMEDYA_DATE: ${{ github.event.pull_request.updated_at }}
+        run: node tools/hyperframes-release.mjs
+
+      - name: Lint HyperFrames composition
+        run: |
+          set -euo pipefail
+          npx --yes hyperframes@latest lint video/hyperframes/release --json
+
+      - name: Verify composition output
+        run: |
+          set -euo pipefail
+          test -s video/hyperframes/release/index.html
+          grep -q 'data-composition-id="main"' video/hyperframes/release/index.html
+          grep -q 'data-duration="8"' video/hyperframes/release/index.html
+
+  render:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Prepare composition metadata
+        env:
+          BTMEDYA_VIDEO_TITLE: ${{ inputs.title || 'BTMEDYA yeni üretim' }}
+          BTMEDYA_COMMIT: ${{ github.sha }}
+          BTMEDYA_DATE: ${{ github.event.repository.updated_at }}
+        run: node tools/hyperframes-release.mjs
+
+      - name: Render HyperFrames MP4
+        run: |
+          set -euo pipefail
+          npx --yes hyperframes@latest lint video/hyperframes/release --json
+          mkdir -p artifacts
+          npx --yes hyperframes@latest render -c video/hyperframes/release/index.html -o artifacts/btmedya-release.mp4
+          test -s artifacts/btmedya-release.mp4
+          file artifacts/btmedya-release.mp4
+
+      - name: Upload video artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: btmedya-release-video-${{ github.sha }}
+          path: artifacts/btmedya-release.mp4
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Setup Wrangler
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: npm install --global wrangler@4.142.0
+
+      - name: Publish release video to BTMEDYA Media Vault
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
+          R2_KEY: ai-video/releases/${{ github.sha }}.mp4
+          BTMEDYA_VIDEO_TITLE: ${{ inputs.title || 'BTMEDYA yeni üretim' }}
+          BTMEDYA_VIDEO_DATE: ${{ github.event.repository.updated_at }}
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN"
+          wrangler r2 object put "btmedya-media/$R2_KEY" --file artifacts/btmedya-release.mp4 --content-type video/mp4 --cache-control "public, max-age=31536000, immutable" --remote --force
+          cat > artifacts/btmedya-release.json <<EOF
+          {
+            "title": $(node -p 'JSON.stringify(process.env.BTMEDYA_VIDEO_TITLE)'),
+            "commit": "$GITHUB_SHA",
+            "key": "$R2_KEY",
+            "source": "hyperframes",
+            "generated_at": $(node -p 'JSON.stringify(process.env.BTMEDYA_VIDEO_DATE)')
+          }
+          EOF
+          wrangler r2 object put "btmedya-media/ai-video/releases/$GITHUB_SHA.json" --file artifacts/btmedya-release.json --content-type application/json --cache-control "public, max-age=300" --remote --force
