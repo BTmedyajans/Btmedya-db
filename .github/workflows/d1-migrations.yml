@@ -59,7 +59,8 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
-          CLOUDFLARE_D1_DATABASE_ID: 3a6d6fb9-93b7-4995-8a73-8f53358de36f
+          # Audit the same production D1 target that the apply command uses via wrangler.toml.
+          CLOUDFLARE_D1_DATABASE_ID: 94a980cd-62c5-4c29-b7fc-40f96ab665e4
           CLOUDFLARE_WORKER_NAME: btmedya-db
         run: |
           set -euo pipefail

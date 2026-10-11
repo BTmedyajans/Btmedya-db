@@ -34,7 +34,8 @@ jobs:
           node-version: 22
 
       - name: Install Wrangler
-        run: npm install --global wrangler@latest
+        # Keep diagnostics aligned with package.json and migration workflows.
+        run: npm install --global wrangler@4.142.0
 
       - name: Verify Cloudflare secrets
         env:

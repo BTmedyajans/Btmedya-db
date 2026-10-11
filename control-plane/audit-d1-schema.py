@@ -23,6 +23,7 @@ EXPECTED_MIGRATIONS = [f"00{i:02d}_{name}.sql" for i, name in [
     (27, "client_project_delivery"),
     (28, "site_os_schema_integrity"),
     (29, "news_taxonomy_backfill"),
+    (30, "taxonomy_group_key_correction"),
 ]]
 REQUIRED_TABLES = ("client_projects", "client_publications", "client_reports")
 REQUIRED_INDEXES = (
@@ -107,7 +108,7 @@ def main() -> int:
         )}
         missing_migrations = [m for m in EXPECTED_MIGRATIONS if m not in applied]
         mark(not missing_migrations,
-             "migrations 0022–0029 are recorded as applied" if not missing_migrations
+             "migrations 0022–0030 are recorded as applied" if not missing_migrations
              else "pending migration ledger entries: " + ", ".join(missing_migrations))
 
         for table in REQUIRED_TABLES:

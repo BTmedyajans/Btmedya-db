@@ -24,7 +24,8 @@ jobs:
         uses: ./.github/actions/cf-token-sec
         with:
           gerek: r2
-          zorunlu: "false"
+          # Media-path changes must fail visibly when no R2-capable token exists.
+          zorunlu: "true"
           cloudflare_deploy_token: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN }}
           cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           btmedya_db1: ${{ secrets.BTMEDYA_DB1 }}
@@ -55,7 +56,6 @@ jobs:
       - name: Sync static media
         id: sync
         if: steps.preflight.outputs.configured == 'true'
-        continue-on-error: true
         shell: bash
         env:
           CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
