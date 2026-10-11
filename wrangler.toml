@@ -25,7 +25,7 @@ binding = "ASSETS"
 
 # API ve medya istekleri önce Worker'a gitmeli; aksi halde Static Assets
 # katmanı mevcut olmayan /api/* yollarını 404 olarak keser.
-run_worker_first = ["/api/*", "/media/*", "/hero-media/*", "/pub/*", "/", "/index.html", "/haber/*", "/haberler", "/haberler/*", "/hakkimizda*", "/iletisim*", "/hizmetler*", "/sosyal-medya*", "/video-produksiyon*", "/whatsapp-katalog*", "/basin-kiti*", "/vaka-calismalari*", "/arsiv*", "/dosyalar*", "/siyah-oda*", "/halk-roportaji*", "/gizlilik*", "/kunye*", "/teklif-al*", "/referanslar*", "/yayin-ilkeleri*", "/admin/*", "/gorsel/*", "/social-studio/*", "/kaynak-masasi*", "/kaynaklar*", "/portfoy/*", "/marka-kiti*", "/search-strategy*", "/programmatic-seo*", "/ai-lab*", "/reklam-ve-sponsorluk*", "/robots.txt", "/llms.txt", "/llms-full.txt", "/index.json", "/jsonld", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml", "/.well-known/*", "/en", "/en/*"]
+run_worker_first = ["/assets/*.mp4", "/assets/*.webm", "/api/*", "/media/*", "/hero-media/*", "/pub/*", "/", "/index.html", "/haber/*", "/haberler", "/haberler/*", "/hakkimizda*", "/iletisim*", "/hizmetler*", "/sosyal-medya*", "/video-produksiyon*", "/whatsapp-katalog*", "/basin-kiti*", "/vaka-calismalari*", "/arsiv*", "/dosyalar*", "/siyah-oda*", "/halk-roportaji*", "/gizlilik*", "/kunye*", "/teklif-al*", "/referanslar*", "/yayin-ilkeleri*", "/admin/*", "/gorsel/*", "/social-studio/*", "/kaynak-masasi*", "/kaynaklar*", "/portfoy/*", "/marka-kiti*", "/search-strategy*", "/programmatic-seo*", "/ai-lab*", "/reklam-ve-sponsorluk*", "/robots.txt", "/llms.txt", "/llms-full.txt", "/index.json", "/jsonld", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml", "/.well-known/*", "/en", "/en/*"]
 
 not_found_handling = "404-page"
 
