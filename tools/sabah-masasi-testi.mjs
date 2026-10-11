@@ -206,3 +206,23 @@ console.log('SABAH MASASI KATEGORI ISCISI TESTI GECTI');
   assert.deepEqual(await M.kapakMetinleriOku({ DB: { prepare() { return { all: async () => { throw new Error('no such table'); } }; } } }), {});
   console.log('SABAH MASASI KAPAK METNI TESTI GECTI');
 }
+
+// Günlük bölüm döngüsü (11 Ekim): 11 bölüm, azami 8. Balıkesir her gün var,
+// her bölüm iki gün içinde en az bir kez çalışır; azami yetiyorsa liste aynen.
+{
+  const gun0 = M.gununKategorileri(M.KATEGORILER, 8, 0).map(k => k.anahtar);
+  const gun1 = M.gununKategorileri(M.KATEGORILER, 8, 1).map(k => k.anahtar);
+  assert.equal(gun0.length, 8); assert.equal(gun1.length, 8);
+  assert.equal(gun0[0], 'balikesir'); assert.equal(gun1[0], 'balikesir');
+  const iki = new Set([...gun0, ...gun1]);
+  for (const k of M.KATEGORILER) assert.ok(iki.has(k.anahtar), k.anahtar + ' iki günde bir kez bile çalışmıyor');
+  assert.deepEqual(M.gununKategorileri(M.KATEGORILER.slice(0, 3), 8, 5).map(k => k.anahtar), M.KATEGORILER.slice(0, 3).map(k => k.anahtar));
+  // Eski kayıtlı liste sonradan eklenen bölümleri dışarıda bırakmaz; kayıttan
+  // sonra bilerek çıkarılan bölüme dokunulmaz.
+  const kv = deger => ({ KV: { get: async () => JSON.stringify(deger) } });
+  const eski = await M.sabahAyarlari(kv({ kategoriler: ['balikesir', 'gundem', 'teknoloji'] }));
+  for (const k of ['dunya', 'yasam', 'turkiye']) assert.ok(eski.kategoriler.includes(k), k + ' eski kayda eklenmeli');
+  const yeni = await M.sabahAyarlari(kv({ kategoriler: ['balikesir', 'gundem'], kayitTarihi: '2026-10-11T00:00:00Z' }));
+  assert.deepEqual(yeni.kategoriler, ['balikesir', 'gundem']);
+  console.log('SABAH MASASI BOLUM DONGUSU TESTI GECTI');
+}
