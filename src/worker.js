@@ -2587,6 +2587,36 @@ const CLEAN_HERO_FILES = new Map([
   ['/hero-media/giris-filmi-clean-poster.jpg', 'btmedya-ai-hero-mobile.jpg'],
 ]);
 
+/* 11 Ekim: Workers Static Assets "Range: bytes=..." isteğine 206 yerine
+   dosyanın tamamını (200) döndürüyor (canlıda ölçüldü). iPhone Safari bayt
+   aralığı desteklemeyen sunucudan video oynatmaz; giriş filmi iOS'ta hiç
+   başlamıyordu, masaüstünde de ileri sarma çalışmıyordu. Videolar
+   wrangler.toml run_worker_first ile buraya gelir; istenen aralık tam
+   yanıttan kesilip 206 olarak verilir. */
+const VIDEO_UZANTI = /\.(?:mp4|webm|m4v|mov)$/i;
+async function aralikYaniti(request, res) {
+  const aralik = request.headers.get('range');
+  if (!res.ok || res.status !== 200 || !aralik) return null;
+  const m = /^bytes=(\d*)-(\d*)$/.exec(aralik.trim());
+  if (!m || (m[1] === '' && m[2] === '')) return null;
+  const govde = await res.arrayBuffer();
+  const boy = govde.byteLength;
+  let bas, son;
+  if (m[1] === '') { bas = Math.max(0, boy - Number(m[2])); son = boy - 1; }
+  else { bas = Number(m[1]); son = m[2] === '' ? boy - 1 : Math.min(Number(m[2]), boy - 1); }
+  const h = new Headers(res.headers);
+  h.set('accept-ranges', 'bytes');
+  h.set('cache-control', onbellek(new URL(request.url).pathname));
+  if (bas >= boy || bas > son) {
+    h.set('content-range', `bytes */${boy}`);
+    h.delete('content-length');
+    return new Response(null, { status: 416, headers: h });
+  }
+  h.set('content-range', `bytes ${bas}-${son}/${boy}`);
+  h.set('content-length', String(son - bas + 1));
+  return new Response(request.method === 'HEAD' ? null : govde.slice(bas, son + 1), { status: 206, headers: h });
+}
+
 async function servisEt(request, env) {
   const url = new URL(request.url);
   const cleanHeroFile = CLEAN_HERO_FILES.get(url.pathname);
@@ -2607,6 +2637,10 @@ async function servisEt(request, env) {
     return new Response(request.method === 'HEAD' ? null : upstream.body, {status: upstream.status, headers: out});
   }
   let res = await env.ASSETS.fetch(request);
+  if (request.method === 'GET' && VIDEO_UZANTI.test(url.pathname)) {
+    const aralik = await aralikYaniti(request, res);
+    if (aralik) return aralik;
+  }
 
   /* Static Assets "/hizmetler" -> "/hizmetler/" ve "/index.html" -> "/"
      duzeltmelerini 307 (gecici) ile yapar. Gecici yonlendirmede Google eski
@@ -2631,6 +2665,8 @@ async function servisEt(request, env) {
 
   const h = new Headers(res.headers);
   for (const [k, v] of Object.entries(guvenlikBasliklari(url.pathname))) h.set(k, v);
+  // Tarayıcı aralık isteyebileceğini bu başlıktan öğrenir (Safari şart koşar).
+  if (VIDEO_UZANTI.test(url.pathname) && res.ok) h.set('accept-ranges', 'bytes');
   // Static Assets bazı HTML yanıtlarında charset parametresini göndermeyebilir.
   // Türkçe karakterlerin tarayıcılar ve crawler'lar tarafından aynı şekilde
   // yorumlanması için HTML yanıtını açıkça UTF-8 ilan et.
