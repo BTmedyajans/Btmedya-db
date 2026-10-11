@@ -55,7 +55,9 @@ for (const k of ['balikesir', 'turkiye', 'dunya', 'gundem', 'ekonomi', 'kultur',
 
 // 3) Akış kuralları (kaynak kodda): özet isteği, 3 saat kuralı, kapak üstüne başlık yok.
 const betik = readFileSync('public/haberler-akisi.js', 'utf8');
-assert.match(betik, /\/api\/news\?limit=100&ozet=1/);
+// Gövdesiz (ozet=1) istek şart; limit tüm yayını kapsar ki çekmece sayaçları
+// bölüm sayfasıyla aynı olsun (11 Ekim: 100 limitle "Tümü 100" yazıyordu).
+assert.match(betik, /\/api\/news\?limit=500&ozet=1/);
 assert.match(betik, /3 \* 3600 \* 1000[\s\S]{0,600}'SON DAKİKA' : 'SON HABERLER'/);
 assert.ok(!/ARŞİVDEN BUGÜNE/.test(betik), 'güncel habere arşiv etiketi basılmamalı');
 // Temiz kategori adresi istemcide de tanınmalı: 4 Ekim'de regex sonuna

@@ -448,3 +448,19 @@ body>.hm-cekmece{position:fixed!important;inset:0;z-index:2147483000!important}
   .hm .hm-manset-buyuk figcaption{padding:13px 14px 16px}
   .hm .hm-manset-buyuk figcaption h3{font-size:clamp(22px,6.4vw,28px);line-height:1.16}
 }
+
+/* 11 Ekim · Sade çekmece: bölüm satırları alçaldı (64 → 48 px, yazı 44 →
+   26 px), konular iki sütun; Balıkesir'in altında en dolu ilçeler çip
+   olarak iç içe. Boş bölümler JS'te gizlenir (haberler-akisi.js). */
+.hm-cekmece-liste a[hidden]{display:none!important}
+.hm-cekmece .hm-katalog-grup a{min-height:48px}
+.hm-cekmece .hm-katalog-grup a span{font-size:clamp(22px,6.4vw,30px);gap:11px}
+.hm-cekmece-ilceler{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 12px 21px;border-bottom:1px solid rgba(255,255,255,.08)}
+.hm-cekmece-ilceler a{min-height:34px!important;padding:0 11px;border:1px solid rgba(100,228,255,.35)!important;border-radius:999px;color:#dff8ff;font:700 12px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.04em;gap:7px!important}
+.hm-cekmece-ilceler a small{font-size:11px;color:#64e4ff}
+@media (max-width:640px){
+  .hm-cekmece .hm-katalog-grup:nth-of-type(2){display:grid;grid-template-columns:1fr 1fr;column-gap:10px}
+  .hm-cekmece .hm-katalog-grup:nth-of-type(2) strong{grid-column:1/-1}
+  .hm-cekmece .hm-katalog-grup:nth-of-type(2) a span{font-size:clamp(17px,5vw,22px)}
+  .hm-cekmece .hm-katalog-grup:nth-of-type(2) a small{font-size:11px;white-space:nowrap}
+}

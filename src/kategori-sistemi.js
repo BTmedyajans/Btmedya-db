@@ -24,7 +24,7 @@
    tarayıcı yedeği okur): node tools/kategori-sistemi.mjs --yaz
    CI aynı komutu --kontrol ile çalıştırır; dosyalar ayrışırsa PR kırmızıdır. */
 
-export const KATEGORI_SURUMU = '2026-10-10.3';
+export const KATEGORI_SURUMU = '2026-10-11.1';
 
 export const KATEGORILER = [
   { anahtar: 'balikesir', ad: 'Balıkesir', renk: '#64e4ff', grup: 'yerel',
@@ -148,6 +148,15 @@ function ilceBul(metin) {
   return null;
 }
 
+/* Ulusal / yabancı işaretleri (11 Ekim). Türkiye ve Dünya bölümleri yalnız
+   ana kategori olarak doluyordu ve hiçbir haber ana bölüm olarak
+   "Türkiye" almadığı için /haberler/turkiye/ 0 haberdi. Yerel olmayan haber,
+   konu bölümünde kalır; ayrıca Türkiye işareti taşıyorsa Türkiye, yalnız
+   yabancı işaret taşıyorsa Dünya bölümünde de listelenir. İşaret yoksa
+   (ör. yabancı şirketin teknoloji haberi, ülke adı geçmiyorsa) eklenmez. */
+const ULUSAL = /\b(turkiye|turk|turkler|tbmm|cumhurbaskan\w*|bakan\w*|valilik|valiligi|valisi|belediye\w*|mudurlugu|tuik|osym|yuksekogretim|meb|diyanet|sgk|toki|tigem|teknofest|odtu|trt|aselsan|tusas|bayraktar|tubitak|super lig|galatasaray|fenerbahce|besiktas|trabzonspor|a milli|milli takim|milliler|tcmb|merkez bankasi|bist|borsa istanbul|thy|turk hava yollari|anayasa mahkemesi|meteoroloji|ak parti|chp|mhp|dmm|dezenformasyonla mucadele|adana|adiyaman|afyon|afyonkarahisar|amasya|ankara|antalya|artvin|aydin|bilecik|bingol|bitlis|bolu|burdur|bursa|canakkale|cankiri|corum|denizli|diyarbakir|edirne|elazig|erzincan|erzurum|eskisehir|gaziantep|giresun|gumushane|hakkari|hatay|isparta|mersin|istanbul|izmir|kars|kastamonu|kayseri|kirklareli|kirsehir|kocaeli|konya|kutahya|malatya|manisa|kahramanmaras|mardin|mugla|mus|nevsehir|nigde|ordu|rize|sakarya|samsun|siirt|sinop|sivas|tekirdag|tokat|trabzon|tunceli|sanliurfa|usak|van|yozgat|zonguldak|aksaray|bayburt|karaman|kirikkale|batman|sirnak|bartin|ardahan|igdir|yalova|karabuk|kilis|osmaniye|duzce|kadikoy|uskudar|umraniye|buyukcekmece|galata|beyoglu|bodrum|kumluca|adrasan|gokceada|bozcaada|kapadokya)\b/;
+const YABANCI = /\b(abd|amerika|avustralya|kanada|cin|kazakistan|ingiltere|fransa|almanya|italya|ispanya|rusya|ukrayna|israil|filistin|gazze|iran|japonya|kore|hindistan|brezilya|bm|birlesmis milletler|avrupa birligi|nato|premier lig|manchester|barcelona|real madrid|bayern|trump|beyaz saray|google|openai|meta|anthropic|microsoft|apple|nvidia|spacex|bnp paribas|bloombergnef|penn state)\b/;
+
 /* Haberin kategori kimliği. Girdi: {category,title,excerpt,body?}. */
 export function kategoriCoz(n) {
   const metin = haberMetni(n);
@@ -156,6 +165,10 @@ export function kategoriCoz(n) {
   const ana = yerel ? 'balikesir' : (konu || 'gundem');
   const ikincil = [];
   if (konu && konu !== ana) ikincil.push(konu);
+  if (!yerel && ana !== 'turkiye' && ana !== 'dunya') {
+    if (ULUSAL.test(metin)) ikincil.push('turkiye');
+    else if (YABANCI.test(metin) && !ikincil.includes('dunya')) ikincil.push('dunya');
+  }
 
   let alt = '';
   const ilce = yerel ? ilceBul(metin) : null;

@@ -437,6 +437,45 @@
   }
 
   /* ---- Akışın kurulması ---- */
+  /* Çekmece (11 Ekim, kullanıcı isteği: "hamburger sistemini sadeleştir, en
+     dolu kategorileri öne çıkar, mobilde iç içe sade kategori"):
+     - sayaçlar bölüm sayfasıyla aynı kümeyi sayar (tüm yayınlar; akış 100
+       haberle sınırlıyken "Tümü 100" yazıyordu, yayında 166 vardı),
+     - boş bölüm gizlenir ("Türkiye 0 haber" görünüyordu),
+     - her grupta bölümler doluluğa göre sıralanır (Tümü hep başta),
+     - Balıkesir'in altında en dolu ilçeler iç içe açılır. */
+  function cekmeceDuzenle(yayinda) {
+    var sayi = function (k) { return k === 'tumu' ? yayinda.length : yayinda.filter(function (n) { return bolumde(n, k); }).length; };
+    var gruplar = [];
+    document.querySelectorAll('.hm-cekmece-liste a[data-hm-kategori]').forEach(function (a) {
+      var k = a.getAttribute('data-hm-kategori'), s = sayi(k);
+      a._sayi = s;
+      var el = a.querySelector('[data-hm-sayi]');
+      if (el) el.textContent = s + ' haber';
+      a.hidden = k !== 'tumu' && s === 0;
+      if (gruplar.indexOf(a.parentNode) < 0) gruplar.push(a.parentNode);
+    });
+    gruplar.forEach(function (g) {
+      var linkler = Array.prototype.filter.call(g.children, function (x) { return x.matches && x.matches('a[data-hm-kategori]'); });
+      linkler.sort(function (a, b) {
+        if (a.getAttribute('data-hm-kategori') === 'tumu') return -1;
+        if (b.getAttribute('data-hm-kategori') === 'tumu') return 1;
+        return b._sayi - a._sayi;
+      }).forEach(function (a) { g.appendChild(a); });
+    });
+    var bal = document.querySelector('.hm-cekmece-liste a[data-hm-kategori="balikesir"]');
+    if (!bal || bal.nextElementSibling && bal.nextElementSibling.classList.contains('hm-cekmece-ilceler')) return;
+    var say = {};
+    yayinda.forEach(function (n) { if (n._kat === 'balikesir') Object.keys(ILCELER).forEach(function (a) { if (ilcede(n, a)) say[a] = (say[a] || 0) + 1; }); });
+    var sirali = Object.keys(say).sort(function (a, b) { return say[b] - say[a]; }).slice(0, 6);
+    if (!sirali.length) return;
+    var kutu = document.createElement('div');
+    kutu.className = 'hm-cekmece-ilceler';
+    kutu.setAttribute('aria-label', 'Balıkesir ilçeleri');
+    kutu.innerHTML = sirali.map(function (a) { return '<a href="/haberler/balikesir/' + a + '/">' + esc(ILCELER[a]) + '<small>' + say[a] + '</small></a>'; }).join('');
+    bal.insertAdjacentElement('afterend', kutu);
+  }
+
   async function yukle() {
     // Ağ/API yanıtı beklenirken sayfanın sonsuza kadar yükleniyor durumda kalmasını önle.
     // Hem haber API'si hem de görsel künyesi isteği için kısa bir üst sınır uygula.
@@ -449,7 +488,7 @@
     }
     var cevap;
     try {
-      cevap = await zamanAsimliFetch('/api/news?limit=100&ozet=1', { headers: { Accept: 'application/json' } }, 8000);
+      cevap = await zamanAsimliFetch('/api/news?limit=500&ozet=1', { headers: { Accept: 'application/json' } }, 8000);
     } catch (e) {
       akisYuklenemedi();
       return;
@@ -487,11 +526,7 @@
     // Bloğu boş kalan kategoriye sürmanşet dışındaki en yeni haberleri ver; yine de tekrar etme.
     KATEGORILER.forEach(function (k) { if (!gruplar[k[0]].length) gruplar[k[0]] = kalan.filter(function (n) { return n._kat === k[0] && surler.indexOf(n) < 0; }); });
 
-    document.querySelectorAll('[data-hm-sayi]').forEach(function (el) {
-      var k = el.getAttribute('data-hm-sayi');
-      // Çekmece sayaçları bölüm sayfasıyla aynı kümeyi sayar (tüm yayınlar).
-      el.textContent = (k === 'tumu' ? yayinda.length : yayinda.filter(function (n) { return bolumde(n, k); }).length) + ' haber';
-    });
+    cekmeceDuzenle(yayinda);
     serit(guncel);
     akis(guncel.slice(0, 12));
     manset(guncel);
