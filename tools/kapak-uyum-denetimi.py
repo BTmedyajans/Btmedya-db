@@ -31,7 +31,10 @@ TIK_TUZAGI = re.compile(r"\b(şok|flaş|bomba|olay yarattı|son dakika|inanılma
 TURKIYE_YER = re.compile(
     r"turkey|türkiye|turkiye|balıkesir|balikesir|ayvalık|ayvalik|edremit|bandırma|bandirma|burhaniye|gönen|"
     r"gonen|erdek|cunda|karesi|altıeylül|susurluk|bigadiç|manyas|marmara|istanbul|ankara|izmir|bursa|"
-    r"çanakkale|canakkale|anatolia|anadolu", re.IGNORECASE)
+    r"çanakkale|canakkale|anatolia|anadolu|"
+    # İlçe içi yer adları (Commons başlıkları ilçeyi yazmayabilir: "Plaj-Ören").
+    r"ören|sarımsaklı|sarimsakli|şeytan sofrası|seytan sofrasi|badavut|akçay|akcay|altınoluk|altinoluk|"
+    r"zeytinli|güre|kazdağ|kaz dağ|ida mountain", re.IGNORECASE)
 
 
 def norm(s):
@@ -125,9 +128,18 @@ def denetle(haberler):
         elif istenen and str(v.get("deger") or "") and not any(
                 p in metin for p in re.findall(r"\d+(?:[.,]\d+)*", v.get("deger") or "")):
             ekle(slug, "vurgu_bicimi_kaynaktan_farkli", "dusuk", f'kapak "{v.get("deger")}" (metindeki yazım farklı)')
+        # Kapak metni (sarı bant, kırmızı kutu, beyaz/sarı satırlar) haberde
+        # olmayan bir sayı taşıyamaz; Sabah Masası yazdığında da aynı kapı.
+        for alan, deger in (h.get("kapak_metni") or {}).items():
+            sayilar = degerler(re.sub(r"(\d)\.(?=\s|$)", r"\1", str(deger or "")))
+            if sayilar and not sayilar <= degerler(metin):
+                eksik_sayi = sorted(sayilar - degerler(metin))
+                ekle(slug, "kapak_metni_rakami_kaynakta_yok", "yuksek", f'{alan}: "{deger}" (metinde yok: {eksik_sayi})')
         t = h.get("temsili")
         if t:
-            eksik = [k for k in ("yazar", "kaynak_url", "lisans") if not t.get(k)]
+            # Atıf yalnız CC BY / BY-SA'da zorunlu; CC0 ve kamu malında yazar boş olabilir.
+            gerekli = ("kaynak_url", "lisans") if t.get("lisans") in ("cc0", "pdm") else ("yazar", "kaynak_url", "lisans")
+            eksik = [k for k in gerekli if not t.get(k)]
             if eksik:
                 ekle(slug, "temsili_kunye_eksik", "yuksek", "eksik: " + ", ".join(eksik))
             if TURKIYE_YER.search((t.get("baslik") or "") + " " + (t.get("kaynak_url") or "")):

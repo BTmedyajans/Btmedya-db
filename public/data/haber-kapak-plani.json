@@ -13,15 +13,21 @@
   },
   "temsili": {
    "dosya": "tools/temsili-kaynak/balikesir-tarim-ve-hayvancilik-fuari-kapilarini-acti.jpg",
-   "baslik": "Claas Arion 420, The Royal Norfolk Show 29-06-2011",
-   "yazar": "Karen Roe",
+   "baslik": "BalıkesirSaatKulesi",
+   "yazar": "Hustle77",
    "kaynak": "Wikimedia Commons",
-   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=16064411",
-   "lisans": "by",
-   "lisans_surum": "2.0",
-   "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
-   "odak": 0.45,
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=91181501",
+   "lisans": "by-sa",
+   "lisans_surum": "4.0",
+   "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+   "odak": 0.42,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Ali Hikmet Paşa'da 24-27 Eylül",
+   "kanca": "350 marka",
+   "ana": "Balıkesir Tarım Fuarı",
+   "vurgu": "Kapılarını açtı"
   }
  },
  {
@@ -47,6 +53,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/4.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Akıllı Balkart'a yüklenebiliyor",
+   "kanca": "3 seçenek",
+   "ana": "BTT'den öğrenciye",
+   "vurgu": "30 günlük abonman"
   }
  },
  {
@@ -72,6 +84,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Avlu Kültür Merkezi'nde prömiyer",
+   "kanca": "Salon doldu",
+   "ana": "Şehir Tiyatrosu",
+   "vurgu": "Sezonu Kanlı Nigar ile açtı"
   }
  },
  {
@@ -97,6 +115,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Kırsal ve orman yangınlarına karşı",
+   "kanca": "8 yeni araç",
+   "ana": "Balıkesir İtfaiyesi",
+   "vurgu": "12 tonluk 7 su ikmal aracı"
   }
  },
  {
@@ -122,6 +146,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Karesi'de rüzgâr ormana taşıdı",
+   "kanca": "Kontrol altında",
+   "ana": "Kocaavşar'da orman yangını",
+   "vurgu": "Soğutma sürüyor"
   }
  },
  {
@@ -138,15 +168,21 @@
   },
   "temsili": {
    "dosya": "tools/temsili-kaynak/edremit-altinkum-kanalizasyon-altyapi-yatirimi.jpg",
-   "baslik": "Construction work for new Sewer Pipe on Herbert Street, Greymouth, 1987. CC189",
-   "yazar": "John Charlton",
+   "baslik": "Edremit Park in 2008 1718",
+   "yazar": "Dosseman",
    "kaynak": "Wikimedia Commons",
-   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=118282627",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=145406476",
    "lisans": "by-sa",
    "lisans_surum": "4.0",
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Yıllardır süren sorun",
+   "kanca": "Hat yenilendi",
+   "ana": "Edremit Altınkum",
+   "vurgu": "Kanalizasyon altyapısı yenilendi"
   }
  },
  {
@@ -172,6 +208,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "İl Emniyet Müdürlüğü açıkladı",
+   "kanca": "7-13 Eylül",
+   "ana": "Balıkesir Emniyeti",
+   "vurgu": "Haftalık faaliyet raporu"
   }
  },
  {
@@ -196,6 +238,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "2024 arşivi: talep artışı beklentisi",
+   "kanca": "%30",
+   "ana": "Balıkesir'de kiralar",
+   "vurgu": "Yüzde 30 artış beklentisi"
   }
  },
  {
@@ -220,6 +268,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Cuma Pazarı, 2024 saha haberi",
+   "kanca": "Domates 5-7 TL",
+   "ana": "Balıkesir'in en kalabalık pazarı",
+   "vurgu": "Sebzeden tekstile her şey"
   }
  },
  {
@@ -244,6 +298,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "2024: giderler tarifeye yansıdı",
+   "kanca": "Maliyet artışı",
+   "ana": "Berber ve kuaför",
+   "vurgu": "Fiyatlar el yakıyor"
   }
  },
  {
@@ -268,6 +328,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Okul dönemi, 2024",
+   "kanca": "350-500 TL",
+   "ana": "Ayakkabıcılar Çarşısı",
+   "vurgu": "Okul ayakkabısına yoğun ilgi"
   }
  },
  {
@@ -292,6 +358,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Örgün eğitimden açık liseye geçiş",
+   "kanca": "Maddi yük",
+   "ana": "Açıköğretim Lisesi",
+   "vurgu": "Yeni başlangıç, yeni zorluklar"
   }
  },
  {
@@ -316,6 +388,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/2.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "2024 fiyat taraması",
+   "kanca": "Tunik 650 TL",
+   "ana": "Ali Şuuri Pazarı",
+   "vurgu": "Fiyatlar ne durumda"
   }
  },
  {
@@ -340,6 +418,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Uzman Veli Göktepe, 2024",
+   "kanca": "Yüksek faiz",
+   "ana": "Konut piyasası",
+   "vurgu": "Pazarlık gücü alıcıda"
   }
  },
  {
@@ -364,6 +448,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Halalca'da at binme etkinliği",
+   "kanca": "6 Eylül",
+   "ana": "Şevket Sarıdemir",
+   "vurgu": "Memleketinde gösteri yapacak"
   }
  },
  {
@@ -388,6 +478,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Mobilyacılar Çarşısı, 2024",
+   "kanca": "Bir yorgan 2 gün",
+   "ana": "El emeği yorganlar",
+   "vurgu": "Talep giderek azalıyor"
   }
  },
  {
@@ -412,6 +508,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Diyetisyen Hande Martin Bütün anlattı",
+   "kanca": "İstiridye mantarı",
+   "ana": "Mangalın yeni gözdesi",
+   "vurgu": "Sebze ağırlıklı sofra"
   }
  },
  {
@@ -436,6 +538,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Estetisyen Ecem Karavuş uyarıyor",
+   "kanca": "Hijyen şart",
+   "ana": "İğneli epilasyon",
+   "vurgu": "Bilinmeyen riskler"
   }
  },
  {
@@ -460,6 +568,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Dumlupınar'da 2000'den beri",
+   "kanca": "Kıymalı pide 130 TL",
+   "ana": "Meyhaneler Boğazı",
+   "vurgu": "Pide fiyatları ne kadar"
   }
  },
  {
@@ -484,6 +598,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/2.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Eczacı Esra Güven'den öneriler",
+   "kanca": "UVA + UVB",
+   "ana": "Güneş koruyucu",
+   "vurgu": "Cilt tipine göre seçin"
   }
  },
  {
@@ -508,6 +628,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Dr. Özge Aydın anlattı",
+   "kanca": "Hyaluronik asit",
+   "ana": "Gençlik aşısı",
+   "vurgu": "Estetikte ilgi görüyor"
   }
  },
  {
@@ -532,6 +658,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Bakırcılar Çarşısı'nda yarım asır",
+   "kanca": "1967'den beri",
+   "ana": "İlyas Baykal",
+   "vurgu": "Kalaycılığın son ustalarından"
   }
  },
  {
@@ -556,6 +688,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "İlk dans için çiftlerin tercihi",
+   "kanca": "İlk dans",
+   "ana": "Düğünlerin vazgeçilmezi",
+   "vurgu": "Dans şarkıları"
   }
  },
  {
@@ -580,6 +718,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "2024 saha haberi",
+   "kanca": "İş gücü sorunu",
+   "ana": "Balıkesir esnafı",
+   "vurgu": "Eleman bulmakta zorlanıyor"
   }
  },
  {
@@ -604,6 +748,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Mağazalarda fiyat karşılaştırması",
+   "kanca": "700-1400 TL",
+   "ana": "Yaz sıcakları",
+   "vurgu": "Vantilatöre talep yükseldi"
   }
  },
  {
@@ -628,6 +778,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/3.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "23 yıllık usta Özer Özmelek anlattı",
+   "kanca": "Kına terliği 500-800 TL",
+   "ana": "Gelin ayakkabısı ve kına terliği",
+   "vurgu": "Taşlı, tüylü, incili modeller"
   }
  },
  {
@@ -652,6 +808,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Emlakçı İlhan Ay, 2024",
+   "kanca": "Deprem yönetmeliği",
+   "ana": "Kiralık evlerde",
+   "vurgu": "Güvenli binaya yöneliş"
   }
  },
  {
@@ -676,6 +838,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/3.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Hasan Buğra Kösüş anlattı",
+   "kanca": "8 uzuv",
+   "ana": "Balıkesirli Muay Thai sporcusu",
+   "vurgu": "Sekiz uzvun sanatı"
   }
  },
  {
@@ -700,6 +868,12 @@
    "lisans_url": "",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Plevne'de taş fırın başında",
+   "kanca": "30 yıl",
+   "ana": "Funda Şen",
+   "vurgu": "15 yaşında başladı"
   }
  },
  {
@@ -724,6 +898,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Diyetisyen Ayşe Gülova'dan öneriler",
+   "kanca": "Bol su",
+   "ana": "Yaz aylarında beslenme",
+   "vurgu": "Sıvı ve hafif öğün"
   }
  },
  {
@@ -748,6 +928,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Antrenör Ahmet Öztürk ve Tolga Şahin",
+   "kanca": "Kalori dengesi",
+   "ana": "Kilo almak da vermek de",
+   "vurgu": "Antrenman ve beslenme birlikte"
   }
  },
  {
@@ -772,6 +958,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Pazar esnafı Hakan Seren anlattı",
+   "kanca": "5 TL → 15 TL",
+   "ana": "Soğan",
+   "vurgu": "Tarlada 5, pazarda 15 TL"
   }
  },
  {
@@ -796,6 +988,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Taze yaprak ticareti ve festival",
+   "kanca": "Kilosu 75 TL",
+   "ana": "İsmail Beydonoğlu",
+   "vurgu": "Yaprak satıyor, festival yönetiyor"
   }
  },
  {
@@ -820,6 +1018,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Gümüşçeşme Pazar Pazarı",
+   "kanca": "8 çeşit helva",
+   "ana": "Mustafa Aybacı'nın tezgâhı",
+   "vurgu": "Pazarda canlı helva şovu"
   }
  },
  {
@@ -844,6 +1048,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Bandırma-Karacabey kara yolu",
+   "kanca": "Çavuşköy kavşağı",
+   "ana": "Otomobil kamyonla çarpıştı",
+   "vurgu": "Hamile anne ve kızı hayatını kaybetti"
   }
  },
  {
@@ -868,6 +1078,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Dönem sonu meclis toplantısı",
+   "kanca": "2022-2026",
+   "ana": "Balıkesir Ticaret Odası",
+   "vurgu": "Dönemi kapattı"
   }
  },
  {
@@ -892,6 +1108,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Vali İsmail Ustaoğlu açtı",
+   "kanca": "68 istasyon, 103 ambulans",
+   "ana": "İvrindi'ye ikinci istasyon",
+   "vurgu": "Korucu'da yeni bina"
   }
  },
  {
@@ -916,6 +1138,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Atatürk Stadı zemin yenilemesinde",
+   "kanca": "TFF'ye başvuru",
+   "ana": "Balıkesirspor",
+   "vurgu": "İç saha maçlarını eve taşımak istiyor"
   }
  },
  {
@@ -940,6 +1168,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/deed.en/",
    "odak": 0.45,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Balıkesir Üniversitesi düzenledi",
+   "kanca": "34 ülke, 259 yazar",
+   "ana": "Ayvalık'ta matematik konferansı",
+   "vurgu": "133 sunum"
   }
  },
  {
@@ -964,6 +1198,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Koparmanın yüksek cezası var",
+   "kanca": "Koruma altında",
+   "ana": "Badavut'ta kum zambakları",
+   "vurgu": "Ahşap kafeslerle korunuyor"
   }
  },
  {
@@ -988,6 +1228,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Altıeylül, Karesi, Bandırma, Dursunbey",
+   "kanca": "4 ilçe",
+   "ana": "Milli eğitim müdürleri",
+   "vurgu": "Görev yerleri değişti"
   }
  },
  {
@@ -1012,6 +1258,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Kooperatif 1.600 ton aldı",
+   "kanca": "Kilosu 37 TL",
+   "ana": "Manyas'ta ayçiçeği",
+   "vurgu": "3.500 ton rekolte bekleniyor"
   }
  },
  {
@@ -1036,6 +1288,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "39. Ahilik Haftası ödülü",
+   "kanca": "Yılın Kalfası",
+   "ana": "Nisanur Eser",
+   "vurgu": "İlk kadın oto boya ustası"
   }
  },
  {
@@ -1051,15 +1309,21 @@
   },
   "temsili": {
    "dosya": "tools/temsili-kaynak/ayvalik-ta-kanalizasyondan-bir-cuval-komur-cikti.jpg",
-   "baslik": "Torrential rain flood - Flooding of Schillerstraße in Sebnitz by Hertigswalder Bach on 17.07.2021 – MEZ 17.35 – The clean-up after the rain flood begins in the early morning of 18.07.2021 – Multicar sewer cleaning",
-   "yazar": "Lupus in Saxonia",
+   "baslik": "Ayvalık streets",
+   "yazar": "Murat Beşbudak",
    "kaynak": "Wikimedia Commons",
-   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=107792066",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=90900438",
    "lisans": "by-sa",
    "lisans_surum": "4.0",
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "BASKİ ekipleri temizlik yaptı",
+   "kanca": "1 çuval kömür",
+   "ana": "Ayvalık'ta kanalizasyon",
+   "vurgu": "Şebekeden kömür çıktı"
   }
  },
  {
@@ -1084,6 +1348,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Dernek talebini açıkladı",
+   "kanca": "90 bin Karadenizli",
+   "ana": "Edremit Körfez Havalimanı",
+   "vurgu": "Karadeniz'e sefer istiyorlar"
   }
  },
  {
@@ -1100,7 +1370,7 @@
   "temsili": {
    "dosya": "tools/temsili-kaynak/buyuksehir-ve-ilce-belediyeleri-imar-sorunlarini-uc-bolge-toplantisinda-ele-aldi.jpg",
    "baslik": "Districts of Balıkesir",
-   "yazar": "",
+   "yazar": "Berkaysnklf",
    "kaynak": "Wikimedia Commons",
    "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=39343280",
    "lisans": "by-sa",
@@ -1108,6 +1378,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "harita"
+  },
+  "kapak_metni": {
+   "ust": "Gönen, Dursunbey, Burhaniye",
+   "kanca": "3 bölge toplantısı",
+   "ana": "Büyükşehir ve ilçeler",
+   "vurgu": "İmar sorunları masada"
   }
  },
  {
@@ -1123,15 +1399,21 @@
   },
   "temsili": {
    "dosya": "tools/temsili-kaynak/burhaniye-de-ortaokul-ogrencileri-oren-sahilini-temizledi.jpg",
-   "baslik": "Morro Bay, CA Sandspit Coastal Cleanup Day (CCD), Saturday, September 17, 2011 10",
-   "yazar": "Mike Baird",
+   "baslik": "Plaj-Ören",
+   "yazar": "Ollios",
    "kaynak": "Wikimedia Commons",
-   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=28291813",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=7768338",
    "lisans": "by",
-   "lisans_surum": "2.0",
-   "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
+   "lisans_surum": "3.0",
+   "lisans_url": "https://creativecommons.org/licenses/by/3.0/",
    "odak": 0.45,
-   "rozet": "temsili"
+   "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Dünya Temizlik Günü",
+   "kanca": "60 öğrenci",
+   "ana": "Burhaniye'de ortaokullular",
+   "vurgu": "Ören sahilini temizledi"
   }
  },
  {
@@ -1147,15 +1429,21 @@
   },
   "temsili": {
    "dosya": "tools/temsili-kaynak/balikesir-universitesi-hukuk-fakultesi-nin-acilis-dersini-ak-parti-genel-baskan.jpg",
-   "baslik": "Legal Gavel & Closed Law Book (27571522123)",
-   "yazar": "Blogtrepreneur",
+   "baslik": "Balıkesir Faculty of Fine Arts",
+   "yazar": "Ollios",
    "kaynak": "Wikimedia Commons",
-   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=50979436",
-   "lisans": "by",
-   "lisans_surum": "2.0",
-   "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=18957789",
+   "lisans": "by-sa",
+   "lisans_surum": "3.0",
+   "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Akademik yıl açılışı",
+   "kanca": "Açılış dersi",
+   "ana": "Belgin Uygur",
+   "vurgu": "Hukuk Fakültesi'nde konuştu"
   }
  },
  {
@@ -1180,6 +1468,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Ulusal Ajans Başkanı Astarcı",
+   "kanca": "%8-9",
+   "ana": "Erasmus bütçesi",
+   "vurgu": "AB katkısı yüzde 8-9'a indi"
   }
  },
  {
@@ -1204,6 +1498,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Rahvan yarışı, çocuk koşusu, konser",
+   "kanca": "104. yıl",
+   "ana": "Ayvalık kurtuluşunu kutladı",
+   "vurgu": "5 bin kişilik konser"
   }
  },
  {
@@ -1219,15 +1519,21 @@
   },
   "temsili": {
    "dosya": "tools/temsili-kaynak/ayvalik-ta-34-engelliler-senligi-200-katilimciya-ucretsiz-dis-tedavisi.jpg",
-   "baslik": "An oral surgery is performed",
-   "yazar": "U.S. Department of Defense",
-   "kaynak": "rawpixel",
-   "kaynak_url": "https://www.rawpixel.com/image/3388529/free-photo-image-dentist-surgery-doctor-operation",
-   "lisans": "cc0",
-   "lisans_surum": "",
-   "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "baslik": "Ayvalik square",
+   "yazar": "Antoloji",
+   "kaynak": "Wikimedia Commons",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=97650852",
+   "lisans": "by-sa",
+   "lisans_surum": "4.0",
+   "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "34 yıldır süren şenlik",
+   "kanca": "200 katılımcı",
+   "ana": "Ayvalık'ta Engelliler Şenliği",
+   "vurgu": "Ücretsiz diş tedavisi"
   }
  },
  {
@@ -1252,6 +1558,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/2.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Günde yaklaşık 1.700 öğrenci",
+   "kanca": "50 TL",
+   "ana": "Ayvalık Öğrenci Kent Lokantası",
+   "vurgu": "Fiyat değişmedi"
   }
  },
  {
@@ -1267,15 +1579,21 @@
   },
   "temsili": {
    "dosya": "tools/temsili-kaynak/sarimsakli-da-24-trophy-festivali-5-ulkeden-300-dansci-sahne-aldi.jpg",
-   "baslik": "2023 Holiday Folk Fair International 57 (All Nations Theater--Turkish)",
-   "yazar": "Michael Barera",
+   "baslik": "Sarımsaklı'da Mavinin 50 Tonu",
+   "yazar": "Otemiz",
    "kaynak": "Wikimedia Commons",
-   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=147095010",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=106587671",
    "lisans": "by-sa",
    "lisans_surum": "4.0",
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-   "odak": 0.45,
-   "rozet": "temsili"
+   "odak": 0.35,
+   "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "5 ülkeden 10 ekip",
+   "kanca": "300 dansçı",
+   "ana": "24. Sarımsaklı Trophy",
+   "vurgu": "Sahilde halk oyunları"
   }
  },
  {
@@ -1300,6 +1618,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Cem Karaca ve Barış Manço'nun sahnesi",
+   "kanca": "AB destekli hibe",
+   "ana": "Tarihi Vural Sineması",
+   "vurgu": "Yeniden sinema olacak"
   }
  },
  {
@@ -1324,6 +1648,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Kapalı pazar, olimpik havuz, sosyal tesis",
+   "kanca": "4 proje",
+   "ana": "Altıeylül'de büyük projeler",
+   "vurgu": "Sona gelindi"
   }
  },
  {
@@ -1348,6 +1678,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Hibe oranı yüzde 70",
+   "kanca": "338,7 milyon TL",
+   "ana": "Balıkesir'e 17 proje",
+   "vurgu": "Kırsal kalkınma desteği"
   }
  },
  {
@@ -1363,15 +1699,21 @@
   },
   "temsili": {
    "dosya": "tools/temsili-kaynak/edremit-te-ogrenci-guzergahi-hamdibey-caddesi-yenilendi.jpg",
-   "baslik": "Construction crews lay new layers",
-   "yazar": "",
-   "kaynak": "rawpixel",
-   "kaynak_url": "https://www.rawpixel.com/image/9658347/image-person-public-domain-construction",
-   "lisans": "cc0",
+   "baslik": "Edremit Cumhuriyet Meydani",
+   "yazar": "KureCewlik81",
+   "kaynak": "Wikimedia Commons",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=12063798",
+   "lisans": "pdm",
    "lisans_surum": "",
-   "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "lisans_url": "https://creativecommons.org/publicdomain/mark/1.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Yol, kaldırım, aydınlatma, asfalt",
+   "kanca": "Hamdibey Caddesi",
+   "ana": "Edremit'te öğrenci güzergâhı",
+   "vurgu": "Yenilendi"
   }
  },
  {
@@ -1396,6 +1738,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.45,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Menderes Bulvarı ve Cumhuriyet Meydanı",
+   "kanca": "Zabıta denetimi",
+   "ana": "Edremit'te kaldırım işgali",
+   "vurgu": "Malzemeler toplandı"
   }
  },
  {
@@ -1420,6 +1768,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Son kullanma tarihi ve hijyen kontrolü",
+   "kanca": "Zabıta denetimi",
+   "ana": "Altıeylül'de okul kantinleri",
+   "vurgu": "Denetlendi"
   }
  },
  {
@@ -1444,6 +1798,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Zeytinyağı, reçel, doğal sirke",
+   "kanca": "Cennet Tepesi",
+   "ana": "Ayvalık'ta kadın üreticiler",
+   "vurgu": "Yeni satış noktası"
   }
  },
  {
@@ -1459,15 +1819,21 @@
   },
   "temsili": {
    "dosya": "tools/temsili-kaynak/ayvalik-ta-dunya-temizlik-gunu-uckuyular-dan-seyir-terasina-kadar-atik-toplandi.jpg",
-   "baslik": "UN beach cleanup. Mogadishu, Somalia",
-   "yazar": "United Nations Assistance Mission in Somalia",
-   "kaynak": "rawpixel",
-   "kaynak_url": "https://www.rawpixel.com/image/4052275/photo-image-plastic-people-nature",
-   "lisans": "cc0",
-   "lisans_surum": "",
-   "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "baslik": "Şeytan Sofrası'ndan Günbatımında Ayvalık Adaları Milli Parkı Görünümü",
+   "yazar": "Otemiz",
+   "kaynak": "Wikimedia Commons",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=106614691",
+   "lisans": "by-sa",
+   "lisans_surum": "4.0",
+   "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
-   "rozet": "temsili"
+   "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Belediye, kurumlar ve gönüllüler",
+   "kanca": "Üçkuyular",
+   "ana": "Ayvalık'ta kıyı temizliği",
+   "vurgu": "Seyir terasına kadar atık toplandı"
   }
  },
  {
@@ -1492,6 +1858,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.45,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Avustralya inceleme başlattı",
+   "kanca": "Medicare",
+   "ana": "OpenAI'ın yapay zekâ ajanı",
+   "vurgu": "Kapalı dosyalara erişti"
   }
  },
  {
@@ -1516,6 +1888,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Yeni uyumsuzluk raporu",
+   "kanca": "6 vaka",
+   "ana": "OpenAI",
+   "vurgu": "Kontrolden çıkan modelleri açıkladı"
   }
  },
  {
@@ -1540,6 +1918,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/2.0",
    "odak": 0.45,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "BM'de küresel düzenlemeye karşı çıktı",
+   "kanca": "AI Force",
+   "ana": "Trump'tan yapay zekâ hamlesi",
+   "vurgu": "Yapay zekâ kuvveti kurulacak"
   }
  },
  {
@@ -1564,6 +1948,12 @@
    "lisans_url": "",
    "odak": 0.18,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Hazine Bakanı Bessent açıkladı",
+   "kanca": "Acil durum hattı",
+   "ana": "ABD'den Çin'e",
+   "vurgu": "Yapay zekâ için öneri"
   }
  },
  {
@@ -1588,6 +1978,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
    "odak": 0.45,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Microsoft AI Economy Institute raporu",
+   "kanca": "%18,9",
+   "ana": "Türkiye'de üretken yapay zekâ",
+   "vurgu": "Kullanım oranı yükseldi"
   }
  },
  {
@@ -1612,6 +2008,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Penn State araştırması",
+   "kanca": "Böbrek nakli",
+   "ana": "Yapay zekâ ve doktorlar",
+   "vurgu": "Farklı öncelik belirliyor"
   }
  },
  {
@@ -1636,6 +2038,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "200 binden fazla enzim tarandı",
+   "kanca": "950 Claude ajanı",
+   "ana": "Bakteri virüslerinde",
+   "vurgu": "Yeni bir DNA sistemi"
   }
  },
  {
@@ -1660,6 +2068,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/3.0/",
    "odak": 0.18,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "BM Güvenlik Konseyi oturumu",
+   "kanca": "Yapay zekâ ve güvenlik",
+   "ana": "Ed Miliband",
+   "vurgu": "Yapay zekâ çağrısı yaptı"
   }
  },
  {
@@ -1684,6 +2098,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
    "odak": 0.45,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Meta Connect 2026",
+   "kanca": "Muse Charm",
+   "ana": "Meta'dan anahtarlık boyutunda",
+   "vurgu": "Yapay zekâ cihazı"
   }
  },
  {
@@ -1708,6 +2128,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Şimdilik kurumsal müşterilere",
+   "kanca": "Live Avatar",
+   "ana": "Google Gemini",
+   "vurgu": "Gerçek zamanlı avatar ekledi"
   }
  },
  {
@@ -1732,6 +2158,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "SpaceX Transporter-18 görevinde",
+   "kanca": "Suncatcher",
+   "ana": "Google'ın uzay veri merkezi",
+   "vurgu": "İlk prototip uydu fırlatılıyor"
   }
  },
  {
@@ -1756,6 +2188,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.45,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Gemini modellerine geniş erişim",
+   "kanca": "5 yıl",
+   "ana": "BNP Paribas ve Google Cloud",
+   "vurgu": "Yapay zekâ ortaklığı"
   }
  },
  {
@@ -1780,6 +2218,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/deed.en/",
    "odak": 0.45,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Öğrenci, öğretmen ve halka ücretsiz",
+   "kanca": "13 milyon dolar",
+   "ana": "Kanada'dan",
+   "vurgu": "Yapay zekâ okuryazarlığı programı"
   }
  },
  {
@@ -1804,6 +2248,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.45,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Fraport TAV Antalya Havalimanı",
+   "kanca": "454 bin soru",
+   "ana": "Talya AI",
+   "vurgu": "En çok uçuş bilgisi soruldu"
   }
  },
  {
@@ -1828,6 +2278,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/4.0/",
    "odak": 0.45,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Astana'da forum, OpenAI destekli yarışma",
+   "kanca": "1,5 milyon dolar",
+   "ana": "Kazakistan'da",
+   "vurgu": "Yapay Zekâ Ayı başladı"
   }
  },
  {
@@ -1852,6 +2308,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
    "odak": 0.5,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "135 firma, 350 marka",
+   "kanca": "108.321 ziyaretçi",
+   "ana": "Tarım ve Hayvancılık Fuarı",
+   "vurgu": "Dört günlük fuar tamamlandı"
   }
  },
  {
@@ -1867,15 +2329,21 @@
   },
   "temsili": {
    "dosya": "tools/temsili-kaynak/balikesir-buyuksehir-kutuphaneleri-tek-dijital-portalda-toplandi.jpg",
-   "baslik": "HK 香港仔公共圖書館 Aberdeen Public Library interior bookshelves May 2016 DSC 002",
-   "yazar": "KoomAienwingea",
+   "baslik": "BalıkesirSaatKulesi",
+   "yazar": "Hustle77",
    "kaynak": "Wikimedia Commons",
-   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=50054712",
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=91181501",
    "lisans": "by-sa",
    "lisans_surum": "4.0",
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-   "odak": 0.4,
+   "odak": 0.42,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "kutuphane.balikesir.bel.tr",
+   "kanca": "Tek adres",
+   "ana": "Büyükşehir kütüphaneleri",
+   "vurgu": "Dijital portalda toplandı"
   }
  },
  {
@@ -1891,15 +2359,21 @@
   },
   "temsili": {
    "dosya": "tools/temsili-kaynak/balikesir-buyuksehir-belediyespor-sporculari-avrupa-ve-balkanlardan-dereceyle-dondu.jpg",
-   "baslik": "US Navy 110215-N-2610F-097 Master-at-Arms Seaman Rhonda McGee, left, spars with Patricia Cuevas during an exhibition match in the preliminary round",
-   "yazar": "U.S. Navy",
+   "baslik": "Balıkesir saat kulesi-2",
+   "yazar": "Ollios",
    "kaynak": "Wikimedia Commons",
-   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=13352571",
-   "lisans": "pdm",
-   "lisans_surum": "",
-   "lisans_url": "",
-   "odak": 0.4,
+   "kaynak_url": "https://commons.wikimedia.org/w/index.php?curid=18957788",
+   "lisans": "by-sa",
+   "lisans_surum": "3.0",
+   "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+   "odak": 0.75,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Esra Yıldız Kahraman'a Avrupa bronzu",
+   "kanca": "4 derece",
+   "ana": "Belediyespor sporcuları",
+   "vurgu": "Avrupa ve Balkanlar'dan dereceyle döndü"
   }
  },
  {
@@ -1924,6 +2398,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "İtfaiye Haftası",
+   "kanca": "4 şehit, 10 gazi",
+   "ana": "İtfaiye araçlarında",
+   "vurgu": "Şehit ve gazilerin adları"
   }
  },
  {
@@ -1948,6 +2428,12 @@
    "lisans_url": "",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "UEFA Uluslar Ligi, Bursa",
+   "kanca": "1-4",
+   "ana": "Türkiye İtalya'ya yenildi",
+   "vurgu": "İki maçta puansız"
   }
  },
  {
@@ -1972,6 +2458,12 @@
    "lisans_url": "",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Yağlı Güreş Cumhurbaşkanlığı Kupası",
+   "kanca": "8 yıl sonra",
+   "ana": "Necip Al",
+   "vurgu": "Başpehlivanlığa yükseldi"
   }
  },
  {
@@ -1996,7 +2488,13 @@
    "rozet": "temsili"
   },
   "altbilgi": "BTMEDYA · 29 Eylül 2026",
-  "imza": "BTMEDYA HABER MERKEZİ"
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "kapak_metni": {
+   "ust": "Ticaret Bakanlığı yeni tarih verdi",
+   "kanca": "1 Aralık",
+   "ana": "Taşınmaz satışlarında",
+   "vurgu": "Güvenli Ödeme Sistemi başlıyor"
+  }
  },
  {
   "slug": "dmm-fon-odemeleri-icin-vatandastan-ucret-alinacagi-iddiasini-yalanladi",
@@ -2020,6 +2518,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Dezenformasyonla Mücadele Merkezi",
+   "kanca": "Asılsız",
+   "ana": "Fon ödemesi için ücret",
+   "vurgu": "İddiası yalanlandı"
   }
  },
  {
@@ -2044,7 +2548,13 @@
    "rozet": "temsili"
   },
   "altbilgi": "BTMEDYA · 29 Eylül 2026",
-  "imza": "BTMEDYA HABER MERKEZİ"
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "kapak_metni": {
+   "ust": "Geçen yılın tamamı aşıldı",
+   "kanca": "179 bin 779 başvuru",
+   "ana": "Sigara bırakma poliklinikleri",
+   "vurgu": "Bu yılın ilk 8 ayında"
+  }
  },
  {
   "slug": "balikesir-universitesi-greenmetric-2026-da-dunya-401-incisi-oldu",
@@ -2068,6 +2578,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.5,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "2 bin 16 üniversite arasında",
+   "kanca": "Dünya 401.",
+   "ana": "Balıkesir Üniversitesi",
+   "vurgu": "GreenMetric 2026'da Türkiye 42."
   }
  },
  {
@@ -2092,7 +2608,13 @@
    "rozet": "temsili"
   },
   "altbilgi": "BTMEDYA · 29 Eylül 2026",
-  "imza": "BTMEDYA HABER MERKEZİ"
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "kapak_metni": {
+   "ust": "Veriler Türkiye'deki GPU'larda işleniyor",
+   "kanca": "8 bin+ kullanıcı",
+   "ana": "Milli yapay zekâ EVREN",
+   "vurgu": "11 açık model"
+  }
  },
  {
   "slug": "adrasan-batigindan-2-bin-100-yillik-sofra-takimlari-cikarildi",
@@ -2116,7 +2638,13 @@
    "rozet": "temsili"
   },
   "altbilgi": "BTMEDYA · 29 Eylül 2026",
-  "imza": "BTMEDYA HABER MERKEZİ"
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "kapak_metni": {
+   "ust": "Kumluca açıklarında 42-55 metre derinlikte",
+   "kanca": "2 bin 100 yıllık",
+   "ana": "Adrasan batığı",
+   "vurgu": "Lüks sofra takımları çıkarıldı"
+  }
  },
  {
   "slug": "turkiye-sinema-festivali-iki-gunde-777-bin-seyirciyle-rekor-kirdi",
@@ -2140,6 +2668,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/2.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "75 ilde yaklaşık 1.500 salon",
+   "kanca": "777 bin seyirci",
+   "ana": "Türkiye Sinema Festivali",
+   "vurgu": "İki günde rekor kırdı"
   }
  },
  {
@@ -2164,6 +2698,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "GAP Havalimanı'nda",
+   "kanca": "30 Eylül-4 Ekim",
+   "ana": "Şanlıurfa",
+   "vurgu": "TEKNOFEST Güneydoğu'ya hazır"
   }
  },
  {
@@ -2188,6 +2728,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/2.5/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "İstanbul Valiliği uyardı",
+   "kanca": "40-60 km/sa",
+   "ana": "İstanbul'da kuvvetli yağış",
+   "vurgu": "Hafta boyunca sağanak"
   }
  },
  {
@@ -2212,6 +2758,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "%25 peşinat, 48 ay vade",
+   "kanca": "383 arsa",
+   "ana": "TOKİ 46 ilde",
+   "vurgu": "Açık artırmayla satacak"
   }
  },
  {
@@ -2236,6 +2788,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "110 ülkeden 2 bin 16 kurum",
+   "kanca": "150 üniversite",
+   "ana": "UI GreenMetric 2026",
+   "vurgu": "Türk üniversiteleri listede"
   }
  },
  {
@@ -2260,6 +2818,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.18,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Hürriyet'in haberine göre",
+   "kanca": "Ocak dönemi",
+   "ana": "Fenerbahçe",
+   "vurgu": "Lukaku planı tutmazsa Balogun"
   }
  },
  {
@@ -2284,6 +2848,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Dünya Mirası Listesi hedefi",
+   "kanca": "UNESCO",
+   "ana": "Ayvalık",
+   "vurgu": "Adaylık çalışmaları sürüyor"
   }
  },
  {
@@ -2308,6 +2878,12 @@
    "lisans_url": "",
    "odak": 0.5,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Anayasa'ya aykırı bulundu",
+   "kanca": "İptal",
+   "ana": "Süresiz yoksulluk nafakası",
+   "vurgu": "Anayasa Mahkemesi iptal etti"
   }
  },
  {
@@ -2332,6 +2908,12 @@
    "lisans_url": "",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Kuveyt Türk ve Vakıf Katılım öne çıktı",
+   "kanca": "Altın borsası",
+   "ana": "Standart altının kilogramı",
+   "vurgu": "6 milyon 548 bin liraya çıktı"
   }
  },
  {
@@ -2356,6 +2938,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Konser, sergi, tiyatro, atölye",
+   "kanca": "3. gün",
+   "ana": "İstanbul Kültür Yolu Festivali",
+   "vurgu": "Etkinlikler sürüyor"
   }
  },
  {
@@ -2380,6 +2968,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.35,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "TÜİK, 2025 verisi",
+   "kanca": "16,8 yıl",
+   "ana": "Muhtemel eğitim süresi",
+   "vurgu": "İlkokuldan en yüksek seviyeye"
   }
  },
  {
@@ -2404,6 +2998,12 @@
    "lisans_url": "",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Sağlık Bakanlığı açıkladı",
+   "kanca": "117 merkez",
+   "ana": "Kalp merkezleri",
+   "vurgu": "Tanı, tedavi ve takip"
   }
  },
  {
@@ -2428,6 +3028,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.55,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Bağımsız komisyon kararı",
+   "kanca": "9 sezon",
+   "ana": "Manchester City",
+   "vurgu": "Mali kural ihlalinden suçlu"
   }
  },
  {
@@ -2452,6 +3058,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Prof. Dr. Osman Müftüoğlu uyardı",
+   "kanca": "Çoklu görev",
+   "ana": "Aynı anda her şey",
+   "vurgu": "Verimliliği düşürüyor"
   }
  },
  {
@@ -2476,6 +3088,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Harbiye, AKM, Zorlu, İstanbul Modern",
+   "kanca": "4 alan",
+   "ana": "İstanbul'da bu hafta",
+   "vurgu": "Sinema, müzik, tiyatro, sergi"
   }
  },
  {
@@ -2500,6 +3118,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Yeni eğitim yılına hazırlık",
+   "kanca": "399 hat",
+   "ana": "Balıkesir Toplu Taşıma",
+   "vurgu": "6 bin 473 seferle başladı"
   }
  },
  {
@@ -2524,6 +3148,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
    "odak": 0.5,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "TEKNOFEST Güneydoğu açılışı",
+   "kanca": "GAP Havalimanı",
+   "ana": "Türk Yıldızları",
+   "vurgu": "Akrobasi gösterisi sundu"
   }
  },
  {
@@ -2548,6 +3178,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/4.0/",
    "odak": 0.18,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Bakan Göktaş açıkladı",
+   "kanca": "Eylül ödemesi",
+   "ana": "Doğum yardımı",
+   "vurgu": "Annelerin hesaplarına yattı"
   }
  },
  {
@@ -2572,6 +3208,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Bahçesaray'da tek sınıflı okul",
+   "kanca": "Her gün 11 km",
+   "ana": "Öğretmen Umut Demir",
+   "vurgu": "İki kardeşi geleceğe hazırlıyor"
   }
  },
  {
@@ -2596,6 +3238,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "30 Eylül-6 Ekim",
+   "kanca": "20 il",
+   "ana": "Meteoroloji uyardı",
+   "vurgu": "Serin ve yağışlı hava"
   }
  },
  {
@@ -2620,6 +3268,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Son başvuru 8 Ekim",
+   "kanca": "11 yıllık program",
+   "ana": "Türkiye'nin Mühendis Kızları",
+   "vurgu": "Yeni dönem başvuruları başladı"
   }
  },
  {
@@ -2644,6 +3298,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Liselerarası İHA Yarışması",
+   "kanca": "Üçüncülük",
+   "ana": "Kadıköy İmam Hatip Lisesi",
+   "vurgu": "Şampiyonlar Geçidi'nde"
   }
  },
  {
@@ -2668,6 +3328,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "24-31 Ekim",
+   "kanca": "63. festival",
+   "ana": "Antalya Altın Portakal",
+   "vurgu": "Kısa ve belgesel seçkisi açıklandı"
   }
  },
  {
@@ -2692,6 +3358,12 @@
    "lisans_url": "",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Liege, Maurice Dufrasne Stadyumu",
+   "kanca": "21.45",
+   "ana": "Türkiye Belçika karşısında",
+   "vurgu": "Galibiyet peşinde"
   }
  },
  {
@@ -2716,6 +3388,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Kardiyoloji Uzmanı Dr. Akın Torun",
+   "kanca": "Günde 2-3 fincan",
+   "ana": "Ölçülü kahve",
+   "vurgu": "Kalbe zararlı değil"
   }
  },
  {
@@ -2740,6 +3418,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Resmi Gazete'de yayımlandı",
+   "kanca": "Eşel mobil sona erdi",
+   "ana": "Benzinde ÖTV",
+   "vurgu": "Kademeli artışa geçildi"
   }
  },
  {
@@ -2764,6 +3448,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/2.0/",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Kuzey Ege'de olumsuz hava",
+   "kanca": "Fırtına",
+   "ana": "Gökçeada ve Bozcaada",
+   "vurgu": "Feribot seferleri iptal edildi"
   }
  },
  {
@@ -2788,6 +3478,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Türkiye'nin ilk yapay zekâ destekli filmi",
+   "kanca": "2 Ekim",
+   "ana": "Efsaneler Takımı",
+   "vurgu": "Vizyona girdi"
   }
  },
  {
@@ -2812,6 +3508,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Gaziantepli beş öğrenci",
+   "kanca": "Birincilik",
+   "ana": "Teknogaraj Viento",
+   "vurgu": "TEKNOFEST Güneydoğu'da yine zirvede"
   }
  },
  {
@@ -2836,6 +3538,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Marmara'da 50-70 km/sa rüzgâr",
+   "kanca": "70 km/sa",
+   "ana": "Hafta sonu yağış",
+   "vurgu": "Yurdun büyük bölümünde"
   }
  },
  {
@@ -2860,6 +3568,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "Akçay Dallas Mevkii",
+   "kanca": "14 dönüm",
+   "ana": "Edremit Belediyesi",
+   "vurgu": "Atıkları geri dönüştürmeyi hedefliyor"
   }
  },
  {
@@ -2884,6 +3598,12 @@
    "lisans_url": "",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Uluslar Ligi 3. hafta",
+   "kanca": "3-0",
+   "ana": "Türkiye Belçika'ya yenildi",
+   "vurgu": "Liege'de mağlubiyet"
   }
  },
  {
@@ -2908,6 +3628,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/3.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "4 Ekim Pazar, 10.15",
+   "kanca": "160 merkez",
+   "ana": "KPSS Ön Lisans",
+   "vurgu": "81 ilde yapılacak"
   }
  },
  {
@@ -2932,6 +3658,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/2.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "ODMD ocak-eylül verisi",
+   "kanca": "%13,39 düşüş",
+   "ana": "Otomobil satışları",
+   "vurgu": "9 ayda 803 bin 465 adet"
   }
  },
  {
@@ -2956,6 +3688,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/4.0/",
    "odak": 0.4,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "589 bin 649 kişi, 42 yıllık takip",
+   "kanca": "%33",
+   "ana": "Orta yaşta obezite",
+   "vurgu": "Demans riskini artırıyor"
   }
  },
  {
@@ -2980,6 +3718,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "2023'te öğrenci yarışmacıydı",
+   "kanca": "3 yıl sonra",
+   "ana": "Yaren Özdemir",
+   "vurgu": "TEKNOFEST'te mühendis olarak"
   }
  },
  {
@@ -3004,6 +3748,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.18,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "CSO Ada Ankara sezon açılışı",
+   "kanca": "60 yıllık şarkılar",
+   "ana": "Selami Şahin",
+   "vurgu": "Başkentte sahnede"
   }
  },
  {
@@ -3028,6 +3778,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Şanlıurfa GAP Havalimanı",
+   "kanca": "Yerli hava araçları",
+   "ana": "TEKNOFEST Güneydoğu",
+   "vurgu": "Çocuklar uçakları yakından gördü"
   }
  },
  {
@@ -3052,6 +3808,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.5,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Renato Dall'Ara, TSİ 21.45",
+   "kanca": "21.45",
+   "ana": "Türkiye İtalya karşısında",
+   "vurgu": "Yenilgi serisini bitirmek istiyor"
   }
  },
  {
@@ -3076,6 +3838,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.5,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Rahibe okulu, karakol, yetimhane",
+   "kanca": "1850'ler",
+   "ana": "Okçu Musa İlkokulu",
+   "vurgu": "İki asırlık binalarda eğitim"
   }
  },
  {
@@ -3100,6 +3868,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/4.0/",
    "odak": 0.3,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Bakan Yusuf Tekin açıkladı",
+   "kanca": "Değişiklik yok",
+   "ana": "YKS",
+   "vurgu": "Bu yıl sistem aynı"
   }
  },
  {
@@ -3124,6 +3898,12 @@
    "lisans_url": "https://creativecommons.org/publicdomain/zero/1.0/",
    "odak": 0.5,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "3 Ekim 1931'den bugüne",
+   "kanca": "95. yıl",
+   "ana": "Merkez Bankası",
+   "vurgu": "Yıl dönümünü kutladı"
   }
  },
  {
@@ -3148,6 +3928,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.5,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "4 dakikalık konuşma kaydı",
+   "kanca": "700+ özellik",
+   "ana": "Konuşma saati",
+   "vurgu": "Sesten yaşlanma hızı ölçülüyor"
   }
  },
  {
@@ -3172,6 +3958,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/4.0/",
    "odak": 0.35,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Yağa dökülen yola toprak taşıdılar",
+   "kanca": "Hatay",
+   "ana": "Bakan Çiftçi",
+   "vurgu": "Polislere teşekkür etti"
   }
  },
  {
@@ -3196,6 +3988,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.5,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "İkinci yılında, günde bin 700 öğrenci",
+   "kanca": "50 TL",
+   "ana": "Öğrenci Kent Lokantaları",
+   "vurgu": "Üç çeşit yemek ve meyve"
   }
  },
  {
@@ -3220,6 +4018,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.5,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "15.00-16.00'dan sonra kafein önerilmiyor",
+   "kanca": "Günde 400 mg",
+   "ana": "Kahvede saat ve miktar",
+   "vurgu": "Uzmanlar sınır öneriyor"
   }
  },
  {
@@ -3244,6 +4048,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.5,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Bakan Tekin ve Bakan Mikanadze",
+   "kanca": "Tiflis",
+   "ana": "Türkiye ve Gürcistan",
+   "vurgu": "Eğitim iş birliği anlaşması"
   }
  },
  {
@@ -3268,6 +4078,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/3.0/",
    "odak": 0.5,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "27 Eylül'de yüzde 36,21'di",
+   "kanca": "%39",
+   "ana": "İstanbul barajları",
+   "vurgu": "Doluluk yükseldi"
   }
  },
  {
@@ -3292,6 +4108,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/2.0/",
    "odak": 0.5,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Hakem Szymon Marciniak",
+   "kanca": "5 Ekim",
+   "ana": "Türkiye Bologna'da",
+   "vurgu": "İtalya karşısında"
   }
  },
  {
@@ -3316,6 +4138,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/4.0/",
    "odak": 0.5,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "6 Şubat depremleri sonrası restorasyon",
+   "kanca": "6 cami",
+   "ana": "Diyarbakır ve Bingöl",
+   "vurgu": "Asırlık camiler yeniden ibadete açıldı"
   }
  },
  {
@@ -3340,6 +4168,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/2.5/",
    "odak": 0.5,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "İşlem hacmi 124,8 milyar lira",
+   "kanca": "12.270 puan",
+   "ana": "BIST 100",
+   "vurgu": "Yüzde 0,17 yükseldi"
   }
  },
  {
@@ -3364,6 +4198,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/2.0/",
    "odak": 0.5,
    "rozet": "temsili"
+  },
+  "kapak_metni": {
+   "ust": "İl Tarım ve Orman Müdürlüğü, 2 Ekim",
+   "kanca": "97 numune",
+   "ana": "Balıkesir'de gıda denetimi",
+   "vurgu": "Numuneler laboratuvarda"
   }
  },
  {
@@ -3388,6 +4228,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by-sa/3.0/",
    "odak": 0.4,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Yeni hat ve abonman duyuruları",
+   "kanca": "Ekim planı",
+   "ana": "Balıkesir ulaşım gündemi",
+   "vurgu": "BTT'nin ekim planı"
   }
  },
  {
@@ -3412,6 +4258,12 @@
    "lisans_url": "https://creativecommons.org/licenses/by/4.0/",
    "odak": 0.3,
    "rozet": "arsiv"
+  },
+  "kapak_metni": {
+   "ust": "Büyükşehir meclisi 13 Ekim'de",
+   "kanca": "13 Ekim",
+   "ana": "Balıkesir'de ekim gündemi",
+   "vurgu": "Bütçe, tarifeler, iklim"
   }
  },
  {
@@ -3424,6 +4276,12 @@
    "deger": "19 il",
    "etiket": "sarı kodlu yağış uyarısı",
    "yer": "MGM"
+  },
+  "kapak_metni": {
+   "ust": "Hatay ve Osmaniye başta",
+   "kanca": "19 il",
+   "ana": "Meteoroloji uyardı",
+   "vurgu": "Kuvvetli yağış bekleniyor"
   }
  },
  {
@@ -3436,6 +4294,12 @@
    "deger": "14. proje",
    "etiket": "Rüya Takımı · Nejat Uygur Sahnesi",
    "yer": "Ayvalık"
+  },
+  "kapak_metni": {
+   "ust": "Nejat Uygur Sahnesi, iki seans",
+   "kanca": "14. proje",
+   "ana": "Ayvalık Belediye Tiyatrosu",
+   "vurgu": "Rüya Takımı sahnede"
   }
  },
  {
@@ -3447,6 +4311,12 @@
   "vurgu": {
    "deger": "1-31 Ekim",
    "etiket": "Meme Kanseri Farkındalık Ayı"
+  },
+  "kapak_metni": {
+   "ust": "Meme Kanseri Farkındalık Ayı",
+   "kanca": "1-31 Ekim",
+   "ana": "Prof. Dr. Mustafa Özdoğan",
+   "vurgu": "20'li yaşlarda tanı artıyor"
   }
  },
  {
@@ -3459,6 +4329,12 @@
    "deger": "4,2 milyon varil",
    "etiket": "günlük rafineri kapasitesi artışı",
    "yer": "BloombergNEF"
+  },
+  "kapak_metni": {
+   "ust": "BloombergNEF 2026-2030 öngörüsü",
+   "kanca": "4,2 milyon varil",
+   "ana": "Rafineri kapasitesi",
+   "vurgu": "Günlük artış bekleniyor"
   }
  },
  {
@@ -3471,6 +4347,12 @@
    "deger": "BilimLAB",
    "etiket": "TÜBİTAK destekli bilim şenliği",
    "yer": "Büyükçekmece"
+  },
+  "kapak_metni": {
+   "ust": "TÜBİTAK destekli şenlik",
+   "kanca": "BilimLAB",
+   "ana": "Büyükçekmeceli liseliler",
+   "vurgu": "İyilik odaklı projeler"
   }
  },
  {
@@ -3483,6 +4365,12 @@
    "deger": "1922-1977",
    "etiket": "yazar, öğretmen ve gazeteci",
    "yer": "İstanbul"
+  },
+  "kapak_metni": {
+   "ust": "Yazar, öğretmen ve gazeteci",
+   "kanca": "1922-1977",
+   "ana": "Fethi Gemuhluoğlu",
+   "vurgu": "Vefatının yıl dönümünde anıldı"
   }
  },
  {
@@ -3495,6 +4383,12 @@
    "deger": "19 yaş",
    "etiket": "Lille'in kanat oyuncusu",
    "yer": "Fenerbahçe"
+  },
+  "kapak_metni": {
+   "ust": "Menajer önerisiyle izleme listesine",
+   "kanca": "19 yaş",
+   "ana": "Fenerbahçe",
+   "vurgu": "Ethan Mbappe'yi listeye ekledi"
   }
  },
  {
@@ -3507,6 +4401,12 @@
    "deger": "1.071",
    "etiket": "kiralık sosyal konut",
    "yer": "İstanbul · 12 ilçe"
+  },
+  "kapak_metni": {
+   "ust": "12 ilçede kiralık sosyal konut",
+   "kanca": "1.071 konut",
+   "ana": "TOKİ İstanbul",
+   "vurgu": "Kura çekimi Ekim'de"
   }
  },
  {
@@ -3519,6 +4419,12 @@
    "deger": "13 Ekim",
    "etiket": "Salı 22.00 · Şampiyonlar Ligi",
    "yer": "RAMS Park"
+  },
+  "kapak_metni": {
+   "ust": "Şampiyonlar Ligi, 13 Ekim 22.00",
+   "kanca": "13 Ekim",
+   "ana": "Raphinha",
+   "vurgu": "Galatasaray maçında yok"
   }
  },
  {
@@ -3531,6 +4437,12 @@
    "deger": "Kent Lokantası",
    "etiket": "yeni sosyal tesis",
    "yer": "Edremit"
+  },
+  "kapak_metni": {
+   "ust": "Ekim meclisinin ardından",
+   "kanca": "Kent Lokantası",
+   "ana": "Başkan Mehmet Ertaş",
+   "vurgu": "Meclis üyeleriyle öğle yemeği"
   }
  },
  {
@@ -3543,6 +4455,12 @@
    "deger": "12 Ekim",
    "etiket": "yeni yayın dönemi",
    "yer": "TRT 2"
+  },
+  "kapak_metni": {
+   "ust": "Hayat Sanat ve TRT 2 Film Kuşağı",
+   "kanca": "12 Ekim",
+   "ana": "TRT 2",
+   "vurgu": "Yeni yayın dönemine giriyor"
   }
  },
  {
@@ -3555,6 +4473,12 @@
    "deger": "30 Eylül",
    "etiket": "başkanlık kararnamesi",
    "yer": "ABD"
+  },
+  "kapak_metni": {
+   "ust": "Başkanlık kararnamesi, 30 Eylül",
+   "kanca": "Süper zekâ",
+   "ana": "ABD Adalet Bakanlığı",
+   "vurgu": "'Yapay zekâ' demeyecek"
   }
  },
  {
@@ -3567,6 +4491,12 @@
    "deger": "8 maç",
    "etiket": "30 günde · 5'i RAMS Park'ta",
    "yer": "Galatasaray"
+  },
+  "kapak_metni": {
+   "ust": "5'i RAMS Park'ta",
+   "kanca": "30 günde 8 maç",
+   "ana": "Galatasaray",
+   "vurgu": "Kritik bir aya giriyor"
   }
  },
  {
@@ -3579,6 +4509,12 @@
    "deger": "1 milyon TL",
    "etiket": "anapara ödemesine kadar",
    "yer": "TBMM"
+  },
+  "kapak_metni": {
+   "ust": "TBMM'deki teklif yasalaşırsa",
+   "kanca": "1 milyon TL",
+   "ana": "Cevdet Yılmaz",
+   "vurgu": "Ekimde anapara ödemesi öngörüyor"
   }
  },
  {
@@ -3591,6 +4527,12 @@
    "deger": "675",
    "etiket": "reforme küçükbaş · 19 Ekim",
    "yer": "Altınova"
+  },
+  "kapak_metni": {
+   "ust": "19 Ekim'de açık artırma",
+   "kanca": "675 hayvan",
+   "ana": "TİGEM Altınova",
+   "vurgu": "Reforme küçükbaş satışı"
   }
  },
  {
@@ -3603,6 +4545,12 @@
    "deger": "6-7 Ekim",
    "etiket": "ana zirve programı",
    "yer": "İstanbul"
+  },
+  "kapak_metni": {
+   "ust": "Hilton İstanbul Maslak",
+   "kanca": "6-7 Ekim",
+   "ana": "İstanbul Fintech Week",
+   "vurgu": "Ana zirve başladı"
   }
  },
  {
@@ -3615,6 +4563,12 @@
    "deger": "Hayvan hakları",
    "etiket": "Dünya Hayvanları Koruma Günü",
    "yer": "Ayvalık"
+  },
+  "kapak_metni": {
+   "ust": "Dünya Hayvanları Koruma Günü",
+   "kanca": "Bakım Merkezi",
+   "ana": "Başkan Mesut Ergin",
+   "vurgu": "Hayvan haklarını vurguladı"
   }
  },
  {
@@ -3627,6 +4581,12 @@
    "deger": "136 yolcu",
    "etiket": "ve 6 mürettebat tahliye edildi",
    "yer": "Şanlıurfa"
+  },
+  "kapak_metni": {
+   "ust": "AJET 4180 sefer sayılı uçak",
+   "kanca": "136 yolcu tahliye",
+   "ana": "Patlayıcı ihbarı",
+   "vurgu": "Asılsız çıktı"
   }
  },
  {
@@ -3639,6 +4599,12 @@
    "deger": "137 çeşit",
    "etiket": "koruma altındaki ata tohumu",
    "yer": "Edremit"
+  },
+  "kapak_metni": {
+   "ust": "Çıkrıkçı'daki Ata Tohumu Merkezi",
+   "kanca": "137 çeşit",
+   "ana": "Edremit tohum bankası",
+   "vurgu": "Ata tohumu koruma altında"
   }
  },
  {
@@ -3651,6 +4617,12 @@
    "deger": "13 bin ₺",
    "etiket": "aylık başarısızlık bursu",
    "yer": "ODTÜ"
+  },
+  "kapak_metni": {
+   "ust": "Başvuru 15 Ekim'e kadar",
+   "kanca": "Aylık 13 bin TL",
+   "ana": "ODTÜ İstatistik",
+   "vurgu": "'Başarısızlık' bursu"
   }
  },
  {
@@ -3663,6 +4635,12 @@
    "deger": "9 milyon",
    "etiket": "eylül ayında taşınan yolcu",
    "yer": "THY"
+  },
+  "kapak_metni": {
+   "ust": "Dış hat doluluk %86,6",
+   "kanca": "9 milyon yolcu",
+   "ana": "THY eylülde",
+   "vurgu": "9 ayda 73 milyon yolcu"
   }
  },
  {
@@ -3675,6 +4653,12 @@
    "deger": "MORFOZ",
    "etiket": "yerli kanatlı güdüm kiti",
    "yer": "ASELSAN"
+  },
+  "kapak_metni": {
+   "ust": "Saros Körfezi'nde test atışı",
+   "kanca": "MORFOZ",
+   "ana": "Bayraktar AKINCI",
+   "vurgu": "Hedefi tam isabetle vurdu"
   }
  },
  {
@@ -3687,6 +4671,12 @@
    "deger": "3-1",
    "etiket": "Kasımpaşa galibiyeti",
    "yer": "Galatasaray"
+  },
+  "kapak_metni": {
+   "ust": "Kasımpaşa galibiyetinin ardından",
+   "kanca": "3-1",
+   "ana": "İlkay Gündoğan",
+   "vurgu": "'Oynamıyorum ki niye hazır olayım?'"
   }
  },
  {
@@ -3699,6 +4689,12 @@
    "deger": "337 kez",
    "etiket": "bir yılda hastane başvurusu",
    "yer": "İstanbul"
+  },
+  "kapak_metni": {
+   "ust": "İl Sağlık Müdürü Doç. Dr. Güner uyardı",
+   "kanca": "337 kez",
+   "ana": "Bir hasta bir yılda",
+   "vurgu": "Hastaneye başvurdu"
   }
  }
 ]

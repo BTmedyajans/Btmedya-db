@@ -9,7 +9,8 @@ name: BTMedya haber kapak otomasyonu
 #
 # Döngü yok: tetikleyici yalnız zamanlı (schedule) ve manuel (dispatch);
 # push'la kendini tetiklemez. Yalnız public/assets/haber-kapak,
-# public/assets/sosyal-kart ve public/data/*.json yazar.
+# public/assets/sosyal-kart, public/data/*.json ve Balıkesir haberleri için
+# indirilen Commons yer fotoğraflarını (tools/temsili-kaynak) yazar.
 
 on:
   schedule:
@@ -57,7 +58,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          YOLLAR="public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json"
+          YOLLAR="public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json tools/temsili-kaynak"
           if [ -z "$(git status --porcelain -- $YOLLAR)" ]; then
             echo "Üretilecek yeni kapak yok; akış güncel."
             exit 0
