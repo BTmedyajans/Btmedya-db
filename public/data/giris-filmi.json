@@ -1,14 +1,23 @@
 {
- "dosya": "/assets/media/web/btmedya-ai-film-genis.mp4",
- "dosya_mobil": "/assets/media/web/btmedya-ai-film.mp4",
- "sure": 15.0,
+ "dosya": "/assets/media/web/btmedya-tanitim-v5-genis.mp4",
+ "dosya_mobil": "/assets/media/web/btmedya-tanitim-v5-dikey.mp4",
+ "sure": 40.0,
+ "sure_mobil": 17.67,
  "etiket": "AI ÜRETİMİ · BTMEDYA TANITIM FİLMİ",
- "kaynak": "BTMEDYA giriş filmi (tools/giris-filmi/giris-v4.sh + giris-katman.py); tüm planlar AI üretimi, motion kimlik kartları, sentez ses",
+ "kaynak": "BTMEDYA tanıtım filmi v5 (11 Ekim 2026, kullanıcının yüklediği iki kurgu: 16:9 masaüstü, 9:19,5 mobil); planların tamamı AI üretimi, kendi ses izi. Seçenekler filmin etiketleri üstünde dokunma alanı (public/giris-v5.js).",
  "bolumler": [
-  {"bolum": "GAZETECİ", "alt": "Sahadan, kaynağıyla haber", "bas": 0.45, "tur": "ai"},
-  {"bolum": "YAPAY ZEKÂ", "alt": "Açık etiketli AI üretim", "bas": 2.25, "tur": "ai"},
-  {"bolum": "SUNUCU", "alt": "Röportaj · program · stüdyo çekimi", "bas": 3.85, "tur": "ai"},
-  {"bolum": "SOSYAL MEDYA UZMANI", "alt": "Reels · içerik planı · hesap yönetimi", "bas": 5.95, "tur": "ai"},
-  {"bolum": "DİJİTAL YAPIMCI", "alt": "Tanıtım filmi · reklam · web", "bas": 8.85, "tur": "ai"}
+  {"bolum": "SAHADAN", "bas": 1.0, "tur": "ai"},
+  {"bolum": "EKRANA", "bas": 9.5, "tur": "ai"},
+  {"bolum": "HABER · SOSYAL & DİJİTAL · PRODÜKSİYON", "bas": 18.8, "tur": "ai"},
+  {"bolum": "GAZETECİ", "bas": 21.6, "tur": "ai"},
+  {"bolum": "SOSYAL MEDYA UZMANI", "bas": 27.1, "tur": "ai"},
+  {"bolum": "DİJİTAL YAPIMCI", "bas": 30.0, "tur": "ai"},
+  {"bolum": "BTMEDYA son kart", "bas": 36.0, "tur": "ai"}
+ ],
+ "bolumler_mobil": [
+  {"bolum": "01 HABER", "bas": 4.25, "tur": "ai"},
+  {"bolum": "02 MEDYA", "bas": 9.25, "tur": "ai"},
+  {"bolum": "03 PRODÜKSİYON", "bas": 14.25, "tur": "ai"},
+  {"bolum": "BTMEDYA son kart (HABER / MEDYA / PRODÜKSİYON)", "bas": 14.9, "tur": "ai"}
  ]
 }

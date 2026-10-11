@@ -63,6 +63,7 @@ jobs:
           node --check public/home.js
           node --check public/kategori-menu.js
           node --check public/film-secim.js
+          node --check public/giris-v5.js
           node --check public/hero-three-choice.js
           python3 tools/validate-assets.py
           node tools/a11y-denetimi.mjs

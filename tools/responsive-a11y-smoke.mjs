@@ -70,22 +70,31 @@ for (const vp of viewports) {
       // The homepage must select the dedicated mobile entrance film, not the
       // wide desktop encode. This catches source-selection regressions without
       // depending on whether headless Chromium can decode the production codec.
-      const heroVideo=page.locator('.bt-clean-hero-video');
+      // Giriş filmi v5 (11 Ekim): seçenekler filmin etiketleri üstünde
+      // yazısız dokunma alanları; ayrı film sonu paneli yoktur.
+      const v5=await page.locator('[data-giris-v5] video').count();
+      const heroVideo=page.locator(v5?'[data-giris-v5] video':'.bt-clean-hero-video');
       if(await heroVideo.count()){
-        await page.waitForFunction(() => {
-          const v=document.querySelector('.bt-clean-hero-video');
+        await page.waitForFunction(sel => {
+          const v=document.querySelector(sel);
           return !!(v && (v.currentSrc || v.src));
-        }, null, {timeout:8000}).catch(()=>null);
+        }, v5?'[data-giris-v5] video':'.bt-clean-hero-video', {timeout:8000}).catch(()=>null);
         const media=await heroVideo.evaluate(v=>({
           source:v.currentSrc||v.src||'',
           poster:v.poster||'',
-          hasFallbackPanel:!!document.querySelector('.bt-clean-finish-panel')
+          hasFallbackPanel:!!document.querySelector('.bt-clean-finish-panel'),
+          alanlar:[...document.querySelectorAll('.giris-v5-alan')].map(a=>({ad:a.getAttribute('aria-label')||'',href:a.getAttribute('href')||''}))
         }));
         const sourcePath=media.source ? new URL(media.source,BASE).pathname : '';
         const posterPath=media.poster ? new URL(media.poster,BASE).pathname : '';
-        if(!sourcePath.endsWith('/btmedya-ai-film.mp4')) failures.push('mobile home hero selected unexpected film source '+(sourcePath||'NONE'));
-        if(!posterPath.endsWith('/btmedya-ai-film-poster.jpg')) failures.push('mobile home hero selected unexpected poster '+(posterPath||'NONE'));
-        if(!media.hasFallbackPanel) failures.push('mobile home hero has no static finish/fallback panel');
+        const beklenen=v5?['/btmedya-tanitim-v5-dikey.mp4','/btmedya-tanitim-v5-dikey-poster.jpg']:['/btmedya-ai-film.mp4','/btmedya-ai-film-poster.jpg'];
+        if(!sourcePath.endsWith(beklenen[0])) failures.push('mobile home hero selected unexpected film source '+(sourcePath||'NONE'));
+        if(!posterPath.endsWith(beklenen[1])) failures.push('mobile home hero selected unexpected poster '+(posterPath||'NONE'));
+        if(v5){
+          const hedefler=new Set(media.alanlar.map(a=>a.href));
+          if(media.alanlar.length<3||media.alanlar.some(a=>!a.ad)||!['/haberler/','/sosyal-medya/','/video-produksiyon/'].every(h=>hedefler.has(h)))
+            failures.push('mobile home intro v5 options missing or unnamed '+JSON.stringify(media.alanlar));
+        }else if(!media.hasFallbackPanel) failures.push('mobile home hero has no static finish/fallback panel');
       }else{
         failures.push('mobile home hero video element is missing');
       }

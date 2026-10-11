@@ -474,7 +474,8 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
        sonucuna göre seçer. */
 {
   const ana = readFileSync('public/index.html', 'utf8');
-  if (!ana.includes('data-bt-home-hero-v3')) {
+  // v5'in WebM yedeği (data-genis-webm/data-dikey-webm) 18. maddede denetlenir.
+  if (!ana.includes('data-bt-home-hero-v3') && !ana.includes('data-giris-v5')) {
   const vid = (ana.match(/<video class="mfilm-video"[^>]*>/) || [''])[0];
   const webm = (vid.match(/data-webm="([^"]+)"/) || [])[1];
   if (!webm) bulgular.push('public/index.html .mfilm-video data-webm taşımıyor; H.264 çözemeyen tarayıcıda giriş filmi açılmaz.');
@@ -487,7 +488,24 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
 {
   const ana = readFileSync('public/index.html', 'utf8');
   const videolar = ana.match(/<video\b[^>]*>/g) || [];
-  if (ana.includes('data-bt-clean-hero')) {
+  if (ana.includes('data-giris-v5')) {
+    /* 11 Ekim giriş filmi v5: tek video, yazısız; seçenekler filmin kendi
+       etiketlerinin üstünde (giris-v5.js). İki kurgu da ses izi taşır. */
+    const v = videolar[0] || '';
+    if (videolar.length !== 1 || !/\bmuted\b/.test(v) || !/\bplaysinline\b/.test(v))
+      bulgular.push('Giriş filmi v5 tek, sessiz başlayan, satır içi video olmalı.');
+    for (const ad of ['data-genis', 'data-dikey', 'data-genis-webm', 'data-dikey-webm', 'data-genis-poster', 'data-dikey-poster']) {
+      const yol = (v.match(new RegExp(ad + '="([^"]+)"')) || [])[1];
+      if (!yol) { bulgular.push(`Giriş filmi v5 ${ad} taşımıyor.`); continue; }
+      const dosya = join('public', yol.split('?')[0]);
+      const imza = dosya.endsWith('.mp4') ? 'mp4a' : dosya.endsWith('.webm') ? 'OpusHead' : '';
+      if (!existsSync(dosya)) bulgular.push(`Giriş filmi v5 dosyası yok: ${dosya}`);
+      else if (imza && !readFileSync(dosya).includes(Buffer.from(imza))) bulgular.push(`${dosya} ses izi taşımıyor (${imza} yok).`);
+    }
+    const js = existsSync('public/giris-v5.js') ? readFileSync('public/giris-v5.js', 'utf8') : '';
+    if (!js || !ana.includes('/giris-v5.js')) bulgular.push('public/index.html giris-v5.js yüklemiyor; film seçenekleri çalışmaz.');
+    else if (!/AI ÜRETİMİ/.test(js)) bulgular.push('giris-v5.js son karede AI ÜRETİMİ etiketi basmıyor (AGENTS.md).');
+  } else if (ana.includes('data-bt-clean-hero')) {
     /* Clean hero mimarisi tek aktif video kullanır; eski V3 mimarisindeki
        iki katman şartını bu dala uygulamak hatalı pozitif üretir. */
     if (videolar.length !== 1 || !/class="[^"]*bt-clean-hero-video/.test(videolar[0] || '') ||
@@ -521,7 +539,8 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
        katmanı (HERO SES KATMANI) filmin sesine binmez. */
 {
   const ana = readFileSync('public/index.html', 'utf8');
-  if (!ana.includes('data-bt-home-hero-v3')) {
+  // v5 kendi sesini ve seçeneklerini taşır; ses izi kuralı 18. maddede.
+  if (!ana.includes('data-bt-home-hero-v3') && !ana.includes('data-giris-v5')) {
   for (const [dosya, imza] of [['giris-ai.mp4', 'mp4a'], ['giris-ai-genis.mp4', 'mp4a'], ['giris-ai.webm', 'OpusHead'], ['giris-ai-genis.webm', 'OpusHead']]) {
     const yol = join('public/assets/media/web', dosya);
     if (!existsSync(yol)) { bulgular.push(`${yol} yok.`); continue; }
@@ -541,7 +560,7 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
        sormadan MP4'e zorlayan data-src-hq mobil filmi hiç açmıyordu. */
 {
   const ana = readFileSync('public/index.html', 'utf8');
-  if (!ana.includes('data-bt-home-hero-v3')) {
+  if (!ana.includes('data-bt-home-hero-v3') && !ana.includes('data-giris-v5')) {
   const genis = (ana.match(/<video[^>]*data-slot="hero-video"[^>]*>/) || [''])[0];
   const webm = (genis.match(/data-webm="([^"]+)"/) || [])[1] || '';
   if (!/-genis\.webm(\?.*)?$/.test(webm)) bulgular.push(`public/index.html masaüstü filmin data-webm'i masaüstü kurgusu değil: ${webm || 'yok'}`);

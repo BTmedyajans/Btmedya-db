@@ -38,7 +38,7 @@
 <link rel="preload" href="/assets/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
 <link rel="icon" href="/assets/favicon-v5.png" type="image/png">
-<link rel="preload" as="image" href="/assets/media/web/btmedya-ai-film-poster.jpg?v=20261009-ai" media="(max-width:720px)" fetchpriority="high"><link rel="preload" as="image" href="/assets/media/web/btmedya-ai-film-genis-poster.jpg?v=20261009-ai" media="(min-width:721px)" fetchpriority="high"><link rel="stylesheet" href="/home.css?v=20261007-1"><link rel="stylesheet" href="/programlar-v1.css?v=20261003-1"><link rel="stylesheet" href="/uiux-pro-max.css?v=20260928-3">
+<link rel="preload" as="image" href="/assets/media/web/btmedya-tanitim-v5-dikey-poster.jpg" media="(max-aspect-ratio:4/5)" fetchpriority="high"><link rel="preload" as="image" href="/assets/media/web/btmedya-tanitim-v5-genis-poster.jpg" media="(min-aspect-ratio:4/5)" fetchpriority="high"><link rel="stylesheet" href="/home.css?v=20261007-1"><link rel="stylesheet" href="/programlar-v1.css?v=20261003-1"><link rel="stylesheet" href="/uiux-pro-max.css?v=20260928-3">
 <style>
 .social-nojs-fallback,.archive-nojs-fallback{display:block}
 .social-nojs-fallback .social-profiles,.social-nojs-fallback .social-feed-grid,.archive-nojs-fallback .archive-grid{margin-top:14px}
@@ -59,7 +59,7 @@
 <link rel="stylesheet" href="/btmedya-brand-system.css?v=20261003-1"><link rel="stylesheet" href="/editorial-quality-v1.css?v=20261005-1"><link rel="stylesheet" href="/btmedya-responsive-v2.css?v=20261003-2"><link rel="stylesheet" href="/editorial-compass-v1.css?v=20261003-1"><link rel="stylesheet" href="/hero-monochrome-hover.css?v=20261003-1">
 <link rel="stylesheet" href="/site-motion-v2.css?v=20261005-1"><link rel="stylesheet" href="/mobil-tipografi.css?v=20261006-1"><link rel="stylesheet" href="/kategori-menu.css?v=20261010-category-tree"><link rel="stylesheet" href="/navigation-simplification.css?v=20261008-1"><link rel="stylesheet" href="/tipografi-v2.css?v=20261006-1"><script src="/kategori-menu.js?v=20261010-category-tree" defer></script><link rel="stylesheet" href="/hero-sequence-v2.css?v=20261006-2"><link rel="stylesheet" href="/hero-video-quality-v1.css?v=20261006-1"><link rel="stylesheet" href="/secim-sahnesi.css?v=20261006-2"><link rel="stylesheet" href="/film-secim.css?v=20261007-2"><link rel="stylesheet" href="/mobile-touch-v2.css?v=20261007-1"><link rel="stylesheet" href="/hero-live-hotfix-20261005.css?v=1">
 <!-- Production supervisor reconciliation: canonical news routes + Metricool identity 2026-10-06 -->
-<link rel="stylesheet" href="/ana-sade.css?v=20261007-2"><link rel="stylesheet" href="/hero-clean-categories.css?v=20261010-category-tree">
+<link rel="stylesheet" href="/ana-sade.css?v=20261007-2"><link rel="stylesheet" href="/giris-v5.css?v=20261011-1">
 
 <style id="bt-home-hero-v3">
 .bt-home-hero{position:relative;width:100%;height:100svh;min-height:560px;background:#050505;overflow:hidden;isolation:isolate}
@@ -95,16 +95,15 @@
 <section class="bt-breaking" aria-label="Haber akışına hızlı erişim">
   <div class="bt-breaking-inner"><b>SAHADAN HABERLER</b><a href="/haberler/">Balıkesir, Türkiye ve dünya gündemini kaynak + tarih + görsel kaynağıyla takip et ↗</a></div>
 </section>
-<section class="cinematic-hero bt-home-hero bt-clean-hero" id="hero" data-tek-film data-bt-home-hero-v3 data-bt-clean-hero aria-label="BTMEDYA giriş filmi">
-  <div class="bt-clean-hero-video-wrap">
-    <video class="bt-clean-hero-video" data-slot="hero-video" data-slot-poster="hero-poster" muted autoplay playsinline preload="auto"
-      data-kart-gomulu data-kendi-sesi
-      data-desktop-mp4="/assets/media/web/btmedya-ai-film-genis.mp4?v=20261009-ai"
-      data-mobile-mp4="/assets/media/web/btmedya-ai-film.mp4?v=20261009-ai"
-      data-desktop-poster="/assets/media/web/btmedya-ai-film-genis-poster.jpg?v=20261009-ai"
-      data-mobile-poster="/assets/media/web/btmedya-ai-film-poster.jpg?v=20261009-ai"
-      aria-label="BTMEDYA giriş filmi: Buse Tuncay gazeteci, sunucu, sosyal medya uzmanı ve dijital yapımcı rollerinde. Planların tamamı AI üretimi."></video>
-  </div>
+<section class="giris-v5" id="hero" data-giris-v5 aria-label="BTMEDYA tanıtım filmi">
+  <video data-slot="hero-video" data-slot-poster="hero-poster" muted autoplay playsinline preload="auto" disablepictureinpicture
+    data-genis="/assets/media/web/btmedya-tanitim-v5-genis.mp4"
+    data-dikey="/assets/media/web/btmedya-tanitim-v5-dikey.mp4"
+    data-genis-webm="/assets/media/web/btmedya-tanitim-v5-genis.webm"
+    data-dikey-webm="/assets/media/web/btmedya-tanitim-v5-dikey.webm"
+    data-genis-poster="/assets/media/web/btmedya-tanitim-v5-genis-poster.jpg"
+    data-dikey-poster="/assets/media/web/btmedya-tanitim-v5-dikey-poster.jpg"
+    aria-label="BTMEDYA tanıtım filmi: haber, medya ve prodüksiyon. Planların tamamı AI üretimi. Seçenekler filmin içindeki etiketlere dokunarak açılır; Esc ile son kareye geçilir."></video>
 </section>
 <section class="hero-paths-static" aria-labelledby="hero-paths-title">
   <div class="hero-paths-head"><p class="kicker">ÜÇ ANA YOL</p><h1 id="hero-paths-title">ARADIĞINI<br><span>HIZLICA BUL.</span></h1><p>BTMEDYA'da önce amacını seç; içerik, portföy ve teklif akışı otomatik olarak doğru kapıya yönlensin.</p></div>
@@ -250,7 +249,7 @@
   <a href="/video-produksiyon/" data-mobile-nav="production" data-accent="#65e6a4" aria-label="Tanıtım"><span aria-hidden="true">✦</span><small>TANITIM</small></a>
   <a class="mobile-quick-cta" href="/teklif-al/?kaynak=mobile-nav" data-mobile-nav="contact" data-accent="#d9ff3f" aria-label="Teklif al"><span aria-hidden="true">↗</span><small>TEKLİF</small></a>
 </nav>
-<script src="/hero-music.js?v=20261009-ai" defer></script><script src="/home.js?v=20261007-2" defer></script><script src="/mobile-motion.js?v=20261007-2" defer></script><script src="/mobile-ux-v4.js?v=20261007-1" defer></script><link rel="stylesheet" href="/editorial-cover-system.css?v=20261003-1"><script src="/editorial-cover-system.js?v=20261004-1" defer></script><script src="/olcum.js?v=20261003-2" defer></script><script src="/site-motion-v2.js?v=20261005-2" defer></script><script src="/hero-clean-categories.js?v=20261010-category-tree" defer></script>
+<script src="/home.js?v=20261007-2" defer></script><script src="/mobile-motion.js?v=20261007-2" defer></script><script src="/mobile-ux-v4.js?v=20261007-1" defer></script><link rel="stylesheet" href="/editorial-cover-system.css?v=20261003-1"><script src="/editorial-cover-system.js?v=20261004-1" defer></script><script src="/olcum.js?v=20261003-2" defer></script><script src="/site-motion-v2.js?v=20261005-2" defer></script><script src="/giris-v5.js?v=20261011-1" defer></script>
 
 
 <link rel="stylesheet" href="/ux-discovery.css?v=20261010-1"><script src="/ux-discovery.js?v=20261010-1" defer></script>

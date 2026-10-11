@@ -1,0 +1,38 @@
+/* BTMEDYA giriş filmi v5: film sürerken ekranda yalnız film. Seçenekler
+   filmin kendi etiketlerinin üstünde yazısız dokunma alanlarıdır (giris-v5.js). */
+html.bt-clean-intro-active,
+html.bt-clean-intro-active body{background:#000}
+body.bt-clean-intro-active{overflow:hidden}
+body.bt-clean-intro-active> :not(#icerik){display:none!important}
+body.bt-clean-intro-active #icerik> :not(#hero){display:none!important}
+body.bt-clean-intro-active #hero{position:fixed;inset:0;z-index:9999;width:100vw;height:100svh;min-height:100svh;margin:0}
+/* main#icerik giriş sırasında 0 yükseklikte, overflow:clip ve bir sayfa
+   animasyonundan kalan transform taşıyor; transform sabit konumlu filmi
+   main'e bağlayıp tamamen kırpıyordu (ekran siyah, dokunma alanları ölü). */
+body.bt-clean-intro-active main#icerik{transform:none!important;animation:none!important;overflow:visible!important}
+
+.giris-v5{position:relative;width:100%;height:100svh;min-height:100svh;background:#000;overflow:hidden;isolation:isolate}
+.giris-v5 video{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;background:#000}
+.giris-v5 video::-webkit-media-controls{display:none!important}
+.giris-v5-katman{position:absolute;inset:0;z-index:2;pointer-events:none}
+
+/* Dokunma alanı: kapalıyken tamamen görünmez ve tıklanamaz. Açılınca ince
+   bir ışık halkası iki kez nabız atar, sonra hafif parlak kalır. */
+.giris-v5-alan{--alan-renk:#f2c14e;position:absolute;display:block;border-radius:10px;opacity:0;pointer-events:none;
+  box-shadow:0 0 0 1.5px color-mix(in srgb,var(--alan-renk) 70%,transparent),0 0 22px color-mix(in srgb,var(--alan-renk) 35%,transparent);
+  transition:opacity .35s ease,transform .25s ease,box-shadow .25s ease;-webkit-tap-highlight-color:transparent}
+.giris-v5-alan.is-acik{opacity:1;pointer-events:auto;animation:giris-v5-nabiz 1.4s ease-out 2}
+.giris-v5-alan.is-acik:hover,.giris-v5-alan.is-acik:focus-visible{transform:scale(1.04);outline:none;
+  box-shadow:0 0 0 2px var(--alan-renk),0 0 34px color-mix(in srgb,var(--alan-renk) 60%,transparent)}
+@keyframes giris-v5-nabiz{
+  0%{box-shadow:0 0 0 1.5px var(--alan-renk),0 0 0 0 color-mix(in srgb,var(--alan-renk) 55%,transparent)}
+  100%{box-shadow:0 0 0 1.5px color-mix(in srgb,var(--alan-renk) 70%,transparent),0 0 0 18px transparent}}
+
+/* Son karede küçük AI ÜRETİMİ etiketi (AGENTS.md: her kare etiketlidir). */
+.giris-v5-ai{position:absolute;z-index:3;left:max(14px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));margin:0;
+  padding:4px 7px;border-radius:4px;background:rgba(0,0,0,.55);color:rgba(255,255,255,.82);font:700 9px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.14em}
+.giris-v5-ai[hidden]{display:none}
+
+/* Film bitince sayfa açılır; film ilk ekran olarak son karede kalır. */
+.giris-v5.is-bitti{height:100svh}
+@media (prefers-reduced-motion:reduce){.giris-v5-alan,.giris-v5-alan.is-acik{animation:none;transition:none}}
