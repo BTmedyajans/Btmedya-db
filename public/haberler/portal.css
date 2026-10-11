@@ -464,3 +464,5 @@ body>.hm-cekmece{position:fixed!important;inset:0;z-index:2147483000!important}
   .hm-cekmece .hm-katalog-grup:nth-of-type(2) a span{font-size:clamp(17px,5vw,22px)}
   .hm-cekmece .hm-katalog-grup:nth-of-type(2) a small{font-size:11px;white-space:nowrap}
 }
+/* Altbilgide telefon ile alan adı bitişik yazılıyordu ("…10 29btmedya.com.tr"). */
+.final-footer .footer-contact{display:flex;flex-wrap:wrap;gap:4px 18px}

@@ -1,0 +1,11 @@
+/* BTMEDYA yönetim çubuğu: yalnız yönetici bayrağı varken (yonetim-cubugu.js). */
+.bt-yonetim{position:fixed;z-index:2147483100;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));display:flex;flex-direction:column-reverse;align-items:flex-start;gap:6px;font:700 12px/1 Manrope,system-ui,sans-serif}
+body.bt-clean-intro-active .bt-yonetim{display:none}
+.bt-yonetim-ac{min-height:40px;padding:0 14px;border:1px solid rgba(242,193,78,.55);border-radius:999px;background:rgba(8,9,11,.92);color:#f2c14e;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.45)}
+.bt-yonetim-ac::before{content:'';display:inline-block;width:7px;height:7px;margin-right:8px;border-radius:50%;background:#65e6a4;vertical-align:1px}
+.bt-yonetim-liste{display:flex;flex-direction:column;min-width:190px;padding:6px;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(8,9,11,.96);box-shadow:0 12px 34px rgba(0,0,0,.5)}
+.bt-yonetim-liste[hidden]{display:none}
+.bt-yonetim-liste a,.bt-yonetim-cikis{display:flex;align-items:center;min-height:40px;padding:0 12px;border:0;border-radius:9px;background:none;color:#eef2f5;text-decoration:none;font:inherit;text-align:left;cursor:pointer}
+.bt-yonetim-liste a:hover,.bt-yonetim-liste a:focus-visible,.bt-yonetim-cikis:hover,.bt-yonetim-cikis:focus-visible{background:rgba(242,193,78,.12);color:#f2c14e;outline:none}
+.bt-yonetim-cikis{margin-top:4px;border-top:1px solid rgba(255,255,255,.08);border-radius:0 0 9px 9px;color:#ff8a80}
+@media print{.bt-yonetim{display:none}}
