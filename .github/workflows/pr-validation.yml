@@ -72,6 +72,7 @@ jobs:
           python3 tools/validate-assets.py
           node tools/a11y-denetimi.mjs
           node tools/gerileme-denetimi.mjs
+          node tools/kamu-yuzey-denetimi.mjs
           node tools/link-denetimi.mjs
           # Yeni kapak/medya dosyasi eklenip liste yeniden uretilmezse vitrin
           # yeni kareleri gostermiyor (29 Eylul: 8 trend kapagi listede yoktu).
