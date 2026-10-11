@@ -48,6 +48,11 @@ jobs:
       - name: Asset referanslarını doğrula
         run: python3 tools/validate-assets.py
 
+      # Yeni kapak dosyaları medya listesine girmezse PR doğrulaması
+      # ("medya-listesi.json guncel degil") otomasyon PR'ını kırar.
+      - name: Medya listesini güncelle
+        run: node tools/medya-listesi.mjs
+
       # main korumalı (PR zorunlu + imzalı commit): doğrudan push reddedilir.
       # Kapaklar dönen bir otomasyon dalına yazılır ve PR açılır; squash
       # birleştirmede GitHub imzalı commit üretir. Günlük süpervizör turu
@@ -58,7 +63,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          YOLLAR="public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json tools/temsili-kaynak"
+          YOLLAR="public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json public/data/medya-listesi.json tools/temsili-kaynak"
           if [ -z "$(git status --porcelain -- $YOLLAR)" ]; then
             echo "Üretilecek yeni kapak yok; akış güncel."
             exit 0
@@ -69,7 +74,12 @@ jobs:
           git checkout -B "$DAL"
           git add $YOLLAR
           git commit -m "chore: otomatik haber kapakları üretildi"
-          git push origin "HEAD:$DAL" --force
+          # 11 Ekim: depo kural seti tüm dallarda dal oluşturmayı kısıtlıyor ve
+          # imzalı commit istiyor; Actions bu kuralı aşamıyor. Sessiz kalmasın.
+          if ! git push origin "HEAD:$DAL" --force; then
+            echo "::error::Kapaklar üretildi ama push reddedildi (depo kural seti). GitHub > Settings > Rules: GitHub Actions'ı atlama listesine ekleyin ya da automation/** dallarını kuraldan hariç tutun."
+            exit 1
+          fi
           PR="$(gh pr list --base main --head "$DAL" --state open --json number --jq '.[0].number')"
           if [ -z "$PR" ]; then
             gh pr create --base main --head "$DAL" \
