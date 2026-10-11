@@ -1,0 +1,16 @@
+# BTMEDYA statik dosya önbelleği (11 Ekim). Cloudflare Static Assets varsayılanı
+# "max-age=0, must-revalidate": tarayıcı her ziyarette her CSS/JS/görsel için
+# sunucuya yeniden soruyordu (ana sayfada 75 istek). Bu kurallar yalnız Worker'ın
+# işlemediği statik yanıtlara uygulanır; Worker'ın döndüğü yollar (run_worker_first,
+# ör. /assets/*.mp4, /admin/*, HTML sayfaları) src/worker.js onbellek() ile yönetilir.
+# CSS/JS adresleri ?v= sürümü taşıdığı için bir saatlik önbellek güvenlidir.
+# Görseller aynı adla yeniden üretilebildiği (haber kapağı düzeltmesi) için
+# bir saat taze, bir gün arka planda yenilenir.
+/assets/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/*.css
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/*.js
+  Cache-Control: public, max-age=3600, must-revalidate
