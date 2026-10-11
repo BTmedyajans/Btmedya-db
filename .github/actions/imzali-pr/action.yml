@@ -1,0 +1,39 @@
+name: BTMEDYA imzalı otomasyon PR'ı
+description: >
+  Verilen yollardaki değişiklikleri GitHub API ile imzalı commit olarak bir
+  otomasyon dalına yazar ve main'e PR açar. Depo kural seti imzalı commit
+  istediği için koşucudan `git push` reddedilir; bu aksiyon onun yerine geçer.
+inputs:
+  dal:
+    description: Otomasyon dalı (örn. automation/haber-kapaklari)
+    required: true
+  yollar:
+    description: Boşlukla ayrılmış yol listesi
+    required: true
+  mesaj:
+    description: Commit başlığı
+    required: true
+  pr_baslik:
+    description: PR başlığı
+    required: false
+    default: ""
+  pr_govde:
+    description: PR açıklaması
+    required: false
+    default: ""
+  token:
+    description: contents:write ve pull-requests:write yetkili token
+    required: false
+    default: ${{ github.token }}
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        DAL: ${{ inputs.dal }}
+        YOLLAR: ${{ inputs.yollar }}
+        MESAJ: ${{ inputs.mesaj }}
+        PR_BASLIK: ${{ inputs.pr_baslik || inputs.mesaj }}
+        PR_GOVDE: ${{ inputs.pr_govde }}
+      run: python3 "${{ github.action_path }}/imzali_pr.py"
