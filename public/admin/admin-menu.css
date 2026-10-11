@@ -83,3 +83,7 @@ html.bam-acik{overflow:hidden}
   .bam-grup-baslik{min-height:44px}
   .bam-grup-items{padding-left:7px}
 }
+/* 11 Ekim: araç menüsü ile site kategorileri arasındaki ayraç. */
+.bam-ara-baslik{margin:6px 18px 0;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);color:#76858e;font:700 10px/1.4 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.14em}
+.bam-araclar .bam-alt a[aria-current="page"]{border-color:#d9ff3f}
+.bam .bam-alt[hidden],.bam .bam-grup-items[hidden]{display:none!important}
