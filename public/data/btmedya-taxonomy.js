@@ -2,7 +2,7 @@
    Public + admin arayüzleri aynı ağacı kullanır.
    Ana anahtarlar geriye dönük olarak haber/sosyal/tanitim tutulur. */
 window.BTMEDYA_TAXONOMY = {
-  version: "2026-10-11.1",
+  version: "2026-10-11.2",
   principle: "Müşteri niyetine göre seç, üretim türünü ikinci/üçüncü seviyede belirle, dağıtımı otomasyona bırak.",
   paths: [
     {
@@ -119,9 +119,9 @@ window.BTMEDYA_TAXONOMY = {
           label: "İÇERİK ÜRET",
           adminLabel: "İÇERİK",
           items: [
-            {key:"sosyal-yonetim",label:"Sosyal Medya Yönetimi",short:"Aylık plan, içerik ve yayın ritmi",href:"/sosyal-medya/",type:"service",automation:["client-social-os","native-social","metricool-fallback"]},
-            {key:"reels-shorts",label:"Reels / Shorts",short:"Dikey kısa video örnekleri",href:"/sosyal-medya/#ornek-icerikler",type:"format",automation:["media-vault","native-social","tiktok","youtube"]},
-            {key:"post-carousel",label:"Post / Carousel",short:"Grafik ve bilgi içeriği",href:"/sosyal-medya/",type:"format",automation:["media-vault","canva-workbench","native-social"]}
+            {key:"sosyal-yonetim",label:"Sosyal Medya Yönetimi",short:"Aylık plan, içerik ve yayın ritmi",href:"/sosyal-medya/yonetim/",type:"service",automation:["client-social-os","native-social","metricool-fallback"]},
+            {key:"reels-shorts",label:"Reels / Shorts",short:"Dikey kısa video örnekleri",href:"/sosyal-medya/reels-shorts/",type:"format",automation:["media-vault","native-social","tiktok","youtube"]},
+            {key:"post-carousel",label:"Post / Carousel",short:"Grafik ve bilgi içeriği",href:"/sosyal-medya/yonetim/#marka-dili",type:"format",automation:["media-vault","canva-workbench","native-social"]}
           ]
         },
         {
@@ -129,9 +129,9 @@ window.BTMEDYA_TAXONOMY = {
           label: "KANALLAR",
           adminLabel: "DAĞITIM",
           items: [
-            {key:"instagram-facebook",label:"Instagram + Facebook",short:"Meta hesapları",href:"/sosyal-medya/",type:"channel",automation:["meta-direct"]},
-            {key:"tiktok-youtube",label:"TikTok + YouTube",short:"Kısa ve uzun video",href:"/sosyal-medya/",type:"channel",automation:["tiktok","youtube","metricool-fallback"]},
-            {key:"x-whatsapp",label:"X + WhatsApp",short:"Metin dağıtımı ve müşteri iletişimi",href:"/sosyal-medya/",type:"channel",automation:["x-api","whatsapp-cloud"]}
+            {key:"instagram-facebook",label:"Instagram + Facebook",short:"Meta hesapları",href:"/sosyal-medya/kanallar/#instagram",type:"channel",automation:["meta-direct"]},
+            {key:"tiktok-youtube",label:"TikTok + YouTube",short:"Kısa ve uzun video",href:"/sosyal-medya/kanallar/#tiktok",type:"channel",automation:["tiktok","youtube","metricool-fallback"]},
+            {key:"x-whatsapp",label:"X + WhatsApp",short:"Metin dağıtımı ve müşteri iletişimi",href:"/sosyal-medya/kanallar/#whatsapp",type:"channel",automation:["x-api","whatsapp-cloud"]}
           ]
         },
         {
@@ -187,7 +187,7 @@ window.BTMEDYA_TAXONOMY = {
           label:"MARKA İÇERİĞİ",
           adminLabel:"MARKA",
           items:[
-            {key:"tanitim-filmi",label:"Tanıtım Filmi",short:"İşletme, kurum ve marka hikâyesi",href:"/video-produksiyon/",type:"service",automation:["media-vault","project-hub","social-native"]},
+            {key:"tanitim-filmi",label:"Tanıtım Filmi",short:"İşletme, kurum ve marka hikâyesi",href:"/video-produksiyon/tanitim-filmi/",type:"service",automation:["media-vault","project-hub","social-native"]},
             {key:"urun-hizmet",label:"Ürün / Hizmet İçeriği",short:"Fotoğraf, video ve kısa formatlar",href:"/portfoy/?niyet=tanitim",type:"service",automation:["media-vault","social-native"]},
             {key:"kampanya-reklam",label:"Kampanya & Reklam Kreatifi",short:"Dijital kampanya ve sponsorlu içerik",href:"/reklam-ve-sponsorluk/",type:"service",automation:["project-hub","sales","social-native"]}
           ]
@@ -199,7 +199,7 @@ window.BTMEDYA_TAXONOMY = {
           items:[
             {key:"dugun-ozel-gun",label:"Düğün / Özel Gün",short:"Düğün, nişan, kına ve gelin alımı",href:"/portfoy/?niyet=dugun",type:"service",automation:["media-vault","project-hub","social-native"]},
             {key:"etkinlik",label:"Etkinlik",short:"Kurumsal ve özel etkinlik çekimi",href:"/portfoy/?niyet=etkinlik",type:"service",automation:["media-vault","project-hub","social-native"]},
-            {key:"foto-video",label:"Fotoğraf + Video Prodüksiyon",short:"Çekimden kurguya teslim",href:"/video-produksiyon/#gercek-isler",type:"service",automation:["media-vault","project-hub"]}
+            {key:"foto-video",label:"Fotoğraf + Video Prodüksiyon",short:"Çekimden kurguya teslim",href:"/video-produksiyon/gercek-isler/",type:"service",automation:["media-vault","project-hub"]}
           ]
         },
         {
