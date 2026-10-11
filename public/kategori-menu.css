@@ -140,4 +140,10 @@ html.btkm-acik,html.btkm-acik body{overflow:hidden}
   .btkm-isik,.btkm-akan,.btkm-pano.is-giris *,.btkm.is-acik .btkm-sahne{animation:none!important}
   .btkm-imlec{transition:none}
 }
-@media print{.btkm{display:none}}
+/* Logo v6 ışık süzülmesi: 8 sn'de bir, sol üstten sağa; yalnız harflerde. */
+.bt-parilti{position:relative;display:inline-block;line-height:0;vertical-align:middle;max-width:100%}
+.bt-parilti>img{display:block}
+.bt-parilti::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 30%,rgba(255,252,236,.95) 46%,rgba(255,232,160,.55) 53%,transparent 66%) no-repeat;background-size:260% 100%;background-position:130% 0;-webkit-mask:var(--bt-logo) center/100% 100% no-repeat;mask:var(--bt-logo) center/100% 100% no-repeat;mix-blend-mode:screen;animation:btParilti 8s cubic-bezier(.45,0,.2,1) 1.6s infinite}
+@keyframes btParilti{0%{background-position:130% 0}16%,100%{background-position:-30% 0}}
+@media (prefers-reduced-motion:reduce){.bt-parilti::after{animation:none;display:none}}
+@media print{.btkm{display:none}.bt-parilti::after{display:none}}

@@ -83,7 +83,7 @@
       '<div class="btkm-perde" data-btkm-kapat></div>'+
       '<div class="btkm-panel">'+
         '<div class="btkm-ust">'+
-          '<a class="btkm-marka" href="/"><img src="/assets/logo/btmedya-logo-v5-baslik.webp" alt="BTMEDYA" width="132" height="24" decoding="async"></a>'+
+          '<a class="btkm-marka" href="/"><img src="/assets/logo/btmedya-logo-v6-baslik.webp" alt="BTMEDYA" width="132" height="24" decoding="async"></a>'+
           '<button type="button" class="btkm-kapat" data-btkm-kapat aria-label="Menüyü kapat"><span aria-hidden="true"></span>Kapat</button>'+
         '</div>'+
         '<form class="btkm-ara" action="/haberler/" method="get" role="search">'+
@@ -195,6 +195,21 @@
       const baslik=document.querySelector('body>header,header');if(baslik)baslik.appendChild(d);else{d.classList.add('btkm-dugme-sabit');document.body.appendChild(d)}
     }
   }
+
+  // Başlık ve alt bilgi logosunda ara sıra süzülen ışık (logo v6, kullanıcı:
+  // "daha canlı, parlak altın"). Işık yalnız harflerin üstünde kalsın diye
+  // logo kendi görseliyle maskelenir; maske kutusu görselle birebir olsun
+  // diye görsel ince bir sarmalayıcıya alınır. Bu dosya her sayfanın başlık
+  // davranışını taşıdığı için burada.
+  function parilti(){
+    document.querySelectorAll('img.brand-logo,img.footer-logo').forEach(img=>{
+      if(img.parentNode.classList&&img.parentNode.classList.contains('bt-parilti'))return;
+      const s=document.createElement('span');s.className='bt-parilti';
+      s.style.setProperty('--bt-logo','url("'+img.getAttribute('src')+'")');
+      img.parentNode.insertBefore(s,img);s.appendChild(img);
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',parilti);else parilti();
 
   if(window.BTMEDYA_TAXONOMY) boot();
   else{

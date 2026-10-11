@@ -210,7 +210,7 @@ if __name__ == "__main__":
             "etiketler": ETIKETLER, "olculer": OLCULER, "foto_yuvalari": FOTO_YUVALARI,
             # Resmî logo v5 (10 Ekim): amblem + MEDYA, altın tonları, şeffaf zemin
             # (tools/logo/logo-v5-uret.py); son dosya orijinal renkler (logo-v4-uret.py).
-            "logolar": ["/assets/logo/btmedya-logo-v5.png", "/assets/logo/btmedya-logo-v5-tam.png", "/assets/logo/bt-amblem-v5.png", "/assets/logo/btmedya-logo-v4.png"]}
+            "logolar": ["/assets/logo/btmedya-logo-v6.png", "/assets/logo/btmedya-logo-v6-tam.png", "/assets/logo/bt-amblem-v6.png", "/assets/logo/btmedya-logo-v4.png"]}
     with open(os.path.join(KOK, "public", "data", "marka-kiti.json"), "w", encoding="utf-8") as f:
         json.dump(veri, f, ensure_ascii=False, indent=1)
         f.write("\n")

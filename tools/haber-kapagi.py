@@ -701,7 +701,7 @@ def logo_plakasi(im):
     # plaka kaldırıldı. Şeffaf altın kilit (amblem + MEDYA, tools/logo/
     # logo-v5-uret.py) yalnız hafif siyah gölgeyle fotoğrafın üstüne biner;
     # gölge, açık renkli karelerde de okunurluğu korur (blok değil).
-    logo = Image.open(os.path.join(KOK, "public", "assets", "logo", "btmedya-logo-v5.png")).convert("RGBA")
+    logo = Image.open(os.path.join(KOK, "public", "assets", "logo", "btmedya-logo-v6.png")).convert("RGBA")
     lh = round(W * 0.038)
     logo = logo.resize((int(logo.width * lh / logo.height), lh), Image.LANCZOS)
     x, y = W - 34 - logo.width, 34
