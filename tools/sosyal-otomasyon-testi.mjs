@@ -26,4 +26,16 @@ const eski=altyazi({slug:'y',title:'Güneş koruyucu',excerpt:'s',category:'Sağ
 assert.match(eski,/📌 Arşiv haberi · Ağustos 2024/); assert.match(eski,/#Sağlık/);
 const taze=altyazi({slug:'z',title:'t',excerpt:'s',category:'Spor',published_at:'2026-09-28T09:00:00Z'},'',new Date('2026-09-29T00:00:00Z'));
 assert.doesNotMatch(taze,/Arşiv/);
+// Ortak marka şablonu (11 Ekim): varsayılan iskelet, panelden değişen alanlar,
+// geçersiz etiketin düşmesi ve AI karesinin metinde beyanı.
+assert.match(m,/Haberin tamamı: btmedya\.com\.tr\/haberler\/x/);
+assert.match(m,/BTMEDYA · Hikâyeleri yaşatıyoruz\n\n#BTMEDYA/, 'imza etiketlerden hemen önce');
+assert.doesNotMatch(m,/AI ÜRETİMİ/, 'AI bilgisi yoksa beyan basılmaz');
+const sb=(await ayarlariYaz(env,{sablon:{cta:'  Devamı  :',imza:'X',sabitEtiketler:['BTMEDYA','#Balıkesir Haber','#a','#Haber_Merkezi'],konuEtiketleri:false,aiBeyani:true}})).sablon;
+assert.deepEqual(sb.sabitEtiketler,['#BTMEDYA','#Haber_Merkezi'], 'boşluklu ve tek harfli etiket düşer, # eklenir');
+assert.equal(sb.cta,'Devamı :');
+const ozel=altyazi({slug:'q',title:'Balıkesir yangını',excerpt:'s',category:'Gündem'},'',new Date(),sb,true);
+assert.match(ozel,/Devamı : btmedya\.com\.tr\/haberler\/q/); assert.match(ozel,/Görsel: AI ÜRETİMİ/);
+assert.doesNotMatch(ozel,/#Gündem|#Balıkesir\b/, 'konu etiketleri kapalıyken eklenmez');
+assert.equal((await ayarlariOku(env)).sablon.imza,'X', 'şablon KV\'de kalıcı');
 console.log('TUM TESTLER GECTI');

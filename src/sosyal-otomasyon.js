@@ -22,7 +22,17 @@ const VARSAYILAN = Object.freeze({
   saatler: ['10:00', '16:00', '18:00'],
   // Arsiv haberleri otomatik paylasilmasin: yalniz bu kadar saat icinde
   // yayinlanan haberler otomatik planlanir, eskiler onaya duser.
-  tazelikSaat: 72
+  tazelikSaat: 72,
+  // Ortak marka şablonu (11 Ekim, kullanıcı: "sosyal medyada paylaşılacak
+  // içeriklere ortak marka şablonu"). Her otomatik gönderinin metni aynı
+  // iskeletten çıkar; panelden değişir. İmza logodaki slogandır.
+  sablon: Object.freeze({
+    cta: 'Haberin tamamı:',
+    imza: 'BTMEDYA · Hikâyeleri yaşatıyoruz',
+    sabitEtiketler: ['#BTMEDYA'],
+    konuEtiketleri: true,
+    aiBeyani: true
+  })
 });
 const AG_SLUG = { instagram: 'instagram-post', facebook: 'facebook-post', tiktok: 'tiktok', youtube: 'youtube' };
 // Turkiye 2016'dan beri yaz saati uygulamiyor; UTC+3 sabit.
@@ -54,7 +64,24 @@ function temizle(a) {
     aglar,
     otomatikPlanla: a.otomatikPlanla === true,
     saatler: saatler.length ? saatler : [...VARSAYILAN.saatler],
-    tazelikSaat: Number.isFinite(tazelik) && tazelik > 0 ? Math.min(tazelik, 720) : VARSAYILAN.tazelikSaat
+    tazelikSaat: Number.isFinite(tazelik) && tazelik > 0 ? Math.min(tazelik, 720) : VARSAYILAN.tazelikSaat,
+    sablon: sablonTemizle(a.sablon)
+  };
+}
+
+// Etiket: # ile başlar, harf/rakam/alt çizgi; boşluklu ya da noktalama
+// içeren etiket platformda kırılır, en fazla 6 sabit etiket (spam görünmesin).
+const ETIKET_DESENI = /^#[\p{L}\p{N}_]{2,30}$/u;
+function sablonTemizle(s) {
+  const v = VARSAYILAN.sablon, x = s && typeof s === 'object' ? s : {};
+  const metin = (d, sinir, yedek) => typeof d === 'string' ? d.replace(/\s+/g, ' ').trim().slice(0, sinir) : yedek;
+  const etiket = Array.isArray(x.sabitEtiketler) ? [...new Set(x.sabitEtiketler.map(e => String(e).trim()).map(e => e.startsWith('#') ? e : '#' + e).filter(e => ETIKET_DESENI.test(e)))].slice(0, 6) : [...v.sabitEtiketler];
+  return {
+    cta: metin(x.cta, 40, v.cta),
+    imza: metin(x.imza, 90, v.imza),
+    sabitEtiketler: etiket,
+    konuEtiketleri: x.konuEtiketleri === undefined ? v.konuEtiketleri : x.konuEtiketleri === true,
+    aiBeyani: x.aiBeyani === undefined ? v.aiBeyani : x.aiBeyani === true
   };
 }
 
@@ -103,10 +130,11 @@ function duz(s) {
    Etiketler haberin kategori/baslik metninden turer; elle yazilmaz. */
 const AYLAR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
 
-export function altyazi(n, kunye, simdi = new Date()) {
+export function altyazi(n, kunye, simdi = new Date(), sablon = VARSAYILAN.sablon, ai = null) {
+  const sb = sablonTemizle(sablon);
   const t = duz([n.category, n.title].join(' '));
-  const etiket = ['#BTMEDYA'];
-  for (const [re, e] of ETIKETLER) if (re.test(t)) etiket.push(...e);
+  const etiket = [...sb.sabitEtiketler];
+  if (sb.konuEtiketleri) for (const [re, e] of ETIKETLER) if (re.test(t)) etiket.push(...e);
   // 30 gunden eski haber bugun olmus gibi paylasilmasin: tarih acikca yazilir.
   const yayin = new Date(n.published_at || '');
   const arsiv = !Number.isNaN(yayin.getTime()) && simdi - yayin > 30 * 86400000
@@ -115,9 +143,13 @@ export function altyazi(n, kunye, simdi = new Date()) {
     String(n.title || '').trim(),
     arsiv,
     String(n.excerpt || '').replace(/\s+/g, ' ').trim(),
-    `Haberin tamamı: btmedya.com.tr/haberler/${n.slug}`
+    `${sb.cta ? sb.cta + ' ' : ''}btmedya.com.tr/haberler/${n.slug}`
   ];
   if (kunye) parca.push(`Görsel: ${kunye}`);
+  // AGENTS.md: AI etiketi zorunluluk. Kart karesi AI üretimiyse metinde de
+  // yazar (görsel kırpılınca karttaki baskı görünmeyebilir).
+  if (sb.aiBeyani && ai === true) parca.push('Görsel: AI ÜRETİMİ');
+  if (sb.imza) parca.push(sb.imza);
   parca.push([...new Set(etiket)].join(' '));
   return parca.filter(Boolean).join('\n\n').slice(0, 2200);
 }
