@@ -171,6 +171,11 @@ assert.equal(M.benzerBaslik('Balıkesir Büyükşehir kütüphaneleri tek dijita
 assert.equal(M.tanitimMi("Göz kapağı estetiği... Dünyagöz Etiler Hastanesi'nden Prof. Dr."), true);
 assert.equal(M.tanitimMi('Özel Balıkesir Park Hastanesi yeni bölüm açtı'), true);
 assert.equal(M.tanitimMi('Balıkesir Atatürk Şehir Hastanesi yeni poliklinik açtı'), false);
+// 11 Ekim: bahis platformu bülteni haber diye yayına girdi.
+assert.equal(M.tanitimMi("Misli üyesi Bursa Hipodromu'nda 90 TL'ye 60.225 TL kazandı, 25,80 ganyanla sürpriz galip"), true);
+assert.equal(M.tanitimMi("Bir platform üyesi 50 TL'ye 1.250.000 TL kazandı"), true);
+assert.equal(M.tanitimMi('Gazi Koşusu\'nu 2,05 ganyanla favori at kazandı'), false);
+assert.equal(M.tanitimMi('Balıkesirspor deplasmanda 2-1 kazandı'), false);
 // Kulis: canlıdaki Spor taslağı atıfsızdı; atıflı hâli geçer.
 const kulisKaynak = "Fenerbahçe'de devre arası 50 milyon euroluk golcü operasyonu! Sarı-lacivertliler Balogun'u kadrosuna katmak istiyor.";
 const atifsiz = { ...iyi, baslik: "Fenerbahçe, Lukaku performans düşerse Balogun transferi hedefliyor", spot: 'Fenerbahçe, ocak ayında Monaco forveti Folarin Balogun için hamle yapmayı planlıyor; oyuncunun piyasa değeri 50 milyon euro olarak gösteriliyor ve sözleşmesi iki yıl daha sürüyor.' };

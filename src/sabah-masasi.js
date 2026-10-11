@@ -110,7 +110,12 @@ export function hassasMi(metin) { return HASSAS.test(duz(metin)); }
    tanıtımıydı ve Sağlık taslağı olarak çıktı. Metnin başında adı geçen özel
    sağlık markası ya da "Özel ... Hastanesi" varsa aday atlanır. */
 const TANITIM = /\b(dunyagoz|acibadem|memorial|medical park|liv hospital|medipol|florence nightingale|anadolu saglik merkezi|medicana|medline|hisar intercontinental|amerikan hastanesi|american hospital|guven hastanesi|istinye universitesi hastanesi|koc universitesi hastanesi|ozel [a-z]{2,20}( [a-z]{2,20}){0,3} (hastanesi|poliklinigi|klinigi|tip merkezi)|estetik (merkezi|klinigi))\b/;
-export function tanitimMi(metin) { return TANITIM.test(duz(metin)); }
+// 11 Ekim: "Misli üyesi Bursa Hipodromu'nda 90 TL'ye 60.225 TL kazandı" bahis
+// platformunun bülteni haber diye yayına girdi. Platform adı ya da "üyesi …
+// TL kazandı" kalıbı tanıtımdır; TJK koşu sonucu, Spor Toto kararı gibi
+// haberler bu kalıplara uymaz.
+const BAHIS_TANITIM = /\b(misli(\.com)?|nesine(\.com)?|bilyoner|tuttur(\.com)?|oley(\.com)?|birebin|hipodrom\.com|(uyesi|kullanicisi|oyuncusu) .{0,80}\b(tl|lira)(['’]?(ye|ya|lik|luk))? .{0,40}\bkazandi)\b/;
+export function tanitimMi(metin) { const d = duz(metin); return TANITIM.test(d) || BAHIS_TANITIM.test(d); }
 
 /* Kulis, iddia ve transfer söylentisi kesin bilgi gibi yazılmaz; kaynağa
    atfedilir. 29 Eylül Spor taslağı bir transfer iddiasını "hedefliyor" diye
