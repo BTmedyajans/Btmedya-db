@@ -48,6 +48,11 @@ r = await istek('/api/login', { method: 'POST', headers: { 'content-type': 'appl
 assert.equal(r.status, 200);
 const cerez = (r.headers.get('set-cookie') || '').split(';')[0];
 assert.match(cerez, /^bt_admin=./, 'girişte oturum çerezi verilmeli');
+// Yönetim çubuğu bayrağı (11 Ekim): ayrı, gizli bilgi taşımayan çerez; oturum
+// çerezi HttpOnly kalır.
+const cerezler = r.headers.getSetCookie ? r.headers.getSetCookie() : [];
+assert.ok(cerezler.some(c => /^bt_admin=.+HttpOnly/.test(c)), 'oturum çerezi HttpOnly olmalı');
+assert.ok(cerezler.some(c => /^bt_yonetici=1;/.test(c) && !/HttpOnly/.test(c)), 'girişte yönetim çubuğu bayrağı verilmeli');
 
 // 4) Oturumla /admin/ yönetim kabuğunu (200), alt sayfa içeriği açar.
 r = await istek('/admin/', { headers: { cookie: cerez } });

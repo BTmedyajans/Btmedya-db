@@ -38,6 +38,19 @@ import { sosyalTekillemeAyir, sosyalTekillemeBagla, sosyalTekillemeBirak, sosyal
  */
 
 const json = (data, status=200, headers={}) => new Response(JSON.stringify(data), {status, headers:{'content-type':'application/json; charset=utf-8', 'cache-control':'no-store', ...headers}});
+/* Yönetim çubuğu bayrağı (11 Ekim, kullanıcı isteği: "admin panelini siteye
+   entegre et"). Herkese açık sayfalar yönetim kısayollarını yalnız bu çerez
+   varsa gösterir (public/yonetim-cubugu.js). Gizli bilgi taşımaz: oturum
+   bt_admin'de, HttpOnly ve imzalı kalır; /admin/ ve /api/admin/* yine Access
+   + oturum ister. Bayrağı elle yazan biri yalnız giriş ekranına giden
+   bağlantılar görür. */
+const YONETICI_BAYRAGI = 'bt_yonetici=1; Path=/; Secure; SameSite=Lax';
+function oturumYaniti(token) {
+  const h = new Headers({'content-type':'application/json; charset=utf-8','cache-control':'no-store'});
+  h.append('set-cookie', `bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=86400; Priority=High`);
+  h.append('set-cookie', YONETICI_BAYRAGI + '; Max-Age=86400');
+  return new Response(JSON.stringify({ok:true}), {status:200, headers:h});
+}
 const text = (data, status=200, headers={}) => new Response(data, {status, headers:{'content-type':'text/plain; charset=utf-8', ...headers}});
 const KANONIK_HOST = "btmedya.com.tr";
 const IKINCIL_HOSTLAR = new Set(["btmedyaajans.com"]);
@@ -1369,14 +1382,19 @@ async function mediaApi(request, env){
       return json({error:'Geçersiz kimlik bilgisi',remaining:rate.remaining},401);
     await clearRateLimit(env,ip);
     const token=await sessionToken(sess);
-    return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=86400; Priority=High`});
+    return oturumYaniti(token);
   }
-  if(path==='/api/logout') return new Response(null,{status:204,headers:{'cache-control':'no-store','clear-site-data':'"cookies", "storage"','set-cookie':'bt_admin=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict; Priority=High'}});
+  if(path==='/api/logout'){
+    const h=new Headers({'cache-control':'no-store','clear-site-data':'"cookies", "storage"'});
+    h.append('set-cookie','bt_admin=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict; Priority=High');
+    h.append('set-cookie',YONETICI_BAYRAGI+'; Max-Age=0');
+    return new Response(null,{status:204,headers:h});
+  }
 
   if(path==='/api/refresh' && request.method==='POST'){
     if(!await validSession(request,sess)) return json({ok:false,error:'Geçersiz veya süresi dolmuş oturum'},401);
     const token=await sessionToken(sess);
-    return json({ok:true},200,{'set-cookie':`bt_admin=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=86400; Priority=High`});
+    return oturumYaniti(token);
   }
 
 
