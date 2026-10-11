@@ -44,6 +44,11 @@
     },
     genis:{
       src:kaynak(film.dataset.genis,film.dataset.genisWebm), poster:film.dataset.genisPoster, en:1280, boy:720, sonKart:36.0,
+      // Dokunma alanı olmayan bölüm başlıkları (kareden ölçüldü, 11 Ekim).
+      vurgular:[
+        {t0:1.0, t1:3.9, x:6.2, y:76, w:49.5, h:16},
+        {t0:9.3, t1:12.0, x:6.2, y:76, w:42, h:16}
+      ],
       alanlar:[
         {t0:18.8, t1:21.3, x:14.2, y:76.5, w:12.8, h:9.5, href:'/haberler/', ad:'Haber'},
         {t0:18.8, t1:21.3, x:29.6, y:76.5, w:28.8, h:9.5, href:'/sosyal-medya/', ad:'Sosyal ve dijital'},
@@ -74,8 +79,34 @@
   etiket.hidden=true;
   kok.appendChild(etiket);
 
+  // Başlık ışığı (11 Ekim, kullanıcı: "ana başlık videoda konusuna göre
+  // göründükçe motion yazı efekti olsun"). Filmin kendi başlıkları (SAHADAN,
+  // EKRANA, 01 HABER, GAZETECİ...) göründüğü an üstlerinden altın bir ışık
+  // geçer. Yeni yazı eklenmez (film sürerken ekranda filmden başka yazı
+  // istenmedi); color-dodge yalnız açık renkli harfleri parlatır. Katman
+  // z-index almaz ki videoyla aynı grupta karışsın.
+  const vurguKutu=document.createElement('div');
+  vurguKutu.className='giris-v5-vurgular';
+  vurguKutu.setAttribute('aria-hidden','true');
+  film.after(vurguKutu);
+  let vurgular=[];
+  const vurguKur=()=>{
+    vurguKutu.textContent='';
+    const ayni={};
+    vurgular=[...(p.vurgular||[]),...p.alanlar.filter(a=>!a.son)].map(a=>{
+      const e=document.createElement('i');
+      e.className='giris-v5-vurgu';
+      // Aynı anda açılan başlıklarda ışık soldan sağa sırayla geçer.
+      const sira=ayni[a.t0]=(ayni[a.t0]||0)+1;
+      e.style.setProperty('--gecikme',((sira-1)*0.18)+'s');
+      vurguKutu.appendChild(e);
+      return {a,d:e};
+    });
+  };
+
   let dugmeler=[];
   const kur=()=>{
+    vurguKur();
     katman.textContent='';
     dugmeler=p.alanlar.map(a=>{
       const d=document.createElement('a');
@@ -103,7 +134,7 @@
   };
   const yerlestir=()=>{
     const {s,ox,oy}=oturt();
-    for(const {a,d} of dugmeler){
+    for(const {a,d} of [...dugmeler,...vurgular]){
       d.style.left=(ox+a.x/100*p.en*s)+'px';
       d.style.top=(oy+a.y/100*p.boy*s)+'px';
       d.style.width=(a.w/100*p.en*s)+'px';
@@ -120,6 +151,10 @@
         d.classList.toggle('is-acik',acik);
         d.tabIndex=acik?0:-1;
       }
+    }
+    for(const {a,d} of vurgular){
+      const acik=t>=a.t0&&t<a.t1;
+      if(acik!==d.classList.contains('is-acik'))d.classList.toggle('is-acik',acik);
     }
   };
   const dongu=()=>{zaman();if(!film.paused&&!film.ended)requestAnimationFrame(dongu);};
@@ -168,7 +203,7 @@
     const a=y&&y['hero-video'];
     const url=a&&String(a.url||'');
     if(!url||EMEKLI.test(url.split('?')[0])||/btmedya-tanitim-v5/.test(url))return false;
-    p={...p,src:url,poster:(y['hero-poster']&&y['hero-poster'].url)||'',alanlar:[]};
+    p={...p,src:url,poster:(y['hero-poster']&&y['hero-poster'].url)||'',alanlar:[],vurgular:[]};
     for(const k of Object.keys(PLAN))PLAN[k]=p;
     kur();
     yukle();
