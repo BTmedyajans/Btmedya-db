@@ -418,9 +418,22 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   // Menüdeki her bağlantının karşılığı olmalı: statik sayfa ya da Worker'ın
   // ürettiği temiz haber kategorisi adresi.
   const menu = readFileSync('public/kategori-menu.js', 'utf8');
-  for (const [, yol] of menu.matchAll(/\['[^']+','(\/[^']*)'\]/g)) {
+  // v4 menü başlık bağlantılarını taksonomiden alır; kamuya açık gruplar
+  // (adminGroups dışı) aynı denetimden geçer.
+  const vm = await import('node:vm');
+  const kutu = { window: {} };
+  vm.runInNewContext(readFileSync('public/data/btmedya-taxonomy.js', 'utf8'), kutu);
+  const kamuHref = kutu.window.BTMEDYA_TAXONOMY.paths.flatMap(p => p.groups.flatMap(g => g.items.map(i => i.href)));
+  const sozluk = kamuHref.map(h => `"${h}"`).join(' ');
+  const yollar = [...menu.matchAll(/\['[^']+','(\/[^']*)'\]/g)].map(m => m[1]).concat(kamuHref);
+  // 11 Ekim: haber portalının çekmecesi okuru /admin/ sayfalarına (Social OS,
+  // Medya Kasası, Connect) gönderiyordu; okur Access giriş duvarına çarpıyordu.
+  // Kamuya açık menüler yönetim adresi taşımaz.
+  for (const [dosya, metin] of [['public/data/btmedya-taxonomy.js (kamu grupları)', sozluk], ['public/kategori-menu.js', menu], ['public/haberler/index.html', readFileSync('public/haberler/index.html', 'utf8').split('id="hm-cekmece"')[1] || '']])
+    for (const m of metin.matchAll(/["'](\/admin\/[^"']*)["']/g)) bulgular.push(`${dosya} kamuya açık menüde yönetim bağlantısı var: ${m[1]} (okur giriş duvarına çarpar).`);
+  for (const yol of yollar) {
     const clean = yol.split('?')[0].split('#')[0];
-    if (/^\/haberler\/(balikesir|turkiye|dunya|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|yasam)\/$/.test(clean)) continue;
+    if (/^\/haberler\/(balikesir|turkiye|dunya|gundem|ekonomi|kultur|egitim|saglik|spor|teknoloji|yasam)\/$/.test(clean) || /^\/haberler\/balikesir\/[a-z]+\/$/.test(clean)) continue;
     const target = clean.endsWith('/') ? join('public', clean, 'index.html') : join('public', clean);
     if (!existsSync(target) && !existsSync(target + '.html') && !existsSync(join('public', clean, 'index.html'))) {
       bulgular.push(`public/kategori-menu.js menü bağlantısı ${yol} için sayfa yok (public${clean}index.html).`);

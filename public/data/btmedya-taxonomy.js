@@ -2,15 +2,16 @@
    Public + admin arayüzleri aynı ağacı kullanır.
    Ana anahtarlar geriye dönük olarak haber/sosyal/tanitim tutulur. */
 window.BTMEDYA_TAXONOMY = {
-  version: "2026-10-10.1",
+  version: "2026-10-11.1",
   principle: "Müşteri niyetine göre seç, üretim türünü ikinci/üçüncü seviyede belirle, dağıtımı otomasyona bırak.",
   paths: [
     {
       key: "haber",
       number: "01",
-      label: "HABER & MEDYA",
+      label: "HABER",
       shortLabel: "HABER",
-      description: "Haber, röportaj, saha hikâyesi, özel dosya ve medya arşivi.",
+      longLabel: "HABER & MEDYA",
+      description: "Balıkesir'den dünyaya kaynağı belli haber, röportaj ve özel dosya.",
       customerIntent: "Bir gelişmeyi okumak, araştırmak veya BTMEDYA'nın medya üretimini görmek.",
       publicHref: "/haberler/",
       groups: [
@@ -63,7 +64,7 @@ window.BTMEDYA_TAXONOMY = {
           items: [
             {key:"roportaj",label:"Röportaj",short:"Soru-cevap ve saha görüşmesi",href:"/halk-roportaji/",type:"editorial",automation:["source-desk","ai-editor","seo-aeo"]},
             {key:"ozel-dosya",label:"Özel Dosya",short:"Çok kaynaklı derinlemesine içerik",href:"/dosyalar/",type:"editorial",automation:["source-desk","news-intelligence","ai-editor"]},
-            {key:"siyah-oda",label:"Siyah Oda / YouTube",short:"Uzman sohbeti ve bölüm üretimi",href:"/siyah-oda/",type:"program",automation:["media-vault","social-native","youtube"]}
+            {key:"siyah-oda",label:"Siyah Oda",short:"Uzman sohbeti ve bölüm üretimi",href:"/siyah-oda/",type:"program",automation:["media-vault","social-native","youtube"]}
           ]
         },
         {
@@ -106,9 +107,10 @@ window.BTMEDYA_TAXONOMY = {
     {
       key: "sosyal",
       number: "02",
-      label: "SOSYAL & DİJİTAL",
+      label: "SOSYAL MEDYA",
       shortLabel: "SOSYAL",
-      description: "Sosyal medya yönetimi, içerik üretimi, platform dağıtımı, SEO, web ve AI otomasyonu.",
+      longLabel: "SOSYAL & DİJİTAL",
+      description: "Hesap yönetimi, Reels ve kısa video, SEO, web ve AI otomasyonu.",
       customerIntent: "İçerik üretmek, sosyal hesapları yönetmek, görünürlüğü artırmak ve yayınlamayı otomatikleştirmek.",
       publicHref: "/sosyal-medya/",
       groups: [
@@ -118,7 +120,7 @@ window.BTMEDYA_TAXONOMY = {
           adminLabel: "İÇERİK",
           items: [
             {key:"sosyal-yonetim",label:"Sosyal Medya Yönetimi",short:"Aylık plan, içerik ve yayın ritmi",href:"/sosyal-medya/",type:"service",automation:["client-social-os","native-social","metricool-fallback"]},
-            {key:"reels-shorts",label:"Reels / Shorts",short:"Dikey kısa video",href:"/sosyal-medya/",type:"format",automation:["media-vault","native-social","tiktok","youtube"]},
+            {key:"reels-shorts",label:"Reels / Shorts",short:"Dikey kısa video örnekleri",href:"/sosyal-medya/#ornek-icerikler",type:"format",automation:["media-vault","native-social","tiktok","youtube"]},
             {key:"post-carousel",label:"Post / Carousel",short:"Grafik ve bilgi içeriği",href:"/sosyal-medya/",type:"format",automation:["media-vault","canva-workbench","native-social"]}
           ]
         },
@@ -173,9 +175,10 @@ window.BTMEDYA_TAXONOMY = {
     {
       key: "tanitim",
       number: "03",
-      label: "MARKA & PRODÜKSİYON",
-      shortLabel: "MARKA",
-      description: "Tanıtım filmi, fotoğraf-video, etkinlik, özel gün, grafik, kampanya ve portföy.",
+      label: "PRODÜKSİYON",
+      shortLabel: "PRODÜKSİYON",
+      longLabel: "MARKA & PRODÜKSİYON",
+      description: "Tanıtım filmi, fotoğraf-video, etkinlik, özel gün, kampanya ve portföy.",
       customerIntent: "Markasını, ürününü, etkinliğini veya özel gününü profesyonel içerikle anlatmak.",
       publicHref: "/video-produksiyon/",
       groups: [
@@ -196,7 +199,7 @@ window.BTMEDYA_TAXONOMY = {
           items:[
             {key:"dugun-ozel-gun",label:"Düğün / Özel Gün",short:"Düğün, nişan, kına ve gelin alımı",href:"/portfoy/?niyet=dugun",type:"service",automation:["media-vault","project-hub","social-native"]},
             {key:"etkinlik",label:"Etkinlik",short:"Kurumsal ve özel etkinlik çekimi",href:"/portfoy/?niyet=etkinlik",type:"service",automation:["media-vault","project-hub","social-native"]},
-            {key:"foto-video",label:"Fotoğraf + Video Prodüksiyon",short:"Çekimden kurguya teslim",href:"/video-produksiyon/",type:"service",automation:["media-vault","project-hub"]}
+            {key:"foto-video",label:"Fotoğraf + Video Prodüksiyon",short:"Çekimden kurguya teslim",href:"/video-produksiyon/#gercek-isler",type:"service",automation:["media-vault","project-hub"]}
           ]
         },
         {
