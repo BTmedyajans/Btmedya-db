@@ -502,8 +502,10 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   const ana = readFileSync('public/index.html', 'utf8');
   const videolar = ana.match(/<video\b[^>]*>/g) || [];
   if (ana.includes('data-giris-v5')) {
-    /* 11 Ekim giriş filmi v5: tek video, yazısız; seçenekler filmin kendi
-       etiketlerinin üstünde (giris-v5.js). İki kurgu da ses izi taşır. */
+    /* 11 Ekim giriş filmi v5: tek video, yazısız; film sonunda bölüm paneli
+       açılır (giris-v5.js, tools/alt-kategori-denetimi.mjs). Film sessizdir
+       (11 Ekim, kullanıcı: "videoyu ses olmadan yerleştir"): dosyalarda ses
+       izi bulunmaz, betik sesli oynatmayı denemez. */
     const v = videolar[0] || '';
     if (videolar.length !== 1 || !/\bmuted\b/.test(v) || !/\bplaysinline\b/.test(v))
       bulgular.push('Giriş filmi v5 tek, sessiz başlayan, satır içi video olmalı.');
@@ -513,11 +515,14 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
       const dosya = join('public', yol.split('?')[0]);
       const imza = dosya.endsWith('.mp4') ? 'mp4a' : dosya.endsWith('.webm') ? 'OpusHead' : '';
       if (!existsSync(dosya)) bulgular.push(`Giriş filmi v5 dosyası yok: ${dosya}`);
-      else if (imza && !readFileSync(dosya).includes(Buffer.from(imza))) bulgular.push(`${dosya} ses izi taşımıyor (${imza} yok).`);
+      else if (imza && readFileSync(dosya).includes(Buffer.from(imza))) bulgular.push(`${dosya} ses izi taşıyor (${imza}); giriş filmi sessiz olmalı.`);
     }
     const js = existsSync('public/giris-v5.js') ? readFileSync('public/giris-v5.js', 'utf8') : '';
     if (!js || !ana.includes('/giris-v5.js')) bulgular.push('public/index.html giris-v5.js yüklemiyor; film seçenekleri çalışmaz.');
     else if (!/AI ÜRETİMİ/.test(js)) bulgular.push('giris-v5.js son karede AI ÜRETİMİ etiketi basmıyor (AGENTS.md).');
+    else if (/muted\s*=\s*false/.test(js)) bulgular.push('giris-v5.js filmi sesli açmaya çalışıyor; film sessiz olmalı.');
+    // Dizide boşluk (",,") yerleştirme döngüsünü undefined ile kırar; film hiç başlamaz.
+    else if (/,\s*,/.test(js.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, ''))) bulgular.push('giris-v5.js PLAN dizisinde boş öğe (",,") var; film betiği çöker.');
   } else if (ana.includes('data-bt-clean-hero')) {
     /* Clean hero mimarisi tek aktif video kullanır; eski V3 mimarisindeki
        iki katman şartını bu dala uygulamak hatalı pozitif üretir. */

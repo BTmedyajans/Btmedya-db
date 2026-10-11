@@ -1,0 +1,83 @@
+/* BTMEDYA alt kategori sistemi (11 Ekim, kullanıcı: "üç ana kategori alt
+   kategori sayfalarına yönlendirsin; okuyucu bir sayfada konuyla alakalı
+   bilgileri görsün"). Ana bölüm sayfası (hub) yalnız genel bakış + alt
+   kategori ızgarası taşır; her alt kategori kendi sayfasında.
+   Mobil ayrıca ele alındı: yazı ölçüsü clamp ile sınırlı, görseller sabit
+   en-boy oranında ve tembel yüklü, dokunma hedefleri en az 44 px, yatay
+   kaydırma yok. Sınıflar .altk- önekli; sayfa CSS'ine sızmaz. */
+
+.altk-iz{max-width:var(--max,1480px);margin:0 auto;padding:18px var(--pad,clamp(18px,4vw,64px)) 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;
+  font:600 11px/1.4 Jet,"JetBrains Mono",ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#91a0ad)}
+.altk-iz a{display:inline-flex;align-items:center;min-height:36px;color:var(--muted,#91a0ad);text-decoration:none}
+.altk-iz a:hover,.altk-iz a:focus-visible{color:#fff}
+.altk-iz i{font-style:normal;opacity:.45}
+.altk-iz [aria-current]{color:#fff}
+
+/* Alt sayfa başlığı: hub hero'sundan kısa; içerik ilk ekranda başlasın. */
+.altk-ust{max-width:var(--max,1480px);margin:0 auto;padding:clamp(28px,6vw,72px) var(--pad,clamp(18px,4vw,64px)) clamp(18px,3vw,32px)}
+.altk-ust h1{font-size:clamp(48px,8vw,124px);margin-top:16px}
+.altk-giris{max-width:640px;margin:22px 0 0;color:var(--muted,#91a0ad);font-size:clamp(15px,1.3vw,18px);line-height:1.7}
+
+/* Kardeş alt kategoriler: aynı bölümün diğer sayfaları, yapışkan şerit. */
+.altk-kardes{position:sticky;top:var(--altk-ust,72px);z-index:5;background:rgba(7,12,18,.92);border-top:1px solid var(--line,rgba(238,244,248,.13));border-bottom:1px solid var(--line,rgba(238,244,248,.13))}
+.altk-kardes ul{display:flex;gap:8px;max-width:var(--max,1480px);margin:0 auto;padding:10px var(--pad,clamp(18px,4vw,64px));list-style:none;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.altk-kardes ul::-webkit-scrollbar{display:none}
+.altk-kardes a{display:inline-flex;align-items:center;min-height:40px;padding:0 15px;border:1px solid var(--line,rgba(238,244,248,.13));border-radius:999px;
+  color:var(--ink,#eef4f8);font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;transition:border-color .2s,background .2s}
+.altk-kardes a:hover,.altk-kardes a:focus-visible{border-color:var(--gold,#d6a84a)}
+.altk-kardes a[aria-current]{background:var(--gold,#d6a84a);border-color:var(--gold,#d6a84a);color:#07090c}
+
+/* Gerçek iş kartları (YouTube). Satır içi stil yerine sınıf: mobilde ölçü burada. */
+.altk-kartlar{max-width:var(--max,1480px);margin:0 auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,1.6vw,22px)}
+.altk-kart{display:flex;flex-direction:column;border:1px solid rgba(255,255,255,.09);background:#0a0f16;color:inherit;text-decoration:none;overflow:hidden;transition:border-color .2s,transform .25s}
+.altk-kart:hover,.altk-kart:focus-visible{border-color:var(--gold,#d6a84a);transform:translateY(-3px)}
+.altk-kart img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;background:#111}
+.altk-kart-yazi{display:block;padding:18px}
+.altk-kart-yazi b{display:block;font-size:11px;letter-spacing:.12em;color:#d9ff3f}
+.altk-kart-yazi strong{display:block;margin:8px 0;font-size:clamp(17px,1.4vw,20px);line-height:1.25}
+.altk-kart-yazi span{display:block;color:#9ca8b8;font-size:14px;line-height:1.5}
+.altk-not{max-width:var(--max,1480px);margin:22px auto 0;color:#8a96a4;font-size:14px;line-height:1.6}
+
+.altk-hesaplar{max-width:var(--max,1480px);margin:28px auto 0}
+.altk-hesaplar ul{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 0;padding:0;list-style:none}
+.altk-hesaplar a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid var(--line,rgba(238,244,248,.13));color:var(--ink,#eef4f8);font-weight:700;font-size:14px;text-decoration:none}
+.altk-hesaplar a:hover,.altk-hesaplar a:focus-visible{border-color:var(--gold,#d6a84a)}
+.altk-sayfa [id]{scroll-margin-top:140px}
+
+/* Hub: alt kategori ızgarası. */
+.altk-izgara{padding:clamp(56px,8vw,110px) var(--pad,clamp(18px,4vw,64px));background:#080e15;border-top:1px solid var(--line,rgba(238,244,248,.13))}
+.altk-izgara ul{max-width:var(--max,1480px);margin:0 auto;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;background:var(--line,rgba(238,244,248,.13));border:1px solid var(--line,rgba(238,244,248,.13))}
+.altk-izgara-kart{position:relative;display:flex;flex-direction:column;gap:8px;min-height:150px;height:100%;box-sizing:border-box;padding:22px 52px 22px 22px;background:#101923;color:var(--ink,#eef4f8);text-decoration:none;transition:background .2s}
+.altk-izgara-kart:hover,.altk-izgara-kart:focus-visible{background:#152230}
+.altk-izgara-no{font:700 11px Jet,"JetBrains Mono",monospace;color:var(--cyan,#35d6ff);letter-spacing:.1em}
+.altk-izgara-kart b{font-size:clamp(20px,1.7vw,26px);line-height:1.15;letter-spacing:-.02em}
+.altk-izgara-kart small{color:var(--muted,#91a0ad);font-size:14px;line-height:1.5}
+.altk-izgara-kart i{position:absolute;right:20px;top:20px;font-style:normal;font-size:22px;color:var(--gold,#d6a84a);transition:transform .25s}
+.altk-izgara-kart:hover i,.altk-izgara-kart:focus-visible i{transform:translateX(5px)}
+
+/* Teklif bloğu (satır içi stil yerine). */
+.altk-teklif{max-width:1100px;margin:56px auto;padding:28px var(--pad,5vw);border-top:1px solid #2a2a2a}
+.altk-teklif-ust{font-size:11px;letter-spacing:.14em;opacity:.65;margin:0 0 10px}
+.altk-teklif-metin{font-size:clamp(20px,3vw,28px);line-height:1.3;margin:0 0 18px}
+.altk-teklif-dugme{display:inline-flex;align-items:center;min-height:48px;padding:0 22px;background:#d9ff3f;color:#050505;font-weight:800;text-decoration:none}
+
+@media (max-width:900px){
+  .altk-kartlar{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* Mobil: tek sütun, okunur gövde (15-16 px), başlık ekrana sığar, kartlarda
+   görsel tam genişlik; hub hero görseli kısaltılır ki ızgara ilk kaydırmada gelsin. */
+@media (max-width:720px){
+  .altk-kardes{--altk-ust:62px}
+  .altk-ust h1{font-size:clamp(42px,13vw,64px)}
+  .altk-kartlar{grid-template-columns:1fr;gap:14px}
+  .altk-kart-yazi{padding:16px}
+  .altk-izgara ul{grid-template-columns:1fr}
+  .altk-izgara-kart{min-height:0;padding:18px 48px 18px 18px}
+  .altk-izgara-kart b{font-size:20px}
+  .altk-hub .service-hero{min-height:0;padding-top:28px;padding-bottom:40px;gap:28px}
+  .altk-hub .service-hero-image img{aspect-ratio:16/10;max-height:46svh}
+  .altk-sayfa .section-head h2{font-size:clamp(40px,12vw,64px)}
+  .altk-sayfa .section{padding-top:56px;padding-bottom:56px}
+  .altk-teklif{margin:36px auto}
+}
+@media (prefers-reduced-motion:reduce){.altk-kart,.altk-izgara-kart,.altk-izgara-kart i{transition:none}.altk-kart:hover{transform:none}}
