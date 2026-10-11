@@ -88,7 +88,10 @@ for (const vp of viewports) {
         const sourcePath=media.source ? new URL(media.source,BASE).pathname : '';
         const posterPath=media.poster ? new URL(media.poster,BASE).pathname : '';
         const beklenen=v5?['/btmedya-tanitim-v5-dikey.mp4','/btmedya-tanitim-v5-dikey-poster.jpg']:['/btmedya-ai-film.mp4','/btmedya-ai-film-poster.jpg'];
-        if(!sourcePath.endsWith(beklenen[0])) failures.push('mobile home hero selected unexpected film source '+(sourcePath||'NONE'));
+        // H.264 çözemeyen Chromium (CI) aynı mobil kurgunun WebM kopyasını
+        // alır (giris-v5.js); ikisi de doğru seçimdir, geniş kurgu değildir.
+        const kaynakTamam=sourcePath.endsWith(beklenen[0])||(v5&&sourcePath.endsWith(beklenen[0].replace(/\.mp4$/,'.webm')));
+        if(!kaynakTamam) failures.push('mobile home hero selected unexpected film source '+(sourcePath||'NONE'));
         if(!posterPath.endsWith(beklenen[1])) failures.push('mobile home hero selected unexpected poster '+(posterPath||'NONE'));
         if(v5){
           const hedefler=new Set(media.alanlar.map(a=>a.href));
@@ -110,7 +113,9 @@ for (const vp of viewports) {
         const state=await page.locator('#btKategoriMenu').evaluate(el=>({hidden:el.hidden,open:el.classList.contains('is-acik')}));
         if(state.hidden || !state.open) failures.push('mobile / category menu did not open');
         await page.keyboard.press('Escape');
-        await page.waitForTimeout(320);
+        // Menü v4 kapanış animasyonu (daire küçülmesi) bitince gizlenir; sabit
+        // bekleme yerine gizlenmeyi en çok 1,5 sn bekle.
+        await page.waitForFunction(()=>{const m=document.getElementById('btKategoriMenu');return !m||m.hidden;},null,{timeout:1500}).catch(()=>null);
         const closed=await page.locator('#btKategoriMenu').evaluate(el=>el.hidden);
         if(!closed) failures.push('mobile / category menu did not close');
       }
