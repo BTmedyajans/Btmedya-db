@@ -41,6 +41,9 @@ jobs:
           node tools/sosyal-otomasyon-testi.mjs
           node --check src/sabah-masasi.js
           node tools/sabah-masasi-testi.mjs
+          node --check src/yayin-zinciri.js
+          node tools/yayin-zinciri-testi.mjs
+          node --check public/admin/yayin/yayin.js
           node --check src/ai-gorunurluk.js
           node tools/ai-gorunurluk-testi.mjs
           node tools/ai-draft-guardrail-testi.mjs

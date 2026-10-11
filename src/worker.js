@@ -27,7 +27,8 @@ import { whatsappApi } from "./whatsapp-cloud.js";
 import { WorkerEntrypoint } from "cloudflare:workers";
 import { aiGorunurluk, ICERIK_SINYALI } from "./ai-gorunurluk.js";
 import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu, KATEGORILER, kategoriIsle, yanitMetni, jsonAyikla, kapakMetinleriOku } from "./sabah-masasi.js";
-import { ayarlariOku, ayarlariYaz, platformSluglari, sonrakiYuva, altyazi, varlikVar, kapakKunyesi, yayinlananlariIsaretle, gecikenleriKaydir } from "./sosyal-otomasyon.js";
+import { ayarlariOku, ayarlariYaz, platformSluglari, sonrakiYuva, altyazi, varlikVar, kapakKunyesi, yayinlananlariIsaretle, gecikenleriKaydir, statikGorselAiMi } from "./sosyal-otomasyon.js";
+import { zincirDurumu } from "./yayin-zinciri.js";
 import { kaynakKaydet, kaynakListele, kaynakGuncelle, kaynakOzeti, kaynakBaglaHaber, ensureKaynakMasasiTables } from "./kaynak-masasi.js";
 import { sosyalTekillemeAyir, sosyalTekillemeBagla, sosyalTekillemeBirak, sosyalTekillemeSil, ensureSosyalParmakTablosu } from "./sosyal-dedupe.js";
 /* BTMEDYA Worker — birleşik API
@@ -1195,11 +1196,13 @@ async function socialApi(request, env, url, ctx){
   }
 
   if(url.pathname==='/api/admin/social/settings'){
-    if(request.method==='GET') return json({ok:true,ayarlar:await ayarlariOku(env),metricool:Boolean(env.METRICOOL_USER_TOKEN),providers:socialProviderStatus(env)});
+    // Örnek gönderi metni sunucuda, gönderiye giden aynı altyazi() ile üretilir.
+    const ornek=a=>altyazi({slug:'ornek-haber',title:'Örnek haber başlığı',excerpt:'Haberin spotu burada görünür.',category:'Balıkesir'},'',new Date(),a.sablon,true);
+    if(request.method==='GET'){ const a=await ayarlariOku(env); return json({ok:true,ayarlar:a,ornek:ornek(a),metricool:Boolean(env.METRICOOL_USER_TOKEN),providers:socialProviderStatus(env)}); }
     if(request.method==='PUT'){
       const b=await request.json().catch(()=>null);
       if(!b || typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
-      try{ return json({ok:true,ayarlar:await ayarlariYaz(env,b)}); }
+      try{ const a=await ayarlariYaz(env,b); return json({ok:true,ayarlar:a,ornek:ornek(a),providers:socialProviderStatus(env)}); }
       catch(e){ return json({ok:false,error:String(e?.message||e)},503); }
     }
     return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,PUT'});
@@ -1872,7 +1875,7 @@ async function autoPrepareSocialDrafts(env, limit=3){
         : cover.startsWith('/gorsel/otomasyon/') ? cover.slice('/gorsel/'.length)
         : katKapak ? `static/kategori-kapak/${katKapak[1]}-sosyal.jpg`
         : cover.startsWith('/assets/') ? 'static/'+cover.slice('/assets/'.length) : '';
-      const body=altyazi(n,await kapakKunyesi(env,n.slug));
+      const body=altyazi(n,await kapakKunyesi(env,n.slug),new Date(),ayar.sablon,mediaKey?await statikGorselAiMi(env,mediaKey):null);
       const platformlar=sosyalPlatformlariMedyaIleUyumla(platformSluglari(ayar),mediaKey);
       const yas=(Date.now()-new Date(n.published_at||0).getTime())/3600000;
       const otomatik=ayar.otomatikPlanla && Boolean(env.METRICOOL_USER_TOKEN) && platformlar.length>0 && yas>=0 && yas<=ayar.tazelikSaat;
@@ -2110,6 +2113,12 @@ export default { async scheduled(controller, env, ctx){
     if(!/^otomasyon\/[a-z0-9-]+\.jpg$/.test(key) || !env.MEDIA) return text('Bulunamadı',404);
     const obj=await env.MEDIA.get(key); if(!obj) return text('Bulunamadı',404);
     return new Response(request.method==='HEAD'?null:obj.body,{headers:{'content-type':'image/jpeg','cache-control':'public, max-age=604800','access-control-allow-origin':'*'}});
+  }
+
+  if(url.pathname==='/api/admin/yayin-zinciri'){
+    if(!(await validSession(request, oturumAnahtari(env)))) return json({ok:false,error:'Yetkisiz'},401);
+    if(request.method!=='GET') return json({ok:false,error:'Method not allowed'},405,{'allow':'GET'});
+    return json(await zincirDurumu(env));
   }
 
   if(url.pathname==='/api/admin/sabah-masasi'){
