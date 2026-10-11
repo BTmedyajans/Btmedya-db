@@ -189,3 +189,20 @@ assert.ok(!M.kaliteDenetimi(yumusak, '', iddiaKaynak).sorun.some(x => x.includes
 // Sıradan haber kulis sayılmaz.
 assert.equal(M.kulisMi("Valilik vatandaşların dikkatli olmasını istiyor; yaz transfer döneminde"), false);
 console.log('SABAH MASASI KATEGORI ISCISI TESTI GECTI');
+
+// Kapak metni (11 Ekim): kaynakta olmayan sayı taşıyan alan atılır, haber düşmez.
+{
+  const kaynakKapak = 'Fuar 24-27 Eylül tarihlerinde 350 markayı ağırladı.';
+  const suz = M.kapakMetniSuz({ ust: "Ali Hikmet Paşa'da 24-27 Eylül", kanca: '350 marka', ana: 'Tarım Fuarı', vurgu: '500 marka katıldı' }, kaynakKapak);
+  assert.deepEqual(suz, { ust: "Ali Hikmet Paşa'da 24-27 Eylül", kanca: '350 marka', ana: 'Tarım Fuarı' });
+  assert.deepEqual(M.kapakMetniSuz(null, kaynakKapak), {});
+  const tablo = new Map();
+  const DB = { prepare(sql) { const q = { args: [], bind(...a) { q.args = a; return q; },
+    async run() { if (/INSERT OR REPLACE/.test(sql)) tablo.set(q.args[0], q.args[1]); return {}; },
+    async all() { return { results: [...tablo].map(([slug, metin]) => ({ slug, metin })) }; } }; return q; } };
+  await M.kapakMetniKaydet({ DB }, 'fuar', suz);
+  await M.kapakMetniKaydet({ DB }, 'bos', {});
+  assert.deepEqual(await M.kapakMetinleriOku({ DB }), { fuar: suz });
+  assert.deepEqual(await M.kapakMetinleriOku({ DB: { prepare() { return { all: async () => { throw new Error('no such table'); } }; } } }), {});
+  console.log('SABAH MASASI KAPAK METNI TESTI GECTI');
+}
