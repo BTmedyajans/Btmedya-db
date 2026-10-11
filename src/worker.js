@@ -26,7 +26,7 @@ import { xApi } from "./x-direct.js";
 import { whatsappApi } from "./whatsapp-cloud.js";
 import { WorkerEntrypoint } from "cloudflare:workers";
 import { aiGorunurluk, ICERIK_SINYALI } from "./ai-gorunurluk.js";
-import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu, KATEGORILER, kategoriIsle, yanitMetni, jsonAyikla } from "./sabah-masasi.js";
+import { sabahMasasi, sabahAyarlari, sabahAyarlariYaz, sabahRaporu, KATEGORILER, kategoriIsle, yanitMetni, jsonAyikla, kapakMetinleriOku } from "./sabah-masasi.js";
 import { ayarlariOku, ayarlariYaz, platformSluglari, sonrakiYuva, altyazi, varlikVar, kapakKunyesi, yayinlananlariIsaretle, gecikenleriKaydir } from "./sosyal-otomasyon.js";
 import { kaynakKaydet, kaynakListele, kaynakGuncelle, kaynakOzeti, kaynakBaglaHaber, ensureKaynakMasasiTables } from "./kaynak-masasi.js";
 import { sosyalTekillemeAyir, sosyalTekillemeBagla, sosyalTekillemeBirak, sosyalTekillemeSil, ensureSosyalParmakTablosu } from "./sosyal-dedupe.js";
@@ -430,7 +430,10 @@ async function newsApi(request, env, url, ctx){
     if(env.DB){
       const rows=await env.DB.prepare("SELECT id,slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at FROM news WHERE status='published' ORDER BY COALESCE(published_at,updated_at) DESC LIMIT 500").all();
       const kapaklar=await uretilmisKapaklar(env);
-      d1Items=(rows.results||[]).map(n=>({...n,cover_url:kapakSec(n,kapaklar)}));
+      // Sabah Masası'nın yazdığı kapak metni (ust/kanca/ana/vurgu) kapak
+      // otomasyonuna (tools/kapak-otomasyonu.py) bu uçtan gider.
+      const kapakMetinleri=await kapakMetinleriOku(env);
+      d1Items=(rows.results||[]).map(n=>({...n,cover_url:kapakSec(n,kapaklar),...(kapakMetinleri[n.slug]?{kapak_metni:kapakMetinleri[n.slug]}:{})}));
     }
     try{
       const req=new Request(new URL('/data/haberler.json',url.origin));

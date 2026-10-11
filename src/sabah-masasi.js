@@ -460,8 +460,14 @@ function yonerge(kategori) {
     '17. vurgu_deger: kaynakta aynen geçen en çarpıcı rakam (örn. "108 bin", "1-4"); yoksa boş bırak. vurgu_etiket: bu rakamın ne olduğu, en fazla 6 kelime.',
     '18. gorsel_anahtar: haberi temsil edecek, İNSAN YÜZÜ İÇERMEYEN bir nesne ya da mekân fotoğrafı için 2-4 kelimelik İNGİLİZCE arama ifadesi (örn. "agricultural fair tractors", "hospital corridor"). Kişi adı, marka, logo yazma.',
     '',
+    '19. KAPAK METNİ (haber kapağının dört katmanı; yalnız kaynakta yazan olgu, ima ve suçlama yok, soru ya da ünlem yok):',
+    '    kapak_ust: bağlam/kaynak satırı, en fazla 40 karakter, cümle düzeninde (örn. "Ali Hikmet Paşa\'da 24-27 Eylül", "Valilik açıkladı").',
+    '    kapak_kanca: haberin en çarpıcı doğrulanmış rakamı ya da olgusu, en fazla 22 karakter (örn. "350 marka", "1-4", "Kontrol altında").',
+    '    kapak_ana: haberin öznesi, en fazla 28 karakter (örn. "Balıkesir Tarım Fuarı").',
+    '    kapak_vurgu: ne oldu, en fazla 34 karakter (örn. "Kapılarını açtı").',
+    '',
     'Kategori: ' + kategori + '.',
-    'YANIT: Yalnız tek bir JSON nesnesi döndür; açıklama, kod bloğu ya da başka metin ekleme. Anahtarlar: "baslik" (metin), "spot" (metin), "paragraflar" (metin dizisi), "vurgu_deger" (metin), "vurgu_etiket" (metin), "gorsel_anahtar" (metin).'
+    'YANIT: Yalnız tek bir JSON nesnesi döndür; açıklama, kod bloğu ya da başka metin ekleme. Anahtarlar: "baslik" (metin), "spot" (metin), "paragraflar" (metin dizisi), "vurgu_deger" (metin), "vurgu_etiket" (metin), "gorsel_anahtar" (metin), "kapak_ust", "kapak_kanca", "kapak_ana", "kapak_vurgu" (metin).'
   ].join('\n');
 }
 
@@ -508,8 +514,47 @@ function temizle(j) {
     paragraflar: (Array.isArray(j.paragraflar) ? j.paragraflar : String(j.paragraflar || '').split(/\n{2,}/))
       .map(tek).filter(p => p.length > 30).slice(0, 8),
     vurgu: { deger: tek(j.vurgu_deger).slice(0, 14), etiket: tek(j.vurgu_etiket).slice(0, 60) },
-    gorselAnahtar: String(j.gorsel_anahtar || '').replace(/[^a-zA-Z ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60)
+    gorselAnahtar: String(j.gorsel_anahtar || '').replace(/[^a-zA-Z ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60),
+    kapak: {
+      ust: tek(j.kapak_ust).replace(/[!?]+/g, '').slice(0, 48),
+      kanca: tek(j.kapak_kanca).replace(/[!?]+/g, '').slice(0, 26),
+      ana: tek(j.kapak_ana).replace(/[!?]+/g, '').slice(0, 40),
+      vurgu: tek(j.kapak_vurgu).replace(/[!?]+/g, '').slice(0, 44)
+    }
   };
+}
+
+/* Kapak metni (11 Ekim, kapak v3): Sabah Masası haberle birlikte kapağın dört
+   katmanını yazar; kapak üretimi (tools/kapak-otomasyonu.py, GitHub Actions)
+   bunu /api/news'ten okur. Kaynakta olmayan sayı taşıyan alan haberi
+   düşürmez, yalnız o alan atılır (kapak onu başlıktan türetir). Tablo
+   çalışma anında kurulur; migration sırası beklenmez. */
+export function kapakMetniSuz(kapak, kaynakMetin) {
+  const temiz = {};
+  for (const [alan, deger] of Object.entries(kapak || {})) {
+    if (!deger) continue;
+    if (!rakamDenetimi(deger, kaynakMetin).gecti) continue;
+    temiz[alan] = deger;
+  }
+  return temiz;
+}
+async function kapakTablosu(env) {
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS haber_kapak_metni (slug TEXT PRIMARY KEY, metin TEXT NOT NULL, guncellendi TEXT NOT NULL)').run();
+}
+export async function kapakMetniKaydet(env, slug, kapak) {
+  if (!env.DB || !slug || !kapak || !Object.keys(kapak).length) return;
+  await kapakTablosu(env);
+  await env.DB.prepare('INSERT OR REPLACE INTO haber_kapak_metni (slug, metin, guncellendi) VALUES (?, ?, ?)')
+    .bind(slug, JSON.stringify(kapak), new Date().toISOString()).run();
+}
+export async function kapakMetinleriOku(env) {
+  if (!env.DB) return {};
+  try {
+    const r = await env.DB.prepare('SELECT slug, metin FROM haber_kapak_metni').all();
+    const out = {};
+    for (const s of r.results || []) { try { out[s.slug] = JSON.parse(s.metin); } catch { /* bozuk kayıt atlanır */ } }
+    return out;
+  } catch { return {}; }  // tablo henüz yoksa
 }
 
 /* ---------- İddia doğrulaması (Workers AI) ---------- */
@@ -841,7 +886,7 @@ async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit, son = [] }, denem
       not: nedenler.join(' · ')
     });
     if (deneme) {
-      Object.assign(kayit, { durum: denetimTamam ? 'deneme-gecti' : 'deneme-kaldi', paragraflar: y.paragraflar, gorselAnahtar: y.gorselAnahtar });
+      Object.assign(kayit, { durum: denetimTamam ? 'deneme-gecti' : 'deneme-kaldi', paragraflar: y.paragraflar, gorselAnahtar: y.gorselAnahtar, kapak: y.kapak });
       return;
     }
     let slug = slugUret(y.baslik);
@@ -870,6 +915,8 @@ async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit, son = [] }, denem
       'INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     ).bind(slug, y.baslik, y.spot, govde, kat.kategori, 'BTMEDYA Sabah Masası', gorsel ? gorsel.url : `/assets/kategori-kapak/${kat.anahtar}.webp`, '', yayinla ? 'published' : 'draft', yayinla ? simdi : null, o.link, kaynak.tarih || null, not, simdi).run();
     await saveContentTaxonomy(env,'news',slug,normalizeContentTaxonomy({},kat.kategori));
+    // Kapak metni haberi bekletmez: kayıt hatası yayını durdurmaz.
+    await kapakMetniKaydet(env, slug, kapakMetniSuz(y.kapak, [kaynak.baslik, kaynak.spot, kaynak.metin].join('\n'))).catch(() => {});
     await env.DB.prepare('INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) VALUES(?,?)').bind(o.link, simdi).run();
     Object.assign(kayit, { slug, durum: yayinla ? 'yayinlandi' : 'taslak', gorsel: Boolean(gorsel) });
     if (yayinla) rapor.yayinlanan++; else rapor.taslak++;
