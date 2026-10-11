@@ -11,8 +11,12 @@
    - Zamanlar ve konumlar filmin kendisinden ölçüldü (8 kare/sn parlaklık
      taraması); kare yüzdesiyle tutulur ve object-fit hesabıyla ekrana
      eşlenir, böylece her en-boy oranında etiketin tam üstüne düşer.
-   - Tarayıcı sesli otomatik oynatmayı izin olmadan engeller: önce sesli
-     denenir, olmazsa sessiz başlar; ilk dokunuş/tuş sesi açar.
+   - Film sessizdir (11 Ekim, kullanıcı: "videoyu ses olmadan yerleştir").
+     Dosyalarda ses izi yoktur; oynatma her tarayıcıda sessiz otomatik başlar.
+   - Film son karta girince alttan bölüm paneli açılır: HABER, SOSYAL MEDYA,
+     PRODÜKSİYON ve her birinin alt kategori sayfaları (index.html'de
+     statik bağlantılar; arama motoru da görür). Panel açılınca filmin
+     içindeki dokunma alanlarına gerek kalmaz.
    - Aynı oturumda ikinci gelişte film baştan oynamaz, son karta atlar
      (haberden ana sayfaya dönen okur 40 sn beklemesin).
    - AGENTS.md: her kare AI ÜRETİMİ etiketi taşır. Film sürerken ekranda yazı
@@ -24,8 +28,8 @@
   if(!film)return;
   const html=document.documentElement, govde=document.body;
 
-  // Kare yüzdeleri: x,y sol üst; w,h genişlik/yükseklik. son:true olanlar film
-  // bittikten sonra da açık kalır.
+  // Kare yüzdeleri: x,y sol üst; w,h genişlik/yükseklik. sonKart: filmin son
+  // kartının başladığı saniye; bölüm paneli o an açılır.
   // H.264 çözemeyen tarayıcı (codec'siz Chromium/Firefox) aynı kurgunun
   // WebM kopyasını alır; yoksa film hata verip doğrudan son kareye düşerdi.
   const h264=!!film.canPlayType('video/mp4; codecs="avc1.4D401F, mp4a.40.2"');
@@ -36,10 +40,7 @@
       alanlar:[
         {t0:4.2, t1:5.9, x:25, y:51.5, w:50, h:7.5, href:'/haberler/', ad:'Haber'},
         {t0:9.2, t1:10.9, x:25, y:51.5, w:50, h:7.5, href:'/sosyal-medya/', ad:'Medya: sosyal ve dijital'},
-        {t0:14.2, t1:14.9, x:20, y:51.5, w:60, h:7.5, href:'/video-produksiyon/', ad:'Prodüksiyon'},
-        {t0:15.4, son:true, x:21.2, y:47.2, w:18, h:5.4, href:'/haberler/', ad:'Haber', renk:'#2ad1d9'},
-        {t0:15.4, son:true, x:41.0, y:47.2, w:18, h:5.4, href:'/sosyal-medya/', ad:'Medya: sosyal ve dijital', renk:'#f2c14e'},
-        {t0:15.4, son:true, x:60.8, y:47.2, w:18, h:5.4, href:'/video-produksiyon/', ad:'Prodüksiyon', renk:'#9fa8ff'}
+        {t0:14.2, t1:14.9, x:20, y:51.5, w:60, h:7.5, href:'/video-produksiyon/', ad:'Prodüksiyon'}
       ]
     },
     genis:{
@@ -58,10 +59,7 @@
         {t0:30.0, t1:32.2, x:3, y:75, w:37, h:15, href:'/video-produksiyon/', ad:'Dijital yapımcı: prodüksiyon'},
         {t0:30.4, t1:35.5, x:6, y:24, w:26, h:16, href:'/haberler/', ad:'Haber'},
         {t0:30.4, t1:35.5, x:6, y:41, w:26, h:17, href:'/video-produksiyon/', ad:'Video ve prodüksiyon'},
-        {t0:30.4, t1:35.5, x:6, y:59, w:26, h:16, href:'/sosyal-medya/', ad:'Sosyal medya'},
-        {t0:36.2, son:true, x:27.4, y:79, w:8.6, h:7, href:'/haberler/', ad:'Haber'},
-        {t0:36.2, son:true, x:36.8, y:79, w:19, h:7, href:'/sosyal-medya/', ad:'Sosyal ve dijital'},
-        {t0:36.2, son:true, x:56.6, y:79, w:16, h:7, href:'/video-produksiyon/', ad:'Prodüksiyon'}
+        {t0:30.4, t1:35.5, x:6, y:59, w:26, h:16, href:'/sosyal-medya/', ad:'Sosyal medya'}
       ]
     }
   };
@@ -73,11 +71,21 @@
   const katman=document.createElement('div');
   katman.className='giris-v5-katman';
   kok.appendChild(katman);
-  const etiket=document.createElement('p');
+  const panel=kok.querySelector('.giris-v5-kat');
+  const etiket=document.createElement('span');
   etiket.className='giris-v5-ai';
   etiket.textContent='AI ÜRETİMİ';
   etiket.hidden=true;
-  kok.appendChild(etiket);
+  // Etiket panelin üst satırında durur; panel yoksa son karenin köşesinde.
+  ((panel&&panel.querySelector('.giris-v5-kat-ust'))||kok).appendChild(etiket);
+  kok.classList.add('js-hazir');
+  let panelAcik=false;
+  const panelAc=()=>{
+    if(panelAcik)return;
+    panelAcik=true;
+    etiket.hidden=false;
+    if(panel)panel.classList.add('is-acik');
+  };
 
   // Başlık ışığı (11 Ekim, kullanıcı: "ana başlık videoda konusuna göre
   // göründükçe motion yazı efekti olsun"). Filmin kendi başlıkları (SAHADAN,
@@ -145,6 +153,7 @@
   let bitti=false;
   const zaman=()=>{
     const t=film.currentTime||0;
+    if(t>=p.sonKart)panelAc();
     for(const {a,d} of dugmeler){
       const acik=t>=a.t0&&(a.son?true:t<a.t1);
       if(acik!==d.classList.contains('is-acik')){
@@ -167,7 +176,7 @@
     html.classList.remove('bt-clean-intro-active');
     govde.classList.remove('bt-clean-intro-active');
     govde.classList.add('film-bitti');
-    etiket.hidden=false;
+    panelAc();
     zaman();
   };
   // Son karta atla: kaydırma/kaydırma hareketi, Esc ya da aynı oturumda dönüş.
@@ -184,13 +193,9 @@
     film.load();
   };
   const oynat=()=>{
-    film.muted=false;
+    film.muted=true;
     const s=film.play();
-    if(s&&s.catch)s.catch(()=>{
-      film.muted=true;
-      const s2=film.play();
-      if(s2&&s2.catch)s2.catch(sonaAtla);
-    });
+    if(s&&s.catch)s.catch(sonaAtla);
   };
 
   // Panel bağlantısı: yönetim panelinde "Giriş filmi" (hero-video) yuvasına
@@ -203,7 +208,7 @@
     const a=y&&y['hero-video'];
     const url=a&&String(a.url||'');
     if(!url||EMEKLI.test(url.split('?')[0])||/btmedya-tanitim-v5/.test(url))return false;
-    p={...p,src:url,poster:(y['hero-poster']&&y['hero-poster'].url)||'',alanlar:[],vurgular:[]};
+    p={...p,src:url,poster:(y['hero-poster']&&y['hero-poster'].url)||'',alanlar:[],vurgular:[],sonKart:Infinity};
     for(const k of Object.keys(PLAN))PLAN[k]=p;
     kur();
     yukle();
@@ -225,17 +230,7 @@
   film.addEventListener('play',()=>requestAnimationFrame(dongu));
   film.addEventListener('ended',bitir);
   film.addEventListener('error',()=>{bitir();},{once:true});
-  // İlk dokunuş/tuş sesi açar (dokunulabilir alana basılmadıysa).
-  const sesAc=e=>{
-    if(e&&e.target&&e.target.closest&&e.target.closest('.giris-v5-alan'))return;
-    if(film.muted&&!bitti){film.muted=false;film.play().catch(()=>{});}
-  };
-  kok.addEventListener('pointerup',sesAc);
-  addEventListener('keydown',e=>{
-    if(e.key==='Escape'){sonaAtla();return;}
-    if(e.key==='m'||e.key==='M'){film.muted=!film.muted;return;}
-    sesAc(e);
-  });
+  addEventListener('keydown',e=>{if(e.key==='Escape')sonaAtla();});
   addEventListener('wheel',e=>{if(!bitti&&e.deltaY>30)sonaAtla();},{passive:true});
   let dokunY=null;
   kok.addEventListener('touchstart',e=>{dokunY=e.touches[0].clientY;},{passive:true});

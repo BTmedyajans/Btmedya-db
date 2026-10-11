@@ -70,8 +70,8 @@ for (const vp of viewports) {
       // The homepage must select the dedicated mobile entrance film, not the
       // wide desktop encode. This catches source-selection regressions without
       // depending on whether headless Chromium can decode the production codec.
-      // Giriş filmi v5 (11 Ekim): seçenekler filmin etiketleri üstünde
-      // yazısız dokunma alanları; ayrı film sonu paneli yoktur.
+      // Giriş filmi v5 (11 Ekim): film içinde etiket üstü dokunma alanları,
+      // film sonunda bölüm paneli (HABER / SOSYAL MEDYA / PRODÜKSİYON).
       const v5=await page.locator('[data-giris-v5] video').count();
       const heroVideo=page.locator(v5?'[data-giris-v5] video':'.bt-clean-hero-video');
       if(await heroVideo.count()){
@@ -83,7 +83,9 @@ for (const vp of viewports) {
           source:v.currentSrc||v.src||'',
           poster:v.poster||'',
           hasFallbackPanel:!!document.querySelector('.bt-clean-finish-panel'),
-          alanlar:[...document.querySelectorAll('.giris-v5-alan')].map(a=>({ad:a.getAttribute('aria-label')||'',href:a.getAttribute('href')||''}))
+          alanlar:[...document.querySelectorAll('.giris-v5-alan')].map(a=>({ad:a.getAttribute('aria-label')||'',href:a.getAttribute('href')||''})),
+          panel:[...document.querySelectorAll('.giris-v5-kat a')].map(a=>a.getAttribute('href')||''),
+          sessiz:v.muted
         }));
         const sourcePath=media.source ? new URL(media.source,BASE).pathname : '';
         const posterPath=media.poster ? new URL(media.poster,BASE).pathname : '';
@@ -97,6 +99,9 @@ for (const vp of viewports) {
           const hedefler=new Set(media.alanlar.map(a=>a.href));
           if(media.alanlar.length<3||media.alanlar.some(a=>!a.ad)||!['/haberler/','/sosyal-medya/','/video-produksiyon/'].every(h=>hedefler.has(h)))
             failures.push('mobile home intro v5 options missing or unnamed '+JSON.stringify(media.alanlar));
+          if(!['/haberler/','/sosyal-medya/','/video-produksiyon/'].every(h=>media.panel.includes(h)))
+            failures.push('mobile home intro v5 end-of-film section panel missing '+JSON.stringify(media.panel));
+          if(!media.sessiz) failures.push('mobile home intro v5 film is not muted');
         }else if(!media.hasFallbackPanel) failures.push('mobile home hero has no static finish/fallback panel');
       }else{
         failures.push('mobile home hero video element is missing');
