@@ -4696,5 +4696,64 @@
    "ana": "Bir hasta bir yılda",
    "vurgu": "Hastaneye başvurdu"
   }
+ },
+ {
+  "slug": "prof-dr-ela-temeloglu-saglikli-yas-almanin-10-altin-kuralini-acikladi",
+  "baslik": "Prof. Dr. Ela Temeloğlu, sağlıklı yaş almanın 10 altın kuralını açıkladı",
+  "kategori": "Sağlık",
+  "altbilgi": "BTMEDYA · 11 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "kapak_metni": {
+   "ust": "Prof. Dr. Ela Temeloğlu'ndan",
+   "kanca": "10 altın kural",
+   "ana": "Sağlıklı Yaşlanma Önerileri",
+   "vurgu": "10 kuralı detaylarıyla açıkladı"
+  }
+ },
+ {
+  "slug": "antalya-devlet-senfoni-orkestrasi-2026-2027-sezonunda-25-konserle-sanatseverleri-bulustura",
+  "baslik": "Antalya Devlet Senfoni Orkestrası 2026-2027 sezonunda 25 konserle sanatseverleri buluşturacak",
+  "kategori": "Kültür",
+  "altbilgi": "BTMEDYA · 11 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "2026-2027",
+   "etiket": ""
+  },
+  "kapak_metni": {
+   "ust": "ADSO 2026-2027 sezonu",
+   "kanca": "25 konser",
+   "ana": "Antalya Senfoni Orkestrası",
+   "vurgu": "sezonu açtı"
+  }
+ },
+ {
+  "slug": "brezilya-nin-ilk-astronotu-marcos-pontes-antalya-uzay-kongresi-nde-uzay-anilarini-paylasti",
+  "baslik": "Brezilya'nın ilk astronotu Marcos Pontes, Antalya Uzay Kongresi'nde uzay anılarını paylaştı",
+  "kategori": "Teknoloji",
+  "altbilgi": "BTMEDYA · 11 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "kapak_metni": {
+   "ust": "Uluslararası Uzay Kongresi Antalya",
+   "ana": "Marcos Pontes",
+   "vurgu": "Uzay anılarını paylaştı"
+  }
+ },
+ {
+  "slug": "turkiye-saat-pazari-2025-te-1-5-milyar-dolar-yilda-8-milyon-saat-satiyor",
+  "baslik": "Türkiye saat pazarı 2025'te 1,5 milyar dolar, yılda 8 milyon saat satıyor",
+  "kategori": "Ekonomi",
+  "altbilgi": "BTMEDYA · 11 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "1,5 milyar dolar",
+   "etiket": "2025 pazar büyüklüğü"
+  },
+  "kapak_metni": {
+   "ust": "TÜSAD verileri · 2025",
+   "kanca": "8 milyon",
+   "ana": "Türkiye saat pazarı",
+   "vurgu": "yılda 8 milyon saat satıyor"
+  }
  }
 ]
