@@ -2052,7 +2052,7 @@ export default { async scheduled(controller, env, ctx){
   }
   const coreApi=await btmedyaCoreApi(request,env,url,validSession); if(coreApi) return coreApi;
   const siteOs=await siteOsApi(request,env,url); if(siteOs) return siteOs;
-  const windsorApi=await windsorAnalyticsApi(request,env,url,validSession,oturumAnahtari(env)); if(windsorApi) return audit(windsorApi);
+  const windsorApi=await windsorAnalyticsApi(request,env,url,validSession,oturumAnahtari(env)); if(windsorApi) return windsorApi; // audit() aşağıdaki admin bloğuna ait; burada tanımsızdı ve her Windsor isteği 500 dönüyordu.
 
   // Kaynak Masası'nın eski adresini kalıcı olarak yeni kanonik adrese taşı.
   // Böylece eski bağlantılar korunur, Google iki ayrı içerik URL'si görmez.

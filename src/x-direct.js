@@ -1,14 +1,14 @@
 const AUTH="https://twitter.com/i/oauth2/authorize";
 const TOKEN="https://api.x.com/2/oauth2/token";
 const API="https://api.x.com/2";
-import { validSession, saveOAuthConnection, validWorkspaceType, workspaceExists } from "./direct-social.js";
+import { validSession, saveOAuthConnection, validWorkspaceType, workspaceExists, kimlikEksikYonlendir } from "./direct-social.js";
 const j=(d,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
 function b64url(bytes){return btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
 async function pkce(){const b=new Uint8Array(32);crypto.getRandomValues(b);const verifier=b64url(b);const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(verifier));return {verifier,challenge:b64url(digest)}}
 export async function xApi(request,env){
  const url=new URL(request.url); if(!url.pathname.startsWith("/api/social/direct/x/"))return null;
  if(!(await validSession(request,env)))return j({error:"unauthorized"},401);
- if(!env.X_CLIENT_ID)return j({error:"X geliştirici uygulaması yapılandırılmamış",required:["X_CLIENT_ID"]},503);
+ if(!env.X_CLIENT_ID){if(url.pathname.endsWith("/start"))return kimlikEksikYonlendir("x",["X_CLIENT_ID"].filter(k=>!env[k]));return j({error:"X geliştirici uygulaması yapılandırılmamış",required:["X_CLIENT_ID"]},503);}
  const action=url.pathname.replace("/api/social/direct/x/","");
  if(action==="start"){
   if(!env.KV)return j({error:"KV bağlantısı yok"},503);
