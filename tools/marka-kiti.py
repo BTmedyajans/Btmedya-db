@@ -175,7 +175,7 @@ ul{{list-style:none;margin:0;padding:0}}.izgara{{display:grid;gap:14px;grid-temp
 .tablo{{overflow-x:auto}}table{{width:100%;border-collapse:collapse}}td,th{{text-align:left;padding:12px 10px;border-bottom:1px solid var(--c);vertical-align:top}}th{{color:var(--g);font-weight:600}}
 footer{{padding:32px 16px 96px;color:var(--g);font-size:14px;border-top:1px solid var(--c)}}footer a{{display:inline-flex;align-items:center;min-height:44px}}
 @media (prefers-reduced-motion:reduce){{*{{transition:none!important}}}}
-</style><link rel="stylesheet" href="/site-motion-v2.css?v=20261005-1"><link rel="stylesheet" href="/mobil-tipografi.css?v=20261006-1"><link rel="stylesheet" href="/kategori-menu.css?v=20261006-1"><script src="/kategori-menu.js?v=20261006-1" defer></script>
+</style><link rel="stylesheet" href="/site-motion-v2.css?v=20261005-1"><link rel="stylesheet" href="/mobil-tipografi.css?v=20261006-1"><link rel="stylesheet" href="/kategori-menu.css?v=20261011-v4"><script src="/kategori-menu.js?v=20261011-v4" defer></script>
 </head><body>
 <header><a href="/" aria-label="BTMEDYA ana sayfa"><img src="/assets/logo/btmedya-logo-yatay-v4-negatif.webp" alt="BTMEDYA" width="172" height="37"></a><nav aria-label="Marka kiti"><a href="/basin-kiti/">Basın kiti</a><a href="/teklif-al/?kaynak=/marka-kiti/">Teklif al</a></nav></header>
 <main id="icerik">
@@ -210,7 +210,7 @@ if __name__ == "__main__":
             "etiketler": ETIKETLER, "olculer": OLCULER, "foto_yuvalari": FOTO_YUVALARI,
             # Resmî logo v5 (10 Ekim): amblem + MEDYA, altın tonları, şeffaf zemin
             # (tools/logo/logo-v5-uret.py); son dosya orijinal renkler (logo-v4-uret.py).
-            "logolar": ["/assets/logo/btmedya-logo-v5.png", "/assets/logo/btmedya-logo-v5-tam.png", "/assets/logo/bt-amblem-v5.png", "/assets/logo/btmedya-logo-v4.png"]}
+            "logolar": ["/assets/logo/btmedya-logo-v6.png", "/assets/logo/btmedya-logo-v6-tam.png", "/assets/logo/bt-amblem-v6.png", "/assets/logo/btmedya-logo-v4.png"]}
     with open(os.path.join(KOK, "public", "data", "marka-kiti.json"), "w", encoding="utf-8") as f:
         json.dump(veri, f, ensure_ascii=False, indent=1)
         f.write("\n")

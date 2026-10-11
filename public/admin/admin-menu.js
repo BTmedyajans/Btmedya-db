@@ -7,7 +7,7 @@
 
     const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     const here=location.pathname+location.hash;
-    const CATEGORY_CONTEXT={haber:'HABER & MEDYA',sosyal:'SOSYAL & DİJİTAL',tanitim:'MARKA & PRODÜKSİYON'};
+    const CATEGORY_CONTEXT={haber:'HABER',sosyal:'SOSYAL MEDYA',tanitim:'PRODÜKSİYON'};
     const pathCategory=p=>{
       const x=String(p||'');
       if(x.includes('/social')||x.includes('musteri-sosyal')||x.includes('/connect')||x.includes('sosyal-medya'))return 'sosyal';
