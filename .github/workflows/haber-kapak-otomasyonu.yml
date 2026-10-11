@@ -54,38 +54,15 @@ jobs:
         run: node tools/medya-listesi.mjs
 
       # main korumalı (PR zorunlu + imzalı commit): doğrudan push reddedilir.
-      # Kapaklar dönen bir otomasyon dalına yazılır ve PR açılır; squash
-      # birleştirmede GitHub imzalı commit üretir. Günlük süpervizör turu
-      # açık otomasyon PR'ını birleştirir (hero-video-quality ile aynı desen).
+      # Koşucudaki `git push` da imzasız commit taşıdığı için kural setine
+      # takılıyordu (11 Ekim). Kapaklar GitHub API ile imzalı commit olarak
+      # dönen otomasyon dalına yazılır ve PR açılır; günlük süpervizör turu
+      # açık otomasyon PR'ını birleştirir.
       - name: Üretilen kapakları PR olarak yayınla
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          YOLLAR="public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json public/data/medya-listesi.json tools/temsili-kaynak"
-          if [ -z "$(git status --porcelain -- $YOLLAR)" ]; then
-            echo "Üretilecek yeni kapak yok; akış güncel."
-            exit 0
-          fi
-          git config user.name "BTMEDYA Kapak Otomasyonu"
-          git config user.email "actions@users.noreply.github.com"
-          DAL="automation/haber-kapaklari"
-          git checkout -B "$DAL"
-          git add $YOLLAR
-          git commit -m "chore: otomatik haber kapakları üretildi"
-          # 11 Ekim: depo kural seti tüm dallarda dal oluşturmayı kısıtlıyor ve
-          # imzalı commit istiyor; Actions bu kuralı aşamıyor. Sessiz kalmasın.
-          if ! git push origin "HEAD:$DAL" --force; then
-            echo "::error::Kapaklar üretildi ama push reddedildi (depo kural seti). GitHub > Settings > Rules: GitHub Actions'ı atlama listesine ekleyin ya da automation/** dallarını kuraldan hariç tutun."
-            exit 1
-          fi
-          PR="$(gh pr list --base main --head "$DAL" --state open --json number --jq '.[0].number')"
-          if [ -z "$PR" ]; then
-            gh pr create --base main --head "$DAL" \
-              --title "chore: otomatik haber kapakları" \
-              --body "BTMEDYA haber kapak otomasyonu, kapaksız yayımlanan haberler için kapak üretti (vurgu rakamları yalnız haber metninden). main korumalı olduğu için doğrudan yazılmaz; bu PR süpervizör turu tarafından birleştirilir." \
-              || echo "::warning::PR açılamadı (Actions PR izni kapalı olabilir); kapaklar $DAL dalında hazır."
-          else
-            echo "Açık kapak PR'ı #$PR güncellendi."
-          fi
+        uses: ./.github/actions/imzali-pr
+        with:
+          dal: automation/haber-kapaklari
+          yollar: public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json public/data/medya-listesi.json tools/temsili-kaynak
+          mesaj: "chore: otomatik haber kapakları üretildi"
+          pr_baslik: "chore: otomatik haber kapakları"
+          pr_govde: "BTMEDYA haber kapak otomasyonu, kapaksız yayımlanan haberler için kapak üretti (vurgu rakamları yalnız haber metninden). main korumalı olduğu için doğrudan yazılmaz; bu PR süpervizör turu tarafından birleştirilir."
