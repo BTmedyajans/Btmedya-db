@@ -171,6 +171,11 @@ assert.equal(M.benzerBaslik('Balıkesir Büyükşehir kütüphaneleri tek dijita
 assert.equal(M.tanitimMi("Göz kapağı estetiği... Dünyagöz Etiler Hastanesi'nden Prof. Dr."), true);
 assert.equal(M.tanitimMi('Özel Balıkesir Park Hastanesi yeni bölüm açtı'), true);
 assert.equal(M.tanitimMi('Balıkesir Atatürk Şehir Hastanesi yeni poliklinik açtı'), false);
+// 11 Ekim: bahis platformu bülteni haber diye yayına girdi.
+assert.equal(M.tanitimMi("Misli üyesi Bursa Hipodromu'nda 90 TL'ye 60.225 TL kazandı, 25,80 ganyanla sürpriz galip"), true);
+assert.equal(M.tanitimMi("Bir platform üyesi 50 TL'ye 1.250.000 TL kazandı"), true);
+assert.equal(M.tanitimMi('Gazi Koşusu\'nu 2,05 ganyanla favori at kazandı'), false);
+assert.equal(M.tanitimMi('Balıkesirspor deplasmanda 2-1 kazandı'), false);
 // Kulis: canlıdaki Spor taslağı atıfsızdı; atıflı hâli geçer.
 const kulisKaynak = "Fenerbahçe'de devre arası 50 milyon euroluk golcü operasyonu! Sarı-lacivertliler Balogun'u kadrosuna katmak istiyor.";
 const atifsiz = { ...iyi, baslik: "Fenerbahçe, Lukaku performans düşerse Balogun transferi hedefliyor", spot: 'Fenerbahçe, ocak ayında Monaco forveti Folarin Balogun için hamle yapmayı planlıyor; oyuncunun piyasa değeri 50 milyon euro olarak gösteriliyor ve sözleşmesi iki yıl daha sürüyor.' };
@@ -205,4 +210,24 @@ console.log('SABAH MASASI KATEGORI ISCISI TESTI GECTI');
   assert.deepEqual(await M.kapakMetinleriOku({ DB }), { fuar: suz });
   assert.deepEqual(await M.kapakMetinleriOku({ DB: { prepare() { return { all: async () => { throw new Error('no such table'); } }; } } }), {});
   console.log('SABAH MASASI KAPAK METNI TESTI GECTI');
+}
+
+// Günlük bölüm döngüsü (11 Ekim): 11 bölüm, azami 8. Balıkesir her gün var,
+// her bölüm iki gün içinde en az bir kez çalışır; azami yetiyorsa liste aynen.
+{
+  const gun0 = M.gununKategorileri(M.KATEGORILER, 8, 0).map(k => k.anahtar);
+  const gun1 = M.gununKategorileri(M.KATEGORILER, 8, 1).map(k => k.anahtar);
+  assert.equal(gun0.length, 8); assert.equal(gun1.length, 8);
+  assert.equal(gun0[0], 'balikesir'); assert.equal(gun1[0], 'balikesir');
+  const iki = new Set([...gun0, ...gun1]);
+  for (const k of M.KATEGORILER) assert.ok(iki.has(k.anahtar), k.anahtar + ' iki günde bir kez bile çalışmıyor');
+  assert.deepEqual(M.gununKategorileri(M.KATEGORILER.slice(0, 3), 8, 5).map(k => k.anahtar), M.KATEGORILER.slice(0, 3).map(k => k.anahtar));
+  // Eski kayıtlı liste sonradan eklenen bölümleri dışarıda bırakmaz; kayıttan
+  // sonra bilerek çıkarılan bölüme dokunulmaz.
+  const kv = deger => ({ KV: { get: async () => JSON.stringify(deger) } });
+  const eski = await M.sabahAyarlari(kv({ kategoriler: ['balikesir', 'gundem', 'teknoloji'] }));
+  for (const k of ['dunya', 'yasam', 'turkiye']) assert.ok(eski.kategoriler.includes(k), k + ' eski kayda eklenmeli');
+  const yeni = await M.sabahAyarlari(kv({ kategoriler: ['balikesir', 'gundem'], kayitTarihi: '2026-10-11T00:00:00Z' }));
+  assert.deepEqual(yeni.kategoriler, ['balikesir', 'gundem']);
+  console.log('SABAH MASASI BOLUM DONGUSU TESTI GECTI');
 }

@@ -110,7 +110,12 @@ export function hassasMi(metin) { return HASSAS.test(duz(metin)); }
    tanıtımıydı ve Sağlık taslağı olarak çıktı. Metnin başında adı geçen özel
    sağlık markası ya da "Özel ... Hastanesi" varsa aday atlanır. */
 const TANITIM = /\b(dunyagoz|acibadem|memorial|medical park|liv hospital|medipol|florence nightingale|anadolu saglik merkezi|medicana|medline|hisar intercontinental|amerikan hastanesi|american hospital|guven hastanesi|istinye universitesi hastanesi|koc universitesi hastanesi|ozel [a-z]{2,20}( [a-z]{2,20}){0,3} (hastanesi|poliklinigi|klinigi|tip merkezi)|estetik (merkezi|klinigi))\b/;
-export function tanitimMi(metin) { return TANITIM.test(duz(metin)); }
+// 11 Ekim: "Misli üyesi Bursa Hipodromu'nda 90 TL'ye 60.225 TL kazandı" bahis
+// platformunun bülteni haber diye yayına girdi. Platform adı ya da "üyesi …
+// TL kazandı" kalıbı tanıtımdır; TJK koşu sonucu, Spor Toto kararı gibi
+// haberler bu kalıplara uymaz.
+const BAHIS_TANITIM = /\b(misli(\.com)?|nesine(\.com)?|bilyoner|tuttur(\.com)?|oley(\.com)?|birebin|hipodrom\.com|(uyesi|kullanicisi|oyuncusu) .{0,80}\b(tl|lira)(['’]?(ye|ya|lik|luk))? .{0,40}\bkazandi)\b/;
+export function tanitimMi(metin) { const d = duz(metin); return TANITIM.test(d) || BAHIS_TANITIM.test(d); }
 
 /* Kulis, iddia ve transfer söylentisi kesin bilgi gibi yazılmaz; kaynağa
    atfedilir. 29 Eylül Spor taslağı bir transfer iddiasını "hedefliyor" diye
@@ -123,6 +128,7 @@ export function atifVarMi(metin) { return ATIF.test(duz(metin)); }
 const SPOR_KELIME = /\b(futbol|mac|maci|milli takim|uefa|super lig|gol|teknik direktor|transfer|basketbol|voleybol|fenerbahce|galatasaray|besiktas|trabzonspor)\b/;
 
 /* ---------- Ayarlar ve rapor ---------- */
+const KATEGORI_EKLENME = { dunya: '2026-10-06', yasam: '2026-10-06', turkiye: '2026-10-10' };
 export async function sabahAyarlari(env) {
   let k = {};
   const ham = env.KV ? await env.KV.get(AYAR).catch(() => null) : null;
@@ -130,6 +136,15 @@ export async function sabahAyarlari(env) {
   const a = { ...VARSAYILAN, ...k };
   const gecerli = new Set(KATEGORILER.map(x => x.anahtar));
   const secili = Array.isArray(a.kategoriler) ? a.kategoriler.map(String).filter(x => gecerli.has(x)) : null;
+  // Liste bölüm eklenmeden önce kaydedildiyse yeni bölüm dışarıda kalırdı
+  // (seçilmediği için değil, o gün listede olmadığı için). Kayıttan sonra
+  // eklenen bölüm otomatik dahil edilir; kayıttan sonra bilerek çıkarılan
+  // bölüme dokunulmaz. Boş liste zaten "hepsi" demek; ekleme onu daraltırdı.
+  if (secili && secili.length) {
+    const kayit = String(k.kayitTarihi || '');
+    for (const [anahtar, tarih] of Object.entries(KATEGORI_EKLENME))
+      if (gecerli.has(anahtar) && !secili.includes(anahtar) && (!kayit || kayit < tarih)) secili.push(anahtar);
+  }
   return {
     etkin: a.etkin !== false,
     // Güvenli, kaynak doğrulamalı içerikler otomatik yayınlanabilir; hassas,
@@ -145,7 +160,7 @@ export async function sabahAyarlari(env) {
 export async function sabahAyarlariYaz(env, b) {
   if (!env.KV) throw new Error('KV yapılandırılmadı');
   const { model, ...yeni } = { ...(await sabahAyarlari(env)), ...(b || {}) };
-  await env.KV.put(AYAR, JSON.stringify(yeni));
+  await env.KV.put(AYAR, JSON.stringify({ ...yeni, kayitTarihi: new Date().toISOString() }));
   return sabahAyarlari(env);
 }
 export async function sabahRaporu(env) {
@@ -721,6 +736,21 @@ function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;
    secenek.kategoriler: yalnız bu anahtarlar (panelden tek kategori denemesi). */
 const KATEGORI_BASINA_ADAY = 8;
 
+/* 11 Ekim: liste .slice(0, günlük azami) ile kesiliyordu; 11 bölüm, azami 8
+   olduğu için sondaki bölümler hiç çalışmıyordu (Dünya ve Yaşam 6 Ekim'den,
+   Teknoloji 10 Ekim'de Türkiye araya girince). Balıkesir her gün ilk sırada;
+   kalan yerler her gün kayarak dağıtılır, her bölüm en geç iki günde bir
+   sıra alır. */
+export function gununKategorileri(liste, limit, gun = Math.floor(Date.now() / 86400000)) {
+  if (liste.length <= limit) return liste;
+  const sabit = liste.filter(k => k.anahtar === 'balikesir').slice(0, limit);
+  const diger = liste.filter(k => k.anahtar !== 'balikesir');
+  const kalan = limit - sabit.length;
+  if (kalan <= 0 || !diger.length) return sabit;
+  const bas = (gun * kalan) % diger.length;
+  return [...sabit, ...[...diger.slice(bas), ...diger.slice(0, bas)].slice(0, kalan)];
+}
+
 export async function sabahMasasi(env, secenek = {}) {
   const ayar = await sabahAyarlari(env);
   const kuru = secenek.kuru === true;
@@ -735,7 +765,7 @@ export async function sabahMasasi(env, secenek = {}) {
   const gunlukLimit = Number.isFinite(Number(secenek.maxHaber)) && Number(secenek.maxHaber)>0
     ? Math.min(Number(secenek.maxHaber), ayar.gunlukAzami)
     : ayar.gunlukAzami;
-  const kategoriler = KATEGORILER.filter(k => istenen.has(k.anahtar)).slice(0, gunlukLimit);
+  const kategoriler = gununKategorileri(KATEGORILER.filter(k => istenen.has(k.anahtar)), gunlukLimit);
 
   // Kaynakları paralel oku; biri düşerse diğerleri devam eder.
   const idler = [...new Set(kategoriler.flatMap(k => k.kaynaklar))];
