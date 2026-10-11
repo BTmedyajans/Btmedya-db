@@ -44,6 +44,7 @@ jobs:
           node --check src/yayin-zinciri.js
           node tools/yayin-zinciri-testi.mjs
           node tools/alt-kategori-denetimi.mjs
+          node tools/admin-betik-denetimi.mjs
           node --check public/admin/yayin/yayin.js
           node --check src/ai-gorunurluk.js
           node tools/ai-gorunurluk-testi.mjs

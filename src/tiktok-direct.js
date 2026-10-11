@@ -1,7 +1,7 @@
 const TIKTOK_AUTH="https://www.tiktok.com/v2/auth/authorize/";
 const TIKTOK_TOKEN="https://open.tiktokapis.com/v2/oauth/token/";
 const TIKTOK_API="https://open.tiktokapis.com/v2";
-import { validSession, saveOAuthConnection, validWorkspaceType, workspaceExists } from "./direct-social.js";
+import { validSession, saveOAuthConnection, validWorkspaceType, workspaceExists, kimlikEksikYonlendir } from "./direct-social.js";
 
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
 
@@ -9,7 +9,7 @@ export async function tiktokApi(request,env){
   const url=new URL(request.url);
   if(!url.pathname.startsWith("/api/social/direct/tiktok/"))return null;
   if(!(await validSession(request,env)))return json({error:"unauthorized"},401);
-  if(!env.TIKTOK_CLIENT_KEY||!env.TIKTOK_CLIENT_SECRET)return json({error:"TikTok geliştirici uygulaması yapılandırılmamış",required:["TIKTOK_CLIENT_KEY","TIKTOK_CLIENT_SECRET"]},503);
+  if(!env.TIKTOK_CLIENT_KEY||!env.TIKTOK_CLIENT_SECRET){if(url.pathname.endsWith("/start"))return kimlikEksikYonlendir("tiktok",["TIKTOK_CLIENT_KEY","TIKTOK_CLIENT_SECRET"].filter(k=>!env[k]));return json({error:"TikTok geliştirici uygulaması yapılandırılmamış",required:["TIKTOK_CLIENT_KEY","TIKTOK_CLIENT_SECRET"]},503);}
   const path=url.pathname.replace("/api/social/direct/tiktok/","");
   if(path==="start"){
     const state=crypto.randomUUID();
