@@ -1057,177 +1057,207 @@
   "category": "video"
  },
  {
-  "path": "media/web/giris-ai-genis-poster.jpg",
+  "path": "media/web/btmedya-tanitim-v5-dikey-poster.jpg",
   "id": "static-205",
   "category": "video"
  },
  {
-  "path": "media/web/giris-ai-genis.mp4",
+  "path": "media/web/btmedya-tanitim-v5-dikey.mp4",
   "id": "static-206",
   "category": "video"
  },
  {
-  "path": "media/web/giris-ai-genis.webm",
+  "path": "media/web/btmedya-tanitim-v5-dikey.webm",
   "id": "static-207",
   "category": "video"
  },
  {
-  "path": "media/web/giris-ai-poster.jpg",
+  "path": "media/web/btmedya-tanitim-v5-genis-poster.jpg",
   "id": "static-208",
   "category": "video"
  },
  {
-  "path": "media/web/giris-ai.mp4",
+  "path": "media/web/btmedya-tanitim-v5-genis.mp4",
   "id": "static-209",
   "category": "video"
  },
  {
-  "path": "media/web/giris-ai.webm",
+  "path": "media/web/btmedya-tanitim-v5-genis.webm",
   "id": "static-210",
   "category": "video"
  },
  {
-  "path": "media/web/giris-filmi-genis-poster.jpg",
+  "path": "media/web/giris-ai-genis-poster.jpg",
   "id": "static-211",
+  "category": "video"
+ },
+ {
+  "path": "media/web/giris-ai-genis.mp4",
+  "id": "static-212",
+  "category": "video"
+ },
+ {
+  "path": "media/web/giris-ai-genis.webm",
+  "id": "static-213",
+  "category": "video"
+ },
+ {
+  "path": "media/web/giris-ai-poster.jpg",
+  "id": "static-214",
+  "category": "video"
+ },
+ {
+  "path": "media/web/giris-ai.mp4",
+  "id": "static-215",
+  "category": "video"
+ },
+ {
+  "path": "media/web/giris-ai.webm",
+  "id": "static-216",
+  "category": "video"
+ },
+ {
+  "path": "media/web/giris-filmi-genis-poster.jpg",
+  "id": "static-217",
   "category": "video",
   "gercek": true
  },
  {
   "path": "media/web/giris-filmi-genis.mp4",
-  "id": "static-212",
+  "id": "static-218",
   "category": "video",
   "gercek": true
  },
  {
   "path": "media/web/giris-filmi-genis.webm",
-  "id": "static-213",
+  "id": "static-219",
   "category": "video"
  },
  {
   "path": "media/web/giris-filmi-poster.jpg",
-  "id": "static-214",
+  "id": "static-220",
   "category": "video",
   "gercek": true
  },
  {
   "path": "media/web/giris-filmi.mp4",
-  "id": "static-215",
+  "id": "static-221",
   "category": "video",
   "gercek": true
  },
  {
   "path": "media/web/giris-filmi.webm",
-  "id": "static-216",
+  "id": "static-222",
   "category": "video",
   "gercek": true
  },
  {
   "path": "media/web/hero-story-mobile.mp4",
-  "id": "static-217",
-  "category": "video"
- },
- {
-  "path": "media/web/hero-story.mp4",
-  "id": "static-218",
-  "category": "video"
- },
- {
-  "path": "media/web/secim-karakter.webp",
-  "id": "static-219",
-  "category": "video"
- },
- {
-  "path": "media/web/secim-sahne-zemin.jpg",
-  "id": "static-220",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-07.mp4",
-  "id": "static-221",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-07.webm",
-  "id": "static-222",
-  "category": "video"
- },
- {
-  "path": "media/web/showreel-action.mp4",
   "id": "static-223",
   "category": "video"
  },
  {
-  "path": "media/web/showreel-action.webm",
+  "path": "media/web/hero-story.mp4",
   "id": "static-224",
   "category": "video"
  },
  {
-  "path": "media/web/showreel-fantasy.mp4",
+  "path": "media/web/secim-karakter.webp",
   "id": "static-225",
+  "category": "video"
+ },
+ {
+  "path": "media/web/secim-sahne-zemin.jpg",
+  "id": "static-226",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-07.mp4",
+  "id": "static-227",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-07.webm",
+  "id": "static-228",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-action.mp4",
+  "id": "static-229",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-action.webm",
+  "id": "static-230",
+  "category": "video"
+ },
+ {
+  "path": "media/web/showreel-fantasy.mp4",
+  "id": "static-231",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/showreel-fantasy.webm",
-  "id": "static-226",
+  "id": "static-232",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/showreel-flying-reporter.mp4",
-  "id": "static-227",
+  "id": "static-233",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/showreel-flying-reporter.webm",
-  "id": "static-228",
+  "id": "static-234",
   "category": "video",
   "vitrin": false
  },
  {
   "path": "media/web/state-haber.mp4",
-  "id": "static-229",
+  "id": "static-235",
   "category": "video"
  },
  {
   "path": "media/web/state-medya.mp4",
-  "id": "static-230",
+  "id": "static-236",
   "category": "video"
  },
  {
   "path": "media/web/state-produksiyon.mp4",
-  "id": "static-231",
+  "id": "static-237",
   "category": "video"
  },
  {
   "path": "sosyal/balikesir-in-en-kalabalik-pazari-dikey.mp4",
-  "id": "static-232",
+  "id": "static-238",
   "category": "sosyal"
  },
  {
   "path": "sosyal/balikesir-pazarinda-canli-helva-sovu-dikey.mp4",
-  "id": "static-233",
+  "id": "static-239",
   "category": "sosyal"
  },
  {
   "path": "sosyal/el-emegi-yorganlar-artik-isitmiyor-dikey.mp4",
-  "id": "static-234",
+  "id": "static-240",
   "category": "sosyal"
  },
  {
   "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-1.jpg",
-  "id": "static-235",
+  "id": "static-241",
   "category": "sosyal"
  },
  {
   "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-2.jpg",
-  "id": "static-236",
+  "id": "static-242",
   "category": "sosyal"
  },
  {
   "path": "sosyal/yapay-zeka-kullanimi-turkiye-2026-q2-3.jpg",
-  "id": "static-237",
+  "id": "static-243",
   "category": "sosyal"
  }
 ]

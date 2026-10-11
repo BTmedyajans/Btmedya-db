@@ -94,7 +94,15 @@ else ok("mobile polish stylesheet is loaded last by homepage UI bootstrap");
 
 /* V6 mobile intro contract. Branch-local guard: keep the archive-hero merge contract explicit. */
 const motionCss = read("public/mobile-motion.css");
-if (index.includes("data-bt-clean-hero")) {
+if (index.includes("data-giris-v5")) {
+  const vids = [...index.matchAll(/<video\b[^>]*>/g)].map(m => m[0]);
+  if (vids.length !== 1 || !/\bmuted\b/.test(vids[0] || '') || !/\bplaysinline\b/.test(vids[0] || '') || !/data-dikey="/.test(vids[0] || ''))
+    fail("intro v5 must expose one muted inline video with a vertical (data-dikey) encode");
+  else ok("intro v5 has one muted inline video with a vertical encode");
+  if (!/\.giris-v5\{[^}]*height:100svh/.test(read("public/giris-v5.css")))
+    fail("intro v5 viewport sizing contract missing");
+  else ok("intro v5 uses full viewport sizing");
+} else if (index.includes("data-bt-clean-hero")) {
   const vids = [...index.matchAll(/<video\b[^>]*>/g)].map(m => m[0]);
   if (vids.length !== 1 || !/bt-clean-hero-video/.test(vids[0] || '') ||
       !/data-slot="hero-video"/.test(vids[0] || '') ||
