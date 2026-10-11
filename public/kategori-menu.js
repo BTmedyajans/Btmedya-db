@@ -148,11 +148,33 @@
     },{passive:true});
     addEventListener('resize',()=>{if(!kok.hidden)imleciTasi();});
 
+    // Haber portalı yayımdaki bölüm/ilçe sayılarını verir (haberler-akisi.js);
+    // sayı bölüm adının yanında görünür, okur boş bölüme gitmeden görür.
+    const sayilariYaz=()=>{
+      const S=window.btHaberSayilari;if(!S)return;
+      kok.querySelectorAll('a[href^="/haberler/"]').forEach(a=>{
+        const m=a.getAttribute('href').match(/^\/haberler\/(?:balikesir\/([a-z]+)\/|([a-z]+)\/)$/);
+        const n=m?(m[1]?(S.ilce||{})[m[1]]||0:S[m[2]]):undefined;
+        if(n===undefined)return;
+        let e=a.querySelector('.btkm-sayi');
+        if(!e){e=document.createElement('em');e.className='btkm-sayi';const b=a.querySelector('b');b?b.after(e):a.appendChild(e);}
+        e.textContent=n+' haber';a.classList.toggle('btkm-bos',!n);
+      });
+    };
+    sayilariYaz();document.addEventListener('bt:haber-sayilari',sayilariYaz);
+
     let tetik=null;
-    const TETIKLER='#menuToggle,.menu-toggle,.hamburger,.btkm-dugme';
+    const TETIKLER='#menuToggle,.menu-toggle,.hamburger,.btkm-dugme,[data-btkm-ac]';
     const durum=a=>document.querySelectorAll(TETIKLER).forEach(d=>d.setAttribute('aria-expanded',String(a)));
     const ac=t=>{
       tetik=t||null;
+      // Tetikleyici bir başlık isteyebilir (portalın katalog düğmesi → HABER).
+      const istenen=t&&t.dataset?Number(t.dataset.btkmSekme):NaN;
+      if(Number.isInteger(istenen)&&istenen>=0&&istenen<BASLIKLAR.length&&istenen!==etkin){
+        etkin=istenen;
+        sekmeler.forEach((s,j)=>{s.setAttribute('aria-selected',String(j===etkin));s.tabIndex=j===etkin?0:-1;});
+        panolar.forEach((p,j)=>{p.hidden=j!==etkin;});
+      }
       // Açılış dairesi dokunulan düğmeden büyür.
       const r=t&&t.getBoundingClientRect?t.getBoundingClientRect():null;
       kok.style.setProperty('--btkm-ox',r?Math.round(r.left+r.width/2)+'px':'100%');

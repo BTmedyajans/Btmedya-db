@@ -26,12 +26,18 @@ let mevcut = '';
 try { mevcut = readFileSync(HEDEF, 'utf8'); } catch {}
 assert.equal(mevcut, metin, HEDEF + ' güncel değil: node tools/kategori-sistemi.mjs --yaz');
 
-// 2) Portal rayı ve çekmece: aynı anahtarlar, aynı sıra.
+// 2) Portal rayı ve site menüsü sayaçları: aynı anahtarlar, aynı sıra.
 const sayfa = readFileSync('public/haberler/index.html', 'utf8');
 const ray = sayfa.slice(sayfa.indexOf('<div class="hm-ray-iz">'), sayfa.indexOf('</nav>', sayfa.indexOf('<div class="hm-ray-iz">')));
 const rayAnahtarlari = [...ray.matchAll(/data-hm-kategori="([a-z]+)"/g)].map(m => m[1]).filter(k => k !== 'tumu');
 assert.deepEqual(rayAnahtarlari, KATEGORI_ANAHTARLARI, 'portal rayı kategori sırası tek kaynakla aynı olmalı');
-for (const k of KATEGORI_ANAHTARLARI) assert.match(sayfa, new RegExp(`<small data-hm-sayi="${k}"></small>`), 'çekmecede sayaç eksik: ' + k);
+// 11 Ekim: portal çekmecesi kalktı; sayaçlar site menüsünde (kategori-menu.js).
+// Her bölümün menüde bağlantısı olmalı ve portal her bölümün sayısını yayınlamalı.
+const sozluk = readFileSync('public/data/btmedya-taxonomy.js', 'utf8');
+for (const k of KATEGORI_ANAHTARLARI) assert.ok(sozluk.includes(`href:"/haberler/${k}/"`), 'site menüsünde bölüm bağlantısı eksik: ' + k);
+const akisKaynak = readFileSync('public/haberler-akisi.js', 'utf8');
+const sayacListesi = (akisKaynak.match(/function sayilariYayinla[\s\S]*?\[([^\]]+)\]\.forEach/) || [])[1] || '';
+assert.deepEqual([...sayacListesi.matchAll(/'([a-z]+)'/g)].map(m => m[1]), KATEGORI_ANAHTARLARI, 'portalın menüye verdiği sayaç listesi tek kaynakla aynı olmalı');
 
 // 3) Bölüm renkleri portal.css'te tanımlı ve aynı.
 const css = readFileSync('public/haberler/portal.css', 'utf8');

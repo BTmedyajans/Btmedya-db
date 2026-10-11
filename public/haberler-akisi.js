@@ -319,9 +319,6 @@
   });
   var ray = kok.querySelector('.hm-ray-iz'), imlec = kok.querySelector('.hm-imlec');
   function rayIsaretle(anahtar) {
-    document.querySelectorAll('.hm-cekmece-liste a').forEach(function (a) {
-      if (a.getAttribute('data-hm-kategori') === anahtar) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
-    });
     var etiket = kok.querySelector('[data-hm-etkin]');
     if (etiket) { etiket.textContent = anahtar === 'tumu' ? 'Tümü' : AD[anahtar] || 'Tümü'; etiket.parentNode.setAttribute('data-kat', anahtar); }
     if (!ray) return;
@@ -342,54 +339,9 @@
   // aynı liste, aynı sayı). Bağlantılar normal sayfa geçişi yapar; eskiden
   // istemci kendi verisiyle yeniden çiziyor, sayfadaki sayı ve liste sunucu
   // HTML'inden farklı çıkabiliyordu (Ekonomi: 20 → 12).
-  function kategoriTik(e) {
-    var a = e.target.closest('[data-hm-kategori]');
-    if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
-    cekmeceKapat();
-  }
-  kok.addEventListener('click', kategoriTik);
-  /* Mobil kategori çekmecesi (hamburger). Açıkken sayfa kaymaz, Esc kapatır,
-     odak çekmeceye girer ve kapanınca düğmeye döner. */
-  var cekmece = kok.querySelector('.hm-cekmece'), acDugme = kok.querySelector('[data-hm-ac]');
-  // Üst çubuk kendi katmanında; çekmece body'ye taşınınca her şeyin üstünde açılır.
-  if (cekmece) {
-    document.body.appendChild(cekmece);
-    cekmece.addEventListener('click', function (e) {
-      if (e.target.closest('[data-hm-kapat]') || e.target === cekmece) { cekmeceKapat(); return; }
-      var baslik = e.target.closest('.hm-3yol-baslik');
-      if (baslik) {
-        var grup = baslik.closest('.hm-3yol-grup');
-        var alt = grup && grup.querySelector('.hm-3yol-alt');
-        var acik = baslik.getAttribute('aria-expanded') === 'true';
-        cekmece.querySelectorAll('.hm-3yol-baslik').forEach(function (b) {
-          b.setAttribute('aria-expanded', 'false');
-          var a = b.closest('.hm-3yol-grup') && b.closest('.hm-3yol-grup').querySelector('.hm-3yol-alt');
-          if (a) a.hidden = true;
-          var i = b.querySelector('i'); if (i) i.textContent = '＋';
-        });
-        if (!acik && alt) {
-          baslik.setAttribute('aria-expanded', 'true');
-          alt.hidden = false;
-          var i2 = baslik.querySelector('i'); if (i2) i2.textContent = '−';
-        }
-        return;
-      }
-      kategoriTik(e);
-    });
-  }
-  function cekmeceAc() {
-    if (!cekmece) return;
-    cekmece.hidden = false; acDugme.setAttribute('aria-expanded', 'true');
-    document.documentElement.style.overflow = 'hidden';
-    var etkin = cekmece.querySelector('a[aria-current]') || cekmece.querySelector('a'); if (etkin) etkin.focus();
-  }
-  function cekmeceKapat() {
-    if (!cekmece || cekmece.hidden) return;
-    cekmece.hidden = true; acDugme.setAttribute('aria-expanded', 'false');
-    document.documentElement.style.overflow = ''; acDugme.focus();
-  }
-  if (acDugme) acDugme.addEventListener('click', cekmeceAc);
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') cekmeceKapat(); });
+  // Kategori bağlantıları normal sayfa geçişi yapar. Bölüm ve ilçe seçimi
+  // 11 Ekim'den beri tek site menüsünde (kategori-menu.js); portalın ayrı
+  // çekmecesi kaldırıldı, ray düğmesi aynı menüyü HABER başlığında açar.
 
   window.addEventListener('popstate', function () { kategoriGoster(aktifKategori(), false); });
 
@@ -437,43 +389,17 @@
   }
 
   /* ---- Akışın kurulması ---- */
-  /* Çekmece (11 Ekim, kullanıcı isteği: "hamburger sistemini sadeleştir, en
-     dolu kategorileri öne çıkar, mobilde iç içe sade kategori"):
-     - sayaçlar bölüm sayfasıyla aynı kümeyi sayar (tüm yayınlar; akış 100
-       haberle sınırlıyken "Tümü 100" yazıyordu, yayında 166 vardı),
-     - boş bölüm gizlenir ("Türkiye 0 haber" görünüyordu),
-     - her grupta bölümler doluluğa göre sıralanır (Tümü hep başta),
-     - Balıkesir'in altında en dolu ilçeler iç içe açılır. */
-  function cekmeceDuzenle(yayinda) {
+  /* Bölüm sayaçları bölüm sayfasıyla aynı kümeyi sayar (tüm yayınlar; akış
+     100 haberle sınırlıyken "Tümü 100" yazıyordu, yayında 166 vardı). */
+  function sayilariYayinla(yayinda) {
     var sayi = function (k) { return k === 'tumu' ? yayinda.length : yayinda.filter(function (n) { return bolumde(n, k); }).length; };
-    var gruplar = [];
-    document.querySelectorAll('.hm-cekmece-liste a[data-hm-kategori]').forEach(function (a) {
-      var k = a.getAttribute('data-hm-kategori'), s = sayi(k);
-      a._sayi = s;
-      var el = a.querySelector('[data-hm-sayi]');
-      if (el) el.textContent = s + ' haber';
-      a.hidden = k !== 'tumu' && s === 0;
-      if (gruplar.indexOf(a.parentNode) < 0) gruplar.push(a.parentNode);
-    });
-    gruplar.forEach(function (g) {
-      var linkler = Array.prototype.filter.call(g.children, function (x) { return x.matches && x.matches('a[data-hm-kategori]'); });
-      linkler.sort(function (a, b) {
-        if (a.getAttribute('data-hm-kategori') === 'tumu') return -1;
-        if (b.getAttribute('data-hm-kategori') === 'tumu') return 1;
-        return b._sayi - a._sayi;
-      }).forEach(function (a) { g.appendChild(a); });
-    });
-    var bal = document.querySelector('.hm-cekmece-liste a[data-hm-kategori="balikesir"]');
-    if (!bal || bal.nextElementSibling && bal.nextElementSibling.classList.contains('hm-cekmece-ilceler')) return;
-    var say = {};
-    yayinda.forEach(function (n) { if (n._kat === 'balikesir') Object.keys(ILCELER).forEach(function (a) { if (ilcede(n, a)) say[a] = (say[a] || 0) + 1; }); });
-    var sirali = Object.keys(say).sort(function (a, b) { return say[b] - say[a]; }).slice(0, 6);
-    if (!sirali.length) return;
-    var kutu = document.createElement('div');
-    kutu.className = 'hm-cekmece-ilceler';
-    kutu.setAttribute('aria-label', 'Balıkesir ilçeleri');
-    kutu.innerHTML = sirali.map(function (a) { return '<a href="/haberler/balikesir/' + a + '/">' + esc(ILCELER[a]) + '<small>' + say[a] + '</small></a>'; }).join('');
-    bal.insertAdjacentElement('afterend', kutu);
+    // Portalın ayrı çekmecesi kalktı, tek site menüsü var (kategori-menu.js);
+    // sayılar menüye bu olayla geçer ve bölüm adının yanında görünür.
+    var sayilar = { tumu: yayinda.length, ilce: {} };
+    ['balikesir', 'turkiye', 'dunya', 'gundem', 'ekonomi', 'kultur', 'egitim', 'saglik', 'spor', 'teknoloji', 'yasam'].forEach(function (k) { sayilar[k] = sayi(k); });
+    yayinda.forEach(function (n) { if (n._kat === 'balikesir') Object.keys(ILCELER).forEach(function (a) { if (ilcede(n, a)) sayilar.ilce[a] = (sayilar.ilce[a] || 0) + 1; }); });
+    window.btHaberSayilari = sayilar;
+    document.dispatchEvent(new CustomEvent('bt:haber-sayilari'));
   }
 
   async function yukle() {
@@ -526,7 +452,7 @@
     // Bloğu boş kalan kategoriye sürmanşet dışındaki en yeni haberleri ver; yine de tekrar etme.
     KATEGORILER.forEach(function (k) { if (!gruplar[k[0]].length) gruplar[k[0]] = kalan.filter(function (n) { return n._kat === k[0] && surler.indexOf(n) < 0; }); });
 
-    cekmeceDuzenle(yayinda);
+    sayilariYayinla(yayinda);
     serit(guncel);
     akis(guncel.slice(0, 12));
     manset(guncel);

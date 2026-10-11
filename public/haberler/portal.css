@@ -207,7 +207,6 @@
    Kategoriler hamburger çekmeceye taşındı; her blok bir büyük + iki satır
    haber gösterir, gerisi "Tümü" sayfasında. */
 .hm-katdugme{display:none}
-.hm-cekmece[hidden]{display:none}
 @media(max-width:720px){
   .hm-ozet{display:none}
   .hm-bas{padding-bottom:8px}
@@ -234,23 +233,10 @@
   .hm-ilkeler{display:none}
 }
 /* Çekmece: tam ekran, büyük dokunma alanı, kategori rengiyle. */
-.hm-cekmece{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;background:rgba(5,6,7,.97);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:18px var(--hm-kenar) 28px;overflow-y:auto;animation:hm-cek .35s cubic-bezier(.2,.8,.2,1)}
 @keyframes hm-cek{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
-.hm-cekmece-ust{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;color:var(--hm-soluk);font:700 12px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}
-.hm-cekmece-ust button{width:48px;height:48px;border:1px solid var(--hm-cizgi);border-radius:12px;background:var(--hm-panel);color:#fff;font-size:20px;cursor:pointer}
-.hm-cekmece-liste a{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px;border-bottom:1px solid var(--hm-cizgi);color:#fff;text-decoration:none}
-.hm-cekmece-liste a span{display:flex;align-items:center;gap:14px;font:400 clamp(30px,9vw,44px)/1 Anton,Impact,sans-serif;text-transform:uppercase}
-.hm-cekmece-liste a span::before{content:'';width:10px;height:10px;border-radius:2px;background:var(--kat);transform:rotate(45deg)}
-.hm-cekmece-liste a[aria-current=page] span{color:var(--kat)}
-.hm-cekmece-liste small{color:var(--hm-soluk);font:700 13px/1 'JetBrains Mono',ui-monospace,monospace}
-.hm-katalog-grup{margin-top:18px;padding:0 0 4px;border-top:1px solid var(--hm-cizgi)}
-.hm-katalog-grup strong{display:block;padding:12px 0 5px;color:var(--hm-sari);font:800 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em}
-.hm-katalog-grup a{border-bottom:1px solid rgba(255,255,255,.08)}
-.hm-cekmece-liste a:focus-visible{outline:2px solid var(--hm-sari);outline-offset:-2px}
 /* styles.css body'nin doğrudan çocuklarına position:relative ve z-index:1
    veriyor (gren katmanının üstünde dursunlar diye); çekmece body'ye
    taşındığı için bunu açıkça ezer. */
-body>.hm-cekmece{position:fixed!important;inset:0;z-index:2147483000!important}
 
 /* Server-rendered clean category pages: focus the reader on the selected desk. */
 .hm.kategori-modu .hm-arsiv,.hm.kategori-modu>.hm-akan{display:none}
@@ -293,34 +279,6 @@ body>.hm-cekmece{position:fixed!important;inset:0;z-index:2147483000!important}
 
 
 /* 2026-10-08 · Haber paneli: BTMEDYA üç ana yol hamburger sistemi */
-.hm-3yol{background:rgba(5,7,9,.98);color:#eef3f6}
-.hm-3yol .hm-cekmece-ust{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px;border-bottom:1px solid rgba(255,255,255,.1)}
-.hm-3yol .hm-cekmece-ust>div{display:grid;gap:5px}
-.hm-3yol .hm-cekmece-ust span{font-weight:900;letter-spacing:.14em}
-.hm-3yol .hm-cekmece-ust small{font-size:9px;color:#8e9aa1;letter-spacing:.1em}
-.hm-3yol .hm-cekmece-liste{display:grid;gap:0;padding:0}
-.hm-3yol-grup{border-bottom:1px solid rgba(255,255,255,.09)}
-.hm-3yol-baslik{width:100%;min-height:74px;border:0;border-radius:0;background:#080c0f;color:#fff;display:flex;align-items:center;justify-content:space-between;text-align:left;padding:10px 20px;cursor:pointer}
-.hm-3yol-baslik:hover{background:#0d1317}
-.hm-3yol-baslik>span{display:flex;align-items:center;gap:13px}
-.hm-3yol-baslik small{display:grid;place-items:center;width:38px;height:38px;border:1px solid #29353b;border-radius:8px;color:#d9ff3f;font:800 10px/1 ui-monospace,monospace}
-.hm-3yol-baslik b{font-size:15px;letter-spacing:.055em}
-.hm-3yol-baslik i{font-style:normal;font-size:22px;color:#8b9aa2}
-.hm-3yol-baslik[aria-expanded=true]{color:#d9ff3f;background:linear-gradient(90deg,rgba(217,255,63,.08),transparent)}
-.hm-3yol-alt{display:grid;gap:12px;padding:4px 20px 20px;background:#05080a}
-.hm-3yol-alt[hidden]{display:none}
-.hm-3yol-alt .hm-katalog-grup{display:grid;gap:5px}
-.hm-3yol-alt .hm-katalog-grup strong{padding:8px 5px 3px;color:#77868f;font:800 9px/1.2 ui-monospace,monospace;letter-spacing:.16em}
-.hm-3yol-alt .hm-katalog-grup a{min-height:50px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border:1px solid #1e292f;border-radius:8px;background:#090e11;color:#edf3f5;text-decoration:none}
-.hm-3yol-alt .hm-katalog-grup a:hover{border-color:#52626a;background:#0e1519}
-.hm-3yol-alt .hm-katalog-grup a[aria-current=page]{border-color:#d9ff3f;box-shadow:inset 3px 0 #d9ff3f;background:rgba(217,255,63,.07)}
-.hm-3yol-alt .hm-katalog-grup a span{font-weight:750}
-.hm-3yol-alt .hm-katalog-grup a small{color:#89979e;font-size:10px}
-@media(max-width:720px){
-  .hm-3yol .hm-cekmece-ust{padding:16px}
-  .hm-3yol-baslik{min-height:68px;padding:9px 16px}
-  .hm-3yol-alt{padding:3px 12px 16px}
-}
 
 /* ===== 2026-10-08 BTMEDYA Haber Merkezi / Balıkesir-first redesign ===== */
 .hm-anasayfa{background:#07090c;color:#f5f7f8}
@@ -449,20 +407,5 @@ body>.hm-cekmece{position:fixed!important;inset:0;z-index:2147483000!important}
   .hm .hm-manset-buyuk figcaption h3{font-size:clamp(22px,6.4vw,28px);line-height:1.16}
 }
 
-/* 11 Ekim · Sade çekmece: bölüm satırları alçaldı (64 → 48 px, yazı 44 →
-   26 px), konular iki sütun; Balıkesir'in altında en dolu ilçeler çip
-   olarak iç içe. Boş bölümler JS'te gizlenir (haberler-akisi.js). */
-.hm-cekmece-liste a[hidden]{display:none!important}
-.hm-cekmece .hm-katalog-grup a{min-height:48px}
-.hm-cekmece .hm-katalog-grup a span{font-size:clamp(22px,6.4vw,30px);gap:11px}
-.hm-cekmece-ilceler{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 12px 21px;border-bottom:1px solid rgba(255,255,255,.08)}
-.hm-cekmece-ilceler a{min-height:34px!important;padding:0 11px;border:1px solid rgba(100,228,255,.35)!important;border-radius:999px;color:#dff8ff;font:700 12px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.04em;gap:7px!important}
-.hm-cekmece-ilceler a small{font-size:11px;color:#64e4ff}
-@media (max-width:640px){
-  .hm-cekmece .hm-katalog-grup:nth-of-type(2){display:grid;grid-template-columns:1fr 1fr;column-gap:10px}
-  .hm-cekmece .hm-katalog-grup:nth-of-type(2) strong{grid-column:1/-1}
-  .hm-cekmece .hm-katalog-grup:nth-of-type(2) a span{font-size:clamp(17px,5vw,22px)}
-  .hm-cekmece .hm-katalog-grup:nth-of-type(2) a small{font-size:11px;white-space:nowrap}
-}
 /* Altbilgide telefon ile alan adı bitişik yazılıyordu ("…10 29btmedya.com.tr"). */
 .final-footer .footer-contact{display:flex;flex-wrap:wrap;gap:4px 18px}

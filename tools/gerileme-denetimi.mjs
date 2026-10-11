@@ -429,7 +429,7 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   // 11 Ekim: haber portalının çekmecesi okuru /admin/ sayfalarına (Social OS,
   // Medya Kasası, Connect) gönderiyordu; okur Access giriş duvarına çarpıyordu.
   // Kamuya açık menüler yönetim adresi taşımaz.
-  for (const [dosya, metin] of [['public/data/btmedya-taxonomy.js (kamu grupları)', sozluk], ['public/kategori-menu.js', menu], ['public/haberler/index.html', readFileSync('public/haberler/index.html', 'utf8').split('id="hm-cekmece"')[1] || '']])
+  for (const [dosya, metin] of [['public/data/btmedya-taxonomy.js (kamu grupları)', sozluk], ['public/kategori-menu.js', menu], ['public/haberler/index.html', readFileSync('public/haberler/index.html', 'utf8')]])
     for (const m of metin.matchAll(/["'](\/admin\/[^"']*)["']/g)) bulgular.push(`${dosya} kamuya açık menüde yönetim bağlantısı var: ${m[1]} (okur giriş duvarına çarpar).`);
   for (const yol of yollar) {
     const clean = yol.split('?')[0].split('#')[0];

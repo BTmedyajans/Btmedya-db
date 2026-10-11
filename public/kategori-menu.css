@@ -80,6 +80,10 @@ html.btkm-acik,html.btkm-acik body{overflow:hidden}
 .btkm-oge{position:relative;display:flex;flex-direction:column;justify-content:center;gap:4px;min-height:64px;height:100%;padding:12px 38px 12px 14px;border:1px solid var(--btkm-cizgi);border-radius:14px;background:var(--btkm-kart);color:var(--btkm-yazi);text-decoration:none;transition:border-color .2s,background .2s,transform .3s var(--btkm-egri)}
 .btkm-oge b{font:900 clamp(19px,5.2vw,24px)/1 'BT Big Shoulders','Bricolage Grotesque',sans-serif;letter-spacing:.02em;text-transform:uppercase}
 .btkm-oge small{font-size:11.5px;line-height:1.3;color:var(--btkm-soluk)}
+.btkm-sayi{font:700 10.5px/1 'JetBrains Mono',ui-monospace,monospace;font-style:normal;letter-spacing:.06em;color:var(--btkm-altin)}
+.btkm-cip .btkm-sayi{margin-left:2px;color:var(--btkm-soluk)}
+/* Yayımda haberi olmayan bölüm/ilçe gizlenmez (sayfası var) ama soluk durur. */
+.btkm .btkm-bos{opacity:.5}
 .btkm-oge i{position:absolute;right:12px;top:50%;font-style:normal;color:var(--btkm-altin);transform:translate(-4px,-50%);opacity:0;transition:transform .3s var(--btkm-egri),opacity .2s}
 .btkm-oge:hover,.btkm-oge:focus-visible{border-color:rgba(242,193,78,.55);background:#16140f;outline:none}
 .btkm-oge:hover i,.btkm-oge:focus-visible i{transform:translate(0,-50%);opacity:1}
