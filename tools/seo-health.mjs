@@ -57,10 +57,27 @@ for (const path of pages) {
     }
     if (/noindex/i.test(robots)) fail(`${path} is marked noindex`);
     if (!/schema\.org/i.test(r.body) || !/application\/ld\+json/i.test(r.body)) warn(`${path} has no visible JSON-LD structured data`);
+    if (path === "/") {
+      if (title !== "Balıkesir Haber, Medya ve Prodüksiyon | BTMEDYA") fail(`homepage live title mismatch: ${title || "(empty)"}`);
+      else console.log("PASS: homepage live title matches the current UX/SEO release");
+      const h1Matches = [...r.body.matchAll(/<h1\\b[^>]*>([\\s\\S]*?)<\\/h1>/gi)];
+      const h1Text = (h1Matches[0]?.[1] || "").replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\\s+/g, " ").trim().toLocaleLowerCase("tr-TR");
+      if (h1Matches.length !== 1 || !h1Text.includes("balıkesir") || !h1Text.includes("medya") || !h1Text.includes("prodüksiyon")) fail(`homepage live H1 missing or mismatched: ${h1Text || "(empty)"}`);
+      else console.log("PASS: homepage live H1 matches the local news/media/production intent");
+      if (!r.body.includes("/btmedya-responsive-experience-v1.css?v=20261012-1")) fail("homepage live HTML is missing the new responsive experience stylesheet");
+      else console.log("PASS: new responsive experience stylesheet is linked in live HTML");
+    }
     report.push({ path, status: r.status, title: title.slice(0, 90), descriptionLength: description.length, canonical });
     console.log(`PASS: ${path} HTTP ${r.status}; title=${title.length}; description=${description.length}; canonical=${Boolean(canonical)}`);
   } catch (e) { fail(`${path} fetch failed: ${e.message}`); }
 }
+
+try {
+  const r = await get("/btmedya-responsive-experience-v1.css?v=20261012-1");
+  if (r.status !== 200 || !/text\\/css/i.test(r.contentType)) fail(`responsive experience stylesheet unavailable: HTTP ${r.status} ${r.contentType}`);
+  else if (!/@media\\s*\\(min-width:\\s*1024px\\)/i.test(r.body) || !/@media\\s*\\(max-width:\\s*760px\\)/i.test(r.body)) fail("live stylesheet is missing dedicated desktop/mobile rules");
+  else console.log("PASS: responsive experience stylesheet HTTP 200; desktop/mobile rules checked");
+} catch (e) { fail(`responsive experience stylesheet fetch failed: ${e.message}`); }
 
 for (const path of ["/robots.txt", "/sitemap.xml", "/news-sitemap.xml", "/rss.xml"]) {
   try {
