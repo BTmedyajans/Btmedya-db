@@ -74,6 +74,10 @@ Görseller, `styles.css` ve `script.js` gibi statik dosyalar bu listede değildi
 alan adı genelinde tek adımda çözüm isteniyorsa Cloudflare panelinde zone
 seviyesinde bir **Redirect Rule** tanımlanabilir.
 
+## Üretim dağıtım kimlik bilgisi
+
+Tek Cloudflare deploy token gereksinimi ve izin kapsamı: [docs/CLOUDFLARE-DEPLOY-TOKEN.md](docs/CLOUDFLARE-DEPLOY-TOKEN.md).
+
 ## Yayına almadan önce
 
 `/admin/` panelinin ve imzalı medya bağlantılarının çalışması için üç secret
