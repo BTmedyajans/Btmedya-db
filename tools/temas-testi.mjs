@@ -79,35 +79,57 @@ const worker = readFileSync('src/worker.js', 'utf8');
 assert.match(worker, /import \{[^}]*satisOzeti[^}]*\} from "\.\/sales-router\.js"/);
 assert.match(worker, /cron==="0 5 \* \* \*"[\s\S]{0,900}satisOzeti\(env\)/);
 
-// olcum.js: WhatsApp / tel / mailto tıklaması sinyal gönderir, diğer bağlantılar göndermez.
+// olcum.js: üçüncü taraf analitik ve temas ölçümü açık rızaya bağlıdır.
 const kaynak = readFileSync('public/olcum.js', 'utf8');
-const calistir = ({ webdriver = false } = {}) => {
-  const sinyaller = []; let dinleyici = null;
+const calistir = ({ webdriver = false, tercih = null } = {}) => {
+  const sinyaller = []; let dinleyici = null; const scripts = [];
+  const listeners = {};
+  const element = () => ({
+    setAttribute() {}, appendChild() {}, remove() {},
+    addEventListener(type, fn) { listeners[type] = fn; },
+    querySelector() { return element(); },
+    innerHTML: ''
+  });
   const sb = {
-    URLSearchParams, Blob, JSON,
-    location: { search: '', pathname: '/hizmetler/' },
-    localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+    URLSearchParams, Blob, JSON, Array, Date,
+    location: { search: '', pathname: '/hizmetler/', reload() {} },
+    localStorage: { getItem: key => key === 'btm_cerez_v1' ? (terci ? JSON.stringify(terci) : null) : null, setItem() {}, removeItem() {} },
     navigator: { webdriver, userAgent: 'Mozilla/5.0 (iPhone) Safari', sendBeacon: (u, b) => { sinyaller.push({ u, b }); return true; } },
-    document: { addEventListener: (t, f) => { if (t === 'click') dinleyici = f; }, createElement: () => ({}), head: { appendChild() {} } },
+    document: {
+      readyState: 'complete',
+      addEventListener: (t, f) => { if (t === 'click') dinleyici = f; },
+      querySelectorAll: () => [],
+      querySelector: () => null,
+      createElement: tag => { const el = element(); el.tagName=tag; Object.defineProperty(el,'src',{set(v){scripts.push(v);}}); return el; },
+      head: { appendChild(el) { if(el.src) scripts.push(el.src); } },
+      body: { appendChild() {} }
+    },
     window: {}
   };
   vm.runInNewContext(kaynak, sb);
   const tikla = href => dinleyici && dinleyici({ target: { closest: () => ({ getAttribute: () => href }) } });
-  return { sinyaller, tikla, dinleyici: () => dinleyici };
+  return { sinyaller, scripts, tikla, dinleyici: () => dinleyici };
 };
-const o = calistir();
-o.tikla('https://wa.me/905416401029?text=Merhaba');
-o.tikla('tel:+905416401029');
-o.tikla('mailto:info@btmedya.com.tr');
-o.tikla('/hizmetler/');
-o.tikla('https://www.instagram.com/btmedyajans/');
-assert.equal(o.sinyaller.length, 3);
-assert.equal(o.sinyaller[0].u, '/api/sales/temas');
-const govdeler = await Promise.all(o.sinyaller.map(x => x.b.text()));
+const reddedilmis = calistir({ tercih: { analitik: false } });
+reddedilmis.tikla('https://wa.me/905416401029?text=Merhaba');
+reddedilmis.tikla('tel:+905416401029');
+reddedilmis.tikla('mailto:info@btmedya.com.tr');
+assert.equal(reddedilmis.sinyaller.length, 0);
+assert.equal(reddedilmis.scripts.some(x => String(x).includes('tracker.metricool.com')), false);
+const izinli = calistir({ tercih: { analitik: true } });
+izinli.tikla('https://wa.me/905416401029?text=Merhaba');
+izinli.tikla('tel:+905416401029');
+izinli.tikla('mailto:info@btmedya.com.tr');
+izinli.tikla('/hizmetler/');
+izinli.tikla('https://www.instagram.com/btmedyajans/');
+assert.equal(izinli.sinyaller.length, 3);
+assert.equal(izinli.sinyaller[0].u, '/api/sales/temas');
+assert.equal(izinli.scripts.some(x => String(x).includes('tracker.metricool.com')), true);
+const govdeler = await Promise.all(izinli.sinyaller.map(x => x.b.text()));
 assert.deepEqual(govdeler.map(t => JSON.parse(t).kanal), ['whatsapp', 'telefon', 'eposta']);
 assert.equal(JSON.parse(govdeler[0]).sayfa, '/hizmetler/');
 // Otomatik tarayıcılar (sitenin kendi denetimleri) temas saymaz.
-assert.equal(calistir({ webdriver: true }).dinleyici(), null);
+assert.equal(calistir({ webdriver: true, tercih: { analitik: true } }).dinleyici(), null);
 
 // Anasayfa teklif formuna bağlanır; panel temas tablosunu gösterir.
 assert.ok(readFileSync('public/index.html', 'utf8').includes('href="/teklif-al/'), 'anasayfa teklif formuna bağlanmıyor');
