@@ -1,4 +1,5 @@
 name: BTMEDYA Production Deploy
+# Token validation trigger: 2026-10-12 — verify the repository's single CLOUDFLARE_DEPLOY_TOKEN.
 
 on:
   push:
