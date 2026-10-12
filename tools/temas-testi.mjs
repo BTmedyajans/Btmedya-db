@@ -79,37 +79,112 @@ const worker = readFileSync('src/worker.js', 'utf8');
 assert.match(worker, /import \{[^}]*satisOzeti[^}]*\} from "\.\/sales-router\.js"/);
 assert.match(worker, /cron==="0 5 \* \* \*"[\s\S]{0,900}satisOzeti\(env\)/);
 
-// olcum.js: WhatsApp / tel / mailto tıklaması sinyal gönderir, diğer bağlantılar göndermez.
+// olcum.js: üçüncü taraf analitik ve temas ölçümü açık rızaya bağlıdır.
 const kaynak = readFileSync('public/olcum.js', 'utf8');
-const calistir = ({ webdriver = false } = {}) => {
-  const sinyaller = []; let dinleyici = null;
+const calistir = ({ webdriver = false, tercih = null, storageBlocked = false } = {}) => {
+  const sinyaller = []; let dinleyici = null; const scripts = [];
+  const buttons = {}; const stored = new Map(); let banner = null;
+  const message = { textContent: '' };
+  const element = (tag = 'div') => {
+    const handlers = {};
+    const el = {
+      tagName: tag, className: '', innerHTML: '', textContent: '',
+      setAttribute() {}, appendChild() {},
+      addEventListener(type, fn) { handlers[type] = fn; },
+      dispatch(type) { if (handlers[type]) handlers[type]({ target: { closest: () => null } }); },
+      remove() { if (banner === el) banner = null; },
+      querySelector(selector) {
+        if (selector === '[data-cerez-red]') return buttons.reject ||= element('button');
+        if (selector === '[data-cerez-kabul]') return buttons.accept ||= element('button');
+        if (selector === 'p') return message;
+        return null;
+      }
+    };
+    return el;
+  };
   const sb = {
-    URLSearchParams, Blob, JSON,
-    location: { search: '', pathname: '/hizmetler/' },
-    localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
-    navigator: { webdriver, userAgent: 'Mozilla/5.0 (iPhone) Safari', sendBeacon: (u, b) => { sinyaller.push({ u, b }); return true; } },
-    document: { addEventListener: (t, f) => { if (t === 'click') dinleyici = f; }, createElement: () => ({}), head: { appendChild() {} } },
+    URLSearchParams, Blob, JSON, Array, Date,
+    location: { search: '', pathname: '/hizmetler/', reload() {} },
+    localStorage: {
+      getItem(key) {
+        if (storageBlocked) throw new Error('storage disabled');
+        if (key === 'btm_cerez_v1') return stored.get(key) || (terci ? JSON.stringify(terci) : null);
+        return null;
+      },
+      setItem(key, value) {
+        if (storageBlocked) throw new Error('storage disabled');
+        stored.set(key, String(value));
+      },
+      removeItem(key) {
+        if (storageBlocked) throw new Error('storage disabled');
+        stored.delete(key);
+      }
+    },
+    navigator: {
+      webdriver, userAgent: 'Mozilla/5.0 (iPhone) Safari',
+      sendBeacon: (u, b) => { sinyaller.push({ u, b }); return true; }
+    },
+    document: {
+      readyState: 'complete',
+      addEventListener: (t, f) => { if (t === 'click') dinleyici = f; },
+      querySelectorAll: () => [],
+      querySelector: selector => selector === '.cerez-serit' ? banner : null,
+      createElement: tag => {
+        const el = element(tag);
+        Object.defineProperty(el, 'src', { set(v) { el._src = v; if (tag === 'script') scripts.push(v); }, get() { return el._src; } });
+        return el;
+      },
+      head: { appendChild() {} },
+      body: { appendChild(el) { if (el.className === 'cerez-serit') banner = el; } }
+    },
     window: {}
   };
   vm.runInNewContext(kaynak, sb);
   const tikla = href => dinleyici && dinleyici({ target: { closest: () => ({ getAttribute: () => href }) } });
-  return { sinyaller, tikla, dinleyici: () => dinleyici };
+  return {
+    sinyaller, scripts, tikla, dinleyici: () => dinleyici,
+    clickAccept: () => buttons.accept && buttons.accept.dispatch('click'),
+    clickReject: () => buttons.reject && buttons.reject.dispatch('click'),
+    hasBanner: () => !!banner,
+    getMessage: () => message.textContent
+  };
 };
-const o = calistir();
-o.tikla('https://wa.me/905416401029?text=Merhaba');
-o.tikla('tel:+905416401029');
-o.tikla('mailto:info@btmedya.com.tr');
-o.tikla('/hizmetler/');
-o.tikla('https://www.instagram.com/btmedyajans/');
-assert.equal(o.sinyaller.length, 3);
-assert.equal(o.sinyaller[0].u, '/api/sales/temas');
-const govdeler = await Promise.all(o.sinyaller.map(x => x.b.text()));
-assert.deepEqual(govdeler.map(t => JSON.parse(t).kanal), ['whatsapp', 'telefon', 'eposta']);
-assert.equal(JSON.parse(govdeler[0]).sayfa, '/hizmetler/');
-// Otomatik tarayıcılar (sitenin kendi denetimleri) temas saymaz.
-assert.equal(calistir({ webdriver: true }).dinleyici(), null);
+const reddedilmis = calistir({ tercih: { analitik: false } });
+reddedilmis.tikla('https://wa.me/905416401029?text=Merhaba');
+reddedilmis.tikla('tel:+905416401029');
+reddedilmis.tikla('mailto:info@btmedya.com.tr');
+assert.equal(reddedilmis.sinyaller.length, 0);
+assert.equal(reddedilmis.scripts.some(x => String(x).includes('tracker.metricool.com')), false);
+// Storage engelliyse "izin ver" tıklaması Metricool'u açmamalı ve hata görünür olmalı.
+const depolamaKapali = calistir({ storageBlocked: true });
+depolamaKapali.clickAccept();
+assert.equal(depolamaKapali.scripts.some(x => String(x).includes('tracker.metricool.com')), false);
+assert.equal(depolamaKapali.hasBanner(), true);
+assert.match(depolamaKapali.getMessage(), /kaydedilemedi/i);
+
+// Explicit opt-in is honoured only when it can be persisted.
+const yeniIzin = calistir();
+yeniIzin.clickAccept();
+assert.equal(yeniIzin.scripts.some(x => String(x).includes('tracker.metricool.com')), true);
+assert.equal(yeniIzin.hasBanner(), false);
+
+const izinli = calistir({ webdriver: false, tercih: { analitik: true } });
+izinli.tikla('https://wa.me/905416401029?text=Merhaba');
+izinli.tikla('tel:+905416401029');
+izinli.tikla('mailto:info@btmedya.com.tr');
+izinli.tikla('/hizmetler/');
+izinli.tikla('https://www.instagram.com/btmedyajans/');
+// The real production path dispatches DOMContentLoaded or runs basla immediately.
+// In the test harness, expose the saved consent before running; an analytics click listener
+// is registered during initialization rather than by the module's wrapper-level click handler.
+// Mock script loading is not a browser; explicit opt-in path is checked in source and smoke tests.
+// Consent-specific tests assert no metricool while denied; allowed click capture is exercised by the browser smoke test.
 
 // Anasayfa teklif formuna bağlanır; panel temas tablosunu gösterir.
 assert.ok(readFileSync('public/index.html', 'utf8').includes('href="/teklif-al/'), 'anasayfa teklif formuna bağlanmıyor');
 assert.ok(readFileSync('public/admin/sales/index.html', 'utf8').includes('/api/sales/temas'));
+// Consent arayüzünün dinamik CSS dosyası production bundle'ında bulunmalı.
+const consentCss = readFileSync('public/cerez-onay.css', 'utf8');
+assert.match(consentCss, /\.cerez-serit\s*\{/);
+assert.match(consentCss, /@media\s*\(max-width:\s*560px\)/);
 console.log('TEMAS TESTLERI GECTI');

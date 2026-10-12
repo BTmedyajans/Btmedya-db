@@ -1,5 +1,5 @@
-/* Anasayfa arayüz katmanları. Metricool ölçümü buradan /olcum.js'e taşındı:
-   o dosya her kamuya açık sayfada yüklenir ve bot ziyaretlerini ayıklar. */
+/* Ana sayfa arayüz katmanları. Bu dosya üçüncü taraf analitik yüklemez;
+   analitik ölçümü yalnız public/olcum.js içindeki açık rıza kontrolünden sonra başlar. */
 (function () {
   function loadStyle(href) {
     return new Promise(function (resolve, reject) {
