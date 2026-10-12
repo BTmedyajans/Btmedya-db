@@ -30,7 +30,7 @@ const DEFAULT_POLICY = {
   autoPublishMinScore: 84,
   autoPublishSourceTiers: ["publisher"],
   approvalRequiredCategories: ["Gündem","Sağlık","Ulaşım","Asayiş","Yerel"],
-  autoPublishCategories: ["Yerel","Eğitim","Ekonomi","Kültür","Spor","Yapay Zekâ","Teknoloji","Medya","Prodüksiyon"],
+  autoPublishCategories: ["Eğitim","Ekonomi","Kültür","Spor","Yapay Zekâ","Teknoloji","Medya","Prodüksiyon"],
   neverAutoPublishSensitive: true,
   mediaMode: "archive-first",
   allowAiMedia: true,
@@ -554,25 +554,27 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
   if(env.DB){
     // Rakip kaynakları kamuya açık RSS üzerinden yalnızca başlık sıklığı için izlenir.
     const hosts=policy.competitorHosts;
-    const rows=[];
-    for(const host of hosts){
+    // Rakip taraması haber üretimini bloke etmemeli: kaynakları paralel ve kısa
+    // zaman aşımıyla sorgula; tek bir yavaş RSS uç noktası tüm Worker turunu uzatmasın.
+    const rows=await Promise.all(hosts.map(async host=>{
       const url="https://news.google.com/rss/search?q=site%3A"+encodeURIComponent(host)+"&hl=tr&gl=TR&ceid=TR:tr";
       try{
-        const r=await fetch(url,{headers:{accept:"application/rss+xml, text/xml","user-agent":"BTMEDYA-CompetitorRadar/1.0"},signal:AbortSignal.timeout(8000)});
+        const r=await fetch(url,{headers:{accept:"application/rss+xml, text/xml","user-agent":"BTMEDYA-CompetitorRadar/1.0"},signal:AbortSignal.timeout(5000)});
+        if(!r.ok) throw new Error("HTTP "+r.status);
         const xml=await r.text();
-        const items=[...xml.matchAll(/<item>[\s\S]*?<\/item>/gi)].slice(0,12).map(m=>m[0])
+        const items=[...xml.matchAll(/<item>[\\s\\S]*?<\\/item>/gi)].slice(0,12).map(m=>m[0])
           .map(b=>({
-            title:String((b.match(/<title>([\s\S]*?)<\/title>/i)||[])[1]||"").replace(/<[^>]+>/g,"").replace(/<!\[CDATA\[|\]\]>/g,"").trim(),
-            link:String((b.match(/<link>([\s\S]*?)<\/link>/i)||[])[1]||"").trim()
+            title:String((b.match(/<title>([\\s\\S]*?)<\\/title>/i)||[])[1]||"").replace(/<[^>]+>/g,"").replace(/<!\\[CDATA\\[|\\]\\]>/g,"").trim(),
+            link:String((b.match(/<link>([\\s\\S]*?)<\\/link>/i)||[])[1]||"").trim()
           })).filter(x=>x.title);
         const top=items[0];
         await env.DB.prepare(`INSERT INTO autopilot_competitors(host,label,last_url,last_title,headlines_seen,last_seen_at,updated_at)
           VALUES(?,?,?,?,?,?,?) ON CONFLICT(host) DO UPDATE SET
           last_url=excluded.last_url,last_title=excluded.last_title,headlines_seen=excluded.headlines_seen,last_seen_at=excluded.last_seen_at,updated_at=excluded.updated_at`)
           .bind(host,host,top?.link||"",top?.title||"",items.length,top?nowIso():null,nowIso()).run().catch(()=>{});
-        rows.push({host,count:items.length,latest:top?.title||"",url:top?.link||""});
-      }catch(e){ rows.push({host,count:0,error:String(e?.message||e).slice(0,120)}); }
-    }
+        return {host,count:items.length,latest:top?.title||"",url:top?.link||""};
+      }catch(e){ return {host,count:0,error:String(e?.message||e).slice(0,120)}; }
+    }));
     result.competitors=rows;
     if(result.social_created) {
       try{ await processMetricoolQueue(env,Math.max(1,result.social_created)); }
