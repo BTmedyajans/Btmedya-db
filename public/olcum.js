@@ -85,6 +85,9 @@
     temasOlcumunuEtkinlestir();
   }
 
+  // Satış temasları için ayrı onay varsayılmadı: bu çağrı yalnız analitik tercihi true olduğunda yapılır.
+
+
   function stilYukle() {
     if (stilYuklendi) return;
     stilYuklendi = true;
