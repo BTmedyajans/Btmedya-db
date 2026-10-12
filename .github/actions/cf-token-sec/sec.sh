@@ -31,7 +31,9 @@ secilen=""
   echo "| Secret | Durum |"
   echo "|---|---|"
 } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
-for ad in CLOUDFLARE_DEPLOY_TOKEN CLOUDFLARE_API_TOKEN BTMEDYA_DB1 BTMEDYA_D1 CLOUDFLARE_D1_API_TOKEN; do
+# Prefer the general API token because the deploy-named token may be read-only.
+# The preflight below tests API visibility; actual deployment also requires Worker Editor.
+for ad in CLOUDFLARE_API_TOKEN CLOUDFLARE_DEPLOY_TOKEN BTMEDYA_DB1 BTMEDYA_D1 CLOUDFLARE_D1_API_TOKEN; do
   degisken="ADAY_$ad"; tok="${!degisken:-}"
   if [[ -z "$tok" ]]; then durum="tanımlı değil"
   elif ! gecerli "$tok"; then durum="❌ geçersiz ya da iptal edilmiş (GitHub'dan silin)"

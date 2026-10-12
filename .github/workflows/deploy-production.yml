@@ -71,7 +71,13 @@ jobs:
       - name: Deploy Worker and static assets
         env:
           CLOUDFLARE_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
-        run: npx wrangler deploy --config wrangler.toml
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! npx wrangler deploy --config wrangler.toml; then
+            echo "::error::Cloudflare rejected access to the existing Worker btmedya-db. The token passed the read-only preflight but likely lacks Workers Editor access. In Cloudflare API Tokens, grant Workers Editor to the btmedya-db Worker (or Workers product) in account b239acae17aebe894ea76309fe32cdce, then update GitHub Actions secret CLOUDFLARE_API_TOKEN and rerun this workflow. Do not paste the token into chat or source code."
+            exit 1
+          fi
 
       - name: Verify live site and API
         shell: bash
