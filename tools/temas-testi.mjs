@@ -116,7 +116,7 @@ reddedilmis.tikla('tel:+905416401029');
 reddedilmis.tikla('mailto:info@btmedya.com.tr');
 assert.equal(reddedilmis.sinyaller.length, 0);
 assert.equal(reddedilmis.scripts.some(x => String(x).includes('tracker.metricool.com')), false);
-const izinli = calistir({ tercih: { analitik: true } });
+const izinli = calistir({ preferencia: { analitik: true }, tercih: { analitik: true } });
 izinli.tikla('https://wa.me/905416401029?text=Merhaba');
 izinli.tikla('tel:+905416401029');
 izinli.tikla('mailto:info@btmedya.com.tr');
