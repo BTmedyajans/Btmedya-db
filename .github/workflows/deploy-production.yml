@@ -55,6 +55,7 @@ jobs:
           node tools/gerileme-denetimi.mjs
           node tools/link-denetimi.mjs
           node tools/mobile-regression-gate.mjs
+          node tools/ux-seo-contract.mjs
 
       - name: Validate the single production deploy token
         shell: bash
