@@ -1,6 +1,6 @@
 # BTMEDYA Tek Üretim Zinciri
 
-Bu depo BTMEDYA'nın tek kanonik web uygulamasıdır.
+Bu depo BTMEDYA'nın tek kanonik web uygulamasıdır. `btmedya-medya` Cloudflare Dashboard'da 10 Ekim 2026'da oluşturulmuş, GitHub kaynak kodu olmayan `Hello world` Worker'ıdır; üretim zincirinde kullanılmaz. Onu bu repo ile dağıtmak amaçlanmamalıdır.
 
 ## 1. Production kaynak gerçeği
 
@@ -111,7 +111,7 @@ Gerekli zincir:
 - `d1-migrations.yml`: D1 migration, yalnızca migration gerektiğinde
 - `r2-sync.yml`: statik medya arşivi R2 senkronizasyonu
 
-Aynı Worker'ı ikinci kez deploy eden workflow oluşturulmaz.
+Aynı Worker'ı ikinci kez deploy eden workflow oluşturulmaz. `btmedya-content` Workflow adı hesap genelinde `btmedya-db` Worker'ına kayıtlıdır (`BtmedyaWorkflow`). `btmedya-medya` içine aynı Workflow / Durable Object tanımları eklenmemeli ve ana Worker'dan bağlantısı kaldırılmamalıdır. `btmedya-medya`'nın mevcut panel kaynaklı `Hello world` sürümleri bu repo üzerinden yönetilmez.
 
 ## 7. Güvenlik
 
