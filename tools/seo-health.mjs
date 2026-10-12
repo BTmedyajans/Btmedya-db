@@ -4,7 +4,7 @@
  * No third-party dependencies; safe for scheduled GitHub Actions.
  */
 const origin = (process.env.BTMEDYA_ORIGIN || "https://btmedya.com.tr").replace(/\/$/, "");
-const pages = ["/", "/haberler/", "/hizmetler/", "/sosyal-medya/", "/video-produksiyon/", "/hakkimizda/", "/iletisim/"];
+const pages = ["/", "/haberler/", "/hizmetler/", "/sosyal-medya/", "/video-produksiyon/", "/ai-lab/", "/hakkimizda/", "/iletisim/"];
 const failures = [];
 const warnings = [];
 const report = [];
