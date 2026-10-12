@@ -19,7 +19,9 @@
   border: 1px solid rgba(255, 255, 255, .18);
   border-radius: 16px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, .45);
-  font: 14px/1.55 inherit;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.55;
 }
 .cerez-serit p {
   flex: 1 1 320px;
