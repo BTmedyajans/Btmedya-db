@@ -104,9 +104,9 @@ jobs:
           test ! -e .github/workflows/media-smoke.yml
           test ! -e .github/workflows/storage-audit.yml
 
-          # Production'a yalniz Cloudflare Workers Builds dagitir (673c29f).
-          # Hicbir GitHub is akisi "wrangler deploy" calistirmamali; ikinci
-          # bir dagitici canliyi main'den farkli bir surume cekebilir.
-          # (Onceki kontrol "BTMEDYA Production Deploy" adini ariyordu; o is
-          # akisi "Production Verify" olunca her PR kirmiziya dusuyordu.)
-          ! grep -RIlE --exclude=pr-validation.yml 'wrangler(@[^ ]*)? deploy' .github/workflows
+          # This repository uses GitHub Actions as the canonical Worker deployer;
+          # Cloudflare Workers Builds is not configured for btmedya-db.
+          # Require the production command in exactly one workflow and prevent
+          # secondary workflows from deploying an unexpected Worker version.
+          grep -q 'npx wrangler deploy --config wrangler.toml' .github/workflows/deploy-production.yml
+          ! grep -RIlE --exclude=pr-validation.yml --exclude=deploy-production.yml 'wrangler(@[^ ]*)? deploy' .github/workflows
