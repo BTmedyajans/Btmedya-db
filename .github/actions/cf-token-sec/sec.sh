@@ -16,7 +16,12 @@ gecerli() {  # Kullanıcı ya da hesap token'ı olabilir.
 yetkili() {
   local y
   case "$GEREK" in
-    zone)    y="$(istek "$1" "/zones?name=$ALAN")"; [[ "$(basari "$y")" == true && -n "$(jq -r '.result[0].id // empty' <<<"$y")" ]] ;;
+    # Zone'u görmek yetmez: yalnız Workers deploy yetkili token zone listesini
+    # okuyup DNS'te 10000 verir (12 Ekim, Control Plane). DNS okumayı da şart koş.
+    zone)    y="$(istek "$1" "/zones?name=$ALAN")"
+             local z; z="$(jq -r '.result[0].id // empty' <<<"$y" 2>/dev/null)"
+             [[ "$(basari "$y")" == true && -n "$z" ]] || return 1
+             y="$(istek "$1" "/zones/$z/dns_records?per_page=1")"; [[ "$(basari "$y")" == true ]] ;;
     workers) y="$(istek "$1" "/accounts/$HESAP/workers/scripts")"; [[ "$(basari "$y")" == true ]] ;;
     d1)      y="$(istek "$1" "/accounts/$HESAP/d1/database?per_page=1")"; [[ "$(basari "$y")" == true ]] ;;
     r2)      y="$(istek "$1" "/accounts/$HESAP/r2/buckets")"; [[ "$(basari "$y")" == true ]] ;;
