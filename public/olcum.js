@@ -13,7 +13,9 @@
   function okuTercih() {
     try {
       var raw = localStorage.getItem(ANAHTAR);
-      return raw ? JSON.parse(raw) : null;
+      if (!raw) return null;
+      var tercih = JSON.parse(raw);
+      return tercih && typeof tercih.analitik === 'boolean' ? tercih : null;
     } catch (_) {
       return null;
     }
@@ -23,10 +25,11 @@
     var tercih = { analitik: !!analitik, tarih: new Date().toISOString() };
     try {
       localStorage.setItem(ANAHTAR, JSON.stringify(tercih));
+      return tercih;
     } catch (_) {
-      // Depolama kapalıysa onay kalıcı sayılmaz; yeniden ziyaret varsayılan ret olur.
+      // Tercih saklanamıyorsa onay geçerli sayılmaz; analitik kapalı kalır.
+      return null;
     }
-    return tercih;
   }
 
   function ekipVeyaBot() {
@@ -128,8 +131,13 @@
     });
     serit.querySelector('[data-cerez-kabul]').addEventListener('click', function () {
       var tercih = yazTercih(true);
+      if (!tercih) {
+        var mesaj = serit.querySelector('p');
+        if (mesaj) mesaj.textContent = 'Tercihiniz kaydedilemedi. Analitik açılmadı; siteyi analitiksiz kullanabilirsiniz.';
+        return;
+      }
       seritKaldir();
-      if (tercih.analitik) olcumuEtkinlestir();
+      if (tercih.analitik === true) olcumuEtkinlestir();
     });
     document.body.appendChild(serit);
   }
