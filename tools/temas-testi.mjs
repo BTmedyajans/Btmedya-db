@@ -183,4 +183,8 @@ izinli.tikla('https://www.instagram.com/btmedyajans/');
 // Anasayfa teklif formuna bağlanır; panel temas tablosunu gösterir.
 assert.ok(readFileSync('public/index.html', 'utf8').includes('href="/teklif-al/'), 'anasayfa teklif formuna bağlanmıyor');
 assert.ok(readFileSync('public/admin/sales/index.html', 'utf8').includes('/api/sales/temas'));
+// Consent arayüzünün dinamik CSS dosyası production bundle'ında bulunmalı.
+const consentCss = readFileSync('public/cerez-onay.css', 'utf8');
+assert.match(consentCss, /\.cerez-serit\s*\{/);
+assert.match(consentCss, /@media\s*\(max-width:\s*560px\)/);
 console.log('TEMAS TESTLERI GECTI');
