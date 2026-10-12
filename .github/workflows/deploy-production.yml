@@ -12,6 +12,7 @@ on:
       - "package.json"
       - ".github/workflows/deploy-production.yml"
       - ".github/actions/cf-token-sec/**"
+      - ".github/workflows/r2-sync.yml"
   workflow_dispatch:
 
 permissions:
