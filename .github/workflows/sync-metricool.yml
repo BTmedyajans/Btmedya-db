@@ -1,91 +1,17 @@
-name: BTMEDYA Metricool Secret Sync
+name: BTMEDYA Metricool integration (disabled)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/sync-metricool.yml"
-      - "wrangler.toml"
-      - "src/metricool-scheduler.js"
-      - "src/sosyal-otomasyon.js"
-  schedule:
-    - cron: "47 */3 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  sync:
+  disabled:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Cloudflare token seç
-        uses: ./.github/actions/cf-token-sec
-        with:
-          gerek: workers
-          zorunlu: "false"
-          cloudflare_deploy_token: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN }}
-          cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          btmedya_db1: ${{ secrets.BTMEDYA_DB1 }}
-          btmedya_d1: ${{ secrets.BTMEDYA_D1 }}
-          cloudflare_d1_api_token: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
-
-      - name: Validate Metricool credentials are configured
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
-          METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
+      - name: Confirm native Cloudflare publishing mode
         run: |
-          set -euo pipefail
-
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Cloudflare deploy token eksik"; exit 1; }
-          if [ -z "$METRICOOL_USER_TOKEN" ]; then
-            echo "::error::Metricool API anahtarı eksik. GitHub > Settings > Secrets and variables > Actions altında BTMEDYA_METRICOOL_USER_TOKEN secret'ını tanımlayın. Anahtarı koda veya sohbete yazmayın."
-            exit 1
-          fi
-          METRICOOL_USER_ID="$(grep '^METRICOOL_USER_ID = ' wrangler.toml | cut -d '"' -f 2)"
-          METRICOOL_BRAND_ID="$(grep '^METRICOOL_BRAND_ID = ' wrangler.toml | cut -d '"' -f 2)"
-          if [ -z "$METRICOOL_USER_ID" ] || [ -z "$METRICOOL_BRAND_ID" ]; then
-            echo "::error::METRICOOL_USER_ID veya METRICOOL_BRAND_ID wrangler.toml içinde eksik."
-            exit 1
-          fi
-
-      - name: Sync Metricool Worker secret
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
-          METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
-        run: |
-          set -euo pipefail
-
-          test -n "$CLOUDFLARE_API_TOKEN" || { echo "::error::Cloudflare deploy token eksik"; exit 1; }
-          test -n "$METRICOOL_USER_TOKEN" || { echo "::error::BTMEDYA_METRICOOL_USER_TOKEN secret eksik; Metricool bağlantısı senkronize edilmedi."; exit 1; }
-          npm install --no-save --no-package-lock wrangler@4.142.0
-          printf '%s' "$METRICOOL_USER_TOKEN" | npx wrangler secret put METRICOOL_USER_TOKEN --name btmedya-db --config wrangler.toml
-
-      - name: Verify Metricool Brand access
-        env:
-          METRICOOL_USER_TOKEN: ${{ secrets.BTMEDYA_METRICOOL_USER_TOKEN }}
-        run: |
-          set -euo pipefail
-          test -n "$METRICOOL_USER_TOKEN" || { echo "::error::BTMEDYA_METRICOOL_USER_TOKEN secret eksik; Brand doğrulaması yapılmadı."; exit 1; }
-          METRICOOL_USER_ID="$(grep '^METRICOOL_USER_ID = ' wrangler.toml | cut -d '"' -f 2)"
-          METRICOOL_BRAND_ID="$(grep '^METRICOOL_BRAND_ID = ' wrangler.toml | cut -d '"' -f 2)"
-          test -n "$METRICOOL_USER_ID" || { echo "::error::METRICOOL_USER_ID wrangler.toml içinde eksik."; exit 1; }
-          test -n "$METRICOOL_BRAND_ID" || { echo "::error::METRICOOL_BRAND_ID wrangler.toml içinde eksik."; exit 1; }
-          body="$(curl -fsS -H "X-Mc-Auth: $METRICOOL_USER_TOKEN" \
-            "https://app.metricool.com/api/admin/simpleProfiles?userId=$METRICOOL_USER_ID")"
-
-          python - "$METRICOOL_BRAND_ID" "$body" <<'PY'
-          import json,sys
-          wanted=str(sys.argv[1])
-          data=json.loads(sys.argv[2])
-          items=data if isinstance(data,list) else data.get("data",data.get("profiles",[]))
-          if not isinstance(items,list):
-              raise SystemExit("Metricool profil yanıtı liste değil")
-          ids={str(x.get("blogId",x.get("id",""))) for x in items if isinstance(x,dict)}
-          if wanted not in ids:
-              raise SystemExit("Metricool Brand erişimi doğrulanamadı")
-          print("METRICOOL_OK: Brand erişimi doğrulandı")
-          PY
+          echo "::notice::Metricool automatic sync is disabled."
+          echo "BTMEDYA's scheduled content automation remains on Cloudflare Worker + D1."
+          echo "No Metricool credentials are read and no Worker secrets are changed."
