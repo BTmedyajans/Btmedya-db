@@ -21,14 +21,60 @@
       if(base&&here.startsWith(base)&&base.length>(active?active.length:0))active=it.href;
     }
 
+    /* 11 Ekim (kullanıcı: "admin panelimi daha sade hamburger kategori (iç içe)
+       stiliyle sadeleştirerek tüm özelliklerini kullanabileceğim şekilde web
+       siteme ve depolara bağla"). Menü artık önce İŞE göre açılır:
+       ana kategori → alt kategori → araç. Panelin her sayfası burada tek yerde;
+       site kategorileri (Balıkesir, Karesi...) en altta, haber yazarken seçilir.
+       Dış bağlantılar (canlı site, GitHub, Cloudflare, Search Console) yeni
+       sekmede açılır; gizli bilgi taşımaz, oturum ilgili serviste istenir. */
+    const ARACLAR=[
+      {no:'01',ad:'İÇERİK & HABER',gruplar:[
+        {ad:'Yaz ve yayınla',items:[
+          ['Haber yaz','/admin/editor/'],['Yayın masası','/admin/yayin/'],['Autopilot (AI yayın)','/admin/autopilot/']]},
+        {ad:'Kaynak ve gündem',items:[
+          ['Kaynak masası','/admin/kaynak-masasi/'],['Halkın merak radarı','/admin/merak-radari/'],['Kategori ve otomasyon','/admin/kategori/']]}]},
+      {no:'02',ad:'SOSYAL MEDYA',gruplar:[
+        {ad:'Paylaşım',items:[['Sosyal yayın (Social OS)','/admin/social-os/'],['Müşteri sosyal hesapları','/admin/musteri-sosyal/']]},
+        {ad:'Hesap bağlantıları',items:[['Bağlantılar (Meta, YouTube, TikTok, Metricool)','/admin/connect/']]}]},
+      {no:'03',ad:'MEDYA & PRODÜKSİYON',gruplar:[
+        {ad:'Arşiv',items:[['Telefondan medya yükle','/admin/app.html'],['Müşteri ve içerik merkezi','/admin/client-hub/']]}]},
+      {no:'04',ad:'MÜŞTERİ & SATIŞ',gruplar:[
+        {ad:'Talepler',items:[['Gelen mesajlar','/admin/mesajlar/'],['Satış masası (teklifler)','/admin/sales/']]},
+        {ad:'Müşteriler',items:[['Müşteri merkezi','/admin/musteri-merkezi/']]}]},
+      {no:'05',ad:'SİTE & SİSTEM',gruplar:[
+        {ad:'Durum',items:[['Süpervizör (ana ekran)','/admin/agency-os/'],['Site sağlığı (Site OS)','/admin/site-os/']]},
+        {ad:'Bağlı servisler',items:[
+          ['Canlı site','https://btmedya.com.tr/',1],
+          ['GitHub deposu','https://github.com/BTmedyajans/Btmedya-db',1],
+          ['GitHub Actions (denetimler)','https://github.com/BTmedyajans/Btmedya-db/actions',1],
+          ['Cloudflare Worker','https://dash.cloudflare.com/b239acae17aebe894ea76309fe32cdce/workers/services/view/btmedya-db/production',1],
+          ['Google Search Console','https://search.google.com/search-console?resource_id=sc-domain%3Abtmedya.com.tr',1]]}]}
+    ];
+    const yolBu=h=>{if(/^https?:/.test(h))return false;const b=h.split('?')[0];return b==='/admin/app.html'?location.pathname===b:location.pathname.startsWith(b);};
+    const aracHtml=ARACLAR.map((k,i)=>
+      '<section class="bam-kategori bam-arac">'+
+        '<button type="button" class="bam-kat-baslik" aria-expanded="false" aria-controls="bam-arac-'+i+'">'+
+          '<span><small>'+esc(k.no)+'</small><b>'+esc(k.ad)+'</b></span><i>＋</i></button>'+
+        '<div id="bam-arac-'+i+'" class="bam-alt" hidden>'+
+          k.gruplar.map((g,gi)=>{const gid='bam-arac-'+i+'-'+gi;return '<section class="bam-alt-grup">'+
+            '<button type="button" class="bam-grup-baslik" aria-expanded="false" aria-controls="'+gid+'"><span>'+esc(g.ad)+'</span><i>＋</i></button>'+
+            '<div id="'+gid+'" class="bam-grup-items" hidden>'+
+              g.items.map(([ad,href,dis],j)=>'<a href="'+esc(href)+'"'+(dis?' target="_blank" rel="noopener"':'')+(yolBu(href)?' aria-current="page"':'')+'>'+
+                '<span class="bam-adim"><em>0'+(j+1)+'</em><b>'+esc(ad)+'</b></span><i>'+(dis?'↗':'→')+'</i></a>').join('')+
+            '</div></section>';}).join('')+
+        '</div></section>').join('');
+
     const root=document.createElement('div');
     root.id='btAdminMenu';root.className='bam';root.hidden=true;
     root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','BTMEDYA admin kategori menüsü');
 
     root.innerHTML='<div class="bam-perde" data-bam-kapat></div><div class="bam-panel">'+
       '<div class="bam-ust"><span class="bam-marka">BT<span>MEDYA</span></span><button type="button" class="bam-kapat" data-bam-kapat>Kapat ×</button></div>'+
-      '<div class="bam-rehber"><b>BTMEDYA KATEGORİLERİ</b><span>Web sitesindeki kategori yapısıyla aynı sırayı kullan.</span><label class="bam-ara"><span aria-hidden="true">⌕</span><input id="bamAra" type="search" autocomplete="off" placeholder="Yönetimde ara: haber, sosyal, teklif…" aria-label="Yönetim işlemlerinde ara"><kbd>⌘K</kbd></label></div>'+
-      '<nav class="bam-kategoriler" aria-label="BTMEDYA üç ana kategori">'+
+      '<div class="bam-rehber"><b>YÖNETİM MENÜSÜ</b><span>Önce işi seç; panelin tüm araçları burada.</span><label class="bam-ara"><span aria-hidden="true">⌕</span><input id="bamAra" type="search" autocomplete="off" placeholder="Yönetimde ara: haber, sosyal, teklif…" aria-label="Yönetim işlemlerinde ara"><kbd>⌘K</kbd></label></div>'+
+      '<nav class="bam-kategoriler bam-araclar" aria-label="Yönetim araçları">'+aracHtml+'</nav>'+
+      '<p class="bam-ara-baslik">SİTE KATEGORİLERİ · haber yazarken seç</p>'+
+      '<nav class="bam-kategoriler" aria-label="BTMEDYA site kategorileri">'+
       T.paths.map((p,i)=>
         '<section class="bam-kategori">'+
           '<button type="button" class="bam-kat-baslik" aria-expanded="false" aria-controls="bam-alt-'+i+'">'+
@@ -62,8 +108,8 @@
         '</section>'
       ).join('')+
       '</nav>'+
-      '<div class="bam-sistem" aria-label="Sistem"><a href="/admin/agency-os/">Süpervizör (ana ekran)</a><a href="/admin/site-os/">Site sağlığı</a><a href="/admin/connect/">Bağlantılar</a><a href="/" target="_blank" rel="noopener">Canlı site ↗</a><button type="button" data-bam-cikis>Çıkış</button></div>'+
-      '<div class="bam-foot">Aynı kategori yapısı: ana kategori → alt kategori → işlem.</div>'+
+      '<div class="bam-sistem" aria-label="Oturum"><button type="button" data-bam-cikis>Çıkış</button></div>'+
+      '<div class="bam-foot">Ana kategori → alt kategori → araç. Ara kutusu tüm araçlarda ve kategorilerde arar.</div>'+
     '</div>';
 
     document.documentElement.appendChild(root);
@@ -90,6 +136,7 @@
       const catBox=currentLink.closest('.bam-alt');
       const catBtn=catBox&&root.querySelector('[aria-controls="'+catBox.id+'"]');
       if(groupBox&&groupBtn){groupBtn.setAttribute('aria-expanded','true');groupBox.hidden=false}
+      if(catBox&&currentLink.closest('.bam-arac'))catBox.querySelectorAll('.bam-grup-baslik').forEach(g=>{g.setAttribute('aria-expanded','true');const bx=catBox.querySelector('#'+g.getAttribute('aria-controls'));if(bx)bx.hidden=false});
       if(catBox&&catBtn){catBtn.setAttribute('aria-expanded','true');catBox.hidden=false}
     }
     const panel=root.querySelector('.bam-panel');
@@ -120,6 +167,9 @@
         if(!isOpen){
           head.setAttribute('aria-expanded','true');
           const p=root.querySelector('#'+head.getAttribute('aria-controls'));if(p)p.hidden=false;
+          // Araç kategorilerinde tüm alt gruplar birlikte açılır: en çok 3 araç
+          // var, ikinci dokunuş gereksiz. Site kategorilerinde ilk grup açılır.
+          if(head.closest('.bam-arac')){p.querySelectorAll('.bam-grup-baslik').forEach(g=>{g.setAttribute('aria-expanded','true');const bx=p.querySelector('#'+g.getAttribute('aria-controls'));if(bx)bx.hidden=false});return;}
           const firstGroup=p.querySelector('.bam-grup-baslik');
           if(firstGroup){firstGroup.setAttribute('aria-expanded','true');const box=p.querySelector('#'+firstGroup.getAttribute('aria-controls'));if(box)box.hidden=false}
         }

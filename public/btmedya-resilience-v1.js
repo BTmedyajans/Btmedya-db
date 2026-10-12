@@ -39,9 +39,8 @@
                 esc(p.label || 'Platform') + '</span><small>' + esc(status) +
                 '</small></div><div>' + action + '</div></article>';
             }).join('');
-            meta.textContent = 'Kaynak: ' + String(data.source || 'Metricool') +
-              ' · ' + items.length + ' doğrulanmış yayın snapshotı · ' +
-              String(data.generated_at || '');
+            meta.textContent = 'Son paylaşımlarımız · ' + items.length + ' gönderi' +
+              (data.generated_at ? ' · güncelleme: ' + String(data.generated_at).slice(0, 10) : '');
             feed.innerHTML = items.length ? items.map(function (item) {
               return '<article class="social-feed-card"><div class="social-feed-card-top"><span>' +
                 esc(item.platform) + '</span><time datetime="' + esc(item.date) + '">' +

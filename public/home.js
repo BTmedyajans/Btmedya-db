@@ -724,7 +724,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       }
       profiles.innerHTML=(Array.isArray(data.profiles)?data.profiles:[]).map(profileCardSocial).join('');
       const count=Array.isArray(data.items)?data.items.length:0;
-      meta.textContent='Kaynak: '+String(data.source||'Metricool')+' · '+count+' doğrulanmış yayın · '+String(data.generated_at||'');
+      meta.textContent='Son paylaşımlarımız · '+count+' gönderi'+(data.generated_at?' · güncelleme: '+String(data.generated_at).slice(0,10):'');
       grid.innerHTML=count?data.items.map(feedCardSocial).join(''):'<div class="social-feed-empty">Doğrulanmış yayın kaydı yok.</div>';
       // Snapshot yalnızca kullanılabilir sosyal veri geldiyse kaldırılır.
       if(count || (Array.isArray(data.profiles) && data.profiles.length)){
@@ -736,7 +736,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       // snapshot silinmez; kullanıcı boş bir yayın alanıyla karşılaşmaz.
       const fallback=document.querySelector('[data-fallback="social"]');
       profiles.innerHTML=fallback?'':'';
-      meta.textContent='Son doğrulanmış sosyal snapshot gösteriliyor.';
+      meta.textContent='Son paylaşımlarımız gösteriliyor.';
       if(!fallback) grid.innerHTML='<div class="social-feed-empty">Sosyal akış geçici olarak kullanılamıyor.</div>';
       markReady();
     }
@@ -994,7 +994,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       if(kicker) kicker.textContent=scene.k;
       if(lead) lead.textContent=scene.d;
       if(index) index.textContent=String(i+1).padStart(2,'0');
-      if(label) label.textContent=(i===0&&!kompakt())?'SCROLL TO EXPLORE':scene.k;
+      if(label) label.textContent=(i===0&&!kompakt())?'KAYDIRARAK KEŞFET ↓':scene.k;
       videos.forEach((v,n)=>{
         if(n===i && !kareAktif) {
           const el=v.querySelector('video');
@@ -1296,7 +1296,9 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
 
 
 /* BTMEDYA Vitrine health layer — 29 Sep 2026 */
-(()=>{const healthEl=document.querySelector('[data-vitrine-health]'),mediaEl=document.querySelector('[data-vitrine-media]'),socialEl=document.querySelector('[data-vitrine-social]');const set=(el,t)=>{if(el)el.textContent=t};Promise.all([fetch('/api/health',{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():{}).catch(()=>({})),fetch('/api/public/social-feed',{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():{}).catch(()=>({}))]).then(([h,s])=>{set(healthEl,h.ok?'CANLI':'KONTROL GEREKLİ');set(mediaEl,h.r2?'R2 / ASSETS':'ASSETS');set(socialEl,s.source==='Metricool'?'METRICOOL':'SOCIAL FEED')})})();
+/* Durum şeridi artık sabit, okura dönük metin taşır (KAYNAK + TARİH / GERÇEK ÇEKİM).
+   Eskiden /api/health ve sosyal akış çağrılıp 'R2 / ASSETS', 'METRICOOL' gibi altyapı
+   adları basılıyordu; okur için anlamsızdı ve her açılışta iki gereksiz istek atıyordu. */
 
 /* BTMEDYA · International Growth Bridge */
 (function(){
@@ -1320,7 +1322,7 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       '<p class="growth-bridge-lead">Haber, görsel hikâye, video prodüksiyon ve sosyal dağıtımı tek üretim zincirinde buluşturuyoruz. Gerçek çekim ve doğrulanabilir kaynaklar ana omurga; AI üretimleri yalnızca açıkça etiketlenmiş AI LAB içinde yer alır.</p>',
       '</div>',
       '<div class="growth-bridge-grid">',
-      '<a class="growth-card" href="/haberler/"><span class="growth-card-index">01 / NEWSROOM</span><h3>Haber ve saha içeriği</h3><p>Balıkesir odaklı gündem, röportaj, ekonomi, kültür ve özel dosyalar. Kaynak ve tarih görünür tutulur.</p><span class="growth-card-meta">HABER AKIŞI ↗</span></a>',
+      '<a class="growth-card" href="/haberler/"><span class="growth-card-index">01 / HABERLER</span><h3>Haber ve saha içeriği</h3><p>Balıkesir odaklı gündem, röportaj, ekonomi, kültür ve özel dosyalar. Kaynak ve tarih görünür tutulur.</p><span class="growth-card-meta">HABER AKIŞI ↗</span></a>',
       '<a class="growth-card" href="/video-produksiyon/"><span class="growth-card-index">02 / PRODUCTION</span><h3>Marka için hareketli hikâye</h3><p>Tanıtım filmi, belgesel, reklam, röportaj ve sosyal video üretimini aynı görsel dilde planlıyoruz.</p><span class="growth-card-meta">PRODÜKSİYON ↗</span></a>',
       '<a class="growth-card" href="/sosyal-medya/"><span class="growth-card-index">03 / DISTRIBUTION</span><h3>Webden sosyal yayına</h3><p>İçerik fikrini platforma göre varyantlıyor, yayın planını ölçüyor ve uygun ağlara dağıtıyoruz.</p><span class="growth-card-meta">SOSYAL MEDYA ↗</span></a>',
       '</div>',

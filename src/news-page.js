@@ -269,7 +269,7 @@ ${relatedHtml}</article>
     <img class="footer-logo" src="/assets/logo/btmedya-logo-v6-baslik.webp" alt="BTMEDYA — Hikâyeleri yaşatıyoruz" width="264" height="48" loading="lazy" decoding="async">
     <div><span>Balıkesir · Haber, prodüksiyon, yapay zekâ</span></div>
   </div>
-  <div class="footer-contact"><a href="/iletisim/">İletişim</a><a href="/hakkimizda/">Hakkımızda</a></div>
+  <div class="footer-contact"><a href="/iletisim/">İletişim</a><a href="/hakkimizda/">Hakkımızda</a><a href="/kunye/">Künye</a><a href="/yayin-ilkeleri/">Yayın ilkeleri</a><a href="/gizlilik/">Gizlilik ve KVKK</a><a href="/cerez-politikasi/">Çerez politikası</a><button type="button" class="cerez-ayar-dugme" data-cerez-ayar>Çerez tercihleri</button></div>
   <div class="footer-legal">© ${new Date().getUTCFullYear()} BTMEDYA</div>
 </footer>
 <script>
@@ -306,6 +306,6 @@ document.querySelectorAll('.yt-lite').forEach(function(el){
 });
 </script>
 <script src="/editorial-cover-system.js?v=20261004-1" defer></script>
-<script src="/olcum.js?v=20261003-2" defer></script><script src="/yonetim-cubugu.js?v=20261011-1" defer></script></body>
+<script src="/olcum.js?v=20261011-1" defer></script><script src="/yonetim-cubugu.js?v=20261011-1" defer></script></body>
 </html>`;
 }
