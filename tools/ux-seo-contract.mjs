@@ -29,7 +29,8 @@ if (/name=["']viewport["'][^>]*viewport-fit=cover/i.test(index)) ok("mobile view
 else fail("viewport-fit=cover missing");
 if (/name=["']robots["'][^>]*index,follow/i.test(index)) ok("homepage indexing directive allows discovery");
 else fail("homepage must allow index and follow");
-if (h1s.length === 1 && /balıkesir/i.test(h1) && /medya/i.test(h1) && /prodüksiyon/i.test(h1)) ok("one semantic homepage H1 covers local news/media and production");
+const h1Normalized = h1.toLocaleLowerCase("tr-TR");
+if (h1s.length === 1 && h1Normalized.includes("balıkesir") && h1Normalized.includes("medya") && h1Normalized.includes("prodüksiyon")) ok("one semantic homepage H1 covers local news/media and production");
 else fail("homepage needs one meaningful H1 mentioning Balıkesir, media and production");
 if (index.includes("/btmedya-responsive-experience-v1.css?v=20261012-1")) ok("responsive stylesheet linked");
 else fail("responsive experience stylesheet is not linked");
