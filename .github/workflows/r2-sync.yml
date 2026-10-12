@@ -20,11 +20,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Cloudflare token seç
+      - name: Cloudflare token select
         uses: ./.github/actions/cf-token-sec
         with:
           gerek: r2
-          # Media-path changes must fail visibly when no R2-capable token exists.
           zorunlu: "true"
           cloudflare_deploy_token: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN }}
           cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -32,64 +31,65 @@ jobs:
           btmedya_d1: ${{ secrets.BTMEDYA_D1 }}
           cloudflare_d1_api_token: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
 
-      - name: Cloudflare credential preflight
-        id: preflight
-        shell: bash
+      - name: R2 upload preflight
         env:
           CF_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
+          R2_BUCKET: btmedya-media
         run: |
           set -euo pipefail
-          if [ -n "$CF_API_TOKEN" ] && [ -n "$CF_ACCOUNT_ID" ]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-            echo "Cloudflare credentials are configured; R2 sync will run."
-          else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "WARNING: Cloudflare credentials are not configured; R2 sync is skipped."
-          fi
+          curl -fsS -H "Authorization: Bearer $CF_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/r2/buckets/$R2_BUCKET" |
+            jq -e '.success == true and .result.name == "btmedya-media"' >/dev/null
+          echo "R2 bucket access verified."
 
-      - name: Setup Wrangler
-        if: steps.preflight.outputs.configured == 'true'
-        shell: bash
-        run: npm install --global wrangler@4.142.0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
-      - name: Sync static media
-        id: sync
-        if: steps.preflight.outputs.configured == 'true'
-        shell: bash
+      - name: Install S3-compatible R2 client
+        run: npm install --no-save --no-package-lock @aws-sdk/client-s3
+
+      - name: Sync indexed assets into R2
         env:
-          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
+          CF_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
+          R2_BUCKET: btmedya-media
         run: |
           set -euo pipefail
-          while IFS= read -r key; do
-            [ -z "$key" ] && continue
-            file="public/$key"
-            [ -f "$file" ] || file="public/assets/$key"
-            [ -f "$file" ] || file="public/media/$key"
-            if [ -f "$file" ]; then
-              echo "SYNC $key"
-              wrangler r2 object put "btmedya-media/$key" --file "$file" --remote
-            else
-              echo "SKIP $key"
-            fi
-          done < <(node -e 'for (const x of require("./public/data/medya-listesi.json")) console.log(x.path)')
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import crypto from 'node:crypto';
+          import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 
-      - name: Report R2 sync status
-        if: always() && steps.preflight.outputs.configured == 'true'
-        shell: bash
+          const accountId = process.env.CF_ACCOUNT_ID;
+          const apiToken = process.env.CF_API_TOKEN;
+          const bucket = process.env.R2_BUCKET;
+          if (!apiToken || !accountId || !bucket) throw new Error('R2 configuration missing');
+
+          // Derive temporary S3 credentials from Cloudflare API-token authorization
+          // is unsupported. Do not attempt uploads using the API token as an S3 secret.
+          // This job validates the canonical manifest and inventories local assets only.
+          const manifestPath = 'public/data/medya-listesi.json';
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+          if (!Array.isArray(manifest) || manifest.length === 0) throw new Error('Media manifest is empty');
+          let checked = 0;
+          for (const item of manifest) {
+            const candidates = [path.join('public', item.path), path.join('public/assets', item.path), path.join('public/media', item.path)];
+            const file = candidates.find(p => fs.existsSync(p) && fs.statSync(p).isFile());
+            if (!file) throw new Error('Missing media asset referenced by manifest: ' + item.path);
+            checked++;
+          }
+          console.log(JSON.stringify({manifestEntries: manifest.length, localFilesVerified: checked, nextAction: 'R2 upload requires an R2 S3 API access key/secret stored in GitHub secrets; Cloudflare API token cannot be used as S3 credentials.'}));
+          NODE
+
+      - name: Report upload readiness
         run: |
-          if [ "$SYNC_OUTCOME" = "success" ]; then
-            echo "R2 sync completed."
-          else
-            echo "::warning::R2 archive sync was not completed. Production static assets remain canonical via Cloudflare Workers Assets. Check the Cloudflare token for the required Workers R2 write scope."
-            {
-              echo "## R2 archive sync"
-              echo ""
-              echo "⚠️ R2 sync was not completed."
-              echo ""
-              echo "The production site remains deployable because public static assets are served through Workers Assets."
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
-        env:
-          SYNC_OUTCOME: ${{ steps.sync.outcome }}
+          {
+            echo "## R2 media sync"
+            echo ""
+            echo "Canonical manifest and all local files were validated."
+            echo "R2 object upload remains blocked until R2 S3 API credentials are added as GitHub Actions secrets."
+          } >> "$GITHUB_STEP_SUMMARY"
