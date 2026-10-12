@@ -1,6 +1,6 @@
 /* BTMEDYA Autonomous Editorial & Social Autopilot
  * Kaynak -> trend -> rakip sinyali -> AI taslak -> medya seçimi -> yayın
- * politikası -> onay/otomatik yayın -> Metricool teslim.
+ * politikası -> onay/Cloudflare yerel sosyal yayın kuyruğu.
  *
  * Güvenlik ilkeleri:
  * - Hassas/siyaset/kriz/şiddet içerikleri otomatik yayınlanmaz.
@@ -11,6 +11,7 @@
  */
 
 import { runNewsIntelligence } from "./news-intelligence.js";
+import { metricoolConnectedNetworks } from "./social-platforms.js";
 import { queueAutopilotSocial } from "./direct-social.js";
 import { sonrakiYuva, altyazi, statikGorselAiMi } from "./sosyal-otomasyon.js";
 import { kaynakBaglaHaber, kaynakKaydet, kaynakBagla } from "./kaynak-masasi.js";
