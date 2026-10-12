@@ -125,8 +125,13 @@
 
   function basla() {
     const tercih = okuTercih();
-    document.querySelectorAll('[data-cerez-ayar]').forEach(function (b) {
-      b.addEventListener('click', seritAc);
+    const dugmeler = document.querySelectorAll
+      ? document.querySelectorAll('[data-cerez-ayar]')
+      : [];
+    Array.from(dugmeler).forEach(function (b) {
+      if (b && typeof b.addEventListener === 'function') {
+        b.addEventListener('click', seritAc);
+      }
     });
 
     if (tercih && tercih.analitik === true) {
