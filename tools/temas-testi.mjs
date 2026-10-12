@@ -128,7 +128,7 @@ const calistir = ({ webdriver = false, tercih = null, storageBlocked = false } =
       readyState: 'complete',
       addEventListener: (t, f) => { if (t === 'click') dinleyici = f; },
       querySelectorAll: () => [],
-      querySelector: () => null,
+      querySelector: selector => selector === '.cerez-serit' ? banner : null,
       createElement: tag => {
         const el = element(tag);
         Object.defineProperty(el, 'src', { set(v) { el._src = v; if (tag === 'script') scripts.push(v); }, get() { return el._src; } });
