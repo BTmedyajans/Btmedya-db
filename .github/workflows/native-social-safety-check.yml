@@ -1,0 +1,32 @@
+name: BTMEDYA Native Social Safety Checks
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/autopilot.js"
+      - "src/direct-social.js"
+      - "src/worker.js"
+      - "tools/native-social-safety-check.mjs"
+      - ".github/workflows/native-social-safety-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: JavaScript syntax
+        run: |
+          set -euo pipefail
+          node --check src/autopilot.js
+          node --check src/direct-social.js
+          node --check src/worker.js
+      - name: Native social and audit-log safety contracts
+        run: node tools/native-social-safety-check.mjs
