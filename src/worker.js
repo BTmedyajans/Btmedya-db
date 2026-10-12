@@ -1877,7 +1877,7 @@ async function autoPrepareSocialDrafts(env, limit=3){
         : cover.startsWith('/assets/') ? 'static/'+cover.slice('/assets/'.length) : '';
       const body=altyazi(n,await kapakKunyesi(env,n.slug),new Date(),ayar.sablon,mediaKey?await statikGorselAiMi(env,mediaKey):null);
       const platformlar=sosyalPlatformlariMedyaIleUyumla(platformSluglari(ayar),mediaKey);
-      // Metricool olmadan önce yerel OAuth bağlantıları denenir. Yalnızca gerçek bir hesap kuyruğa
+      // Metricool kullanılmadan yerel OAuth bağlantıları denenir. Yalnızca gerçek bir hesap kuyruğa
       // alınırsa "planlandı" sayılır; aksi durumda içerik onay taslağı olarak kalır.
       const directNetworks=[...new Set(platformlar.map(p=>p==='instagram-post'||p==='instagram-reel'?'instagram':p==='facebook-post'?'facebook':p).filter(p=>['facebook','instagram','tiktok','youtube'].includes(p)))];
       if(mediaKey.startsWith('static/') && /\.(mp4|mov|m4v|webm)$/i.test(mediaKey)===false){
