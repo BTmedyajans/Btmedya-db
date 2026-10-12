@@ -19,7 +19,7 @@ import { manualIntegrationApi } from "./manual-integrations.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
-import { processDirectSocialQueue, directSocialApi } from "./direct-social.js";
+import { processDirectSocialQueue, directSocialApi, queueAutopilotSocial } from "./direct-social.js";
 import { tiktokApi } from "./tiktok-direct.js";
 import { youtubeApi } from "./youtube-direct.js";
 import { xApi } from "./x-direct.js";
@@ -1877,17 +1877,32 @@ async function autoPrepareSocialDrafts(env, limit=3){
         : cover.startsWith('/assets/') ? 'static/'+cover.slice('/assets/'.length) : '';
       const body=altyazi(n,await kapakKunyesi(env,n.slug),new Date(),ayar.sablon,mediaKey?await statikGorselAiMi(env,mediaKey):null);
       const platformlar=sosyalPlatformlariMedyaIleUyumla(platformSluglari(ayar),mediaKey);
-      const yas=(Date.now()-new Date(n.published_at||0).getTime())/3600000;
-      const otomatik=ayar.otomatikPlanla && Boolean(env.METRICOOL_USER_TOKEN) && platformlar.length>0 && yas>=0 && yas<=ayar.tazelikSaat;
-      const yuva=otomatik ? await sonrakiYuva(env,ayar) : null;
-      const status=yuva ? 'planlandi' : 'onayda';
+      // Metricool kullanılmadan yerel OAuth bağlantıları denenir. Yalnızca gerçek bir hesap kuyruğa
+      // alınırsa "planlandı" sayılır; aksi durumda içerik onay taslağı olarak kalır.
+      const directNetworks=[...new Set(platformlar.map(p=>p==='instagram-post'||p==='instagram-reel'?'instagram':p==='facebook-post'?'facebook':p).filter(p=>['facebook','instagram','tiktok','youtube'].includes(p)))];
+      if(mediaKey.startsWith('static/') && /\.(mp4|mov|m4v|webm)$/i.test(mediaKey)===false){
+        // YouTube/TikTok görsel gönderisi kabul etmez.
+        for(let i=directNetworks.length-1;i>=0;i--) if(['tiktok','youtube'].includes(directNetworks[i])) directNetworks.splice(i,1);
+      }
+      if(mediaKey.startsWith('static/') && directNetworks.includes('youtube')) directNetworks.splice(directNetworks.indexOf('youtube'),1);
+      if(ayar.otomatikPlanla && mediaKey && directNetworks.length){
+        const direct=await queueAutopilotSocial(env,{title:String(n.title||'BTMEDYA').slice(0,180),body,mediaKey,sourceSlug:String(n.slug),networks:directNetworks})
+          .catch(e=>({ok:false,queued:0,reason:String(e?.message||e).slice(0,240)}));
+        if(direct?.created&&direct.queued){
+          made++; result.created++; result.planned++;
+          result.items.push({id:direct.items?.[0]?.id||'',slug:n.slug,status:'planlandi',scheduled_at:direct.scheduled_at,mode:'direct'});
+          continue;
+        }
+        if(direct?.duplicate){result.skipped++;continue;}
+      }
+      const status='onayda';
       const now=new Date().toISOString();
       const id=crypto.randomUUID();
       await env.DB.prepare(
         'INSERT INTO social_posts (id,title,body,platforms,format,media_key,source_slug,status,scheduled_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)'
-      ).bind(id,String(n.title||'BTMEDYA').slice(0,180),body,JSON.stringify(platformlar),'4:5',mediaKey,String(n.slug),status,yuva,now,now).run();
-      made++; result.created++; if(yuva) result.planned++;
-      result.items.push({id,slug:n.slug,status,scheduled_at:yuva});
+      ).bind(id,String(n.title||'BTMEDYA').slice(0,180),body,JSON.stringify(platformlar),'4:5',mediaKey,String(n.slug),status,null,now,now).run();
+      made++; result.created++;
+      result.items.push({id,slug:n.slug,status,scheduled_at:null,mode:'draft'});
     }
   }catch(e){
     result.error=String(e?.message||e).slice(0,300);

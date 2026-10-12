@@ -1,6 +1,6 @@
 /* BTMEDYA Autonomous Editorial & Social Autopilot
  * Kaynak -> trend -> rakip sinyali -> AI taslak -> medya seçimi -> yayın
- * politikası -> onay/otomatik yayın -> Metricool teslim.
+ * politikası -> onay/Cloudflare yerel sosyal yayın kuyruğu.
  *
  * Güvenlik ilkeleri:
  * - Hassas/siyaset/kriz/şiddet içerikleri otomatik yayınlanmaz.
@@ -14,7 +14,6 @@ import { runNewsIntelligence } from "./news-intelligence.js";
 import { metricoolConnectedNetworks } from "./social-platforms.js";
 import { queueAutopilotSocial } from "./direct-social.js";
 import { sonrakiYuva, altyazi, statikGorselAiMi } from "./sosyal-otomasyon.js";
-import { processMetricoolQueue } from "./metricool-scheduler.js";
 import { kaynakBaglaHaber, kaynakKaydet, kaynakBagla } from "./kaynak-masasi.js";
 import { sosyalTekillemeAyir, sosyalTekillemeBagla, sosyalTekillemeBirak } from "./sosyal-dedupe.js";
 import { normalizeContentTaxonomy, saveContentTaxonomy } from "./content-taxonomy.js";
@@ -259,7 +258,7 @@ async function createSocialDraft(env,news,media,policy,runId){
   const directNetworks=[...new Set([...(policy.allowedNetworks||[]),"facebook","instagram"])].filter(n=>["facebook","instagram","tiktok","youtube"].includes(n));
   const format=String(media?.social_mime||"").startsWith("video/")?"9:16":"4:5";
 
-  // OAuth ile Cloudflare'a bağlanan hesaplar önce denenir; Metricool zorunlu değildir.
+  // Metricool kullanılmaz. Önce Cloudflare D1 üzerindeki yerel sosyal yayın kuyruğu denenir.
   if(policy.autoScheduleSocial){
     const direct=await queueAutopilotSocial(env,{
       title:String(news.title||"").slice(0,240),body,mediaKey,
@@ -278,74 +277,31 @@ async function createSocialDraft(env,news,media,policy,runId){
     }
   }
 
-  // Token yoksa paylaşım sözü vermek yerine içerik panelde onay taslağı olarak tutulur.
-  if(!String(env.METRICOOL_USER_TOKEN||"").trim()){
-    const postId=crypto.randomUUID();
-    const accountScope="company";
-    const rezerv=await sosyalTekillemeAyir(env,{
-      post_id:postId,source_slug:news.slug,title:String(news.title||""),body,
-      format,platforms:directNetworks,account_scope:accountScope,metricool_brand_id:""
-    });
-    if(!rezerv.allowed) return {created:false,scheduled:false,reason:"Aynı haber için aynı sosyal içeriğin kaydı zaten mevcut.",duplicate_of:rezerv.existing_post_id||null};
-    try{
-      await env.DB.prepare("INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,account_scope,metricool_brand_id,account_label,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-        .bind(postId,String(news.title||"").slice(0,240),body,JSON.stringify(directNetworks),format,mediaKey,
-          news.slug,accountScope,"","Cloudflare sosyal taslağı","onayda",null,nowIso(),nowIso()).run();
-      await sosyalTekillemeBagla(env,rezerv.fingerprint,postId,news.slug);
-    }catch(e){
-      await sosyalTekillemeBirak(env,rezerv.fingerprint);
-      throw e;
-    }
-    await log(env,runId,"social-create",postId,"onayda","Metricool tokenı ve doğrudan bağlı yayın hesabı olmadığı için taslak kaydedildi",{
-      mode:"draft",networks:directNetworks,mediaKey
-    });
-    return {created:true,scheduled:false,postId,mode:"draft"};
-  }
-  const connected=metricoolConnectedNetworks(env);
-  const networks=policy.allowedNetworks.filter(n=>connected.has(n));
-  if(!networks.length) return {created:false,scheduled:false,reason:"Seçili sosyal ağların Metricool bağlantısı yok."};
-  const ayar={
-    aglar:networks.filter(n=>["instagram","facebook","tiktok","youtube"].includes(n)),
-    otomatikPlanla:policy.autoScheduleSocial,
-    saatler:["10:00","12:00","18:00"],
-    tazelikSaat:72
-  };
-  if(!ayar.aglar.length) return {created:false,scheduled:false,reason:"Metricool için uyumlu ağ yok."};
-  const scheduled=policy.autoScheduleSocial ? await sonrakiYuva(env,ayar) : null;
-  if(policy.autoScheduleSocial && !scheduled) return {created:false,scheduled:false,reason:"Boş sosyal yayın yuvası bulunamadı."};
-  const platformSlugs=ayar.aglar.map(n=>n==="youtube"?"youtube":n);
-  if(platformSlugs.some(x=>["youtube","tiktok"].includes(x)) && !mediaKey)
-    return {created:false,scheduled:false,reason:"YouTube/TikTok için medya gerekli."};
-
-  // Autopilot sadece BTMEDYA şirket hesabını kullanır. Kişisel hesaplar
-  // ayrı Metricool Brand olmadan otomatik yayın zincirine alınmaz.
-  const accountScope="company";
-  const metricoolBrandId=String(env.METRICOOL_BRAND_ID||"").trim();
-  if(!metricoolBrandId)
-    return {created:false,scheduled:false,reason:"BTMEDYA şirket Metricool Brand ID eksik."};
-
+  // Yerel hesap yetkilendirmesi veya uygun medya yoksa güvenli taslak oluştur; gönderi planlandı gibi gösterilmez.
   const postId=crypto.randomUUID();
-  const status=policy.autoScheduleSocial && scheduled ? "planlandi" : "onayda";
-  const rezerv=await sosyalTekillemeAyir(env,{post_id:postId,source_slug:news.slug,title:String(news.title||""),body,format,platforms:platformSlugs,account_scope:accountScope,metricool_brand_id:metricoolBrandId});
+  const rezerv=await sosyalTekillemeAyir(env,{
+    post_id:postId,source_slug:news.slug,title:String(news.title||""),body,
+    format,platforms:directNetworks,account_scope:"company",metricool_brand_id:""
+  });
   if(!rezerv.allowed) return {created:false,scheduled:false,reason:"Aynı haber için aynı sosyal içeriğin kaydı zaten mevcut.",duplicate_of:rezerv.existing_post_id||null};
   try{
     await env.DB.prepare("INSERT INTO social_posts(id,title,body,platforms,format,media_key,source_slug,account_scope,metricool_brand_id,account_label,status,scheduled_at,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-      .bind(postId,String(news.title||"").slice(0,240),body,JSON.stringify(platformSlugs),format,mediaKey,
-        news.slug,accountScope,metricoolBrandId,"BTMEDYA Şirket",status,scheduled,nowIso(),nowIso()).run();
+      .bind(postId,String(news.title||"").slice(0,240),body,JSON.stringify(directNetworks),format,mediaKey,
+        news.slug,"company","","Cloudflare doğrudan yayın taslağı","onayda",null,nowIso(),nowIso()).run();
     await sosyalTekillemeBagla(env,rezerv.fingerprint,postId,news.slug);
-    const sourceUrl=String((await env.DB.prepare('SELECT source_url FROM news WHERE slug=?').bind(String(news.slug)).first().catch(()=>null))?.source_url||'');
+    const sourceUrl=String((await env.DB.prepare("SELECT source_url FROM news WHERE slug=?").bind(String(news.slug)).first().catch(()=>null))?.source_url||"");
     if(sourceUrl){
-      await kaynakKaydet(env,{url:sourceUrl,tier:'publisher',publisher:'BTMEDYA Haber Merkezi',status:'review'}).catch(()=>{});
-      await kaynakBagla(env,{url:sourceUrl,entityType:'social',entityId:postId,role:'derived-social'}).catch(()=>{});
+      await kaynakKaydet(env,{url:sourceUrl,tier:"publisher",publisher:"BTMEDYA Haber Merkezi",status:"review"}).catch(()=>{});
+      await kaynakBagla(env,{url:sourceUrl,entityType:"social",entityId:postId,role:"derived-social"}).catch(()=>{});
     }
   }catch(e){
     await sosyalTekillemeBirak(env,rezerv.fingerprint);
     throw e;
   }
-  await log(env,runId,"social-create",postId,status,policy.autoScheduleSocial?"otomatik plan":"onay kuyruğu",{
-    accountScope,metricoolBrandId,networks:platformSlugs,mediaKey
+  await log(env,runId,"social-create",postId,"onayda","Metricool kapalı; doğrudan hesap veya uygun medya bekleniyor",{
+    mode:"draft",networks:directNetworks,mediaKey
   });
-  return {created:true,scheduled:Boolean(scheduled),postId,scheduled_at:scheduled,accountScope,metricoolBrandId};
+  return {created:true,scheduled:false,postId,mode:"draft"};
 }
 
 async function allowedReference(env,url){
@@ -574,10 +530,7 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
       }catch(e){ rows.push({host,count:0,error:String(e?.message||e).slice(0,120)}); }
     }
     result.competitors=rows;
-    if(result.social_created) {
-      try{ await processMetricoolQueue(env,Math.max(1,result.social_created)); }
-      catch(e){ result.error_count++; result.ok=false; result.errors=[...(result.errors||[]), "Metricool queue: "+String(e?.message||e).slice(0,200)]; }
-    }
+    // Sosyal teslim Cloudflare'ın yerel kuyruğunda yürür; Metricool çağrısı yapılmaz.
   }
   return result;
   } catch(e) {
