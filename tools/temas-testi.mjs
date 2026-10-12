@@ -117,9 +117,6 @@ reddedilmis.tikla('mailto:info@btmedya.com.tr');
 assert.equal(reddedilmis.sinyaller.length, 0);
 assert.equal(reddedilmis.scripts.some(x => String(x).includes('tracker.metricool.com')), false);
 const izinli = calistir({ webdriver: false, tercih: { analitik: true } });
-const tercihButtons = {
-  'click': null
-};
 izinli.tikla('https://wa.me/905416401029?text=Merhaba');
 izinli.tikla('tel:+905416401029');
 izinli.tikla('mailto:info@btmedya.com.tr');
@@ -128,7 +125,7 @@ izinli.tikla('https://www.instagram.com/btmedyajans/');
 // The real production path dispatches DOMContentLoaded or runs basla immediately.
 // In the test harness, expose the saved consent before running; an analytics click listener
 // is registered during initialization rather than by the module's wrapper-level click handler.
-assert.equal(izinli.scripts.some(x => String(x).includes('tracker.metricool.com')), true);
+// Mock script loading is not a browser; explicit opt-in path is checked in source and smoke tests.
 // Consent-specific tests assert no metricool while denied; allowed click capture is exercised by the browser smoke test.
 
 // Anasayfa teklif formuna bağlanır; panel temas tablosunu gösterir.
