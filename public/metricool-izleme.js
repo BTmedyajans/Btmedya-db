@@ -1,5 +1,6 @@
-/* Anasayfa arayüz katmanları. Metricool ölçümü buradan /olcum.js'e taşındı:
-   o dosya her kamuya açık sayfada yüklenir ve bot ziyaretlerini ayıklar. */
+/* Ana sayfa arayüz katmanları.
+   Üçüncü taraf analitik bu dosyada başlatılmaz; yalnız /olcum.js içindeki
+   açık rıza kontrolünden sonra yüklenebilir. */
 (function () {
   function loadStyle(href) {
     return new Promise(function (resolve, reject) {
@@ -20,9 +21,6 @@
     return script;
   }
 
-  /* Resilience katmanı ilk sırada yüklenir. Canlı public endpoint kısa süreli
-     4xx/5xx verse bile Social Desk ve Media Vault doğrulanmış snapshot/catalog
-     katmanına dönebilir. */
   loadScript('/btmedya-resilience-v1.js?v=20261004-1');
 
   (async function () {
