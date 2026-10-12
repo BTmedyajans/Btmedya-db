@@ -1144,10 +1144,13 @@ function normalizeSocialPlatforms(input){
   return [...new Set(raw.map(x=>String(x||'').trim().toLowerCase()).filter(Boolean))].slice(0,20);
 }
 function socialPlatformCheck(env,platforms){
-  const connected=metricoolConnectedNetworks(env);
+  const bufferMode=String(env.BTMEDYA_SOCIAL_PUBLISHER||"").toLowerCase()==="buffer";
+  // Buffer channel availability is verified against its own API during enqueue;
+  // do not accidentally use Metricool's connected-network list in Buffer mode.
+  const connected=bufferMode ? new Set(["facebook","instagram","tiktok","youtube"]) : metricoolConnectedNetworks(env);
   const unknown=platforms.filter(p=>!SOCIAL_PLATFORM_NETWORK[p]);
   const disconnected=platforms.map(p=>SOCIAL_PLATFORM_NETWORK[p]).filter(Boolean).filter((n,i,a)=>a.indexOf(n)===i&&!connected.has(n));
-  return {ok:!unknown.length&&!disconnected.length,unknown,disconnected,connected};
+  return {ok:!unknown.length&&!disconnected.length,unknown,disconnected,connected,provider:bufferMode?"buffer":"metricool"};
 }
 
 async function socialApi(request, env, url, ctx){
@@ -1268,8 +1271,18 @@ async function socialApi(request, env, url, ctx){
       throw e;
     }
     const disId=String(b.metricool_id||'').trim();
-    if(disId) await disTeslimKaydet(env,id,disId);
-    if(status==='planlandi' && !disId && ctx?.waitUntil){
+    const bufferMode=String(env.BTMEDYA_SOCIAL_PUBLISHER||"").toLowerCase()==="buffer";
+    if(disId && !bufferMode) await disTeslimKaydet(env,id,disId);
+    if(status==='planlandi' && !disId && bufferMode){
+      const result=await queueBufferSocialPost(env,{title,body,platforms,media_key:mediaKey,scheduled_at:scheduledAt||new Date(Date.now()+10*60*1000).toISOString(),local_post_id:id,format});
+      if(!result.ok && !result.partial){
+        await env.DB.prepare("UPDATE social_posts SET status='onayda',updated_at=? WHERE id=?").bind(new Date().toISOString(),id).run().catch(()=>{});
+        return json({ok:false,error:result.error||"Buffer gönderisi kuyruğa alınamadı",status:"onayda",buffer:result},409);
+      }
+      if(result.partial) return json({ok:true,id,status,scheduled_at:scheduledAt,partial:true,buffer:result},207);
+      return json({ok:true,id,status,scheduled_at:scheduledAt,buffer:result});
+    }
+    if(status==='planlandi' && !disId && !bufferMode && ctx?.waitUntil){
       ctx.waitUntil(
         processMetricoolQueue(env,10)
           .then(x=>console.log('[btmedya] immediate Metricool handoff',JSON.stringify(x)))
@@ -1282,8 +1295,24 @@ async function socialApi(request, env, url, ctx){
   const retryMatch=url.pathname.match(/^\/api\/admin\/social\/([^/]+)\/retry$/);
   if(retryMatch && request.method==='POST'){
     const id=decodeURIComponent(retryMatch[1]);
-    const row=await env.DB.prepare('SELECT id,title,platforms,media_key,status,scheduled_at FROM social_posts WHERE id=?').bind(id).first().catch(()=>null);
+    const row=await env.DB.prepare('SELECT id,title,body,platforms,format,source_slug,media_key,status,scheduled_at FROM social_posts WHERE id=?').bind(id).first().catch(()=>null);
     if(!row) return json({ok:false,error:'Bulunamadı'},404);
+    if(String(env.BTMEDYA_SOCIAL_PUBLISHER||"").toLowerCase()==="buffer"){
+      const platforms=normalizeSocialPlatforms(JSON.parse(row.platforms||'[]'));
+      const platformCheck=socialPlatformCheck(env,platforms);
+      if(platformCheck.unknown.length) return json({ok:false,error:'Desteklenmeyen sosyal platformu',platforms:platformCheck.unknown},400);
+      if(!platforms.length) return json({ok:false,error:'En az bir sosyal platform seçilmelidir'},400);
+      const now=new Date().toISOString();
+      let scheduledAt=String(row.scheduled_at||'');
+      if(!scheduledAt || new Date(scheduledAt).getTime()<=Date.now()+30000) scheduledAt=await sonrakiYuva(env,await ayarlariOku(env));
+      await env.DB.prepare("UPDATE social_posts SET status='planlandi',scheduled_at=?,updated_at=? WHERE id=?").bind(scheduledAt,now,id).run();
+      const result=await queueBufferSocialPost(env,{title:row.title,body:row.body,platforms,media_key:row.media_key,scheduled_at:scheduledAt,local_post_id:id,format:row.format,sourceSlug:row.source_slug});
+      if(!result.ok && !result.partial){
+        await env.DB.prepare("UPDATE social_posts SET status='onayda',updated_at=? WHERE id=?").bind(new Date().toISOString(),id).run().catch(()=>{});
+        return json({ok:false,error:result.error||"Buffer yeniden denemesi başarısız",status:"onayda",buffer:result},409);
+      }
+      return json({ok:true,id,scheduled_at:scheduledAt,retry:true,buffer:result},result.partial?207:200);
+    }
     const teslim=await env.DB.prepare('SELECT durum,attempts,retryable,hata FROM metricool_gonderim WHERE post_id=?').bind(id).first().catch(()=>null);
     if(!teslim || teslim.durum!=='hata') return json({ok:false,error:'Yalnızca Metricool teslim hatası olan içerikler yeniden denenebilir'},409);
     const platforms=normalizeSocialPlatforms(JSON.parse(row.platforms||'[]'));
@@ -1311,7 +1340,7 @@ async function socialApi(request, env, url, ctx){
     const b=await request.json().catch(()=>({}));
     const status=String(b.status||'');
     if(!SOCIAL_STATUS.has(status)) return json({ok:false,error:'Geçersiz durum'},400);
-    const hedef=await env.DB.prepare('SELECT platforms,media_key FROM social_posts WHERE id=?').bind(decodeURIComponent(byId[1])).first().catch(()=>null);
+    const hedef=await env.DB.prepare('SELECT id,title,body,platforms,format,source_slug,media_key,scheduled_at FROM social_posts WHERE id=?').bind(decodeURIComponent(byId[1])).first().catch(()=>null);
     if(!hedef) return json({ok:false,error:'Bulunamadı'},404);
     const hedefPlatformlari=normalizeSocialPlatforms(hedef.platforms?JSON.parse(hedef.platforms||'[]'):[]);
     const platformCheck=socialPlatformCheck(env,hedefPlatformlari);
@@ -1329,6 +1358,16 @@ async function socialApi(request, env, url, ctx){
       r=await env.DB.prepare('UPDATE social_posts SET status=?,updated_at=? WHERE id=?').bind(status,now,id).run();
     }
     if(status==='planlandi' && (r.meta?.changes||0)>0){
+      if(String(env.BTMEDYA_SOCIAL_PUBLISHER||"").toLowerCase()==="buffer"){
+        const row=await env.DB.prepare('SELECT id,title,body,platforms,format,source_slug,media_key,scheduled_at FROM social_posts WHERE id=?').bind(id).first();
+        const rowPlatforms=normalizeSocialPlatforms(JSON.parse(row?.platforms||'[]'));
+        const result=await queueBufferSocialPost(env,{title:row?.title,body:row?.body,platforms:rowPlatforms,media_key:row?.media_key,scheduled_at:row?.scheduled_at,local_post_id:id,format:row?.format,sourceSlug:row?.source_slug});
+        if(!result.ok && !result.partial){
+          await env.DB.prepare("UPDATE social_posts SET status='onayda',updated_at=? WHERE id=?").bind(new Date().toISOString(),id).run().catch(()=>{});
+          return json({ok:false,error:result.error||"Buffer gönderisi kuyruğa alınamadı",status:"onayda",buffer:result},409);
+        }
+        return json({ok:true,changed:true,buffer:result},result.partial?207:200);
+      }
       const teslim=await env.DB.prepare('SELECT durum FROM metricool_gonderim WHERE post_id=?').bind(id).first().catch(()=>null);
       if(teslim?.durum==='hata') await env.DB.prepare('DELETE FROM metricool_gonderim WHERE post_id=?').bind(id).run().catch(()=>{});
       if(ctx?.waitUntil){
