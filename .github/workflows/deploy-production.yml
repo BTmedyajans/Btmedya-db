@@ -80,8 +80,8 @@ jobs:
             exit 1
           fi
           access_file="$(mktemp)"
-          http_code="$(curl -sS --connect-timeout 10 --max-time 20 -o "$access_file" -w "%{http_code}" -H "Authorization: Bearer $CF_DEPLOY_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/scripts/btmedya-db")"
-          if [ "$http_code" != "200" ] || ! jq -e '.success == true' "$access_file" >/dev/null; then
+          http_code="$(curl -sS --connect-timeout 10 --max-time 20 -o "$access_file" -w "%{http_code}" -H "Authorization: Bearer $CF_DEPLOY_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/scripts")"
+          if [ "$http_code" != "200" ] || ! jq -e --arg worker "btmedya-db" '.success == true and any(.result[]?; .id == $worker)' "$access_file" >/dev/null 2>&1; then
             rm -f "$access_file"
             echo "::error::The active token cannot access Worker btmedya-db in the target account. Recreate CLOUDFLARE_DEPLOY_TOKEN with Workers Editor scoped to this Worker (or the Workers product) and, because this config declares custom domains, Workers Routes Write scoped to the btmedya.com.tr zone."
             exit 1
