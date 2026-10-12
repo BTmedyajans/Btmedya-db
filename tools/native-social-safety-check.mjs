@@ -23,7 +23,7 @@ assert.match(direct, /validSession\(/, "Social OS mutations must have session va
 assert.match(worker, /processDirectSocialQueue\(/, "Worker must process the native queue");
 
 // Drafts are not equivalent to scheduled/published posts.
-assert.match(autopilot, /status\s*:\s*"draft"/, "unconnected platforms should fall back to drafts");
+assert.match(autopilot, /mode\s*:\s*"draft"/, "unconnected platforms should fall back to drafts");
 assert.match(autopilot, /"onayda"/, "social drafts must remain approval-gated");
 
 console.log("BTMEDYA_NATIVE_SOCIAL_SAFETY_CHECKS_PASS");
