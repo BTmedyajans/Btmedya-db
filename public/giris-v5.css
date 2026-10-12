@@ -122,3 +122,63 @@ body.bt-clean-intro-active main#icerik{transform:none!important;animation:none!i
 }
 @media (max-height:620px) and (max-aspect-ratio:4/5){.giris-v5-kat-ana b{font-size:26px}.giris-v5-kat-liste{gap:8px}}
 @media (prefers-reduced-motion:reduce){.giris-v5-kat *{animation:none!important;transition:none!important}.giris-v5-kat.is-acik{transition:none}}
+
+
+/* Mobile intro final panel refinement · 2026-10-12
+   Keep the final choice screen short and thumb-friendly on narrow portrait screens.
+   The film remains full-screen; only the final category chooser changes. */
+@media (max-aspect-ratio:4/5),(max-width:720px){
+  .giris-v5-kat{
+    justify-content:flex-end!important;
+    padding:0 12px max(14px,calc(env(safe-area-inset-bottom) + 12px))!important;
+    background:linear-gradient(180deg,transparent 35%,rgba(4,5,7,.48) 54%,rgba(4,5,7,.94) 76%,#040507 100%)!important;
+  }
+  .giris-v5-kat-ust{
+    margin:0 auto 9px!important;
+    font-size:9px!important;
+    letter-spacing:.16em!important;
+  }
+  .giris-v5-kat-liste{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:7px!important;
+    align-items:stretch!important;
+  }
+  .giris-v5-kat-k{
+    min-width:0!important;
+    min-height:76px!important;
+    padding:10px 7px 8px!important;
+    border:1px solid color-mix(in srgb,var(--k) 52%,rgba(255,255,255,.12))!important;
+    border-top:2px solid color-mix(in srgb,var(--k) 78%,transparent)!important;
+    border-radius:12px!important;
+    background:linear-gradient(155deg,color-mix(in srgb,var(--k) 13%,rgba(15,17,21,.78)),rgba(8,9,12,.78))!important;
+    box-shadow:0 8px 22px rgba(0,0,0,.22)!important;
+  }
+  .giris-v5-kat-ana{
+    min-height:54px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    gap:5px!important;
+  }
+  .giris-v5-kat-ana span{font-size:9px!important;letter-spacing:.1em!important}
+  .giris-v5-kat-ana b{
+    max-width:100%!important;
+    font-size:clamp(13px,3.8vw,18px)!important;
+    line-height:1!important;
+    overflow-wrap:anywhere!important;
+  }
+  .giris-v5-kat-ana i{display:none!important}
+  .giris-v5-kat-k>p,.giris-v5-kat ul{display:none!important}
+}
+@media (max-width:360px){
+  .giris-v5-kat{padding-inline:8px!important}
+  .giris-v5-kat-liste{gap:5px!important}
+  .giris-v5-kat-k{padding-inline:5px!important}
+  .giris-v5-kat-ana b{font-size:12.5px!important}
+}
+@media (max-height:620px) and (max-width:720px){
+  .giris-v5-kat{padding-bottom:max(8px,calc(env(safe-area-inset-bottom) + 6px))!important}
+  .giris-v5-kat-k{min-height:62px!important;padding-block:6px!important}
+  .giris-v5-kat-ana{min-height:46px!important}
+}
