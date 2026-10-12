@@ -130,7 +130,7 @@ function renderBufferChannels(data){
   const channels=orgs.flatMap(o=>o.channels||[]);
   $('#bufferChannels').innerHTML=channels.length?channels.map(ch=>{
     const icon=(ch.service||'').toLowerCase().includes('instagram')?'Instagram':(ch.service||'').toLowerCase().includes('youtube')?'YouTube':(ch.service||'').toLowerCase().includes('tiktok')?'TikTok':(ch.service||'').toLowerCase().includes('facebook')?'Facebook':(ch.service||'');
-    return '<label class="card account"><input type="checkbox" data-buffer-channel="'+esc(ch.id)+'" '+(ch.paused?'disabled':'')+'><div><b>'+esc(ch.name)+'</b><div class="mini">'+esc(icon)+' · '+esc(ch.service)+'</div><div class="mini">Kanal ID: '+esc(ch.id)+'</div></div><span class="badge '+(ch.paused?'warn':'ok')+'">'+(ch.paused?'Kuyruk duraklatıldı':'Hazır')+'</span></label>';
+    return '<label class="card account"><input type="checkbox" data-buffer-channel="'+esc(ch.id)+'" '+(ch.paused?'disabled':'')+'><div><b>'+esc(ch.name)+'</b><div class="mini">'+esc(icon)+' · '+esc(ch.service)+'</div><div class="mini">Kanal ID: '+esc(ch.id)+'</div></div><span class="badge '+(ch.paused?'warn':'ok')+'">'+(ch.paused?'Kuyruk duraklatıldı':'Bağlı')+'</span></label>';
   }).join(''):'<div class="card">Buffer hesabında kanal bulunamadı. Önce Buffer içinden Instagram, TikTok veya YouTube kanalını bağla.</div>';
 }
 async function loadBufferStatus(){
