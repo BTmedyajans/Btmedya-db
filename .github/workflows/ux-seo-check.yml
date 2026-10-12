@@ -1,0 +1,37 @@
+name: BTMEDYA UX and SEO Contract
+
+on:
+  pull_request:
+    paths:
+      - "public/index.html"
+      - "public/btmedya-responsive-experience-v1.css"
+      - "tools/ux-seo-contract.mjs"
+      - ".github/workflows/ux-seo-check.yml"
+  push:
+    branches: [main]
+    paths:
+      - "public/index.html"
+      - "public/btmedya-responsive-experience-v1.css"
+      - "tools/ux-seo-contract.mjs"
+      - ".github/workflows/ux-seo-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ux-seo-contract:
+    name: Validate responsive UX and homepage SEO
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Validate responsive UX and SEO metadata
+        run: |
+          node --check tools/ux-seo-contract.mjs
+          node tools/ux-seo-contract.mjs
