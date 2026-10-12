@@ -1,0 +1,97 @@
+name: BTMEDYA Production Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "migrations/**"
+      - "wrangler.toml"
+      - "package.json"
+      - ".github/workflows/deploy-production.yml"
+      - ".github/actions/cf-token-sec/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btmedya-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Validate, deploy and smoke-test production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Validate source and assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s src/worker.js
+          test -s src/autopilot.js
+          test -s src/direct-social.js
+          test -s public/index.html
+          test -s public/robots.txt
+          test -s public/sitemap.xml
+          node --check src/worker.js
+          node --check src/autopilot.js
+          node --check src/direct-social.js
+          node --check src/tiktok-direct.js
+          node --check src/youtube-direct.js
+          python3 tools/validate-assets.py
+          node tools/gerileme-denetimi.mjs
+          node tools/link-denetimi.mjs
+          node tools/mobile-regression-gate.mjs
+
+      - name: Select a valid Cloudflare token
+        uses: ./.github/actions/cf-token-sec
+        with:
+          gerek: workers
+          zorunlu: "true"
+          cloudflare_deploy_token: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN }}
+          cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          btmedya_db1: ${{ secrets.BTMEDYA_DB1 }}
+          btmedya_d1: ${{ secrets.BTMEDYA_D1 }}
+          cloudflare_d1_api_token: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+
+      - name: Install pinned Wrangler
+        run: npm install --no-save --no-package-lock wrangler@4.142.0
+
+      - name: Deploy Worker and static assets
+        env:
+          CLOUDFLARE_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
+        run: npx wrangler deploy --config wrangler.toml
+
+      - name: Verify live site and API
+        shell: bash
+        run: |
+          set -euo pipefail
+          ok=0
+          for attempt in $(seq 1 12); do
+            code="$(curl -sS -o /tmp/btmedya-health.json -w "%{http_code}" --max-time 20 https://btmedya.com.tr/api/health || true)"
+            if [ "$code" = "200" ] && grep -q '"ok":true' /tmp/btmedya-health.json; then
+              ok=1
+              break
+            fi
+            echo "Health check attempt $attempt returned HTTP $code; retrying."
+            sleep 5
+          done
+          test "$ok" = "1"
+          cat /tmp/btmedya-health.json
+          home_code="$(curl -sS -o /tmp/btmedya-home.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/)"
+          test "$home_code" = "200"
+          grep -q 'BTMEDYA' /tmp/btmedya-home.html
+          www_code="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 https://www.btmedya.com.tr/)"
+          test "$www_code" = "301"
+          echo "Production smoke test passed: home=$home_code, www=$www_code, health=200."
