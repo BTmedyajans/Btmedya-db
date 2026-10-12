@@ -562,10 +562,10 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
         const r=await fetch(url,{headers:{accept:"application/rss+xml, text/xml","user-agent":"BTMEDYA-CompetitorRadar/1.0"},signal:AbortSignal.timeout(5000)});
         if(!r.ok) throw new Error("HTTP "+r.status);
         const xml=await r.text();
-        const items=[...xml.matchAll(/<item>[\\s\\S]*?<\\/item>/gi)].slice(0,12).map(m=>m[0])
+        const items=[...xml.matchAll(/<item>[\s\S]*?<\/item>/gi)].slice(0,12).map(m=>m[0])
           .map(b=>({
-            title:String((b.match(/<title>([\\s\\S]*?)<\\/title>/i)||[])[1]||"").replace(/<[^>]+>/g,"").replace(/<!\\[CDATA\\[|\\]\\]>/g,"").trim(),
-            link:String((b.match(/<link>([\\s\\S]*?)<\\/link>/i)||[])[1]||"").trim()
+            title:String((b.match(/<title>([\s\S]*?)<\/title>/i)||[])[1]||"").replace(/<[^>]+>/g,"").replace(/<!\[CDATA\[|\]\]>/g,"").trim(),
+            link:String((b.match(/<link>([\s\S]*?)<\/link>/i)||[])[1]||"").trim()
           })).filter(x=>x.title);
         const top=items[0];
         await env.DB.prepare(`INSERT INTO autopilot_competitors(host,label,last_url,last_title,headlines_seen,last_seen_at,updated_at)
