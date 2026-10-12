@@ -60,8 +60,8 @@ for (const path of pages) {
     if (path === "/") {
       if (title !== "Balıkesir Haber, Medya ve Prodüksiyon | BTMEDYA") fail(`homepage live title mismatch: ${title || "(empty)"}`);
       else console.log("PASS: homepage live title matches the current UX/SEO release");
-      const h1Matches = [...r.body.matchAll(/<h1\\b[^>]*>([\\s\\S]*?)<\\/h1>/gi)];
-      const h1Text = (h1Matches[0]?.[1] || "").replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\\s+/g, " ").trim().toLocaleLowerCase("tr-TR");
+      const h1Matches = [...r.body.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)];
+      const h1Text = (h1Matches[0]?.[1] || "").replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim().toLocaleLowerCase("tr-TR");
       if (h1Matches.length !== 1 || !h1Text.includes("balıkesir") || !h1Text.includes("medya") || !h1Text.includes("prodüksiyon")) fail(`homepage live H1 missing or mismatched: ${h1Text || "(empty)"}`);
       else console.log("PASS: homepage live H1 matches the local news/media/production intent");
       if (!r.body.includes("/btmedya-responsive-experience-v1.css?v=20261012-1")) fail("homepage live HTML is missing the new responsive experience stylesheet");
@@ -74,8 +74,8 @@ for (const path of pages) {
 
 try {
   const r = await get("/btmedya-responsive-experience-v1.css?v=20261012-1");
-  if (r.status !== 200 || !/text\\/css/i.test(r.contentType)) fail(`responsive experience stylesheet unavailable: HTTP ${r.status} ${r.contentType}`);
-  else if (!/@media\\s*\\(min-width:\\s*1024px\\)/i.test(r.body) || !/@media\\s*\\(max-width:\\s*760px\\)/i.test(r.body)) fail("live stylesheet is missing dedicated desktop/mobile rules");
+  if (r.status !== 200 || !/text\/css/i.test(r.contentType)) fail(`responsive experience stylesheet unavailable: HTTP ${r.status} ${r.contentType}`);
+  else if (!/@media\s*\(min-width:\s*1024px\)/i.test(r.body) || !/@media\s*\(max-width:\s*760px\)/i.test(r.body)) fail("live stylesheet is missing dedicated desktop/mobile rules");
   else console.log("PASS: responsive experience stylesheet HTTP 200; desktop/mobile rules checked");
 } catch (e) { fail(`responsive experience stylesheet fetch failed: ${e.message}`); }
 
