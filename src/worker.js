@@ -20,6 +20,7 @@ import { manualIntegrationApi } from "./manual-integrations.js";
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
 import { processDirectSocialQueue, directSocialApi, queueAutopilotSocial } from "./direct-social.js";
+import { bufferSocialApi, queueBufferSocialPost } from "./buffer-social.js";
 import { tiktokApi } from "./tiktok-direct.js";
 import { youtubeApi } from "./youtube-direct.js";
 import { xApi } from "./x-direct.js";
@@ -2206,6 +2207,8 @@ export default { async scheduled(controller, env, ctx){
     const rWhatsApp = await whatsappApi(request, env); if(rWhatsApp) return rWhatsApp;
     const rManualIntegrations = await manualIntegrationApi(request, env, url);
     if(rManualIntegrations) return audit(rManualIntegrations);
+    const rBufferSocial = await bufferSocialApi(request, env, url);
+    if (rBufferSocial) return rBufferSocial;
     const rDirectSocial = await directSocialApi(request, env, url);
     if(rDirectSocial) return rDirectSocial;
     const rSales = await salesApi(request, env, url, ctx);
