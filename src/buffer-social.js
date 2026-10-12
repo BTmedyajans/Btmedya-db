@@ -115,9 +115,8 @@ function mutationFor({ title, body, channelId, service, scheduledAt, assetUrl, i
   if (service === "youtube") {
     metadata = `metadata: { youtube: { title: ${gql(title.slice(0, 100))} categoryId: "25" } }`;
   } else if (service === "instagram" && isVideo) {
-    metadata = "metadata: { instagram: { type: reel } }";
-  } else if (service === "tiktok" && isVideo) {
-    metadata = "metadata: { tiktok: { isAiGenerated: false } }";
+    // Both fields marked non-null in Buffer's current schema are included.
+    metadata = "metadata: { instagram: { type: reel shouldShareToFeed: true } }";
   }
   return `mutation BTMEDYASchedulePost {
     createPost(input: {
