@@ -81,34 +81,73 @@ assert.match(worker, /cron==="0 5 \* \* \*"[\s\S]{0,900}satisOzeti\(env\)/);
 
 // olcum.js: üçüncü taraf analitik ve temas ölçümü açık rızaya bağlıdır.
 const kaynak = readFileSync('public/olcum.js', 'utf8');
-const calistir = ({ webdriver = false, tercih = null } = {}) => {
+const calistir = ({ webdriver = false, tercih = null, storageBlocked = false } = {}) => {
   const sinyaller = []; let dinleyici = null; const scripts = [];
-  const listeners = {};
-  const element = () => ({
-    setAttribute() {}, appendChild() {}, remove() {},
-    addEventListener(type, fn) { listeners[type] = fn; },
-    querySelector() { return element(); },
-    innerHTML: ''
-  });
+  const buttons = {}; const stored = new Map(); let banner = null;
+  const message = { textContent: '' };
+  const element = (tag = 'div') => {
+    const handlers = {};
+    const el = {
+      tagName: tag, className: '', innerHTML: '', textContent: '',
+      setAttribute() {}, appendChild() {},
+      addEventListener(type, fn) { handlers[type] = fn; },
+      dispatch(type) { if (handlers[type]) handlers[type]({ target: { closest: () => null } }); },
+      remove() { if (banner === el) banner = null; },
+      querySelector(selector) {
+        if (selector === '[data-cerez-red]') return buttons.reject ||= element('button');
+        if (selector === '[data-cerez-kabul]') return buttons.accept ||= element('button');
+        if (selector === 'p') return message;
+        return null;
+      }
+    };
+    return el;
+  };
   const sb = {
     URLSearchParams, Blob, JSON, Array, Date,
     location: { search: '', pathname: '/hizmetler/', reload() {} },
-    localStorage: { getItem: key => key === 'btm_cerez_v1' ? (terci ? JSON.stringify(terci) : null) : null, setItem() {}, removeItem() {} },
-    navigator: { webdriver, userAgent: 'Mozilla/5.0 (iPhone) Safari', sendBeacon: (u, b) => { sinyaller.push({ u, b }); return true; } },
+    localStorage: {
+      getItem(key) {
+        if (storageBlocked) throw new Error('storage disabled');
+        if (key === 'btm_cerez_v1') return stored.get(key) || (terci ? JSON.stringify(terci) : null);
+        return null;
+      },
+      setItem(key, value) {
+        if (storageBlocked) throw new Error('storage disabled');
+        stored.set(key, String(value));
+      },
+      removeItem(key) {
+        if (storageBlocked) throw new Error('storage disabled');
+        stored.delete(key);
+      }
+    },
+    navigator: {
+      webdriver, userAgent: 'Mozilla/5.0 (iPhone) Safari',
+      sendBeacon: (u, b) => { sinyaller.push({ u, b }); return true; }
+    },
     document: {
       readyState: 'complete',
       addEventListener: (t, f) => { if (t === 'click') dinleyici = f; },
       querySelectorAll: () => [],
       querySelector: () => null,
-      createElement: tag => { const el = element(); el.tagName=tag; Object.defineProperty(el,'src',{set(v){scripts.push(v);}}); return el; },
-      head: { appendChild(el) { if(el.src) scripts.push(el.src); } },
-      body: { appendChild() {} }
+      createElement: tag => {
+        const el = element(tag);
+        Object.defineProperty(el, 'src', { set(v) { el._src = v; if (tag === 'script') scripts.push(v); }, get() { return el._src; } });
+        return el;
+      },
+      head: { appendChild() {} },
+      body: { appendChild(el) { if (el.className === 'cerez-serit') banner = el; } }
     },
     window: {}
   };
   vm.runInNewContext(kaynak, sb);
   const tikla = href => dinleyici && dinleyici({ target: { closest: () => ({ getAttribute: () => href }) } });
-  return { sinyaller, scripts, tikla, dinleyici: () => dinleyici };
+  return {
+    sinyaller, scripts, tikla, dinleyici: () => dinleyici,
+    clickAccept: () => buttons.accept && buttons.accept.dispatch('click'),
+    clickReject: () => buttons.reject && buttons.reject.dispatch('click'),
+    hasBanner: () => !!banner,
+    getMessage: () => message.textContent
+  };
 };
 const reddedilmis = calistir({ tercih: { analitik: false } });
 reddedilmis.tikla('https://wa.me/905416401029?text=Merhaba');
@@ -116,6 +155,19 @@ reddedilmis.tikla('tel:+905416401029');
 reddedilmis.tikla('mailto:info@btmedya.com.tr');
 assert.equal(reddedilmis.sinyaller.length, 0);
 assert.equal(reddedilmis.scripts.some(x => String(x).includes('tracker.metricool.com')), false);
+// Storage engelliyse "izin ver" tıklaması Metricool'u açmamalı ve hata görünür olmalı.
+const depolamaKapali = calistir({ storageBlocked: true });
+depolamaKapali.clickAccept();
+assert.equal(depolamaKapali.scripts.some(x => String(x).includes('tracker.metricool.com')), false);
+assert.equal(depolamaKapali.hasBanner(), true);
+assert.match(depolamaKapali.getMessage(), /kaydedilemedi/i);
+
+// Explicit opt-in is honoured only when it can be persisted.
+const yeniIzin = calistir();
+yeniIzin.clickAccept();
+assert.equal(yeniIzin.scripts.some(x => String(x).includes('tracker.metricool.com')), true);
+assert.equal(yeniIzin.hasBanner(), false);
+
 const izinli = calistir({ webdriver: false, tercih: { analitik: true } });
 izinli.tikla('https://wa.me/905416401029?text=Merhaba');
 izinli.tikla('tel:+905416401029');
