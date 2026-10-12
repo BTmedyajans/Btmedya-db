@@ -48,6 +48,7 @@ jobs:
           node --check src/worker.js
           node --check src/autopilot.js
           node --check src/direct-social.js
+          node --check src/buffer-social.js
           node --check src/tiktok-direct.js
           node --check src/youtube-direct.js
           python3 tools/validate-assets.py
