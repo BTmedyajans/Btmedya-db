@@ -39,8 +39,9 @@ export async function bufferGraphQL(env, query) {
 }
 
 export async function bufferSnapshot(env) {
+  // Request only fields documented in Buffer's current public schema.
   const accountData = await bufferGraphQL(env, `query BTMEDYAAccount {
-    account { id name email organizations { id name channelCount } }
+    account { id organizations { id name } }
   }`);
   const account = accountData.account;
   if (!account) throw new Error("Buffer hesabı okunamadı");
@@ -48,24 +49,25 @@ export async function bufferSnapshot(env) {
   const expanded = await Promise.all(organizations.map(async organization => {
     const data = await bufferGraphQL(env, `query BTMEDYAChannels {
       channels(input: { organizationId: ${gql(organization.id)} }) {
-        id name displayName service avatar isQueuePaused
+        id name service
       }
     }`);
+    const channels = Array.isArray(data.channels) ? data.channels : [];
     return {
       id: String(organization.id),
       name: String(organization.name || "Buffer çalışma alanı"),
-      channelCount: Number(organization.channelCount || 0),
-      channels: (Array.isArray(data.channels) ? data.channels : []).map(channel => ({
+      channelCount: channels.length,
+      channels: channels.map(channel => ({
         id: String(channel.id),
-        name: String(channel.displayName || channel.name || channel.service || "Sosyal kanal"),
+        name: String(channel.name || channel.service || "Sosyal kanal"),
         service: serviceName(channel.service),
-        avatar: String(channel.avatar || ""),
-        paused: Boolean(channel.isQueuePaused)
+        avatar: "",
+        paused: false
       }))
     };
   }));
   return {
-    account: { id: String(account.id || ""), name: String(account.name || ""), email: String(account.email || "") },
+    account: { id: String(account.id || ""), name: "Buffer hesabı" },
     organizations: expanded
   };
 }
