@@ -67,10 +67,16 @@ jobs:
             exit 1
           fi
           echo "::add-mask::$CF_DEPLOY_TOKEN"
-          verify="$(curl -sS --connect-timeout 10 --max-time 20 -H "Authorization: Bearer $CF_DEPLOY_TOKEN" https://api.cloudflare.com/client/v4/user/tokens/verify)"
-          state="$(jq -r '.result.status // empty' <<<"$verify")"
+          # The token may be a user-scoped token or an Account API token.
+          # Cloudflare has separate verify endpoints for these two token types.
+          verify="$(curl -sS --connect-timeout 10 --max-time 20 -H "Authorization: Bearer $CF_DEPLOY_TOKEN" https://api.cloudflare.com/client/v4/user/tokens/verify || true)"
+          state="$(jq -r '.result.status // empty' <<<"$verify" 2>/dev/null || true)"
           if [ "$state" != "active" ]; then
-            echo "::error::CLOUDFLARE_DEPLOY_TOKEN is not active. Replace this one secret with a new active token; production deployment no longer tries alternate tokens."
+            verify="$(curl -sS --connect-timeout 10 --max-time 20 -H "Authorization: Bearer $CF_DEPLOY_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/tokens/verify" || true)"
+            state="$(jq -r '.result.status // empty' <<<"$verify" 2>/dev/null || true)"
+          fi
+          if [ "$state" != "active" ]; then
+            echo "::error::CLOUDFLARE_DEPLOY_TOKEN failed both user-scoped and account-scoped token verification endpoints. Check that the complete token value was saved in this GitHub Secret and that the Cloudflare token is still active."
             exit 1
           fi
           access_file="$(mktemp)"
