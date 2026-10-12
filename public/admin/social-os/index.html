@@ -41,7 +41,19 @@
 <section class="panel"><div class="ey">03 · KUYRUK</div><h2>Otomatik yayın durumu</h2><div id="jobs" class="cardlist"></div><div class="note">Planlı işler Cloudflare Cron üzerinden doğrudan Meta'ya teslim edilir. Hesap sayısı için uygulama içi abonelik sınırı yoktur; Meta'nın kendi API/rate-limit ve hesap yetkileri geçerlidir.</div></section>
 </div>
 
-<section class="panel" style="margin-top:12px"><div class="row"><div><div class="ey">04 · BTMEDYA OTOMASYON</div><h2>Yerel yayın motoru</h2><p class="muted">Cloudflare Cron her 5 dakikada kuyruğu işler. Tokenlar şifreli saklanır; Metricool zorunlu değildir.</p></div><button class="btn primary" id="runQueue">Kuyruğu şimdi çalıştır</button></div><div id="automation" class="cardlist" style="grid-template-columns:repeat(4,minmax(0,1fr));margin-top:12px"></div><div id="automationMsg" class="status"></div></section>\n\n<section class="panel" style="margin-top:12px"><div class="ey">05 · MEDYA KASASI</div><div class="row"><div class="mini">R2/Medya Kasası içinden sosyal yayın için medya seç.</div><button class="btn" id="mediaRefresh">Medya getir</button></div><input id="mediaSearch" class="field" placeholder="Medya adı ara…"><div id="mediaPicker" class="cardlist"></div></section>\n\n<section class="panel" style="margin-top:12px"><div class="ey">06 · SINIRLAR</div><div class="note danger"><b>Önemli:</b> Facebook kişisel profilini ve normal (consumer) Instagram hesabını resmi API ile otomatik yayınlayamayız. Facebook tarafında Page, Instagram tarafında Professional Business/Creator hesap gerekir.</div><div class="mini" style="margin-top:10px">TikTok ve YouTube doğrudan modülleri ayrı sağlayıcı yetkilendirmeleri gerektirir; mevcut Metricool bağlantısı ayrıca kullanılabilir.</div></section>
+<section class="panel" style="margin-top:12px"><div class="row"><div><div class="ey">04 · BTMEDYA OTOMASYON</div><h2>Yerel yayın motoru</h2><p class="muted">Cloudflare Cron her 5 dakikada kuyruğu işler. Tokenlar şifreli saklanır; Metricool zorunlu değildir.</p></div><button class="btn primary" id="runQueue">Kuyruğu şimdi çalıştır</button></div><div id="automation" class="cardlist" style="grid-template-columns:repeat(4,minmax(0,1fr));margin-top:12px"></div><div id="automationMsg" class="status"></div></section>\n\n<section class="panel" style="margin-top:12px"><div class="ey">05 · MEDYA KASASI</div><div class="row"><div class="mini">R2/Medya Kasası içinden sosyal yayın için medya seç.</div><button class="btn" id="mediaRefresh">Medya getir</button></div><input id="mediaSearch" class="field" placeholder="Medya adı ara…"><div id="mediaPicker" class="cardlist"></div></section>\n\n
+<section class="panel" id="bufferPanel" style="margin-top:12px">
+  <div class="ey">07 · ÜCRETSİZ BUFFER API</div>
+  <div class="row"><div><h2>Buffer kanalları</h2><p class="muted">Buffer ücretsiz hesabındaki bağlı kanalları BTMEDYA panelinden planlamak için kullan. Mevcut başlık, açıklama, medya ve zaman alanları (02 · Yayın Oluştur) kullanılır.</p></div><button class="btn" id="bufferRefresh">Kanalları yenile</button></div>
+  <div id="bufferHealth" class="note">Buffer bağlantısı kontrol ediliyor…</div>
+  <div id="bufferOrganizations" class="mini" style="margin-top:8px"></div>
+  <div id="bufferChannels" class="cardlist" style="margin-top:10px"></div>
+  <div class="toolbar"><button class="btn primary" id="bufferSchedule">Seçili kanallara planla</button><a class="btn" href="https://developers.buffer.com/guides/getting-started.html" target="_blank" rel="noopener">Buffer API anahtarı rehberi</a></div>
+  <div class="status" id="bufferMsg"></div>
+  <div class="mini">Buffer API anahtarı sohbet veya kaynak koda yazılmaz. GitHub Actions Secret adı: <code>BTMEDYA_BUFFER_API_KEY</code>. Sonra “BTMEDYA Sync Worker Secrets” iş akışını <code>buffer</code> kapsamıyla çalıştır.</div>
+</section>
+
+<section class="panel" style="margin-top:12px"><div class="ey">06 · SINIRLAR</div><div class="note danger"><b>Önemli:</b> Facebook kişisel profilini ve normal (consumer) Instagram hesabını resmi API ile otomatik yayınlayamayız. Facebook tarafında Page, Instagram tarafında Professional Business/Creator hesap gerekir.</div><div class="mini" style="margin-top:10px">TikTok ve YouTube doğrudan modülleri ayrı sağlayıcı yetkilendirmeleri gerektirir; mevcut Metricool bağlantısı ayrıca kullanılabilir.</div></section>
 </main>
 <script>
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -111,6 +123,52 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-pick-media
 $('#mediaRefresh').onclick=loadMediaPicker;
 $('#mediaSearch').oninput=()=>{clearTimeout(window.__btMediaT);window.__btMediaT=setTimeout(loadMediaPicker,250)};
 $('#runQueue').onclick=async()=>{try{const v=$('#workspace').value.split(':');const d=await api('/api/social/direct/automation/run',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({workspace_type:v[0],workspace_id:v.slice(1).join(':')})});$('#automationMsg').textContent='Kuyruk çalıştırıldı: '+JSON.stringify({published:d.published,failed:d.failed});await Promise.all([load(),loadAutomation()])}catch(e){$('#automationMsg').textContent=e.message;$('#automationMsg').className='status bad'}};
+
+function renderBufferChannels(data){
+  const orgs=data.organizations||[];
+  $('#bufferOrganizations').textContent=orgs.map(o=>o.name+' · '+o.channels.length+' kanal').join('  |  ');
+  const channels=orgs.flatMap(o=>o.channels||[]);
+  $('#bufferChannels').innerHTML=channels.length?channels.map(ch=>{
+    const icon=(ch.service||'').toLowerCase().includes('instagram')?'Instagram':(ch.service||'').toLowerCase().includes('youtube')?'YouTube':(ch.service||'').toLowerCase().includes('tiktok')?'TikTok':(ch.service||'').toLowerCase().includes('facebook')?'Facebook':(ch.service||'');
+    return '<label class="card account"><input type="checkbox" data-buffer-channel="'+esc(ch.id)+'" '+(ch.paused?'disabled':'')+'><div><b>'+esc(ch.name)+'</b><div class="mini">'+esc(icon)+' · '+esc(ch.service)+'</div><div class="mini">Kanal ID: '+esc(ch.id)+'</div></div><span class="badge '+(ch.paused?'warn':'ok')+'">'+(ch.paused?'Kuyruk duraklatıldı':'Bağlı')+'</span></label>';
+  }).join(''):'<div class="card">Buffer hesabında kanal bulunamadı. Önce Buffer içinden Instagram, TikTok veya YouTube kanalını bağla.</div>';
+}
+async function loadBufferStatus(){
+  try{
+    const d=await api('/api/social/buffer/status');
+    if(!d.configured){
+      $('#bufferHealth').innerHTML='<span class="warn">BUFFER_API_KEY eksik.</span> GitHub deposunda Settings → Secrets and variables → Actions bölümüne <b>BTMEDYA_BUFFER_API_KEY</b> olarak ekle; ardından GitHub Actions içindeki BTMEDYA Sync Worker Secrets iş akışını <b>buffer</b> kapsamıyla çalıştır. API anahtarını sohbet alanına yazma.';
+      $('#bufferOrganizations').textContent='';
+      $('#bufferChannels').innerHTML='';
+      return;
+    }
+    if(!d.ok) throw new Error(d.error||'Buffer hesabı okunamadı');
+    $('#bufferHealth').innerHTML='<span class="ok">Buffer API bağlantısı doğrulandı.</span> '+esc(d.account?.name||'Hesap')+' · '+(d.organizations||[]).reduce((n,o)=>n+(o.channels||[]).length,0)+' kanal';
+    renderBufferChannels(d);
+  }catch(e){
+    $('#bufferHealth').textContent='Buffer bağlantı hatası: '+e.message;
+    $('#bufferHealth').className='note danger';
+  }
+}
+$('#bufferRefresh').onclick=loadBufferStatus;
+$('#bufferSchedule').onclick=async()=>{
+  const channel_ids=[...document.querySelectorAll('#bufferChannels input[data-buffer-channel]:checked')].map(x=>x.dataset.bufferChannel);
+  try{
+    if(!channel_ids.length) throw new Error('En az bir Buffer kanalı seç.');
+    if(!$('#title').value.trim()&&!$('#body').value.trim()) throw new Error('Önce 02 · Yayın Oluştur alanında başlık veya metin gir.');
+    const scheduled_at=$('#when').value?new Date($('#when').value).toISOString():new Date(Date.now()+10*60000).toISOString();
+    $('#bufferSchedule').disabled=true;
+    const d=await api('/api/social/buffer/schedule',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({title:$('#title').value,body:$('#body').value,media_key:$('#media').value,scheduled_at,channel_ids})});
+    $('#bufferMsg').textContent='Buffer sonucu: '+JSON.stringify({queued:d.queued,skipped:d.skipped,failed:d.failed,items:d.items});
+    $('#bufferMsg').className=d.ok?'status ok':d.partial?'status warn':'status bad';
+    await loadBufferStatus();
+  }catch(e){
+    $('#bufferMsg').textContent=e.message;
+    $('#bufferMsg').className='status bad';
+  }finally{$('#bufferSchedule').disabled=false}
+};
+
+loadBufferStatus();
 workspaces().then(async()=>{await load();await loadAutomation();await loadMediaPicker()}).catch(e=>$('#s1').textContent=e.message);
 </script>
 </body></html>
