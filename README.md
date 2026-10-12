@@ -51,9 +51,11 @@ Backend dosyaları `public/` dışında tutulur; bu yüzden `wrangler.toml`, `sr
 |---|---|
 | `btmedya-db` | **Bu depo buraya deploy eder** — site + API burada çalışıyor |
 
-Cloudflare Workers Builds, `wrangler.toml` içindeki `name` alanını yok sayar ve
-daima bağlı olduğu servise (`btmedya-db`) deploy eder. `main` dalına push
-yapıldığında site otomatik güncellenir.
+`main` dalına kod push edildiğinde `.github/workflows/deploy-production.yml`
+önce kaynak/asset kontrollerini çalıştırır, sonra Wrangler ile `btmedya-db`
+Worker'ını ve statik varlıkları dağıtır; son olarak canlı health, ana sayfa ve
+www yönlendirmesini doğrular. Cloudflare hesabında bu Worker için Workers Builds
+yapılandırması bulunmadığından üretim dağıtımı GitHub Actions üzerinden yürütülür.
 
 ### Alan adı bağlama
 
@@ -89,4 +91,4 @@ Search Console indeksleme otomasyonu ve sosyal hesap yetkilendirme adımları:
 
 ## Tek elden yönetim
 
-Cloudflare Workers Builds `main` dalından `btmedya-db` Worker'ını production'a dağıtan tek kanonik deploy motorudur. GitHub Actions içindeki `deploy.yml` yalnızca kaynak ve canlı production doğrulaması yapar; release marker, health, media feed, sitemap ve gerçek/AI etiketlerini smoke-test eder.
+GitHub Actions içindeki `deploy-production.yml` tek kanonik üretim dağıtım yoludur: doğrulama başarılı olmadan deploy yapılmaz; dağıtım sonrasında ana sayfa, `/api/health` ve www → apex yönlendirmesi smoke-test edilir. `deploy.yml` manuel ayrıntılı kaynak ve canlı production doğrulaması için korunur.

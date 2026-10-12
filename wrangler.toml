@@ -1,13 +1,8 @@
-# Cloudflare Workers Builds bu Worker'ı otomatik deploy eder.
-# Alan adı bağlantıları da bu dosyada tutulur: GitHub = kaynak gerçek.
-# Production deploy gate: .github/workflows/deploy.yml.
-# Production sync finalization trigger: current main must pass all live-chain gates.
-# Production chain audit: 2026-09-28 — Workers Builds is the canonical live deploy path.
-# Audit trigger: 2026-09-28 production chain revalidation / live smoke retrigger.
-# Live repair: re-trigger Workers Builds so declared Custom Domains are reconciled.
-# Live repair retrigger: 2026-10-01 — rebuild production from canonical main to reconcile apex/www.
-# Production rebuild trigger: 2026-10-05 RLS + Metricool chain revalidation.
-# Production rebuild trigger: 2026-10-05 Metricool secret-sync path verification.
+# Canonical source: GitHub repository BTmedyajans/Btmedya-db, branch main.
+# Production deploy: .github/workflows/deploy-production.yml (validated Wrangler deploy + live smoke).
+# The Cloudflare API currently has no Workers Builds config for this Worker, so do not assume a CF Builds push deploy.
+# DNS administration remains outside the application deploy path.
+# Production chain marker: 2026-10-12 native social queue without Metricool.
 # DNS administration is intentionally kept outside the application deploy path.
 name = "btmedya-db"
 main = "src/worker.js"
