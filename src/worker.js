@@ -1968,10 +1968,10 @@ export default { async scheduled(controller, env, ctx){
     const slot=Math.floor(minute/5)%6;
     try{
       if(slot===0){
-        const x=await processMetricoolQueue(env,5);
-        console.log("[btmedya] Metricool handoff",JSON.stringify({enabled:x.enabled,processed:x.processed,scheduled:x.scheduled,failed:x.failed,skipped:x.skipped}));
+        // Metricool is intentionally disabled; keep the D1/Worker automation heartbeat
+        // and leave external publishing to the native, explicitly authorized queue.
         const h=await recordAutomationHeartbeat(env);
-        console.log("[btmedya] scheduled heartbeat",h.heartbeatAt,"queued",h.queued,"overdue",h.overdue);
+        console.log("[btmedya] Cloudflare D1 autonomy heartbeat",h.heartbeatAt,"queued",h.queued,"overdue",h.overdue);
       }else if(slot===1){
         const x=await processDirectSocialQueue(env,5);
         console.log("[btmedya] Direct Social handoff",JSON.stringify({enabled:x.enabled,processed:x.processed,published:x.published,failed:x.failed}));
