@@ -27,6 +27,28 @@ function renderClients(items){
  $('#clients').innerHTML=rows.map(c=>'<article class="client-row"><div class="topline"><b>'+esc(c.name)+'</b><span class="badge">'+esc(c.status)+'</span></div><div class="meta">'+esc(c.sector||'Sektör belirtilmedi')+'</div><div class="bars"><span class="bar">'+num(c.content_count)+' içerik</span><span class="bar '+(num(c.draft_count)?'warn':'ok')+'">'+num(c.draft_count)+' taslak</span><span class="bar">'+(c.last_content_at?'Son: '+new Date(c.last_content_at).toLocaleDateString('tr-TR'):'Henüz içerik yok')+'</span></div></article>').join('')||'<div class="rec"><b>Firma bulunamadı.</b></div>';
 }
 async function load(){try{state=await api('/api/admin/agency-supervisor');render();await loadSystemSnapshot();await loadAutomationSnapshot();await loadSocialSnapshot()}catch(e){$('#heartbeat').textContent=e.message}}
+
+async function loadPublishingChain(){
+ const el=$('#publishingChain');if(!el)return;
+ try{
+  const d=await api('/api/admin/yayin-zinciri');
+  const labels={tamam:'ÇALIŞIYOR',uyari:'UYARI',eksik:'EKSİK',kapali:'KAPALI',bekliyor:'BEKLİYOR'};
+  const classes={tamam:'ok',uyari:'warn',eksik:'warn',kapali:'warn',bekliyor:'warn'};
+  const rows=(d.halkalar||[]).map(x=>{
+   const status=String(x.durum||'eksik');
+   const href=String(x.duzelt||'');
+   const safeHref=href.startsWith('/')||href.startsWith('https://github.com/')?href:'';
+   const detail=Array.isArray(x.bekleyen)&&x.bekleyen.length?' · Kapak bekleyen: '+x.bekleyen.map(n=>n.baslik||n.slug).slice(0,3).join(' / '):'';
+   return '<div class="rule"><b>'+esc(x.ad||x.anahtar||'Zincir halkası')+'</b><span class="'+(classes[status]||'warn')+'">'+esc(labels[status]||status.toUpperCase())+' · '+esc(x.ozet||'Ayrıntı yok')+esc(detail)+(safeHref?' · <a href="'+esc(safeHref)+'">Düzelt / incele ↗</a>':'')+'</span></div>';
+  }).join('');
+  const sections=d.bolumler||{};
+  const today=(sections.bugun||[]).map(x=>x.ad).join(', ')||'—';
+  const tomorrow=(sections.yarin||[]).map(x=>x.ad).join(', ')||'—';
+  el.innerHTML=rows+'<div class="rule"><b>İÇERİK PLANLAMASI</b><span>Bugün: '+esc(today)+' · Yarın: '+esc(tomorrow)+' · Günlük üst sınır: '+num(sections.gunlukAzami)+'</span></div>';
+ }catch(e){
+  el.innerHTML='<div class="rec"><b>Yayın zinciri okunamadı.</b><span class="meta">'+esc(e.message)+' · Oturum/yetki veya Worker API kontrol edilmeli.</span></div>';
+ }
+}
 async function loadSystemSnapshot(){
  const el=$('#systemSnapshot'); if(!el)return;
  try{
@@ -82,8 +104,8 @@ async function loadCategoryFeed(){
   box.innerHTML=cats.length?cats.map(x=>{const lead=x.items?.[0];return '<article class="category-card"><div class="category-top"><b>'+esc(x.category)+'</b><span class="badge">'+num(x.count)+' içerik</span></div><strong>'+esc(lead?.title||'Akışta içerik yok')+'</strong><small class="meta">'+esc(d.source||'live')+' · '+esc(lead?.published_at?new Date(lead.published_at).toLocaleDateString('tr-TR'):'tarih yok')+'</small><a href="'+esc(lead?.url||'#')+'" target="_blank" rel="noopener">Public haberi aç ↗</a></article>'}).join(''):'<div class="rec"><b>Yayınlanmış kategori verisi bulunamadı.</b></div>';
  }catch(e){box.innerHTML='<div class="rec"><b>Kategori akışı okunamadı.</b><span class="meta">'+esc(e.message)+'</span></div>'}
 }
-$('#run').addEventListener('click',run);$('#refresh').addEventListener('click',()=>{load();loadCategoryFeed()});$('#categoryRefresh').addEventListener('click',loadCategoryFeed);$('#search').addEventListener('input',()=>renderClients(state.latest?.summary?.clientsSnapshot||state.heartbeat?.summary?.clientsSnapshot||[]));
-load();loadCategoryFeed();setInterval(load,60000);setInterval(loadCategoryFeed,60000);
+$('#run').addEventListener('click',run);$('#refresh').addEventListener('click',()=>{load();loadCategoryFeed()});$('#categoryRefresh').addEventListener('click',loadCategoryFeed);const chainRefresh=$('#publishingChainRefresh');if(chainRefresh)chainRefresh.addEventListener('click',loadPublishingChain);$('#search').addEventListener('input',()=>renderClients(state.latest?.summary?.clientsSnapshot||state.heartbeat?.summary?.clientsSnapshot||[]));
+load();loadCategoryFeed();loadPublishingChain();setInterval(load,60000);setInterval(loadCategoryFeed,60000);setInterval(loadPublishingChain,60000);
 
 /* BTMEDYA Agency OS v2: task-first command bar */
 (()=>{
