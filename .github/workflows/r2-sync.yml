@@ -9,6 +9,12 @@ on:
       - "public/media/**"
       - "public/data/medya-listesi.json"
       - ".github/workflows/r2-sync.yml"
+  pull_request:
+    paths:
+      - "public/assets/**"
+      - "public/media/**"
+      - "public/data/medya-listesi.json"
+      - ".github/workflows/r2-sync.yml"
 
 permissions:
   contents: read
@@ -16,6 +22,8 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    outputs:
+      upload_enabled: ${{ steps.r2.outputs.enabled }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -31,7 +39,7 @@ jobs:
           if (!Array.isArray(manifest) || manifest.length === 0) throw new Error('Media manifest is empty');
           const missing = [];
           for (const item of manifest) {
-            if (!item || typeof item.path !== 'string') {
+            if (!item || typeof item.path !== 'string' || path.posix.isAbsolute(item.path) || item.path.split(/[\\/]/).includes('..')) {
               missing.push(String(item?.path ?? '(invalid entry)'));
               continue;
             }
@@ -49,14 +57,152 @@ jobs:
           console.log(JSON.stringify({manifestEntries:manifest.length,localFilesVerified:manifest.length},null,2));
           NODE
 
-      - name: Report R2 credentials requirement
+      - name: Check R2 upload credentials
+        id: r2
+        shell: bash
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          set -euo pipefail
+          # Pull requests validate assets only; they must never mutate production R2.
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "reason=pull_request_validation_only" >> "$GITHUB_OUTPUT"
+          elif [[ -n "$R2_ACCESS_KEY_ID" && -n "$R2_SECRET_ACCESS_KEY" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "reason=credentials_configured" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "reason=missing_r2_s3_credentials" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Report validation and upload status
+        if: always()
+        shell: bash
+        env:
+          UPLOAD_ENABLED: ${{ steps.r2.outputs.enabled }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          {
+            echo "## BTMEDYA R2 archive sync"
+            echo ""
+            echo "✅ Canonical media manifest and all referenced local files validated."
+            echo ""
+            if [[ "$EVENT_NAME" == "pull_request" ]]; then
+              echo "ℹ️ Pull request validation only. R2 writes are disabled for pull requests."
+            elif [[ "$UPLOAD_ENABLED" == "true" ]]; then
+              echo "✅ R2 S3 credentials detected. The upload job will run."
+            else
+              echo "⚠️ R2 upload was skipped because repository secrets R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY are not both configured."
+              echo "Create an R2 API token scoped to the btmedya-media bucket with Object Read & Write, then save its Access Key ID and Secret Access Key as those two GitHub Actions secrets."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  sync:
+    needs: validate
+    if: needs.validate.outputs.upload_enabled == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Install S3-compatible R2 client
+        run: npm install --no-save --no-package-lock @aws-sdk/client-s3
+
+      - name: Sync indexed media into R2
+        shell: bash
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: https://b239acae17aebe894ea76309fe32cdce.r2.cloudflarestorage.com
+          R2_BUCKET: btmedya-media
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+
+          const manifest = JSON.parse(fs.readFileSync('public/data/medya-listesi.json', 'utf8'));
+          const client = new S3Client({
+            region: 'auto',
+            endpoint: process.env.R2_ENDPOINT,
+            credentials: {
+              accessKeyId: process.env.R2_ACCESS_KEY_ID,
+              secretAccessKey: process.env.R2_SECRET_ACCESS_KEY
+            },
+            forcePathStyle: true
+          });
+
+          const mime = (file) => ({
+            '.avif': 'image/avif',
+            '.css': 'text/css; charset=utf-8',
+            '.gif': 'image/gif',
+            '.jpeg': 'image/jpeg',
+            '.jpg': 'image/jpeg',
+            '.js': 'text/javascript; charset=utf-8',
+            '.json': 'application/json; charset=utf-8',
+            '.mp4': 'video/mp4',
+            '.png': 'image/png',
+            '.svg': 'image/svg+xml',
+            '.webm': 'video/webm',
+            '.webp': 'image/webp',
+            '.woff2': 'font/woff2'
+          }[path.extname(file).toLowerCase()] || 'application/octet-stream');
+
+          function locate(key) {
+            const candidates = [
+              path.join('public', key),
+              path.join('public/assets', key),
+              path.join('public/media', key)
+            ];
+            return candidates.find(file => fs.existsSync(file) && fs.statSync(file).isFile());
+          }
+
+          const queue = [...manifest];
+          let uploaded = 0;
+          const concurrency = Math.min(4, queue.length);
+          async function uploadWorker() {
+            while (queue.length) {
+              const item = queue.shift();
+              if (!item || typeof item.path !== 'string' || path.posix.isAbsolute(item.path) || item.path.split(/[\\/]/).includes('..')) {
+                throw new Error('Invalid manifest object key encountered');
+              }
+              const file = locate(item.path);
+              if (!file) throw new Error(`Manifest file missing: ${item.path}`);
+              const size = fs.statSync(file).size;
+              await client.send(new PutObjectCommand({
+                Bucket: process.env.R2_BUCKET,
+                Key: item.path,
+                Body: fs.createReadStream(file),
+                ContentLength: size,
+                ContentType: mime(file),
+                CacheControl: 'public, max-age=86400'
+              }));
+              uploaded += 1;
+              console.log(`SYNCED ${uploaded}/${manifest.length} ${item.path}`);
+            }
+          }
+          try {
+            await Promise.all(Array.from({length: concurrency}, () => uploadWorker()));
+            console.log(JSON.stringify({result:'success',bucket:process.env.R2_BUCKET,uploaded,manifestEntries:manifest.length},null,2));
+          } finally {
+            client.destroy();
+          }
+          NODE
+
+      - name: Report completed R2 sync
+        if: success()
         shell: bash
         run: |
           {
             echo "## R2 archive sync"
             echo ""
-            echo "✅ Canonical media manifest and all referenced local files validated."
-            echo ""
-            echo "⚠️ R2 object upload is not performed by this workflow yet. Cloudflare API bearer tokens are not S3-compatible R2 credentials."
-            echo "Configure R2 S3 API credentials as GitHub Actions secrets before enabling object uploads."
+            echo "✅ All media assets referenced in the canonical manifest were uploaded to btmedya-media."
           } >> "$GITHUB_STEP_SUMMARY"
