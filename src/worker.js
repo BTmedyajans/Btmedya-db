@@ -2017,42 +2017,41 @@ export default { async scheduled(controller, env, ctx){
   }
 
   if(cron==="*/5 * * * *"){
-    // Use only one delivery/discovery/maintenance lane per event. This keeps
-    // the already-active cron expression compatible while the deployment
-    // platform finishes reconciling trigger metadata.
+    // Native Direct Social queue runs on every five-minute tick. It does not
+    // require a Metricool API token; each destination must have completed its
+    // own official OAuth connection in the admin panel.
+    try{
+      const delivery=await processDirectSocialQueue(env,10);
+      if(delivery.processed||delivery.failed) console.log("[btmedya] Direct Social queue",JSON.stringify({enabled:delivery.enabled,processed:delivery.processed,published:delivery.published,failed:delivery.failed}));
+    }catch(e){console.error("[btmedya] Direct Social queue:",e?.message||e);}
+
+    // Rotate non-delivery maintenance so publishing checks never wait for a
+    // thirty-minute slot. Only one additional maintenance lane runs per tick.
     const slot=Math.floor(minute/5)%6;
     try{
       if(slot===0){
-        // Metricool is intentionally disabled; keep the D1/Worker automation heartbeat
-        // and leave external publishing to the native, explicitly authorized queue.
         const h=await recordAutomationHeartbeat(env);
         console.log("[btmedya] Cloudflare D1 autonomy heartbeat",h.heartbeatAt,"queued",h.queued,"overdue",h.overdue);
       }else if(slot===1){
-        const x=await processDirectSocialQueue(env,5);
-        console.log("[btmedya] Direct Social handoff",JSON.stringify({enabled:x.enabled,processed:x.processed,published:x.published,failed:x.failed}));
-      }else if(slot===2){
         const x=await runNewsIntelligence(env,{limit:8});
         console.log("[btmedya] haber istihbarati",JSON.stringify({scanned:x.scanned,added:x.added,hot:x.hot,errors:x.errors?.length||0}));
-      }else if(slot===3){
+      }else if(slot===2){
         const x=await runAutopilot(env,{force:false,limit:2,skipRecentIntelligence:true});
         console.log("[btmedya] autopilot",JSON.stringify({ok:x.ok,scanned:x.scanned,candidates:x.candidates,news:x.created_news,published:x.published_news,social:x.social_created,blocked:x.blocked,errors:x.error_count}));
-        // Autopilot otomatik yayınladıklarını IndexNow'a bildir.
         const apSluglar=(x.items||[]).filter(it=>it.status==="published"&&it.slug).map(it=>it.slug);
         if(apSluglar.length){ aramaMotoruBildir(ctx,"https://btmedya.com.tr",apSluglar); console.log("[btmedya] indexnow autopilot",apSluglar.length,"adres"); }
-      }else if(slot===4){
+      }else if(slot===3){
         const x=await autoPrepareSocialDrafts(env,3);
         if(x?.created) console.log("[btmedya] social drafts",x.created,"hazırlandı");
-      }else{
+      }else if(slot===4){
         const settings=await ayarlariOku(env).catch(()=>({aglar:[],otomatikPlanla:false}));
-        if(hour%2===0){
-          const x=await gecikenleriKaydir(env,settings,5);
-          if(x) console.log("[btmedya] geciken sosyal planlar kaydirildi",x);
-        }else{
-          const x=await yayinlananlariIsaretle(env);
-          if(x) console.log("[btmedya] Metricool yayın durumu",x);
-        }
+        const x=await gecikenleriKaydir(env,settings,5);
+        if(x) console.log("[btmedya] geciken sosyal planlar kaydirildi",x);
+      }else{
+        const x=await yayinlananlariIsaretle(env);
+        if(x) console.log("[btmedya] sosyal yayın durumu",x);
       }
-    }catch(e){console.error("[btmedya] scheduled lane:",e?.message||e);}
+    }catch(e){console.error("[btmedya] scheduled maintenance lane:",e?.message||e);}
     return;
   }
 
