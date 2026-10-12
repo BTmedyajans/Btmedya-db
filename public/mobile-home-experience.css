@@ -1,0 +1,86 @@
+/* BTMEDYA mobile-first homepage sequence · 2026-10-13
+   Mobile: full-bleed intro film first, then a deliberate full-screen category reveal.
+   Existing URLs and category content remain unchanged. */
+@media (max-width:720px), (max-aspect-ratio:4/5) {
+  body.ana-sade #hero { height:100svh!important; min-height:100svh!important; }
+  body.ana-sade #hero .giris-v5,
+  body.ana-sade #hero .giris-v5 video {
+    width:100%; height:100svh!important; min-height:100svh!important;
+    object-fit:cover; object-position:center;
+  }
+  body.ana-sade #hero .giris-v5-kat {
+    position:absolute; inset:0!important; z-index:8;
+    display:flex; flex-direction:column; justify-content:center;
+    overflow-y:auto; overscroll-behavior:contain;
+    padding:calc(env(safe-area-inset-top) + 82px) 20px calc(env(safe-area-inset-bottom) + 24px)!important;
+    background:linear-gradient(180deg,rgba(3,4,6,.84),rgba(3,4,6,.70) 28%,rgba(3,4,6,.94))!important;
+    backdrop-filter:blur(14px) saturate(.72); -webkit-backdrop-filter:blur(14px) saturate(.72);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity .55s cubic-bezier(.16,1,.3,1),visibility 0s linear .55s;
+    animation:none!important;
+  }
+  body.ana-sade #hero .giris-v5-kat.is-acik {
+    opacity:1; visibility:visible; pointer-events:auto;
+    transition:opacity .55s cubic-bezier(.16,1,.3,1);
+  }
+  body.ana-sade #hero .giris-v5-kat-ust {
+    width:100%; margin:0 auto 22px!important; padding-bottom:12px;
+    border-bottom:1px solid rgba(255,255,255,.17);
+    font-size:10px; letter-spacing:.18em;
+  }
+  body.ana-sade #hero .giris-v5-kat-liste {
+    width:100%; display:grid; grid-template-columns:minmax(0,1fr);
+    gap:16px; margin:0 auto; padding:0;
+  }
+  body.ana-sade #hero .giris-v5-kat-k {
+    min-width:0; padding-top:12px; border-top-width:2px;
+    opacity:0; transform:translateY(22px);
+  }
+  body.ana-sade #hero .giris-v5-kat.is-acik .giris-v5-kat-k {
+    animation:btMobileCategoryIn .7s cubic-bezier(.16,1,.3,1) both;
+  }
+  body.ana-sade #hero .giris-v5-kat.is-acik .giris-v5-kat-k:nth-child(2) {animation-delay:.12s}
+  body.ana-sade #hero .giris-v5-kat.is-acik .giris-v5-kat-k:nth-child(3) {animation-delay:.24s}
+  body.ana-sade #hero .giris-v5-kat-ana {gap:10px; min-height:48px; align-items:center}
+  body.ana-sade #hero .giris-v5-kat-ana span {font-size:11px; flex:0 0 auto}
+  body.ana-sade #hero .giris-v5-kat-ana b {
+    min-width:0; font-size:clamp(34px,10vw,48px); line-height:.96;
+    letter-spacing:.015em; overflow-wrap:anywhere;
+    background:linear-gradient(180deg,#fff 20%,var(--k,#f2c14e) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  body.ana-sade #hero .giris-v5-kat-ana i {flex:0 0 auto; margin-left:auto; font-size:24px}
+  body.ana-sade #hero .giris-v5-kat-k>p {display:block; margin:5px 0 10px; font-size:12px; line-height:1.45; color:rgba(244,241,234,.7)}
+  body.ana-sade #hero .giris-v5-kat ul {
+    display:flex; flex-wrap:wrap; gap:7px; overflow:visible;
+    margin:8px 0 0; padding:0; mask-image:none; -webkit-mask-image:none;
+  }
+  body.ana-sade #hero .giris-v5-kat ul li {max-width:100%; min-width:0}
+  body.ana-sade #hero .giris-v5-kat ul a {
+    min-height:38px; max-width:100%; padding:0 12px; white-space:normal;
+    overflow-wrap:anywhere; font-size:12px; line-height:1.2;
+    border-radius:999px; background:rgba(255,255,255,.065);
+    border-color:rgba(255,255,255,.2);
+  }
+  body.ana-sade #hero .giris-v5-ai {left:auto; right:18px; bottom:12px; font-size:8px; opacity:.6}
+  body.ana-sade.film-bitti .topbar {opacity:1; pointer-events:auto}
+  body.ana-sade.film-bitti .topbar .brand {max-width:58vw}
+  body.ana-sade.film-bitti .topbar .brand img {width:clamp(145px,44vw,190px); height:auto}
+  body.ana-sade.film-bitti .topbar .hamburger {
+    min-height:44px; padding:0 14px; border:1px solid rgba(255,255,255,.22);
+    border-radius:14px; background:rgba(12,14,17,.78); backdrop-filter:blur(12px);
+  }
+}
+@keyframes btMobileCategoryIn {from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@media (max-height:700px) and (max-width:720px) {
+  body.ana-sade #hero .giris-v5-kat {justify-content:flex-start;padding-top:72px!important}
+  body.ana-sade #hero .giris-v5-kat-liste {gap:10px}
+  body.ana-sade #hero .giris-v5-kat-k {padding-top:8px}
+  body.ana-sade #hero .giris-v5-kat-ana b {font-size:clamp(29px,8vw,38px)}
+  body.ana-sade #hero .giris-v5-kat-k>p {display:none}
+}
+@media (prefers-reduced-motion:reduce) {
+  body.ana-sade #hero .giris-v5-kat,
+  body.ana-sade #hero .giris-v5-kat-k {animation:none!important;transition:none!important;transform:none!important}
+  body.ana-sade #hero .giris-v5-kat.is-acik .giris-v5-kat-k {opacity:1}
+}
