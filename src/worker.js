@@ -2209,7 +2209,7 @@ export default { async scheduled(controller, env, ctx){
        yönlendiren kabuk. Oturumsuz okur oraya, oradan da (oturum yok) yine
        /admin/'e gidiyordu: sonsuz döngü, giriş formu hiç görünmüyordu.
        Oturum yoksa ayrı giriş sayfası (public/admin/giris/) sunulur. */
-    const adminRes = await env.ASSETS.fetch(authenticated ? request : new Request(new URL('/admin/giris/', url.origin), request));
+    const adminRes = await env.ASSETS.fetch(authenticated ? request : new Request(new URL('/admin/giris/index.html', url.origin), request));
     if(!adminRes.ok) return adminRes;
     const adminHeaders = new Headers(adminRes.headers);
     for(const [k,v] of Object.entries(guvenlikBasliklari(url.pathname))) adminHeaders.set(k,v);
