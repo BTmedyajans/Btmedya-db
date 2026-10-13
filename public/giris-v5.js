@@ -33,6 +33,8 @@
   // H.264 çözemeyen tarayıcı (codec'siz Chromium/Firefox) aynı kurgunun
   // WebM kopyasını alır; yoksa film hata verip doğrudan son kareye düşerdi.
   const h264=!!film.canPlayType('video/mp4; codecs="avc1.4D401F, mp4a.40.2"');
+  // Prefer the site's own media origin. External GitHub release redirects may
+  // be challenged on mobile browsers and can leave the first screen black.
   const kaynak=(mp4,webm)=>h264||!webm?mp4:webm;
   const PLAN={
     dikey:{
