@@ -70,7 +70,7 @@ for (const vp of viewports) {
       // The homepage must select the dedicated mobile entrance film, not the
       // wide desktop encode. This catches source-selection regressions without
       // depending on whether headless Chromium can decode the production codec.
-      // Giriş filmi v5 (11 Ekim): film içinde etiket üstü dokunma alanları,
+      // Giriş filmi v5: release tabanlı, değişmez medya varlıkları;
       // film sonunda bölüm paneli (HABER / SOSYAL MEDYA / PRODÜKSİYON).
       const v5=await page.locator('[data-giris-v5] video').count();
       const heroVideo=page.locator(v5?'[data-giris-v5] video':'.bt-clean-hero-video');
@@ -89,7 +89,7 @@ for (const vp of viewports) {
         }));
         const sourcePath=media.source ? new URL(media.source,BASE).pathname : '';
         const posterPath=media.poster ? new URL(media.poster,BASE).pathname : '';
-        const beklenen=v5?['/btmedya-tanitim-v5-dikey.mp4','/btmedya-tanitim-v5-dikey-poster.jpg']:['/btmedya-ai-film.mp4','/btmedya-ai-film-poster.jpg'];
+        const beklenen=v5?['/BTmedyajans/Btmedya-db/releases/latest/download/giris-filmi-clean.mp4','/BTmedyajans/Btmedya-db/releases/latest/download/giris-filmi-clean-poster.jpg']:['/btmedya-ai-film.mp4','/btmedya-ai-film-poster.jpg'];
         // H.264 çözemeyen Chromium (CI) aynı mobil kurgunun WebM kopyasını
         // alır (giris-v5.js); ikisi de doğru seçimdir, geniş kurgu değildir.
         const kaynakTamam=sourcePath.endsWith(beklenen[0])||(v5&&sourcePath.endsWith(beklenen[0].replace(/\.mp4$/,'.webm')));
