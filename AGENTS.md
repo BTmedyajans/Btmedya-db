@@ -15,7 +15,7 @@ Bu depo **tek kanonik uygulama deposudur**.
 - **Medya:** Cloudflare R2
 - **Veri:** Cloudflare D1
 - **Kod/sürüm geçmişi:** GitHub
-- **Production deploy:** main → Cloudflare Workers Builds → npx wrangler deploy
+- **Production deploy:** main → GitHub Actions `deploy-production.yml` (validation) → Wrangler → Cloudflare Worker `btmedya-db`.
 
 Günlük içerik için GitHub veya Cloudflare Dashboard kullanılmaz. Haber, medya,
 video ve mesaj işlemleri admin panelinden yapılır. Cloudflare Dashboard yalnızca
