@@ -1,7 +1,7 @@
 name: BTMEDYA Production Verify
 
 on:
-  # Production deploy is handled by Cloudflare Workers Builds on main.
+  # Production deploy is handled by .github/workflows/deploy-production.yml (GitHub Actions + Wrangler).
   # This workflow remains available for explicit/manual production verification.
   workflow_dispatch:
 
