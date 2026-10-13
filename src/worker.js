@@ -2709,37 +2709,6 @@ const CLEAN_HERO_FILES = new Map([
   ['/hero-media/giris-filmi-clean-poster.jpg', 'hero/giris-filmi-clean-poster.jpg'],
 ]);
 
-async function servisEt(request, env) {
-  const url = new URL(request.url);
-  const cleanHeroKey = CLEAN_HERO_FILES.get(url.pathname);
-  if (cleanHeroKey && (request.method === 'GET' || request.method === 'HEAD')) {
-    if (!env.MEDIA) return new Response('Hero media unavailable', {status:503});
-    const obj = await env.MEDIA.get(cleanHeroKey);
-    if (!obj) return new Response('Hero media unavailable', {status:404});
-    const headers = new Headers();
-    obj.writeHttpMetadata(headers);
-    headers.set('content-type', cleanHeroKey.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg');
-    headers.set('cache-control', 'public, max-age=31536000, immutable');
-    headers.set('content-disposition', 'inline');
-    headers.set('accept-ranges', 'bytes');
-    headers.set('etag', obj.httpEtag);
-    const range = request.headers.get('range');
-    if (range && cleanHeroKey.endsWith('.mp4')) {
-      const m = /^bytes=(\\d*)-(\\d*)$/.exec(range.trim());
-      if (!m || (m[1] === '' && m[2] === '')) return new Response(null, {status:416,headers});
-      const size = obj.size;
-      let startByte, endByte;
-      if (m[1] === '') { const suffix=Number(m[2]); startByte=Math.max(0,size-suffix); endByte=size-1; }
-      else { startByte=Number(m[1]); endByte=m[2] === '' ? size-1 : Math.min(Number(m[2]),size-1); }
-      if (startByte >= size || startByte > endByte) { headers.set('content-range', 'bytes */'+size); return new Response(null,{status:416,headers}); }
-      const partial = await env.MEDIA.get(cleanHeroKey,{range:{offset:startByte,length:endByte-startByte+1}});
-      headers.set('content-range', 'bytes '+startByte+'-'+endByte+'/'+size);
-      headers.set('content-length', String(endByte-startByte+1));
-      return new Response(request.method === 'HEAD' ? null : partial.body,{status:206,headers});
-    }
-    headers.set('content-length', String(obj.size));
-    return new Response(request.method === 'HEAD' ? null : obj.body,{status:200,headers});
-  }
 /* 11 Ekim: Workers Static Assets "Range: bytes=..." isteğine 206 yerine
    dosyanın tamamını (200) döndürüyor (canlıda ölçüldü). iPhone Safari bayt
    aralığı desteklemeyen sunucudan video oynatmaz; giriş filmi iOS'ta hiç
