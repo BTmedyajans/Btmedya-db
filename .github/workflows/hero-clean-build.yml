@@ -115,6 +115,9 @@ jobs:
             public/assets/media/web/giris-filmi-clean.mp4 \
             public/assets/media/web/giris-filmi-clean-poster.jpg
           git commit -m "fix: connect generated clean hero assets to homepage"
+          # Keep generated assets from overwriting concurrent documentation or source updates.
+          git fetch origin main
+          git rebase origin/main
           git push origin HEAD:main
           echo "Homepage and generated assets committed to main."
 
