@@ -8,8 +8,8 @@ const DB={prepare:(sql)=>({bind:(...a)=>({first:async()=>dolu.some(t=>t>=a[0]&&t
 const kv=new Map(); const KV={get:async k=>kv.get(k)??null,put:async(k,v)=>kv.set(k,v)};
 const env={DB,KV};
 let a=await ayarlariOku(env);
-// Varsayilan: Metricool'da dogrulanmis aglar (TikTok + YouTube), otomatik planlama acik.
-assert.deepEqual(a.aglar,['tiktok','youtube']); assert.equal(a.otomatikPlanla,true);
+// Varsayilan: native dogrudan yayin hedefleri (Instagram, Facebook, TikTok, YouTube).
+assert.deepEqual(a.aglar,['instagram','facebook','tiktok','youtube']); assert.equal(a.otomatikPlanla,true);
 a=await ayarlariYaz(env,{aglar:['tiktok','youtube','x','TikTok'],saatler:['18:00','9:5','10:00','25:00'],otomatikPlanla:true,tazelikSaat:-3});
 assert.deepEqual(a.aglar,['tiktok','youtube']); assert.deepEqual(a.saatler,['10:00','18:00']); assert.equal(a.tazelikSaat,72);
 assert.deepEqual(platformSluglari(a),['tiktok','youtube']);
