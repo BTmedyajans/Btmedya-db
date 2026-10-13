@@ -104,7 +104,7 @@ Ana sayfadaki sosyal medya profil bağlantıları, yayın API bağlantısından 
 - [ ] Sitemap'ler Search Console'a gönderildi.
 - [ ] Servis hesabı mülke eklendi.
 - [ ] `GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON` secret'ı mevcut.
-- [ ] Search Console workflow'unda `Submit sitemaps and inspect URLs` adımı çalıştı.
+- [ ] `BTMEDYA SEO & Search Console Daily Sync` iş akışında sitemap gönderme ve `Inspect priority URLs in Google Search Console` adımları başarılı oldu.
 - [ ] BTMEDYA Social OS'ta doğrudan yayın modu etkin (`BTMEDYA_SOCIAL_PUBLISHER=direct`).
 - [ ] Her hedef platformun resmî OAuth uygulama bilgileri Cloudflare Worker'da tanımlı.
 - [ ] İlgili platform hesabı Connect Merkezi üzerinden doğrudan yetkilendirildi.
