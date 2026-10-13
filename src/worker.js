@@ -18,7 +18,7 @@ import { windsorAnalyticsApi } from "./windsor-analytics.js";
 import { manualIntegrationApi } from "./manual-integrations.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
-import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
+import { processMetricoolQueue, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
 import { processDirectSocialQueue, directSocialApi, queueAutopilotSocial, queueDirectSocialPost } from "./direct-social.js";
 import { bufferSocialApi, queueBufferSocialPost } from "./buffer-social.js";
 import { tiktokApi } from "./tiktok-direct.js";
@@ -191,7 +191,7 @@ async function recordAutomationHeartbeat(env){
       overdue=Number(row?.overdue||0);
     }catch(e){ console.warn('[automation] queue health skipped',e?.message||e); }
   }
-  const snapshot={ok:true,cron:'*/5 * * * *',heartbeatAt:now,queued,overdue,providers:socialProviderStatus(env)};
+  const snapshot={ok:true,cron:'*/5 * * * *',heartbeatAt:now,queued,overdue,providers:await socialProviderStatus(env)};
   if(env.KV) await env.KV.put('automation:heartbeat',JSON.stringify(snapshot),{expirationTtl:86400}).catch(()=>{});
   return snapshot;
 }
@@ -366,12 +366,12 @@ async function newsApi(request, env, url, ctx){
     }catch(e){
       console.error('[social-feed] snapshot okunamadı:',e?.message||e);
     }
-    const live=socialProviderStatus(env);
+    const live=await socialProviderStatus(env);
     const fallbackProfiles=[
-      {key:'instagram',label:'Instagram',url:'https://www.instagram.com/btmedyajans/',status:'verification_pending',note:'Metricool bağlantısı doğrulanıyor.'},
-      {key:'facebook',label:'Facebook · busetuncayy10',url:'https://www.facebook.com/people/busetuncayy10/100080226545931/',status:'connected_identity',note:'Metricool Brand 6858384 içinde doğrulanmış Facebook Sayfası; Page ID 107923075188798'},
-      {key:'youtube',label:'YouTube',url:'https://www.youtube.com/@BTmedyaAjans',status:'connected_identity',note:'YouTube kanal kimliği doğrulandı.'},
-      {key:'tiktok',label:'TikTok',url:'https://www.tiktok.com/@btmedya1010',status:'publishing_verified',note:'TikTok yayın durumu doğrulandı.'}
+      {key:'instagram',label:'Instagram',url:'https://www.instagram.com/btmedyajans/',status:'verification_pending',note:'Instagram Professional doğrudan OAuth bağlantısı kontrol ediliyor.'},
+      {key:'facebook',label:'Facebook · BTMEDYA',url:'https://www.facebook.com/107923075188798',status:'verification_pending',note:'Facebook Page doğrudan OAuth bağlantısı ayrıca doğrulanmalı.'},
+      {key:'youtube',label:'YouTube',url:'https://www.youtube.com/@BTmedyaAjans',status:'verification_pending',note:'YouTube doğrudan OAuth bağlantısı ayrıca doğrulanmalı.'},
+      {key:'tiktok',label:'TikTok',url:'https://www.tiktok.com/@btmedya1010',status:'verification_pending',note:'TikTok doğrudan OAuth ve Content Posting API izni ayrıca doğrulanmalı.'}
     ];
     const sourceProfiles=Array.isArray(snapshot.profiles)&&snapshot.profiles.length?snapshot.profiles:fallbackProfiles;
     const profiles=sourceProfiles.map(p=>{
@@ -379,16 +379,14 @@ async function newsApi(request, env, url, ctx){
       if(!state) return p;
       return {
         ...p,
-        status: state.configured ? 'connected' : (state.connected ? 'connection_pending_token' : (state.missing?.includes('Metricool bağlantısı') ? 'verification_pending' : 'not_configured')),
-        note: state.configured
-          ? 'Metricool bağlantısı Worker tarafından canlı yapılandırmadan doğrulanıyor.'
-          : (state.note || p.note || '')
+        status: state.configured ? 'connected' : (state.connected ? 'oauth_connected_config_missing' : 'verification_pending'),
+        note: state.note || p.note || ''
       };
     });
     return json({
       ...snapshot,
       generated_at:new Date().toISOString(),
-      source:'Metricool+live-connection',
+      source:'BTMEDYA-native-social+profile-snapshot',
       live_connections:live,
       profiles,
       items:Array.isArray(snapshot.items)?snapshot.items:[]
@@ -1019,14 +1017,12 @@ async function controlCenterApi(request, env, url){
     const raw=await env.KV.get('automation:heartbeat').catch(()=>null);
     if(raw) try{ automation={...automation,...JSON.parse(raw)}; }catch{}
   }
-  const metricool=await metricoolDurumu(env).catch(()=>({yapilandirildi:!!env.METRICOOL_USER_TOKEN}));
+  const publisher=String(env.BTMEDYA_SOCIAL_PUBLISHER||"direct").trim().toLowerCase();
+  const nativeSocial=await socialProviderStatus(env);
   return json({
     ok:true,
     service:'BTMEDYA Control Center',
-    /* Metricool yayin/analitik katmani kullanilir. Bagli aglarin gercek durumu
-       Metricool hesabindan ayri olarak dogrulanir; Worker secret'in varligi
-       tek basina Instagram/Facebook/YouTube baglantisi kaniti degildir. */
-    metricool,
+    publishing:{primary:publisher,engine:publisher==="direct"?"BTMEDYA Native Social OS + Cloudflare Cron":publisher,metricoolRequired:false},
     site:{url:'https://btmedya.com.tr/',worker:'btmedya-db',surum:surumBilgisi(env)},
     storage:{d1:!!env.DB,r2:!!env.MEDIA},
     google:{
@@ -1041,17 +1037,17 @@ async function controlCenterApi(request, env, url){
     admin:{configured:!!(env.ADMIN_PASSWORD_SECRET || env.ADMIN_PASSWORD) && !!(env.ADMIN_SESSION_SECRET_SECRET || env.ADMIN_SESSION_SECRET),mediaSigning:!!env.MEDIA_SIGNING_SECRET},
     readiness:{
       ai:{openai:!!env.OPENAI_API_KEY},
-      metricool:{userToken:!!env.METRICOOL_USER_TOKEN,userId:!!env.METRICOOL_USER_ID,brandId:!!env.METRICOOL_BRAND_ID},
+      nativeSocial:{publisher,configuredProviders:Object.entries(nativeSocial).filter(([,x])=>x.configured).map(([key])=>key),connectedProviders:Object.entries(nativeSocial).filter(([,x])=>x.connected).map(([key])=>key)},
       note:'Secret değerleri hiçbir zaman API yanıtında gösterilmez; yalnızca yapılandırma varlığı raporlanır.'
     },
     automation,
-    social:socialProviderStatus(env),
+    social:nativeSocial,
     socialLinks:[
-      {key:'instagram',label:'Instagram @busetuncayy10',url:'https://www.instagram.com/busetuncayy10/',note:'Metricool marka hesabı / kurucu profil bağlantısı'},
+      {key:'instagram',label:'Instagram @busetuncayy10',url:'https://www.instagram.com/busetuncayy10/',note:'Kurucunun Instagram profil bağlantısı'},
       {key:'instagram-brand',label:'BTMEDYA Instagram @btmedyajans',url:'https://www.instagram.com/btmedyajans/',note:'BTMEDYA marka profili'},
       {key:'tiktok',label:'TikTok @btmedya1010',url:'https://www.tiktok.com/@btmedya1010',note:'Kısa video kanalı; yayın API’si ayrıca yetkilendirilmeli'},
       {key:'youtube',label:'YouTube @BTmedyaAjans',url:'https://www.youtube.com/@BTmedyaAjans',note:'Video arşivi ve Shorts hedefi'},
-      {key:'facebook',label:'Facebook Page · BTmedya',url:'https://www.facebook.com/people/busetuncayy10/100080226545931/',note:'Metricool Brand 6858384 içinde doğrulanmış Facebook Sayfası; Page ID 107923075188798'},
+      {key:'facebook',label:'Facebook Page · BTMEDYA',url:'https://www.facebook.com/107923075188798',note:'BTMEDYA Facebook sayfasının doğrudan profil bağlantısı; otomatik yayın izni ayrıca OAuth ile doğrulanır'},
       {key:'whatsapp',label:'WhatsApp teklif hattı',url:'https://wa.me/905416401029',note:'İletişim ve proje talebi'}
     ],
     integrations:{
@@ -1063,12 +1059,10 @@ async function controlCenterApi(request, env, url){
       !env.ADMIN_PASSWORD_SECRET?'Cloudflare Worker secret: ADMIN_PASSWORD_SECRET ekle':null,
       !env.ADMIN_SESSION_SECRET_SECRET?'Cloudflare Worker secret: ADMIN_SESSION_SECRET_SECRET ekle':null,
       !env.MEDIA_SIGNING_SECRET?'Cloudflare Worker secret: MEDIA_SIGNING_SECRET ekle':null,
-      !env.METRICOOL_USER_TOKEN?'Metricool: Worker secret METRICOOL_USER_TOKEN eksik.':null,
-      metricool.igBagli===false?'Metricool: Instagram bağlantısı doğrulanmamış.':null,
-      metricool.fbBagli===false?'Metricool: Facebook bağlantısı doğrulanmamış.':null,
-      metricool.youtubeBagli===false?'Metricool: YouTube bağlantısı doğrulanmamış.':null,
-      metricool.tiktokBagli===false?'Metricool: TikTok bağlantısı doğrulanmamış.':null,
-      metricool.hatali?`Metricool: ${metricool.hatali} gönderi teslim edilemedi — ${metricool.sonHata||'ayrıntı için Sosyal İçerik'}`:null
+      ...Object.entries(nativeSocial).filter(([,status])=>!status.configured).map(([key,status])=>
+        (status.label||key)+': '+(status.connected?'OAuth uygulama ayarlarını doğrula.':'Doğrudan yayın için OAuth bağlantısını tamamla.')+
+        (status.missing?.length?' Eksik: '+status.missing.join(', '):'')
+      )
     ].filter(Boolean)
   });
 }
@@ -1166,7 +1160,7 @@ async function socialApi(request, env, url, ctx){
   if(!env.DB) return json({ok:false,error:'D1 not configured'},503);
 
   if(url.pathname==='/api/admin/social/providers' && request.method==='GET'){
-    return json({ok:true,providers:socialProviderStatus(env)});
+    return json({ok:true,providers:await socialProviderStatus(env)});
   }
 
   if(url.pathname==='/api/admin/social/queue-summary' && request.method==='GET'){
@@ -1201,7 +1195,7 @@ async function socialApi(request, env, url, ctx){
       },
       delivery:{failed:failures.length,lastFailure:failures[0]||null},
       upcoming:parsedUpcoming,
-      providers:socialProviderStatus(env),
+      providers:await socialProviderStatus(env),
       settings:await ayarlariOku(env)
     });
   }
@@ -1209,11 +1203,11 @@ async function socialApi(request, env, url, ctx){
   if(url.pathname==='/api/admin/social/settings'){
     // Örnek gönderi metni sunucuda, gönderiye giden aynı altyazi() ile üretilir.
     const ornek=a=>altyazi({slug:'ornek-haber',title:'Örnek haber başlığı',excerpt:'Haberin spotu burada görünür.',category:'Balıkesir'},'',new Date(),a.sablon,true);
-    if(request.method==='GET'){ const a=await ayarlariOku(env); const publisher=String(env.BTMEDYA_SOCIAL_PUBLISHER||"direct").toLowerCase(); return json({ok:true,ayarlar:a,ornek:ornek(a),publisher,metricool:publisher!=="direct"&&Boolean(env.METRICOOL_USER_TOKEN),providers:socialProviderStatus(env)}); }
+    if(request.method==='GET'){ const a=await ayarlariOku(env); const publisher=String(env.BTMEDYA_SOCIAL_PUBLISHER||"direct").toLowerCase(); return json({ok:true,ayarlar:a,ornek:ornek(a),publisher,metricool:publisher!=="direct"&&Boolean(env.METRICOOL_USER_TOKEN),providers:await socialProviderStatus(env)}); }
     if(request.method==='PUT'){
       const b=await request.json().catch(()=>null);
       if(!b || typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
-      try{ const a=await ayarlariYaz(env,b); return json({ok:true,ayarlar:a,ornek:ornek(a),providers:socialProviderStatus(env)}); }
+      try{ const a=await ayarlariYaz(env,b); return json({ok:true,ayarlar:a,ornek:ornek(a),providers:await socialProviderStatus(env)}); }
       catch(e){ return json({ok:false,error:String(e?.message||e)},503); }
     }
     return json({ok:false,error:'Method not allowed'},405,{'allow':'GET,PUT'});
