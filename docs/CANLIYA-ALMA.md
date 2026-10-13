@@ -1,6 +1,6 @@
 # BTMEDYA | Canlıya Alma ve Yayın Kontrolü
 
-Bu depo BTMEDYA'nın üretim kaynağıdır. `main` dalı Cloudflare Workers Builds üzerinden `btmedya-db` Worker'ına production olarak deploy edilir; `.github/workflows/deploy.yml` kaynak ve canlı doğrulama kapısıdır.
+Bu depo BTMEDYA'nın tek üretim kaynağıdır. `main` dalındaki değişiklikleri `.github/workflows/deploy-production.yml` doğrular, Wrangler ile `btmedya-db` Worker'ına dağıtır ve canlı smoke testleri yapar. Cloudflare Workers Builds bu Worker için yapılandırılmamıştır; `deploy.yml` manuel doğrulama içindir.
 
 
 > **Kimlik doğrulama notu:** Production runtime accepts the current *_SECRET names and the older ADMIN_PASSWORD / ADMIN_SESSION_SECRET names for compatibility. Prefer ADMIN_PASSWORD_SECRET and ADMIN_SESSION_SECRET_SECRET in new deployments.
