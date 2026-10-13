@@ -153,26 +153,25 @@ Kaynak
 
 Worker sosyal kuyruğunda yalnızca onaylanmış, gelecekte tarihli kayıtlar Native Social OS'a teslim edilir.
 
-## 7. Native Social OS durumu
+## 7. Doğrudan sosyal hesap bağlantı durumu
 
-2026-09-29 denetiminde BTMEDYA'nın doğrulanmış Native Social OS Brand'i:
-- Brand: busetuncayy10
-- Brand ID: 6858384
-- User ID: 5278969
-- Timezone: Europe/Istanbul
+BTMEDYA'nın yayın sistemi sosyal ağları her biri için ayrı resmî OAuth/API yetkisiyle bağlar. Önceki Metricool Brand/user kayıtları yalnızca geçmiş entegrasyonun kaydıdır; yeni yayın akışında kullanılmaz.
 
-API üzerinden doğrulanan ağlar:
-- TikTok: btmedya1010
-- YouTube: UCGyRifwCyrKJQAbmo4uoO9g
+Doğrudan bağlantılar:
+- Facebook: BTMEDYA Facebook Page; Meta OAuth ile ayrıca yetkilendirilir.
+- Instagram: @btmedyajans; Professional/Business/Creator hesabı ve gereken Meta izinleri ayrıca yetkilendirilir.
+- TikTok: @btmedya1010; Content Posting API izni ve kullanıcı OAuth'u gerekir.
+- YouTube: @BTmedyaAjans; Google OAuth ve YouTube Data API gerekir.
 
-Instagram ve Facebook'un aynı Native Social OS Brand'e bağlı olduğu henüz API tarafında doğrulanmış değildir. Bu nedenle uygulama bunları bağlı olarak göstermemelidir.
+Profil URL'sinin web sitesinde görünmesi otomatik yayın izni anlamına gelmez. Yönetim paneli, D1 içindeki aktif doğrudan hesap bağlantılarını ve OAuth uygulama ayarlarını birbirinden ayrı gösterir. Metricool Brand ID'si veya Metricool tokenı gerekmez.
 
 ## 8. Admin Control Center
 
-Admin panelindeki sosyal ağ kontrolleri canlı Worker durumuna göre davranır:
-- doğrulanmış ağ: seçilebilir
-- bağlantısı görülen ancak Worker listesinde olmayan ağ: uyarı
-- doğrulanmayan ağ: pasif
+Admin panelindeki sosyal ağ kontrolleri gerçek doğrudan OAuth durumuna göre davranır:
+- Uygulama ayarı hazır ve hesap OAuth'u tamamlanmışsa doğrudan yayın yapılabilir.
+- Uygulama kimlik bilgisi eksikse Connect Merkezi eksik Worker değişken/secret adlarını gösterir.
+- Hesap bağlanmamışsa yalnızca profil bağlantısı bulunması nedeniyle yayın yapılmaz.
+- Planlı gönderiler Cloudflare D1 kuyruğunda izlenir; hatalar ve gerçek dış gönderi kimliği panelde tutulur.
 
 Control Center; site, Worker, D1, R2, admin secrets, Native Social OS ve sosyal ağ matrisini birlikte gösterir.
 
@@ -199,10 +198,12 @@ Mobil tasarım masaüstünün küçültülmüş kopyası değildir.
 
 Yayın zinciri kullanıcıya ait hesaplarda geri döndürülemez veya herkese açık bir işlem yapmadan önce doğrulanır. Secret/token değerleri kaynak koduna veya sohbet mesajlarına yazılmaz.
 
-## 12. Sonraki evre
+## 12. Doğrudan yayın için kalan kullanıcı yetkilendirmesi
 
-Instagram + Facebook Native Social OS Brand bağlantısı API ile doğrulandığında:
-- ağlar Worker konfigürasyonuna eklenir
-- admin seçimleri aktifleşir
-- sosyal otomasyon şablonları dört platforma genişletilir
-- aynı haberden platforma özgü türevler üretilebilir
+Sosyal yayın motoru Metricool'dan bağımsızdır. Her hedef platformun resmî geliştirici uygulaması ve OAuth bağlantısı tamamlandığında:
+- platform doğrudan Worker/D1 kuyruğunda kullanılabilir olur
+- admin hesap seçimleri aktifleşir
+- uygun medya türüne göre sosyal varyasyonlar üretilir
+- her gönderi gerçek platform yanıtıyla doğrulanır
+
+API kimlik bilgileri kullanıcı tarafından GitHub Secrets üzerinden eklenir; secret değerleri sohbete veya kaynak koda yazılmaz.
