@@ -122,3 +122,32 @@ body.bt-clean-intro-active main#icerik{transform:none!important;animation:none!i
 }
 @media (max-height:620px) and (max-aspect-ratio:4/5){.giris-v5-kat-ana b{font-size:26px}.giris-v5-kat-liste{gap:8px}}
 @media (prefers-reduced-motion:reduce){.giris-v5-kat *{animation:none!important;transition:none!important}.giris-v5-kat.is-acik{transition:none}}
+
+
+/* 2026-10-13 full-screen intro hardening:
+   Keep hero at the viewport size on desktop and mobile. Cover mode fills the
+   canvas; mobile uses the supplied portrait cut to preserve the subject. */
+html.bt-clean-intro-active,
+html.bt-clean-intro-active body { width:100%; height:100%; margin:0; overflow:hidden!important; }
+body.bt-clean-intro-active #icerik,
+body.bt-clean-intro-active #hero {
+  width:100vw!important; max-width:none!important; height:100vh!important;
+  height:100svh!important; min-height:100vh!important; min-height:100svh!important;
+  margin:0!important; padding:0!important;
+}
+body.bt-clean-intro-active #hero {
+  position:fixed!important; inset:0!important; z-index:2147483000!important;
+  transform:none!important; overflow:hidden!important;
+}
+body.bt-clean-intro-active #hero video {
+  position:absolute!important; inset:0!important; display:block!important;
+  width:100%!important; height:100%!important; max-width:none!important;
+  object-fit:cover!important; object-position:center center!important;
+  background:#000; opacity:1!important; visibility:visible!important;
+}
+body.bt-clean-intro-active #hero .giris-v5-katman,
+body.bt-clean-intro-active #hero .giris-v5-vurgular { position:absolute!important; inset:0!important; }
+@media (max-width:720px), (max-aspect-ratio:4/5) {
+  body.bt-clean-intro-active #hero video { object-position:center center!important; }
+  body.bt-clean-intro-active #hero .giris-v5-kat { width:100vw!important; }
+}
