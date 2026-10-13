@@ -69,3 +69,21 @@ Not: Yukarıdaki değerler kavramsal eşleştirmedir; uygulamadaki enum ve alan 
 ## Güvenli uygulama sınırı
 
 Bu envanter tek başına hiçbir dosyanın canlıya alındığını, haklarının doğrulandığını veya site tasarımının değiştirildiğini ifade etmez. Canlı değişiklik, dosyalar Media Vault'a aktarıldıktan ve önizleme/metadata doğrulaması tamamlandıktan sonra ayrı bir kod değişikliği ve deploy ile yapılmalıdır.
+
+## 2026-10-13 kod incelemesi: gerçek Media Vault alanları
+
+Worker `src/worker.js` içindeki `POST /api/media` ve `PATCH /api/media/:id` kodu incelendi. Uygulamanın şu anda kaydettiği metadata alanları:
+
+- Dosya/teknik: `original_name`, `mime`, `size`, `width`, `height`, `duration_s`, `has_audio`
+- Editoryal: `title`, `description`, `alt_text`, `category`, `tags`
+- Yayın/yerleşim: `published`, `slot`, `sort_order`, `routed`, `youtube_id`, `ai_generated`
+
+`source_url`, `source_type`, `rights_status`, `credit`, `captured_at` ve `usage_scope` alanları bu iki API yazma yolunda yok; mevcut veritabanında ayrıca doğrulanmadan bunlara güvenilmemeli. Hak durumu bilinmeyen dosyalar için güvenli uygulama: `published=false`, kaynak/hak bilgisi açıklama veya etiketlerde not edilir, yayımlama yapılmaz. Bu yalnızca geçici işaretlemedir; kalıcı hak alanlarının yerine geçmez.
+
+## Güvenli yükleme yolu
+
+1. Dosyayı yönetici oturumu açıkken Media Vault panelinden yükle; doğrudan R2'ye ham nesne koymak, D1 medya kaydı ve site yerleşim bilgisini atlayabilir.
+2. Yükleme sırasında mevcut `POST /api/media` alanları kullanılır; dosya R2 multipart upload ile tamamlanır.
+3. İlk aktarımda `published=false` ve boş `slot` tercih edilir. Önizleme, alt metin, AI/gerçek çekim ayrımı ve kullanım hakkı kontrolünden sonra panel üzerinden yayın/slot ataması yapılır.
+4. Bu envanterdeki görsel dosyalar yükleme adayıdır; çok büyük MOV dosyaları önceden web uyumlu çıktıya dönüştürülmelidir.
+5. Hiçbir materyal bu doküman güncellemesiyle yüklenmiş veya canlıya alınmış sayılmaz.
