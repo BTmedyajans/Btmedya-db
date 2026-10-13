@@ -32,7 +32,7 @@ else fail("homepage must allow index and follow");
 const h1Normalized = h1.toLocaleLowerCase("tr-TR");
 if (h1s.length === 1 && h1Normalized.includes("balıkesir") && h1Normalized.includes("medya") && h1Normalized.includes("prodüksiyon")) ok("one semantic homepage H1 covers local news/media and production");
 else fail("homepage needs one meaningful H1 mentioning Balıkesir, media and production");
-if (index.includes("/btmedya-responsive-experience-v1.css?v=20261012-1")) ok("responsive stylesheet linked");
+if (index.includes("/btmedya-responsive-experience-v1.css?v=20261013-1")) ok("responsive stylesheet linked");
 else fail("responsive experience stylesheet is not linked");
 
 const routes = ["/haberler/", "/sosyal-medya/", "/video-produksiyon/", "/hizmetler/", "/iletisim/"];
