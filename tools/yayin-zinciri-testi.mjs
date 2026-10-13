@@ -12,13 +12,16 @@ function ortam({ rapor, haberler = [], sosyal = [], kapaklar = {}, nativeAccount
   if (rapor) kv.set('sabah:son', JSON.stringify(rapor));
   return {
     KV: { get: async k => kv.get(k) ?? null, put: async () => {} },
-    DB: { prepare: sql => ({ bind: () => ({ all: async () => ({
-      results: /FROM news/.test(sql) ? haberler
-        : /FROM social_posts/.test(sql) ? sosyal
-        : /FROM social_direct_connections/.test(sql) ? (nativeAccounts ? [{ provider: 'facebook', n: nativeAccounts }] : [])
-        : /FROM social_direct_jobs/.test(sql) ? nativeJobs
-        : []
-    }) }) }) },
+    DB: { prepare: sql => {
+      const result = () => ({
+        results: /FROM news/.test(sql) ? haberler
+          : /FROM social_posts/.test(sql) ? sosyal
+          : /FROM social_direct_connections/.test(sql) ? (nativeAccounts ? [{ provider: 'facebook', n: nativeAccounts }] : [])
+          : /FROM social_direct_jobs/.test(sql) ? nativeJobs
+          : []
+      });
+      return { all: async () => result(), bind: () => ({ all: async () => result() }) };
+    } },
     ASSETS: { fetch: async () => new Response(JSON.stringify(kapaklar), { status: 200 }) },
     BTMEDYA_SOCIAL_PUBLISHER: 'direct'
   };
