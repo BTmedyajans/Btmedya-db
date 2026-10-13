@@ -12,10 +12,10 @@ on:
       - "public/assets/haber-kapak/**"
       - "public/assets/logo/**"
       - "tools/build-free-vitrine-video.sh"
-      - ".github/workflows/free-vitrine-video.yml"
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: btmedya-free-vitrine-video
@@ -40,26 +40,19 @@ jobs:
           chmod +x tools/build-free-vitrine-video.sh
           tools/build-free-vitrine-video.sh
 
-      - name: Commit generated vitrine
-        run: |
-          if [ -z "$(git status --porcelain -- public/assets/generated)" ]; then
-            echo "No generated vitrine changes."
-            exit 0
-          fi
-
-          git config user.name "BTMEDYA Free Media Builder"
-          git config user.email "actions@users.noreply.github.com"
-          git add public/assets/generated
-          git commit -m "chore: refresh free BTMEDYA vitrine videos"
-
-          # Başka bir production commit'i build sırasında main'e geldiyse
-          # önce güncel remote'u alıp üretilen commit'i onun üstüne taşı.
-          # Böylece video çıktısı fetch-first yarışında kaybolmaz.
-          # Üretici yalnızca generated klasörünü commit eder; çalışma alanında
-          # kalan geçici değişiklikler rebase'i kilitlememelidir.
-          git reset --hard HEAD
-          git fetch origin main
-          git rebase origin/main
-          # Main korumalıysa üretim zincirini kırma; çıktılar build logunda
-          # doğrulanır ve ana site deployu ayrı Workers Builds akışında sürer.
-          git push origin HEAD:main || echo "Protected main: generated vitrine is available in this run; deploy is handled by Workers Builds."
+      # Main is protected and requires signed commits. Submit generated outputs
+      # through the repository's signed-commit PR action; never try an unsigned
+      # direct push to main or report that an unconfigured Workers Builds path
+      # will deploy them. Production goes live only after merge and the
+      # canonical deploy-production.yml workflow passes.
+      - name: Publish generated vitrine as a signed pull request
+        uses: ./.github/actions/imzali-pr
+        with:
+          dal: automation/free-vitrine-video
+          yollar: "public/assets/generated/*"
+          mesaj: "chore: refresh free BTMEDYA vitrine videos"
+          pr_baslik: "chore: refresh free BTMEDYA vitrine videos"
+          pr_govde: |
+            Generated desktop and mobile BTMEDYA showcase videos and poster.
+            Review the generated assets before merging. The production deploy
+            runs from main through deploy-production.yml after merge.
