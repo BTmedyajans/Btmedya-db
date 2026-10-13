@@ -7,7 +7,6 @@ import sys
 root = Path(__file__).resolve().parents[1] / "public"
 args = set(sys.argv[1:])
 allow_generated_hero = "--allow-generated-hero" in args
-require_generated_hero = "--require-generated-hero" in args
 generated_hero = {
     "assets/media/web/btmedya-hero-mobile-poster.jpg",
     "assets/media/web/btmedya-hero-mobile.mp4",
@@ -32,9 +31,6 @@ missing = sorted(
     if not (root / path).exists()
     and not (allow_generated_hero and path in generated_hero)
 )
-if require_generated_hero and not allow_generated_hero:
-    missing.extend(path for path in sorted(generated_hero) if not (root / path).exists())
-    missing = sorted(set(missing))
 if missing:
     print("Missing local production assets:")
     print("\n".join(missing))
