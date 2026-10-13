@@ -92,12 +92,12 @@ try {
     const url = new URL(href, origin);
     const path = url.pathname + url.search;
     const r = await get(path);
-    if (r.status !== 200 || !/text\\/css/i.test(r.contentType)) {
+    if (r.status !== 200 || !/text\/css/i.test(r.contentType)) {
       fail("responsive stylesheet unavailable: HTTP " + r.status + " " + r.contentType + " " + path);
       continue;
     }
     if (/mobile-home-experience|btmedya-responsive-experience/i.test(path)) {
-      if (!/@media\\s*\\(max-width:\\s*720px\\)/i.test(r.body) && !/@media\\s*\\(max-width:\\s*760px\\)/i.test(r.body))
+      if (!/@media\s*\(max-width:\s*720px\)/i.test(r.body) && !/@media\s*\(max-width:\s*760px\)/i.test(r.body))
         fail("responsive stylesheet lacks dedicated small-screen rules: " + path);
     }
     if (/mobile-home-experience|mobile-fixes|mobile-motion|giris-v5|ana-sade/i.test(path) && !/prefers-reduced-motion/i.test(r.body))
