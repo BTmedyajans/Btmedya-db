@@ -58,15 +58,15 @@ async function load(){
 async function loadConnectedAccounts(){
  const el=$('#connectedAccounts');if(!el)return;
  try{
-  const r=await api('/api/social/direct/accounts?workspace_type=company&workspace_id=btmedya');
+  const r=await api('/api/social/direct/accounts?workspace_type=agency&workspace_id=btmedya');
   const items=r.data.items||[];
   if(!items.length){el.innerHTML='<div class="step">Henüz doğrudan bağlanmış hesap yok. Önce hesabı resmi OAuth ekranından bağla.</div>';return}
   el.innerHTML=items.map(x=>'<div class="step"><div class="row"><b>'+esc(x.account_name||x.provider)+'</b><span class="badge ok">BAĞLI</span></div><div class="small">'+esc(String(x.provider||'').toUpperCase())+(x.handle?' · '+esc(x.handle):'')+(x.token_expires_at?' · Token bitişi: '+esc(new Date(x.token_expires_at).toLocaleDateString('tr-TR')):'')+'</div></div>').join('');
  }catch(e){el.innerHTML='<div class="step">'+esc(e.message||'Bağlı hesaplar okunamadı')+'</div>'}
 }
-$('#metaConnect').onclick=()=>location.href='/api/social/direct/meta/start?workspace_type=company&workspace_id=btmedya&return_to=%2Fadmin%2Fconnect%2F';
-$('#tiktokConnect').onclick=()=>location.href='/api/social/direct/tiktok/start?workspace_type=company&workspace_id=btmedya';
-$('#youtubeConnect').onclick=()=>location.href='/api/social/direct/youtube/start?workspace_type=company&workspace_id=btmedya';
+$('#metaConnect').onclick=()=>location.href='/api/social/direct/meta/start?workspace_type=agency&workspace_id=btmedya&return_to=%2Fadmin%2Fconnect%2F';
+$('#tiktokConnect').onclick=()=>location.href='/api/social/direct/tiktok/start?workspace_type=agency&workspace_id=btmedya';
+$('#youtubeConnect').onclick=()=>location.href='/api/social/direct/youtube/start?workspace_type=agency&workspace_id=btmedya';
 $('#refreshAccounts').onclick=loadConnectedAccounts;
 $('#meta').onclick=()=>location.href='/api/social/direct/meta/start?return_to=%2Fadmin%2Fconnect%2F';
 $('#tt').onclick=()=>location.href='/api/social/direct/tiktok/start?workspace_type=company&workspace_id=btmedya';
