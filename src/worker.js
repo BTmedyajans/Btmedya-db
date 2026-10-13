@@ -1412,6 +1412,11 @@ async function mediaApi(request, env){
   if(path==='/api/public/media' && request.method==='GET') {
     const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'};
     const q=(u.searchParams.get('q')||'').toLowerCase(); const cat=u.searchParams.get('category')||'';
+    // Public vitrines request a small window (the homepage asks for 40). The
+    // old handler accepted `limit` but ignored it, returning the whole R2
+    // catalog and making mobile archive hydration unnecessarily expensive.
+    const requestedLimit=Number.parseInt(u.searchParams.get('limit')||'60',10);
+    const limit=Number.isFinite(requestedLimit)?Math.min(200,Math.max(1,requestedLimit)):60;
     const staticItems=(await medyaListesi(env,u.origin))
       .filter(x=>!cat || x.category===cat)
       .filter(x=>!q || x.path.toLowerCase().includes(q))
@@ -1446,7 +1451,7 @@ async function mediaApi(request, env){
       }
     }
     const seen=new Set(r2Items.map(x=>x.url));
-    const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url))];
+    const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url))].slice(0,limit);
     return json({
       brand:'BTMedya',
       generated_at:new Date().toISOString(),
@@ -1454,7 +1459,7 @@ async function mediaApi(request, env){
       items,
       degraded:Boolean(d1MediaError),
       ...(d1MediaError?{warning:'D1 medya metadata katmanı okunamadı; statik/R2 yayın katmanı kullanıldı.'}:{})
-    },200,cors);
+    },200,{...cors,'cache-control':'public, max-age=30, stale-while-revalidate=120'});
   }
 
   const aiToken=env.AI_READ_TOKEN;
