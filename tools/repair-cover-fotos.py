@@ -40,7 +40,7 @@ def main() -> int:
         if not isinstance(item, dict):
             continue
         slug = item.get("slug")
-        if not isinstance(slug, str) or not slug or Path(slug).name != slug or "/" in slug or "\\\\" in slug:
+        if not isinstance(slug, str) or not slug or Path(slug).name != slug or "/" in slug or "\\" in slug:
             if slug:
                 invalid.append(str(slug))
             continue
