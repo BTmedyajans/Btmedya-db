@@ -25,6 +25,14 @@ jobs:
         with:
           node-version: 22
 
+      - name: Set up Python for cover integrity repair
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Pillow for cover repair
+        run: python -m pip install --quiet "Pillow>=10,<12"
+
       - name: Validate source and production contract
         shell: bash
         run: |
@@ -73,6 +81,7 @@ jobs:
           node --check public/yonetim-cubugu.js
           node --check public/hero-three-choice.js
           # Hero media is generated during production deployment; source-only PR checks must allow those six deferred assets.
+          python3 tools/repair-cover-fotos.py
           python3 tools/validate-assets.py --allow-generated-hero
           node tools/a11y-denetimi.mjs
           node tools/gerileme-denetimi.mjs

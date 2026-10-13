@@ -393,6 +393,51 @@ async function newsApi(request, env, url, ctx){
     },200,{'cache-control':'public, max-age=300'});
   }
 
+  /* Public live counters: D1 is the source of truth when populated; static manifests
+     are a read-only fallback for a fresh/empty database. Cache at the edge briefly. */
+  if(url.pathname==='/api/public/live-data' && request.method==='GET'){
+    const counts={news:0,media:0,videos:0};
+    const source={news:'unavailable',media:'unavailable'};
+    if(env.DB){
+      try{
+        const row=await env.DB.prepare("SELECT COUNT(*) AS total FROM news WHERE status='published'").first();
+        counts.news=Number(row?.total||0);
+        source.news='d1';
+      }catch(e){ console.warn('[live-data] news count unavailable',e?.message||e); }
+      try{
+        const row=await env.DB.prepare("SELECT COUNT(*) AS total, COALESCE(SUM(CASE WHEN lower(mime) LIKE 'video/%' OR lower(\"key\") LIKE '%.mp4' OR lower(\"key\") LIKE '%.webm' OR lower(\"key\") LIKE '%.mov' OR lower(\"key\") LIKE '%.m4v' THEN 1 ELSE 0 END),0) AS videos FROM media WHERE published=1 AND (lower(mime) LIKE 'image/%' OR lower(mime) LIKE 'video/%')").first();
+        counts.media=Number(row?.total||0);
+        counts.videos=Number(row?.videos||0);
+        source.media='d1';
+      }catch(e){ console.warn('[live-data] media count unavailable',e?.message||e); }
+    }
+    if(env.ASSETS && (!counts.news || !counts.media)){
+      try{
+        const paths=[];
+        if(!counts.news) paths.push('/data/haberler.json');
+        if(!counts.media) paths.push('/data/medya-listesi.json');
+        const results=await Promise.all(paths.map(async path=>{
+          const response=await env.ASSETS.fetch(new Request(new URL(path,url.origin)));
+          return {path,data:response.ok?await response.json().catch(()=>null):null};
+        }));
+        for(const result of results){
+          if(result.path==='/data/haberler.json' && Array.isArray(result.data)){
+            const items=result.data.filter(item=>String(item?.status||'').toLowerCase()!=='draft');
+            counts.news=items.length; source.news='static-archive';
+          }
+          if(result.path==='/data/medya-listesi.json' && Array.isArray(result.data)){
+            counts.media=result.data.length;
+            counts.videos=result.data.filter(item=>/\.(mp4|webm|mov|m4v)$/i.test(String(item?.path||''))).length;
+            source.media='static-catalog';
+          }
+        }
+      }catch(e){ console.warn('[live-data] static fallback unavailable',e?.message||e); }
+    }
+    return json({ok:true,counts,source,updatedAt:new Date().toISOString()},200,{
+      'cache-control':'public, max-age=0, s-maxage=60, stale-while-revalidate=300'
+    });
+  }
+
   if(url.pathname==='/api/health'){
     const r2Probe=env.MEDIA ? await env.MEDIA.list({limit:200}).catch(()=>null) : null;
     const mediaLike=/\.(?:jpe?g|png|webp|gif|mp4|webm|mov|m4v|mp3|wav|m4a)$/i;

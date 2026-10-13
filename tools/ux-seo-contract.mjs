@@ -32,7 +32,7 @@ else fail("homepage must allow index and follow");
 const h1Normalized = h1.toLocaleLowerCase("tr-TR");
 if (h1s.length === 1 && h1Normalized.includes("balıkesir") && h1Normalized.includes("medya") && h1Normalized.includes("prodüksiyon")) ok("one semantic homepage H1 covers local news/media and production");
 else fail("homepage needs one meaningful H1 mentioning Balıkesir, media and production");
-if (index.includes("/btmedya-responsive-experience-v1.css?v=20261012-1")) ok("responsive stylesheet linked");
+if (index.includes("/btmedya-responsive-experience-v1.css?v=20261013-1")) ok("responsive stylesheet linked");
 else fail("responsive experience stylesheet is not linked");
 
 const routes = ["/haberler/", "/sosyal-medya/", "/video-produksiyon/", "/hizmetler/", "/iletisim/"];
@@ -64,6 +64,54 @@ if (css.includes("env(safe-area-inset-bottom)")) ok("mobile safe-area clearance"
 else fail("mobile safe-area clearance missing");
 if (css.includes("min-height:44px")) ok("desktop CTA meets minimum touch target");
 else fail("primary CTA minimum touch target missing");
+
+/* International SEO and AEO contracts: validate semantics at source, not just tag presence. */
+if (index.includes('<html lang="tr">')) ok('homepage language is Turkish');
+else fail('homepage html lang must be tr');
+const alternateLinks = [...index.matchAll(/<link[^>]*rel=["']alternate["'][^>]*>/gi)].map(m => m[0]);
+for (const [lang, href] of [['tr-TR','https://btmedya.com.tr/'],['en','https://btmedya.com.tr/en/'],['x-default','https://btmedya.com.tr/']]) {
+  const found = alternateLinks.some(tag => tag.includes('hreflang="' + lang + '"') && tag.includes('href="' + href + '"'));
+  if (found) ok('hreflang ' + lang + ' is mapped to the canonical language URL');
+  else fail('missing/incorrect hreflang ' + lang);
+}
+if (types.includes('Person')) ok('homepage declares Buse Tuncay as Person');
+else fail('homepage JSON-LD is missing the founder/journalist Person entity');
+
+const sourceDesk = fs.readFileSync('public/kaynak-masasi/index.html', 'utf8');
+const servicesPage = fs.readFileSync('public/hizmetler/index.html', 'utf8');
+const newsPageSource = fs.readFileSync('src/news-page.js', 'utf8');
+const workerSource = fs.readFileSync('src/worker.js', 'utf8');
+const homeSource = fs.readFileSync('public/home.js', 'utf8');
+function collectSchemaTypes(value, result = []) {
+  if (!value || typeof value !== 'object') return result;
+  if (typeof value['@type'] === 'string') result.push(value['@type']);
+  if (Array.isArray(value)) value.forEach(item => collectSchemaTypes(item, result));
+  else Object.values(value).forEach(item => collectSchemaTypes(item, result));
+  return result;
+}
+function schemaTypesFrom(html, label) {
+  const result = [];
+  const scripts = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  for (const match of scripts) {
+    try { result.push(...collectSchemaTypes(JSON.parse(match[1]))); }
+    catch { fail(label + ' contains invalid JSON-LD'); }
+  }
+  return result;
+}
+const sourceTypes = schemaTypesFrom(sourceDesk, 'Source Desk');
+if (sourceTypes.includes('ItemList')) ok('Source Desk uses a structured source-directory ItemList');
+else fail('Source Desk JSON-LD is missing ItemList');
+const serviceTypes = schemaTypesFrom(servicesPage, 'BT STUDIO services');
+if (serviceTypes.includes('ProfessionalService') || serviceTypes.includes('LocalBusiness')) ok('BT STUDIO has a LocalBusiness/ProfessionalService entity');
+else fail('BT STUDIO is missing LocalBusiness/ProfessionalService JSON-LD');
+if (serviceTypes.filter(type => type === 'Product').length >= 3) ok('three service packages have Product structured data');
+else fail('BT STUDIO requires Product schema for the three named packages');
+if (newsPageSource.includes('"@type":"NewsArticle"')) ok('dynamic news pages use NewsArticle JSON-LD');
+else fail('dynamic news rendering is missing NewsArticle JSON-LD');
+if (workerSource.includes("url.pathname==='/api/public/live-data'") && homeSource.includes("fetch('/api/public/live-data'")) ok('homepage counters use the D1/static-fallback live-data API');
+else fail('live-data API and homepage counter are not connected');
+if (css.includes('.story-scroll,.story-progress{display:none!important}')) ok('desktop story scroll cue is removed from compact mobile layout');
+else fail('mobile story scroll/progress cue fallback missing');
 
 if (failures.length) process.exit(1);
 console.log("UX_SEO_CONTRACT_PASS");

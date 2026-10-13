@@ -1100,6 +1100,12 @@ if __name__ == "__main__":
             fb = kart_fotografi(foto, os.path.join(hedef, h["slug"] + "-foto.webp"),
                                 kare.get("ust", 0.30))
             kb = f" + kart {fb/1024:>4.0f} KB"
+        else:
+            # Portal cards derive a clean image path for every cover. Without
+            # a source photo, generate a typography-free information card
+            # instead of leaving a broken <slug>-foto.webp reference.
+            fb = bilgi_karti_foto(h, os.path.join(hedef, h["slug"] + "-foto.webp"))
+            kb = f" + kart {fb/1024:>4.0f} KB"
         n += 1
         if foto: fotolu += 1
         print(f"  {'F' if foto else ' '} {h['slug'][:40]:42} {boyut/1024:>5.0f} KB{kb}")
