@@ -36,7 +36,7 @@ Harici servisler sistemin kaynağı değil, adapter olur.
 - Dropbox -> R2 medya kasası
 - HubSpot -> D1 satış/CRM
 - Supabase -> D1/R2/KV/DO
-- Metricool -> yalnız sosyal platform teslim adapteri
+- BTMEDYA Native Social OS -> doğrudan OAuth/API yayın; Metricool yalnızca eski kayıtlar için opsiyonel
 - Figma -> tasarım/marka üretim aracı
 - Template Creator -> tekrar kullanılabilir BTMEDYA şablonlarının üretim aracı
 - Porter Metrics -> D1 tabanlı kurum içi analitik katmanı
