@@ -23,6 +23,10 @@ jobs:
   seo:
     runs-on: ubuntu-latest
     name: SEO health + optional Search Console sync
+    # Step-level `if` cannot read a secret that is declared only in that step's env.
+    # Put the value in job env so the step condition evaluates correctly without printing it.
+    env:
+      GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,8 +41,6 @@ jobs:
       - name: Create Google access token when configured
         id: gsc_auth
         if: ${{ env.GSC_SERVICE_ACCOUNT_JSON != '' }}
-        env:
-          GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
