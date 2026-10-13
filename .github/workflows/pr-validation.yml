@@ -25,6 +25,21 @@ jobs:
         with:
           node-version: 22
 
+      - name: Guard against production workflow self-trigger
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          source = Path('.github/workflows/deploy-production.yml').read_text(encoding='utf-8')
+          try:
+              paths = source.split('    paths:\n', 1)[1].split('  workflow_dispatch:', 1)[0]
+          except IndexError:
+              raise SystemExit('Could not locate the production push-paths block')
+          if '".github/workflows/deploy-production.yml"' in paths:
+              raise SystemExit('Production deploy workflow must not trigger on its own file')
+          print('PRODUCTION_DEPLOY_SELF_TRIGGER_GUARD_PASS')
+          PY
       - name: Validate source and production contract
         shell: bash
         run: |
