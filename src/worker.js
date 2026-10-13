@@ -1543,8 +1543,8 @@ async function mediaApi(request, env){
   if(!auth) return json({error:'Yetkisiz'},401);
 
   /* DEPO PLANI — her dosyanin teknik ozelligi, onerilen hedefler, secilen
-     hedefler ve kalici public baglantisi tek listede. Sohbetten okunup
-     Metricool'a gonderim buradan planlanir. */
+     hedefler ve kalici public baglantisi tek listede. Sosyal teslim hedefleri
+     dogrudan OAuth ile bagli hesaplar ve yerel Cloudflare kuyrugudur. */
   /* SITE DURUMU — hangi yuva dolu, hangisi bos, ne yuklenmeli. */
   if(path==='/api/site/slots' && request.method==='GET'){
     const r=await env.DB.prepare("SELECT * FROM media WHERE slot!='' ").all();
@@ -2057,7 +2057,7 @@ export default { async scheduled(controller, env, ctx){
 
   if(cron==="*/5 * * * *"){
     // Native Direct Social queue runs on every five-minute tick. It does not
-    // require a Metricool API token; every destination must have completed its
+    // require Metricool credentials; every destination must have completed its
     // own official OAuth connection in the admin panel.
     try{
       const delivery=await processDirectSocialQueue(env,10);
