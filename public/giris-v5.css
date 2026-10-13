@@ -122,3 +122,98 @@ body.bt-clean-intro-active main#icerik{transform:none!important;animation:none!i
 }
 @media (max-height:620px) and (max-aspect-ratio:4/5){.giris-v5-kat-ana b{font-size:26px}.giris-v5-kat-liste{gap:8px}}
 @media (prefers-reduced-motion:reduce){.giris-v5-kat *{animation:none!important;transition:none!important}.giris-v5-kat.is-acik{transition:none}}
+
+
+/* BTMEDYA mobile intro polish — 2026-10-12
+   Keep the vertical film edge-to-edge; make the end-of-film category chooser
+   legible and thumb-friendly without adding text over the moving scenes. */
+@media (max-width:720px), (max-aspect-ratio:4/5) {
+  body.bt-clean-intro-active #hero.giris-v5 {
+    width:100vw;
+    height:100svh;
+    min-height:100svh;
+    max-height:none;
+    background:#030405;
+    overflow:hidden;
+    isolation:isolate;
+  }
+  .giris-v5 > video[data-slot="hero-video"] {
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:50% 50%;
+    background:#030405;
+    -webkit-transform:translateZ(0);
+    transform:translateZ(0);
+  }
+  .giris-v5-kat {
+    padding-left:max(16px, env(safe-area-inset-left));
+    padding-right:max(16px, env(safe-area-inset-right));
+    padding-bottom:max(72px, calc(env(safe-area-inset-bottom) + 62px));
+    background:linear-gradient(180deg,
+      rgba(3,4,6,.08) 0%,
+      rgba(3,4,6,.62) 34%,
+      rgba(3,4,6,.94) 58%,
+      #030405 100%);
+    -webkit-backdrop-filter:blur(0);
+    backdrop-filter:blur(0);
+  }
+  .giris-v5-kat-ust {
+    max-width:560px;
+    margin-bottom:10px;
+    color:rgba(255,255,255,.78);
+    letter-spacing:.16em;
+  }
+  .giris-v5-kat-liste {
+    max-width:560px;
+    gap:10px;
+  }
+  .giris-v5-kat-k {
+    padding:9px 12px 10px;
+    border:1px solid rgba(255,255,255,.13);
+    border-top:1px solid color-mix(in srgb,var(--k) 78%,transparent);
+    border-radius:12px;
+    background:rgba(8,9,12,.42);
+    box-shadow:0 8px 24px rgba(0,0,0,.16);
+  }
+  .giris-v5-kat-k::before { top:-1px; }
+  .giris-v5-kat-ana {
+    align-items:center;
+    gap:10px;
+    min-height:36px;
+  }
+  .giris-v5-kat-ana b {
+    padding-top:.2em;
+    font-size:clamp(26px,7.8vw,34px);
+    line-height:.98;
+    letter-spacing:0;
+  }
+  .giris-v5-kat-ana i { font-size:20px; }
+  .giris-v5-kat ul {
+    margin-top:5px;
+    padding-bottom:3px;
+    gap:7px;
+    -webkit-mask-image:linear-gradient(90deg,#000 92%,transparent);
+    mask-image:linear-gradient(90deg,#000 92%,transparent);
+  }
+  .giris-v5-kat ul a {
+    min-height:36px;
+    padding-inline:12px;
+    border-color:rgba(255,255,255,.2);
+    background:rgba(255,255,255,.055);
+    font-size:12px;
+  }
+}
+@media (max-width:390px), (max-height:700px) and (max-width:720px) {
+  .giris-v5-kat {
+    padding-top:48px;
+    padding-bottom:max(58px,calc(env(safe-area-inset-bottom) + 48px));
+  }
+  .giris-v5-kat-ust { margin-bottom:7px; }
+  .giris-v5-kat-liste { gap:7px; }
+  .giris-v5-kat-k { padding:7px 10px 8px; }
+  .giris-v5-kat-ana { min-height:32px; }
+  .giris-v5-kat-ana b { font-size:clamp(24px,7.2vw,30px); }
+  .giris-v5-kat ul { margin-top:3px; gap:6px; }
+  .giris-v5-kat ul a { min-height:33px; padding-inline:10px; font-size:11.5px; }
+}
