@@ -509,13 +509,28 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
     const v = videolar[0] || '';
     if (videolar.length !== 1 || !/\bmuted\b/.test(v) || !/\bplaysinline\b/.test(v))
       bulgular.push('Giriş filmi v5 tek, sessiz başlayan, satır içi video olmalı.');
-    for (const ad of ['data-genis', 'data-dikey', 'data-genis-webm', 'data-dikey-webm', 'data-genis-poster', 'data-dikey-poster']) {
+    for (const ad of ['data-genis', 'data-dikey', 'data-genis-poster', 'data-dikey-poster']) {
       const yol = (v.match(new RegExp(ad + '="([^"]+)"')) || [])[1];
       if (!yol) { bulgular.push(`Giriş filmi v5 ${ad} taşımıyor.`); continue; }
+      const external = /^https:\/\/github\.com\/BTmedyajans\/Btmedya-db\/releases\/download\/btmedya-clean-hero-[A-Za-z0-9-]+\/(giris-filmi-clean(?:-genis)?(?:-poster)?\.(?:mp4|jpg))$/.test(yol);
+      if (external) {
+        const file = yol.split('/').pop();
+        const expected = ad.includes('poster') ? file.endsWith('-poster.jpg') : file.endsWith('.mp4');
+        if (!expected) bulgular.push(`Giriş filmi v5 ${ad} yanlış türde dosyaya işaret ediyor: ${file}`);
+        continue;
+      }
+      if (/^https?:\/\//.test(yol)) {
+        bulgular.push(`Giriş filmi v5 ${ad} onaylanmamış dış kaynağa işaret ediyor: ${yol}`);
+        continue;
+      }
       const dosya = join('public', yol.split('?')[0]);
-      const imza = dosya.endsWith('.mp4') ? 'mp4a' : dosya.endsWith('.webm') ? 'OpusHead' : '';
+      const imza = dosya.endsWith('.mp4') ? 'mp4a' : '';
       if (!existsSync(dosya)) bulgular.push(`Giriş filmi v5 dosyası yok: ${dosya}`);
       else if (imza && readFileSync(dosya).includes(Buffer.from(imza))) bulgular.push(`${dosya} ses izi taşıyor (${imza}); giriş filmi sessiz olmalı.`);
+    }
+    for (const ad of ['data-genis-webm', 'data-dikey-webm']) {
+      const yol = (v.match(new RegExp(ad + '="([^"]*)"')) || [])[1];
+      if (yol && !/\.webm(?:\?|$)/.test(yol)) bulgular.push(`Giriş filmi v5 ${ad} .webm dosyasına işaret etmiyor.`);
     }
     const js = existsSync('public/giris-v5.js') ? readFileSync('public/giris-v5.js', 'utf8') : '';
     if (!js || !ana.includes('/giris-v5.js')) bulgular.push('public/index.html giris-v5.js yüklemiyor; film seçenekleri çalışmaz.');
