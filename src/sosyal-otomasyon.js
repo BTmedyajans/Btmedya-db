@@ -1,24 +1,21 @@
 /* BTMEDYA sosyal yayin otomasyonu.
  *
- * Zincir: haber yayinlanir -> cron taslak hazirlar -> (otomatik planlama
- * aciksa) bir sonraki bos saat yuvasina "planlandi" olarak yerlesir ->
- * metricool-scheduler.js Metricool'a teslim eder -> saati gecince panelde
- * "yayinlandi" olur.
+ * Haber yayinlanir -> cron taslak hazirlar -> otomatik planlama aciksa,
+ * D1 tabanli native social queue dogrudan OAuth ile yetkilendirilmis hesaplari
+ * hedefler -> Cloudflare Cron bes dakikada bir kuyrugu işler.
  *
- * Ayarlar panelden degisir ve KV'de tutulur; kod degisikligi ve dagitim
- * gerektirmez. Metricool anahtari yoksa otomatik planlama yapilmaz:
- * teslim edilemeyecek bir gonderiyi takvime koymak panelde sahte bir
- * "planlandi" gosterirdi.
+ * Metricool aboneligi veya tokeni gerekmez. Bir platformun OAuth hesabi
+ * bagli degilse yayin yapilmaz; icerik onay taslagi olarak kalir.
+ * Ayarlar panelden degisir ve KV'de tutulur.
  */
 
 const AYAR_ANAHTARI = 'social:ayarlar';
 const VARSAYILAN = Object.freeze({
-  // 5 Ekim 2026 Metricool doğrulaması: Brand 6858384 üzerinde TikTok + YouTube aktif;
-  // Instagram/Facebook bu Brand için doğrulanmış yayın ağı olarak kullanılmıyor.
-  aglar: ['tiktok', 'youtube'],
+  // Native publisher default: all official brand channels. Only directly OAuth-authorized
+  // accounts enter the queue; unconnected destinations remain approval drafts.
+  aglar: ['instagram', 'facebook', 'tiktok', 'youtube'],
   otomatikPlanla: true,
-  // Metricool güncel saat verisinin iki ağı ortak taşıyan dengeli penceresi:
-  // TikTok'ta 10:00/18:00 güçlü, YouTube'da 14:00-16:00 güçlü.
+  // BTMEDYA's local publishing windows; adjust from the admin settings panel.
   saatler: ['10:00', '16:00', '18:00'],
   // Arsiv haberleri otomatik paylasilmasin: yalniz bu kadar saat icinde
   // yayinlanan haberler otomatik planlanir, eskiler onaya duser.
@@ -193,10 +190,8 @@ export async function statikGorselAiMi(env, key) {
   return k[m[1]] === 'ai';
 }
 
-/* Metricool'a teslim edilmis ve saati gecmis gonderiler "yayinlandi" olur.
-   Yayini Metricool yapar; bu durum "Metricool'a teslim edildi ve saati
-   geldi" anlamina gelir. Metricool tarafinda sonradan dusen gonderi
-   Metricool planlayicisinda gorunur. */
+/* Legacy Metricool delivery records are left readable for historical entries.
+   New direct publications update their own social_direct_jobs status. */
 export async function yayinlananlariIsaretle(env) {
   if (!env.DB) return 0;
   const once = new Date(Date.now() - 10 * 60000).toISOString();
@@ -208,10 +203,10 @@ export async function yayinlananlariIsaretle(env) {
   return Number(r?.meta?.changes || 0);
 }
 
-/* Anahtar varken saati kacmis ve teslim edilmemis "planlandi" gonderiler
-   (ornegin anahtar sonradan eklendiyse) bir sonraki bos yuvaya kayar. */
+/* Legacy Metricool queue recovery helper. Native posts use social_direct_jobs
+   and are retried by the Cloudflare Cron worker. */
 export async function gecikenleriKaydir(env, ayar, limit = 5) {
-  if (!env.DB || !env.METRICOOL_USER_TOKEN) return 0;
+  if (!env.DB || String(env.BTMEDYA_SOCIAL_PUBLISHER||'direct').toLowerCase()==='direct' || !env.METRICOOL_USER_TOKEN) return 0;
   const simdi = new Date().toISOString();
   const rows = (await env.DB.prepare(
     `SELECT p.id FROM social_posts p LEFT JOIN metricool_gonderim g ON g.post_id=p.id
