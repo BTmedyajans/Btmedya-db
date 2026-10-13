@@ -172,4 +172,24 @@ jobs:
           grep -q 'BTMEDYA' /tmp/btmedya-home.html
           www_code="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 https://www.btmedya.com.tr/)"
           test "$www_code" = "301"
-          echo "Production smoke test passed: home=$home_code, www=$www_code, health=200."
+
+          # Exercise the real deployed login route, not only the mocked source test.
+          admin_code="$(curl -sS -o /tmp/btmedya-admin.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/ || true)"
+          test "$admin_code" = "401"
+          grep -q '<form id="giris"' /tmp/btmedya-admin.html
+          subroute_code="$(curl -sS -D /tmp/btmedya-admin-headers -o /dev/null -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/agency-os/ || true)"
+          test "$subroute_code" = "302"
+          grep -qiE '^location: https://btmedya.com.tr/admin/\?sonra=' /tmp/btmedya-admin-headers
+
+          # Search discovery endpoints must be reachable after each production deploy.
+          for path in robots.txt sitemap.xml news-sitemap.xml rss.xml; do
+            endpoint_code="$(curl -sS -o /tmp/btmedya-endpoint.txt -w "%{http_code}" --max-time 20 "https://btmedya.com.tr/$path")"
+            test "$endpoint_code" = "200"
+            echo "SEO endpoint OK: $path HTTP $endpoint_code"
+          done
+          indexnow_key="57fb863171638cffa9cdfb3913627b57"
+          indexnow_code="$(curl -sS -o /tmp/btmedya-indexnow-key.txt -w "%{http_code}" --max-time 20 "https://btmedya.com.tr/$indexnow_key.txt")"
+          test "$indexnow_code" = "200"
+          grep -Fxq "$indexnow_key" /tmp/btmedya-indexnow-key.txt
+
+          echo "Production smoke test passed: home=$home_code, www=$www_code, health=200, admin=login-protected, sitemap endpoints=200, IndexNow key=verified."
