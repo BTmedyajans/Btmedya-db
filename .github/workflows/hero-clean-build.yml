@@ -85,14 +85,21 @@ jobs:
         run: |
           set -euo pipefail
           TAG="btmedya-clean-hero-${GITHUB_SHA:0:7}"
-          gh release create "$TAG" \
-            public/assets/media/web/giris-filmi-clean-genis.mp4 \
-            public/assets/media/web/giris-filmi-clean-genis-poster.jpg \
-            public/assets/media/web/giris-filmi-clean.mp4 \
-            public/assets/media/web/giris-filmi-clean-poster.jpg \
-            --title "BTMEDYA Clean Homepage Hero ${GITHUB_SHA:0:7}" \
-            --notes "Generated desktop and mobile homepage hero. Immutable, versioned assets from commit ${GITHUB_SHA}." \
-            --target "${GITHUB_SHA}"
+          ASSETS=(
+            public/assets/media/web/giris-filmi-clean-genis.mp4
+            public/assets/media/web/giris-filmi-clean-genis-poster.jpg
+            public/assets/media/web/giris-filmi-clean.mp4
+            public/assets/media/web/giris-filmi-clean-poster.jpg
+          )
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; refreshing its assets for the same source commit."
+            gh release upload "$TAG" "${ASSETS[@]}" --clobber
+          else
+            gh release create "$TAG" "${ASSETS[@]}" \
+              --title "BTMEDYA Clean Homepage Hero ${GITHUB_SHA:0:7}" \
+              --notes "Generated desktop and mobile homepage hero. Versioned assets from commit ${GITHUB_SHA}." \
+              --target "${GITHUB_SHA}"
+          fi
           echo "Release published: https://github.com/${GITHUB_REPOSITORY}/releases/tag/$TAG"
 
       - name: Commit the generated assets and homepage wiring
