@@ -91,7 +91,7 @@ function collectSchemaTypes(value, result = []) {
 }
 function schemaTypesFrom(html, label) {
   const result = [];
-  const scripts = [...html.matchAll(/<script[^>]+type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)];
+  const scripts = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
   for (const match of scripts) {
     try { result.push(...collectSchemaTypes(JSON.parse(match[1]))); }
     catch { fail(label + ' contains invalid JSON-LD'); }
