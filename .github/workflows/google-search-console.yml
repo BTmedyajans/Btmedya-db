@@ -1,17 +1,10 @@
 name: BTMEDYA Google Search Console
 
+# Automated sitemap submission and URL inspection live in
+# seo-search-console-sync.yml. Keep this workflow manual to avoid duplicate
+# daily/push submissions; it remains useful for on-demand endpoint diagnostics.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "public/**"
-      - "src/news-page.js"
-      - "src/worker.js"
-      - "tools/google-search-console.py"
-      - ".github/workflows/google-search-console.yml"
-  schedule:
-    - cron: "17 5 * * *"
 
 permissions:
   contents: read
@@ -27,20 +20,26 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          key="57fb863171638cffa9cdfb3913627b57"
           for url in \
             https://btmedya.com.tr/robots.txt \
             https://btmedya.com.tr/sitemap.xml \
             https://btmedya.com.tr/news-sitemap.xml \
-            https://btmedya.com.tr/57fb863171638cffa9cdfb3913627b57.txt; do
-            code="$(curl -LfsS -o /dev/null -w '%{http_code}' "$url")"
+            "https://btmedya.com.tr/${key}.txt"; do
+            code="$(curl -LfsS -o /tmp/btmedya-endpoint.txt -w '%{http_code}' "$url")"
             test "$code" = "200"
+            if [[ "$url" == *"${key}.txt" ]]; then
+              grep -Fxq "$key" /tmp/btmedya-endpoint.txt
+            fi
             echo "OK $code $url"
           done
-          echo "## Live indexing endpoints" >> "$GITHUB_STEP_SUMMARY"
-          echo "- robots.txt: 200" >> "$GITHUB_STEP_SUMMARY"
-          echo "- sitemap.xml: 200" >> "$GITHUB_STEP_SUMMARY"
-          echo "- news-sitemap.xml: 200" >> "$GITHUB_STEP_SUMMARY"
-          echo "- IndexNow key: 200" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## Live indexing endpoints"
+            echo "- robots.txt: 200"
+            echo "- sitemap.xml: 200"
+            echo "- news-sitemap.xml: 200"
+            echo "- IndexNow key: 200 and content matched"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check Google credentials
         id: auth
@@ -80,8 +79,7 @@ jobs:
           {
             echo "## Google Search Console"
             echo ""
-            echo "⚠️ Live robots ve sitemap uçları doğrulandı; Google API otomasyonu henüz yetkilendirilmedi."
+            echo "Live robots, sitemap and IndexNow endpoints passed; Google API automation is not yet authorized."
             echo ""
-            echo "Required: verify btmedya.com.tr in Search Console, add the automation service account as a permitted user/owner, then store its JSON credential in the GitHub Actions secret GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON."
-            echo "After that, this workflow submits both sitemaps and runs URL Inspection automatically."
+            echo "Required: add the automation service account to the verified Search Console property, then save its JSON credential as GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON in GitHub Actions secrets."
           } >> "$GITHUB_STEP_SUMMARY"
