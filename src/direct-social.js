@@ -511,6 +511,58 @@ async function apiSchedule(request,env){
   return j({ok:true,items:jobs},201);
 }
 
+export async function queueDirectSocialPost(env,{
+  title="",body="",mediaKey="",sourceSlug="",platforms=[],scheduledAt="",
+  workspace_type="agency",workspace_id="btmedya",kind="legacy-panel"
+}={}){
+  if(!env.DB) return {ok:false,error:"D1 bağlantısı yok",queued:0};
+  if(!secret(env)) return {ok:false,error:"SOCIAL_TOKEN_ENCRYPTION_KEY eksik",queued:0};
+  await ensureDirectTables(env);
+  const allowed=new Set(["facebook","instagram","tiktok","youtube","x"]);
+  const selected=[...new Set((Array.isArray(platforms)?platforms:[])
+    .map(x=>String(x||"").toLowerCase().trim())
+    .map(x=>x==="twitter"?"x":x.split("-")[0])
+    .filter(x=>allowed.has(x)))];
+  if(!selected.length) return {ok:false,error:"Geçerli doğrudan yayın platformu seçilmedi",queued:0};
+  const when=new Date(scheduledAt||"");
+  if(Number.isNaN(when.getTime())) return {ok:false,error:"Yayın zamanı geçersiz",queued:0};
+  if(when.getTime()<=Date.now()+15000) return {ok:false,error:"Yayın zamanı geçmiş veya çok yakın; gelecekte bir saat seç",queued:0};
+  const slots=selected.map(()=>"?").join(",");
+  const query=await env.DB.prepare(
+    "SELECT id,provider,account_name,status FROM social_direct_connections WHERE workspace_type=? AND workspace_id=? AND status='active' AND provider IN ("+slots+") ORDER BY provider,account_name"
+  ).bind(workspace_type,workspace_id,...selected).all();
+  const connections=query.results||[];
+  const missing=selected.filter(network=>!connections.some(c=>c.provider===network));
+  if(missing.length) return {ok:false,error:"Doğrudan yetkilendirilmiş hesap yok: "+missing.join(", "),missing,queued:0};
+  const key=clean(mediaKey,500);
+  const needsMedia=selected.some(network=>["instagram","tiktok","youtube"].includes(network));
+  if(needsMedia&&!key) return {ok:false,error:"Instagram, TikTok ve YouTube için görsel/video dosyası seçilmeli",queued:0};
+  if(selected.some(network=>["tiktok","youtube"].includes(network))&&!isVideoKey(key))
+    return {ok:false,error:"TikTok ve YouTube doğrudan yayınında MP4/MOV/WebM video gerekli",queued:0};
+  const cleanTitle=clean(title,240);
+  const cleanBody=clean(body,63206);
+  if(!cleanTitle&&!cleanBody) return {ok:false,error:"Yayın metni boş",queued:0};
+  const source=clean(sourceSlug,240)||("native-social:"+cleanTitle.slice(0,80));
+  const hashBytes=await crypto.subtle.digest("SHA-256",new TextEncoder().encode([source,cleanTitle,cleanBody,key,selected.slice().sort().join(",")].join("\n")));
+  const contentHash=Array.from(new Uint8Array(hashBytes),b=>b.toString(16).padStart(2,"0")).join("");
+  const now=new Date().toISOString();
+  const items=[];
+  for(const connection of connections){
+    await env.DB.prepare("UPDATE social_direct_jobs SET status='cancelled',last_error='İçerik yeniden planlandı',updated_at=? WHERE connection_id=? AND source_slug=? AND status='queued' AND content_hash<>?")
+      .bind(now,connection.id,source,contentHash).run().catch(()=>{});
+    const prior=await env.DB.prepare("SELECT id,status,scheduled_at FROM social_direct_jobs WHERE connection_id=? AND source_slug=? AND content_hash=? AND status IN ('queued','publishing','published') LIMIT 1")
+      .bind(connection.id,source,contentHash).first().catch(()=>null);
+    if(prior){items.push({provider:connection.provider,account_name:connection.account_name,status:"duplicate-skipped",id:prior.id});continue;}
+    const id=crypto.randomUUID();
+    await env.DB.prepare("INSERT INTO social_direct_jobs(id,connection_id,title,body,media_key,scheduled_at,status,attempts,external_id,last_error,source_slug,content_hash,kind,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+      .bind(id,connection.id,cleanTitle,cleanBody,key,when.toISOString(),"queued",0,"","",source,contentHash,clean(kind,40)||"legacy-panel",now,now).run();
+    await saveContentTaxonomy(env,"social_job",id,{path_key:"sosyal",group_key:"",item_key:"",secondary_json:"[]"}).catch(()=>{});
+    items.push({id,provider:connection.provider,account_name:connection.account_name,status:"queued",scheduled_at:when.toISOString()});
+  }
+  const queued=items.filter(item=>item.status==="queued").length;
+  return {ok:true,provider:"direct",queued,skipped:items.length-queued,duplicate:queued===0,scheduled_at:when.toISOString(),items};
+}
+
 async function apiJobs(request,env,url){
   if(!(await validSession(request,env)))return j({ok:false,error:"Yetkisiz"},401);
   await ensureDirectTables(env);
