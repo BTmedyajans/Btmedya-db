@@ -4,11 +4,11 @@ Bu belge yalnızca **kanonik production** mimarisini anlatır. Eski Btmedya-Ajan
 
 ## Kanonik zincir
 
-GitHub `BTmedyajans/Btmedya-db` → Cloudflare Workers Builds → Cloudflare Worker `btmedya-db` → `btmedya.com.tr`
+GitHub `BTmedyajans/Btmedya-db` (`main`) → GitHub Actions `.github/workflows/deploy-production.yml` → Wrangler → Cloudflare Worker `btmedya-db` → `btmedya.com.tr`
 
 Medya: Cloudflare R2 `btmedya-media`  
 Veri: Cloudflare D1 `btmedya-media`  
-Eski arşiv: Eski eski R2 `btmedya-r2` (artık kaldırıldı) üretim zincirinden çıkarıldı; aktif medya deposu yalnızca `btmedya-media`
+Eski/boş R2 `btmedya-r2` denetimde nesnesiz bulundu ve kaldırıldı; aktif medya deposu yalnızca `btmedya-media`.
 
 ## Media Vault iş akışı
 
@@ -46,4 +46,4 @@ Lisansı doğrulanmayan üçüncü taraf görsel/video production sitesine alın
 - `GET /api/public/media`
 - `GET /api/news`
 - `/kaynak-masasi/`
-- GitHub Actions `deploy.yml` production smoke testleri
+- GitHub Actions `deploy-production.yml` production smoke testleri; `deploy.yml` yalnızca manuel doğrulama içindir.
