@@ -29,7 +29,7 @@ Source / webhook / RSS / scheduler
   -> CMS draft
   -> Admin approval
   -> Web publish
-  -> Metricool review/schedule
+  -> BTMEDYA native OAuth + Cloudflare social queue; BTMEDYA native Social OS is optional and not required
 ```
 
 ## Yetki seviyeleri
@@ -50,7 +50,7 @@ Source / webhook / RSS / scheduler
 6. Kaynak URL'si her haber kaydında korunur.
 7. AI taslağı kaynakta bulunmayan olgu üretmemelidir.
 8. Her agent işlemi audit log'a yazılır.
-9. Metricool'a gönderim, sosyal ağın gerçekten bağlı olduğu doğrulanmadan yapılmaz.
+9. BTMEDYA native Social OS'a gönderim, sosyal ağın gerçekten bağlı olduğu doğrulanmadan yapılmaz.
 10. Instagram/Facebook bağlantıları tamamlanmadan mevcut TikTok/YouTube yayın zinciri genişletilmez.
 
 ## Admin paneli: Agent Center
@@ -65,7 +65,7 @@ Source / webhook / RSS / scheduler
 - Test sonuçları
 - Haber adayları
 - Sosyal yayın kuyruğu
-- Metricool bağlantıları
+- BTMEDYA native Social OS bağlantıları
 - Cloudflare servis durumu
 - GitHub deploy durumu
 - Audit log
@@ -86,7 +86,7 @@ Autopilot mevcut skor/kategori/kaynak seviyesi politikasını kullanmaya devam e
 
 ## Sosyal yayın
 
-Metricool mevcut yayın katmanıdır. Bağlı olmayan ağlar için yayın isteği oluşturulmaz. Yeni içerik önce sosyal varyasyonlara ayrılır:
+BTMEDYA native Social OS mevcut yayın katmanıdır. Bağlı olmayan ağlar için yayın isteği oluşturulmaz. Yeni içerik önce sosyal varyasyonlara ayrılır:
 
 - Instagram Reel / gönderi
 - Facebook Reel / gönderi
@@ -103,7 +103,7 @@ Platforma özel metin, başlık ve medya oranları Gateway tarafından ayrı haz
 3. Approval + audit tabloları
 4. GitHub branch/diff işlemleri
 5. Cloudflare preview/deploy kontrolü
-6. Metricool Instagram/Facebook bağlantılarının doğrulanması
+6. BTMEDYA native Social OS Instagram/Facebook bağlantılarının doğrulanması
 7. End-to-end test
 8. Kullanıcı onayı
 9. Production'a geçiş
