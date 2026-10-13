@@ -80,7 +80,8 @@ try {
   const cssPath = new URL(homeLink, origin).pathname + new URL(homeLink, origin).search;
   const r = await get(cssPath);
   if (r.status !== 200 || !/text\/css/i.test(r.contentType)) fail(`responsive experience stylesheet unavailable: HTTP ${r.status} ${r.contentType}`);
-  else if (!/@media\s*\(min-width:\s*1024px\)/i.test(r.body) || !/@media\s*\(max-width:\s*760px\)/i.test(r.body)) fail("live stylesheet is missing dedicated desktop/mobile rules");
+  else if (cssPath.includes("btmedya-responsive-experience-v1.css") && (!/@media\s*\(min-width:\s*1024px\)/i.test(r.body) || !/@media\s*\(max-width:\s*760px\)/i.test(r.body))) fail("live stylesheet is missing dedicated desktop/mobile rules");
+  else if (cssPath.includes("mobile-home-experience.css") && (!/@media\s*\(max-width:\s*720px\)/i.test(r.body) || !/@media\s*\(prefers-reduced-motion:\s*reduce\)/i.test(r.body))) fail("live mobile stylesheet is missing small-screen or reduced-motion rules");
   else console.log("PASS: responsive experience stylesheet HTTP 200; responsive rules checked: " + cssPath);
 } catch (e) { fail(`responsive experience stylesheet fetch failed: ${e.message}`); }
 
