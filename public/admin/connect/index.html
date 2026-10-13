@@ -7,6 +7,14 @@
 <div class="card"><div class="row"><b>TikTok</b><span id="ttBadge" class="badge">Kontrol ediliyor</span></div><div id="ttText" class="status">BTMEDYA native Content Posting API</div><div class="actions"><button id="tt">TikTok ile bağla</button></div></div>
 <div class="card"><div class="row"><b>YouTube</b><span id="ytBadge" class="badge">Kontrol ediliyor</span></div><div id="ytText" class="status">BTMEDYA native YouTube Data API</div><div class="actions"><button id="yt">YouTube ile bağla</button></div></div><div class="card"><div class="row"><b>X</b><span id="xBadge" class="badge">Kontrol ediliyor</span></div><div id="xText" class="status">BTMEDYA native X API</div><div class="actions"><button id="x">X ile bağla</button></div></div><div class="card"><div class="row"><b>WhatsApp</b><span id="waBadge" class="badge">Kontrol ediliyor</span></div><div id="waText" class="status">Meta WhatsApp Cloud API</div><div class="actions"><a class="btn" href="/admin/connect/#whatsapp">Yapılandırma durumu</a></div></div>
 <div class="card"><div class="row"><b>Metricool</b><span id="mkBadge" class="badge">Kontrol ediliyor</span></div><div id="mkText" class="status">Yalnızca fallback/legacy dağıtım için tutulur.</div><div class="actions"><a class="btn" href="/admin/social-os/">Social OS'a git</a></div></div>
+<section class="manual" style="grid-column:1/-1">
+<div class="ey">SOCIAL · HESAPLARINI BAĞLA</div>
+<h2>Platform hesaplarını bağla</h2>
+<div class="sub">Hesap yetkilendirmesi yalnızca sağlayıcının resmi izin ekranında yapılır. Parolaların BTMEDYA'ya girilmez. Bağlandıktan sonra hesaplar yayın hedefi olarak seçilebilir.</div>
+<div class="manual-actions"><button class="primary" id="metaConnect" type="button">Facebook + Instagram hesabını bağla</button><button id="tiktokConnect" type="button">TikTok hesabını bağla</button><button id="youtubeConnect" type="button">YouTube kanalını bağla</button><button id="refreshAccounts" type="button">Bağlı hesapları yenile</button></div>
+<div id="connectedAccounts" class="steps"><div class="step">Bağlı hesaplar okunuyor…</div></div>
+<div class="manual-note">Meta, TikTok ve Google OAuth uygulama kimlikleri sunucuda tanımlı olmalı. Eksik anahtarlar olmadan düğmenin bulunması gerçek bağlantı oluşturmaz. Kişisel hesap adresi girmek API yayın yetkisi vermekle aynı şey değildir.</div>
+</section>
 <section class="manual">
 <div class="ey">MANUEL PLATFORM YAPILANDIRMASI</div>
 <h2>Cloudflare API bağlantısı</h2>
@@ -46,6 +54,20 @@ async function load(){
  if(!needs.length)needs.push('Teknik bağlantılar hazır. Sonraki adım hesapları seçip ilk test yayınını yapmak.');
  $('#steps').innerHTML=needs.map((x,i)=>'<div class="step"><b>'+String(i+1).padStart(2,'0')+'</b>'+esc(x)+'</div>').join('');
 }
+
+async function loadConnectedAccounts(){
+ const el=$('#connectedAccounts');if(!el)return;
+ try{
+  const r=await api('/api/social/direct/accounts?workspace_type=company&workspace_id=btmedya');
+  const items=r.data.items||[];
+  if(!items.length){el.innerHTML='<div class="step">Henüz doğrudan bağlanmış hesap yok. Önce hesabı resmi OAuth ekranından bağla.</div>';return}
+  el.innerHTML=items.map(x=>'<div class="step"><div class="row"><b>'+esc(x.account_name||x.provider)+'</b><span class="badge ok">BAĞLI</span></div><div class="small">'+esc(String(x.provider||'').toUpperCase())+(x.handle?' · '+esc(x.handle):'')+(x.token_expires_at?' · Token bitişi: '+esc(new Date(x.token_expires_at).toLocaleDateString('tr-TR')):'')+'</div></div>').join('');
+ }catch(e){el.innerHTML='<div class="step">'+esc(e.message||'Bağlı hesaplar okunamadı')+'</div>'}
+}
+$('#metaConnect').onclick=()=>location.href='/api/social/direct/meta/start?workspace_type=company&workspace_id=btmedya&return_to=%2Fadmin%2Fconnect%2F';
+$('#tiktokConnect').onclick=()=>location.href='/api/social/direct/tiktok/start?workspace_type=company&workspace_id=btmedya';
+$('#youtubeConnect').onclick=()=>location.href='/api/social/direct/youtube/start?workspace_type=company&workspace_id=btmedya';
+$('#refreshAccounts').onclick=loadConnectedAccounts;
 $('#meta').onclick=()=>location.href='/api/social/direct/meta/start?return_to=%2Fadmin%2Fconnect%2F';
 $('#tt').onclick=()=>location.href='/api/social/direct/tiktok/start?workspace_type=company&workspace_id=btmedya';
 $('#yt').onclick=()=>location.href='/api/social/direct/youtube/start?workspace_type=company&workspace_id=btmedya';
@@ -92,7 +114,7 @@ $('#cfDelete').onclick=async()=>{
   const r=await api('/api/admin/manual-integrations',{method:'DELETE'});
   if(r.ok){$('#cfToken').value='';$('#cfStatus').textContent='Manuel bağlantı kaldırıldı.';$('#cfStatus').className='manual-status';}
 };
-loadManualCloudflare().catch(()=>{});
+loadManualCloudflare().catch(()=>{});loadConnectedAccounts().catch(()=>{});
 
 $('#refresh').onclick=load;const q=new URLSearchParams(location.search);if(q.get('saglayici')){const ad={tiktok:'TikTok',youtube:'YouTube',x:'X'}[q.get('saglayici')]||q.get('saglayici');document.querySelector('.sub').textContent=q.get('durum')==='kimlik-eksik'?ad+' doğrudan bağlantısı için uygulama kimliği tanımlı değil ('+q.get('eksik')+'). Bu ağda yayın şimdilik Metricool üzerinden yürüyor; hesabı Metricool > Connections ekranından bağla.':ad+' için doğrudan bağlantı akışı henüz hazır değil; yayın Metricool üzerinden yürüyor.';}if(q.get('tiktok')==='ok'||q.get('youtube')==='ok'||q.get('x')==='ok')document.querySelector('.sub').textContent=(q.get('tiktok')==='ok'?'TikTok':q.get('youtube')==='ok'?'YouTube':'X')+' bağlantısı tamamlandı. Hesap çalışma alanına kaydedildi.';load().catch(e=>$('#steps').innerHTML='<div class="step bad">'+esc(e.message)+'</div>');
 </script></body></html>
