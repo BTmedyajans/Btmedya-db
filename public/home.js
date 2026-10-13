@@ -1149,11 +1149,11 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
       const medya=Array.isArray(medyaApi)?medyaApi:[];
       yaz('haber',haberler.length);
       yaz('medya',medya.length);
-      yaz('video',medya.filter(m=>/\\.(mp4|webm|mov|m4v)$/i.test(m.path||'')).length);
+      yaz('video',medya.filter(m=>/\.(mp4|webm|mov|m4v)$/i.test(m.path||'')).length);
     }
     /* Kanal sayısı tekilleştirilmiş, www ön eki normalize edilmiş profil URL'lerinden hesaplanır. */
     const kanallar=new Set(['instagram.com/btmedyajans','youtube.com/@btmedyaajans','tiktok.com/@btmedya1010']);
-    document.querySelectorAll('a[href*="instagram.com/"],a[href*="youtube.com/@"],a[href*="tiktok.com/@"]').forEach(a=>{try{const u=new URL(a.href);kanallar.add((u.hostname.replace(/^www\\./,'')+u.pathname.split('/').slice(0,2).join('/')).toLowerCase());}catch(e){}});
+    document.querySelectorAll('a[href*="instagram.com/"],a[href*="youtube.com/@"],a[href*="tiktok.com/@"]').forEach(a=>{try{const u=new URL(a.href);kanallar.add((u.hostname.replace(/^www\./,'')+u.pathname.split('/').slice(0,2).join('/')).toLowerCase());}catch(e){}});
     if(document.querySelector('a[href*="facebook.com/"]')) kanallar.add('facebook.com');
     yaz('kanal',kanallar.size);
   }
