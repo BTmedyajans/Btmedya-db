@@ -1,14 +1,16 @@
 name: BTMEDYA Production Verify
 
 on:
-  # Production deploy is handled by Cloudflare Workers Builds on main.
+  # Production deploy is handled by .github/workflows/deploy-production.yml via Wrangler.
+# This repo has no confirmed Cloudflare Workers Builds push-deploy configuration for btmedya-db.
   # This workflow remains available for explicit/manual production verification.
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# Production deployment is owned by Cloudflare Workers Builds; this workflow is verification-only.
+# Production deployment is owned by .github/workflows/deploy-production.yml (GitHub Actions + Wrangler).
+# This workflow is verification-only; do not assume Cloudflare Workers Builds is configured.
 
 concurrency:
   group: btmedya-production-verify
