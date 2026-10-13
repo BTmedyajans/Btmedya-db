@@ -15,6 +15,7 @@ const { default: worker } = await import('../src/worker.js');
 // Statik varlıklar diskten: Worker'ın hangi dosyayı sunduğu gerçek içerikle sınanır.
 const dosya = yol => yol.endsWith('/') ? 'public' + yol + 'index.html' : 'public' + yol;
 const kv = new Map();
+const requestedAssetPaths = [];
 const env = {
   ADMIN_USERNAME: 'BTMEDYA', ADMIN_PASSWORD: 'test-sifresi', ADMIN_SESSION_SECRET: 'test-oturum',
   KV: { get: async k => kv.get(k) ?? null, put: async (k, v) => { kv.set(k, v); }, delete: async k => { kv.delete(k); } },
@@ -23,6 +24,9 @@ const env = {
   MEDIA: { get: async () => null, list: async () => ({ objects: [] }), head: async () => null },
   ASSETS: { fetch: async req => {
     const yol = new URL(req.url).pathname;
+    requestedAssetPaths.push(yol);
+    // Mimic a directory URL redirect so the worker must request the index file explicitly.
+    if (yol === '/admin/giris/') return new Response(null, { status: 302, headers: { location: '/admin/giris/index.html' } });
     try { return new Response(readFileSync(dosya(yol)), { status: 200, headers: { 'content-type': 'text/html; charset=utf-8' } }); }
     catch { return new Response('yok', { status: 404 }); }
   } }
@@ -34,6 +38,7 @@ let r = await istek('/admin/');
 assert.equal(r.status, 401);
 let govde = await r.text();
 assert.match(govde, /<form id="giris"/, '/admin/ oturumsuz okura giriş formu göstermeli');
+assert.ok(requestedAssetPaths.includes('/admin/giris/index.html'), 'Worker giriş HTML dosyasına doğrudan gitmeli; dizin yönlendirmesine güvenmemeli');
 assert.doesNotMatch(govde, /location\.replace\('\/admin\/agency-os/, 'oturumsuz okur yönetim merkezine yönlendirilmemeli (döngü)');
 
 // 2) Oturumsuz alt sayfa: girişe döner, hedef korunur.
