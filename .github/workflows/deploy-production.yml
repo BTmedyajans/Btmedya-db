@@ -181,14 +181,13 @@ jobs:
             exit 1
           fi
 
-          # The live Worker may redirect an anonymous /admin/ request to its login page.
-          # Validate the guard response and then validate the actual login form separately.
-          admin_code="$(curl -sS -H 'Accept: text/html' -D /tmp/btmedya-admin-headers -o /tmp/btmedya-admin.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/ || true)"
-          echo "Smoke diagnostic: admin HTTP $admin_code (expected 401 or login redirect)"
-          if [ "$admin_code" = "401" ]; then
-            grep -q '<form id="giris"' /tmp/btmedya-admin.html
-          elif [ "$admin_code" = "302" ]; then
-            if ! grep -qiE '^location: https://btmedya.com.tr/admin/giris/?([?].*)?
+          # Exercise the real deployed login route, not only the mocked source test.
+          admin_code="$(curl -sS -H 'Accept: text/html' -o /tmp/btmedya-admin.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/ || true)"
+          echo "Smoke diagnostic: admin HTTP $admin_code (expected 401)"
+          if [ "$admin_code" != "401" ] || ! grep -q '<form id="giris"' /tmp/btmedya-admin.html; then
+            echo "::error::Admin login guard smoke test failed: HTTP $admin_code or login form marker missing."
+            exit 1
+          fi
           subroute_code="$(curl -sS -H 'Accept: text/html' -D /tmp/btmedya-admin-headers -o /dev/null -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/agency-os/ || true)"
           echo "Smoke diagnostic: admin/agency-os HTTP $subroute_code (expected 302)"
           if [ "$subroute_code" != "302" ] || ! grep -qiE '^location: https://btmedya.com.tr/admin/\?sonra=' /tmp/btmedya-admin-headers; then
