@@ -5,6 +5,15 @@ import re
 import sys
 
 root = Path(__file__).resolve().parents[1] / "public"
+allow_generated_hero = "--allow-generated-hero" in sys.argv[1:]
+generated_hero = {
+    "assets/media/web/btmedya-hero-mobile-poster.jpg",
+    "assets/media/web/btmedya-hero-mobile.mp4",
+    "assets/media/web/btmedya-hero-mobile.webm",
+    "assets/media/web/btmedya-hero-web-poster.jpg",
+    "assets/media/web/btmedya-hero-web.mp4",
+    "assets/media/web/btmedya-hero-web.webm",
+}
 refs = set()
 for source in root.rglob("*"):
     if source.suffix.lower() not in {".html", ".css", ".js", ".xml", ".txt"}:
@@ -16,7 +25,11 @@ for source in root.rglob("*"):
         if "..." not in match
     )
 
-missing = sorted(path for path in refs if not (root / path).exists())
+missing = sorted(
+    path for path in refs
+    if not (root / path).exists()
+    and not (allow_generated_hero and path in generated_hero)
+)
 if missing:
     print("Missing local production assets:")
     print("\n".join(missing))
