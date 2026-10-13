@@ -1,42 +1,54 @@
 # BTMEDYA Native Social OS — Başlatma Kontrol Listesi
 
-Bu belge, Metricool aboneliğine bağımlı olmadan mevcut Cloudflare Worker + D1 mimarisinde doğrudan sosyal yayın kurulumunu takip eder. Üretim domaini, Worker, D1 ve R2 kaynakları aynen korunur.
+Bu kurulum, Metricool aboneliğine bağımlı olmadan mevcut Cloudflare Worker + D1 mimarisinde doğrudan sosyal yayın yapar. Üretim alan adı, Worker, D1 ve R2 kaynakları korunur.
 
-## Doğrulanan mevcut parçalar
+## Doğrulanmış kod parçaları
 
 - Yönetim paneli: `/admin/social-os/`
+- Bağlantı merkezi: `/admin/connect/`
 - Facebook Page + Instagram Professional OAuth: `src/direct-social.js`
-- Worker Cron üzerinden doğrudan yayın kuyruğu: `processDirectSocialQueue`
-- Secret aktarımı: GitHub Actions iş akışı `.github/workflows/sync-worker-secrets.yml`, `meta` / `native-social` kapsamları.
-- D1'de bağlı hesap bulunmadığı için OAuth tamamlanana kadar yayın gerçekleşemez.
+- TikTok OAuth ve doğrudan yayın kuyruğu: `src/tiktok-direct.js` + `src/direct-social.js`
+- YouTube OAuth ve doğrudan yayın kuyruğu: `src/youtube-direct.js` + `src/direct-social.js`
+- X OAuth ve doğrudan yayın modülü: `src/x-direct.js` + `src/direct-social.js`
+- Cron ile yerel kuyruk: `processDirectSocialQueue`
+- Secret aktarımı: `.github/workflows/sync-worker-secrets.yml`, `native-social` kapsamı
+- Birincil yayın ayarı: `BTMEDYA_SOCIAL_PUBLISHER=direct`
 
-## Sıra
+Kod modüllerinin mevcut olması, OAuth uygulamalarının ve platform hesaplarının bağlandığını tek başına kanıtlamaz. Bağlı hesap yoksa yayın yapılmaz.
 
-1. Meta for Developers içinde BTMEDYA adına uygulama oluştur. App ID ve App Secret'ı GitHub → Settings → Secrets and variables → Actions alanında şu adlarla kaydet:
-   - `BTMEDYA_META_APP_ID`
-   - `BTMEDYA_META_APP_SECRET`
-   - `BTMEDYA_SOCIAL_TOKEN_ENCRYPTION_KEY` (güçlü, rastgele ayrı anahtar)
-2. Meta Login/OAuth redirect URI olarak tam şu adresi ekle: `https://btmedya.com.tr/api/social/direct/meta/callback`
-3. GitHub Actions → **BTMEDYA Sync Worker Secrets** → **Run workflow** → scope `meta`. Bu adım tanımlı GitHub secret'larını mevcut Worker'a aktarır; kod deposuna secret yazılmaz.
-4. Workflow başarılı olduktan sonra `https://btmedya.com.tr/admin/social-os/` sayfasına giriş yap ve **Meta / Facebook + Instagram bağla** seçeneğine bas. Facebook Page ve Instagram Professional hesabı için Meta onayını tamamla.
-5. Önce sadece kendi hesabında düşük riskli test paylaşımı planla. Medya, `/pub/<key>` üzerinden herkese açık olmalı; Instagram için görsel veya video gereklidir. Gerçek post URL'si/ID'si doğrulanmadan yayın başarılı kabul edilmez.
+## Uygulama kimlik bilgilerini ekleme
 
-## TikTok / YouTube sonraki faz
+GitHub > Settings > Secrets and variables > Actions bölümünde yalnızca kullanacağınız sağlayıcılar için aşağıdaki secret'ları tanımlayın:
 
-Ayrı geliştirici uygulaması ve OAuth gerekir. GitHub secret isimleri:
+- Meta: `BTMEDYA_META_APP_ID`, `BTMEDYA_META_APP_SECRET`, tercihen `BTMEDYA_SOCIAL_TOKEN_ENCRYPTION_KEY`
 - TikTok: `BTMEDYA_TIKTOK_CLIENT_KEY`, `BTMEDYA_TIKTOK_CLIENT_SECRET`
 - YouTube: `BTMEDYA_YOUTUBE_CLIENT_ID`, `BTMEDYA_YOUTUBE_CLIENT_SECRET`
+- X (isteğe bağlı): `BTMEDYA_X_CLIENT_ID`, `BTMEDYA_X_CLIENT_SECRET`
 
-Her iki ağ için OAuth redirect URI, sağlayıcının geliştirici konsoluna eklenmelidir:
-- `https://btmedya.com.tr/api/social/direct/tiktok/callback`
-- `https://btmedya.com.tr/api/social/direct/youtube/callback`
+Ardından GitHub Actions > **BTMEDYA Sync Worker Secrets** > **Run workflow** > scope `native-social` seçin. Gizli değerleri issue, sohbet veya kaynak dosyalarına kopyalamayın.
 
-Tüm kimlik bilgileri hazır olduğunda aynı workflow'da `native-social` scope'u seç. TikTok'un kamuya açık yayın için uygulama denetimi/izinleri, YouTube'un OAuth ve API kota/uygunluk şartları geçerlidir.
+## OAuth yönlendirme adresleri
 
-## Güvenlik ve yayın kontrolü
+- Meta: `https://btmedya.com.tr/api/social/direct/meta/callback`
+- TikTok: `https://btmedya.com.tr/api/social/direct/tiktok/callback`
+- YouTube: `https://btmedya.com.tr/api/social/direct/youtube/callback`
 
-- Token, App Secret ve şifreleme anahtarı sohbet, issue, PR ya da kaynak dosyasına yazılmaz.
-- Metricool ile ilgili mevcut bağlantılar ve taslaklar silinmez; bu iş akışı yeni bir ücret başlatmaz.
+İlgili adresi her sağlayıcının geliştirici konsoluna tam eşleşecek şekilde ekleyin. X uygulaması için OAuth akışında belirtilen dönüş adresini kaynak kodla eşleştirin.
+
+## Hesapları yetkilendirme ve test
+
+1. `https://btmedya.com.tr/admin/connect/` sayfasına giriş yapın.
+2. İlgili platformu bağla düğmesine basın ve sağlayıcının resmî izin ekranında onay verin.
+3. Hesapların bağlı durumunu doğrulayın.
+4. `https://btmedya.com.tr/admin/social-os/` sayfasında doğru hesabı seçin; Instagram için görsel/video, TikTok ve YouTube için video ekleyin.
+5. İleri tarihli düşük riskli test gönderisi planlayın. Gerçek platformdaki gönderi bağlantısı veya kimliği görülmeden başarılı saymayın.
+
+## Güvenlik ve platform sınırları
+
+- Facebook için Page; Instagram için Professional/Business/Creator hesabı gerekir.
+- TikTok'un Content Posting API erişimi ve `video.publish` onayı gerekir.
+- YouTube OAuth onayı, Data API erişimi ve kota koşulları geçerlidir.
+- API anahtarları eksikse Connect Merkezi eksik adları gösterir; bunlar kullanıcı parolası değildir.
+- OAuth tokenları Worker/D1 tarafında şifrelenir. Hesap parolası saklanmaz.
+- Önceden Metricool ile tutulan kayıtlar silinmez; yeni birincil yayın yolu Metricool'a çağrı yapmaz.
 - D1/R2, DNS ve mevcut Worker yeniden oluşturulmaz.
-- Kullanıcı hesabını OAuth ile onaylamadan hiç kimse adına yayın yapılmaz.
-- Meta App ID/Secret yoksa sistemin OAuth'u başlatamayacağı açık şekilde bildirilmelidir.
