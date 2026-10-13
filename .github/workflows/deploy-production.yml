@@ -4,13 +4,14 @@ name: BTMEDYA Production Deploy
 on:
   push:
     branches: [main]
+    # Workflow configuration changes must be reviewed and dispatched manually;
+    # do not let this file trigger its own production deployment.
     paths:
       - "src/**"
       - "public/**"
       - "migrations/**"
       - "wrangler.toml"
       - "package.json"
-      - ".github/workflows/deploy-production.yml"
       - ".github/actions/cf-token-sec/**"
       - ".github/workflows/r2-sync.yml"
   workflow_dispatch:
