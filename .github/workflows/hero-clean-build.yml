@@ -84,22 +84,23 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TAG="btmedya-clean-hero-${GITHUB_SHA:0:7}"
+          TAG="btmedya-clean-hero-${GITHUB_SHA:0:7}-run${GITHUB_RUN_ID}-attempt${GITHUB_RUN_ATTEMPT}"
           ASSETS=(
             public/assets/media/web/giris-filmi-clean-genis.mp4
             public/assets/media/web/giris-filmi-clean-genis-poster.jpg
             public/assets/media/web/giris-filmi-clean.mp4
             public/assets/media/web/giris-filmi-clean-poster.jpg
           )
+          # GitHub immutable releases cannot have assets replaced. Use a unique
+          # tag per workflow attempt and fail explicitly if that tag already exists.
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG already exists; refreshing its assets for the same source commit."
-            gh release upload "$TAG" "${ASSETS[@]}" --clobber
-          else
-            gh release create "$TAG" "${ASSETS[@]}" \
-              --title "BTMEDYA Clean Homepage Hero ${GITHUB_SHA:0:7}" \
-              --notes "Generated desktop and mobile homepage hero. Versioned assets from commit ${GITHUB_SHA}." \
-              --target "${GITHUB_SHA}"
+            echo "::error::Immutable release $TAG already exists; refusing to upload into it."
+            exit 1
           fi
+          gh release create "$TAG" "${ASSETS[@]}" \
+            --title "BTMEDYA Clean Homepage Hero ${GITHUB_SHA:0:7} (run ${GITHUB_RUN_ID}.${GITHUB_RUN_ATTEMPT})" \
+            --notes "Generated desktop and mobile homepage hero. Versioned assets from commit ${GITHUB_SHA}; workflow run ${GITHUB_RUN_ID}, attempt ${GITHUB_RUN_ATTEMPT}." \
+            --target "${GITHUB_SHA}"
           echo "Release published: https://github.com/${GITHUB_REPOSITORY}/releases/tag/$TAG"
 
       - name: Commit the generated assets and homepage wiring
