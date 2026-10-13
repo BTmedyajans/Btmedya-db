@@ -168,18 +168,33 @@ jobs:
           test "$ok" = "1"
           cat /tmp/btmedya-health.json
           home_code="$(curl -sS -o /tmp/btmedya-home.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/)"
-          test "$home_code" = "200"
-          grep -q 'BTMEDYA' /tmp/btmedya-home.html
+          echo "Smoke diagnostic: homepage HTTP $home_code"
+          if [ "$home_code" != "200" ] || ! grep -q 'BTMEDYA' /tmp/btmedya-home.html; then
+            echo "::error::Homepage smoke test failed: HTTP $home_code or expected BTMEDYA marker missing."
+            head -c 500 /tmp/btmedya-home.html || true
+            exit 1
+          fi
           www_code="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 https://www.btmedya.com.tr/)"
-          test "$www_code" = "301"
+          echo "Smoke diagnostic: www HTTP $www_code (expected 301)"
+          if [ "$www_code" != "301" ]; then
+            echo "::error::Canonical www redirect failed: expected HTTP 301, got $www_code."
+            exit 1
+          fi
 
           # Exercise the real deployed login route, not only the mocked source test.
           admin_code="$(curl -sS -H 'Accept: text/html' -o /tmp/btmedya-admin.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/ || true)"
-          test "$admin_code" = "401"
-          grep -q '<form id="giris"' /tmp/btmedya-admin.html
+          echo "Smoke diagnostic: admin HTTP $admin_code (expected 401)"
+          if [ "$admin_code" != "401" ] || ! grep -q '<form id="giris"' /tmp/btmedya-admin.html; then
+            echo "::error::Admin login guard smoke test failed: HTTP $admin_code or login form marker missing."
+            exit 1
+          fi
           subroute_code="$(curl -sS -H 'Accept: text/html' -D /tmp/btmedya-admin-headers -o /dev/null -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/agency-os/ || true)"
-          test "$subroute_code" = "302"
-          grep -qiE '^location: https://btmedya.com.tr/admin/\?sonra=' /tmp/btmedya-admin-headers
+          echo "Smoke diagnostic: admin/agency-os HTTP $subroute_code (expected 302)"
+          if [ "$subroute_code" != "302" ] || ! grep -qiE '^location: https://btmedya.com.tr/admin/\?sonra=' /tmp/btmedya-admin-headers; then
+            echo "::error::Admin subroute redirect failed: HTTP $subroute_code or expected Location missing."
+            cat /tmp/btmedya-admin-headers || true
+            exit 1
+          fi
 
           # Search discovery endpoints must be reachable after each production deploy.
           for path in robots.txt sitemap.xml news-sitemap.xml rss.xml; do
