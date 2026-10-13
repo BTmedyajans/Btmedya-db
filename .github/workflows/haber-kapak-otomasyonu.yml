@@ -1,21 +1,8 @@
 name: BTMedya haber kapak otomasyonu
 
-# Üretim zincirinin eksik halkası: Worker (Cloudflare) Python/Pillow
-# çalıştıramadığı için Sabah Masası ve Autopilot otomatik yayınladığında
-# haberin gerçek kapağı üretilemiyordu; kart genel kategori plakası
-# gösteriyordu. Bu iş, canlı yayın akışından kapaksız haberleri bulur,
-# gerçek rakamla kapak üretir ve main'e commit eder. Workers Builds dağıtınca
-# kapakSec (src/worker.js) gerçek kapağı otomatik servis eder.
-#
-# Döngü yok: tetikleyici yalnız zamanlı (schedule) ve manuel (dispatch);
-# push'la kendini tetiklemez. Yalnız public/assets/haber-kapak,
-# public/assets/sosyal-kart, public/data/*.json ve Balıkesir haberleri için
-# indirilen Commons yer fotoğraflarını (tools/temsili-kaynak) yazar.
-
+# Kapaksız haberleri bulur, kapak üretir ve otomasyon PR'ı açar.
 on:
   schedule:
-    # Sabah Masası 05:00 UTC (08:00 İstanbul) çalışır; sonrasında ve gün
-    # içinde Autopilot yayınlarını yakalamak için 6 saatte bir süpürür.
     - cron: "40 5,11,17,23 * * *"
   workflow_dispatch:
 
@@ -48,16 +35,20 @@ jobs:
       - name: Asset referanslarını doğrula
         run: python3 tools/validate-assets.py --allow-generated-hero
 
-      # Yeni kapak dosyaları medya listesine girmezse PR doğrulaması
-      # ("medya-listesi.json guncel degil") otomasyon PR'ını kırar.
+      # Ana sayfa vitrin medyası varsa doğrula; yoksa bilinçli olarak işin
+      # hata vermesini önlemek için dosya varlığı ayrı ve açık bir adımda kontrol edilir.
+      - name: Ana sayfa hero medyasını doğrula
+        run: |
+          test -s public/assets/media/web/btmedya-hero-mobile-poster.jpg
+          test -s public/assets/media/web/btmedya-hero-mobile.mp4
+          test -s public/assets/media/web/btmedya-hero-mobile.webm
+          test -s public/assets/media/web/btmedya-hero-web-poster.jpg
+          test -s public/assets/media/web/btmedya-hero-web.mp4
+          test -s public/assets/media/web/btmedya-hero-web.webm
+
       - name: Medya listesini güncelle
         run: node tools/medya-listesi.mjs
 
-      # main korumalı (PR zorunlu + imzalı commit): doğrudan push reddedilir.
-      # Koşucudaki `git push` da imzasız commit taşıdığı için kural setine
-      # takılıyordu (11 Ekim). Kapaklar GitHub API ile imzalı commit olarak
-      # dönen otomasyon dalına yazılır ve PR açılır; günlük süpervizör turu
-      # açık otomasyon PR'ını birleştirir.
       - name: Üretilen kapakları PR olarak yayınla
         uses: ./.github/actions/imzali-pr
         with:
@@ -65,4 +56,4 @@ jobs:
           yollar: public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json public/data/medya-listesi.json tools/temsili-kaynak
           mesaj: "chore: otomatik haber kapakları üretildi"
           pr_baslik: "chore: otomatik haber kapakları"
-          pr_govde: "BTMEDYA haber kapak otomasyonu, kapaksız yayımlanan haberler için kapak üretti (vurgu rakamları yalnız haber metninden). main korumalı olduğu için doğrudan yazılmaz; bu PR süpervizör turu tarafından birleştirilir."
+          pr_govde: "BTMEDYA haber kapak otomasyonu, kapaksız yayımlanan haberler için kapak üretti."
