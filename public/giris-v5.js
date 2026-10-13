@@ -67,7 +67,9 @@
   };
   const dikeyMi=()=>innerWidth/innerHeight<0.8;
   let p=dikeyMi()?PLAN.dikey:PLAN.genis;
-  const izlendi=(()=>{try{return sessionStorage.getItem('bt-giris-v5')==='1';}catch(e){return false;}})();
+  // Play the intro on every new page load. An earlier media error wrote this
+  // session flag and caused later visits to skip straight to the category panel.
+  const izlendi=false;
   const azHareket=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const katman=document.createElement('div');
@@ -197,7 +199,9 @@
   const oynat=()=>{
     film.muted=true;
     const s=film.play();
-    if(s&&s.catch)s.catch(sonaAtla);
+    // A transient network/codec failure must not replace the full-screen hero
+    // with the category panel. Leave the poster visible and allow the browser retry.
+    if(s&&s.catch)s.catch(()=>{film.poster=p.poster||'';});
   };
 
   // Panel bağlantısı: yönetim panelinde "Giriş filmi" (hero-video) yuvasına
@@ -231,7 +235,7 @@
   film.addEventListener('timeupdate',zaman);
   film.addEventListener('play',()=>requestAnimationFrame(dongu));
   film.addEventListener('ended',bitir);
-  film.addEventListener('error',()=>{bitir();},{once:true});
+  film.addEventListener('error',()=>{film.poster=p.poster||'';film.setAttribute('data-media-error','1');},{once:true});
   addEventListener('keydown',e=>{if(e.key==='Escape')sonaAtla();});
   addEventListener('wheel',e=>{if(!bitti&&e.deltaY>30)sonaAtla();},{passive:true});
   let dokunY=null;
