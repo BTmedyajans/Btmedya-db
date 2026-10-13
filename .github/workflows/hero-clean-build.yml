@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: btmedya-ai-hero-master
@@ -19,10 +20,12 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install FFmpeg
         run: |
@@ -42,8 +45,39 @@ jobs:
         run: |
           set -euo pipefail
           for f in public/assets/media/web/giris-filmi-clean-genis.mp4 public/assets/media/web/giris-filmi-clean.mp4; do
-            ffprobe -v error -show_entries format=duration -of csv=p=0 "$f"
+            ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -show_entries format=duration -of default=noprint_wrappers=1 "$f"
           done
+
+      - name: Connect homepage to the generated assets
+        env:
+          HERO_VERSION: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          p = Path("public/index.html")
+          s = p.read_text(encoding="utf-8")
+          version = os.environ["HERO_VERSION"][:7]
+          replacements = {
+            "/assets/media/web/btmedya-tanitim-v5-dikey-poster.jpg": "/assets/media/web/giris-filmi-clean-poster.jpg?v=" + version,
+            "/assets/media/web/btmedya-tanitim-v5-genis-poster.jpg": "/assets/media/web/giris-filmi-clean-genis-poster.jpg?v=" + version,
+            "/assets/media/web/btmedya-tanitim-v5-genis.mp4?v=20261011-s": "/assets/media/web/giris-filmi-clean-genis.mp4?v=" + version,
+            "/assets/media/web/btmedya-tanitim-v5-dikey.mp4?v=20261011-s": "/assets/media/web/giris-filmi-clean.mp4?v=" + version,
+            "/assets/media/web/btmedya-tanitim-v5-genis.webm?v=20261011-s": "",
+            "/assets/media/web/btmedya-tanitim-v5-dikey.webm?v=20261011-s": "",
+          }
+          for old, new in replacements.items():
+            if old not in s:
+              raise SystemExit("Expected homepage reference missing: " + old)
+            s = s.replace(old, new)
+          p.write_text(s, encoding="utf-8")
+          print("Homepage now references the generated clean desktop/mobile videos and posters.")
+          PY
+          grep -q 'data-genis="/assets/media/web/giris-filmi-clean-genis.mp4?v=' public/index.html
+          grep -q 'data-dikey="/assets/media/web/giris-filmi-clean.mp4?v=' public/index.html
+          grep -q 'giris-filmi-clean-genis-poster.jpg' public/index.html
+          grep -q 'giris-filmi-clean-poster.jpg' public/index.html
 
       - name: Publish immutable versioned release
         env:
@@ -60,3 +94,27 @@ jobs:
             --notes "Generated desktop and mobile homepage hero. Immutable, versioned assets from commit ${GITHUB_SHA}." \
             --target "${GITHUB_SHA}"
           echo "Release published: https://github.com/${GITHUB_REPOSITORY}/releases/tag/$TAG"
+
+      - name: Commit the generated assets and homepage wiring
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/index.html \
+            public/assets/media/web/giris-filmi-clean-genis.mp4 \
+            public/assets/media/web/giris-filmi-clean-genis-poster.jpg \
+            public/assets/media/web/giris-filmi-clean.mp4 \
+            public/assets/media/web/giris-filmi-clean-poster.jpg
+          git commit -m "fix: connect generated clean hero assets to homepage"
+          git push origin HEAD:main
+          echo "Homepage and generated assets committed to main."
+
+      - name: Dispatch production deploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run deploy-production.yml --ref main
+          echo "Production deploy explicitly dispatched; GITHUB_TOKEN pushes do not trigger push workflows by themselves."
