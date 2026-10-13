@@ -64,7 +64,7 @@ jobs:
       - name: Submit sitemaps to Google Search Console
         if: ${{ steps.gsc_auth.outcome == 'success' }}
         env:
-          GSC_PROPERTY: ${{ secrets.GSC_PROPERTY || 'sc-domain:btmedya.com.tr' }}
+          GSC_PROPERTY: ${{ secrets.GSC_PROPERTY || 'https://btmedya.com.tr/' }}
         run: |
           set -euo pipefail
           python3 - "$GSC_PROPERTY" <<'PY'
@@ -77,6 +77,59 @@ jobs:
               request=urllib.request.Request(url,method="PUT",headers={"Authorization":f"Bearer {token}"})
               with urllib.request.urlopen(request) as response: print("GSC_SITEMAP_OK",sitemap,response.status)
           PY
+      - name: Inspect priority URLs in Google Search Console
+        if: ${{ steps.gsc_auth.outcome == 'success' }}
+        env:
+          GSC_PROPERTY: ${{ secrets.GSC_PROPERTY || 'https://btmedya.com.tr/' }}
+        run: |
+          set -euo pipefail
+          python3 - "$GSC_PROPERTY" <<'PY'
+          import json, sys, urllib.request, urllib.error
+          from pathlib import Path
+
+          site = sys.argv[1].strip()
+          token = Path("/tmp/gsc-token").read_text().strip()
+          urls = [
+              "https://btmedya.com.tr/",
+              "https://btmedya.com.tr/haberler/",
+              "https://btmedya.com.tr/hizmetler/",
+              "https://btmedya.com.tr/video-produksiyon/",
+          ]
+          fields = (
+              "verdict", "coverageState", "robotsTxtState", "indexingState",
+              "pageFetchState", "lastCrawlTime", "googleCanonical", "userCanonical"
+          )
+          for page in urls:
+              payload = json.dumps({
+                  "inspectionUrl": page,
+                  "siteUrl": site,
+                  "languageCode": "tr-TR"
+              }).encode()
+              request = urllib.request.Request(
+                  "https://searchconsole.googleapis.com/v1/urlInspection/index:inspect",
+                  data=payload,
+                  method="POST",
+                  headers={
+                      "Authorization": f"Bearer {token}",
+                      "Content-Type": "application/json"
+                  }
+              )
+              try:
+                  with urllib.request.urlopen(request, timeout=30) as response:
+                      data = json.load(response)
+              except urllib.error.HTTPError as error:
+                  detail = error.read().decode("utf-8", "replace")[:800]
+                  print("GSC_URL_INSPECTION_ERROR", page, error.code, detail)
+                  raise
+              status = data.get("inspectionResult", {}).get("indexStatusResult", {})
+              print("GSC_URL_INSPECTION", page, json.dumps(
+                  {key: status.get(key) for key in fields},
+                  ensure_ascii=False, sort_keys=True
+              ))
+          PY
+
       - name: Explain optional Google setup
-        if: ${{ always() && steps.gsc_auth.outcome != 'success' }}
-        run: echo "GSC audit active; automatic sitemap submission remains disabled until GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON is configured in GitHub Secrets."
+        if: ${{ always() && steps.gsc_auth.outcome == 'skipped' }}
+        run: |
+          echo "::notice::Google Search Console sitemap submission and URL inspection are skipped because GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON is not configured."
+          echo "GSC_AUTH_SKIPPED: add the service-account JSON as a GitHub Actions secret to enable Google API checks."
