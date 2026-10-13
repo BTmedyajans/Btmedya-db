@@ -16,8 +16,8 @@ import { ensureBtmedyaCore, btmedyaCoreApi } from "./btmedya-core.js";
 import { siteOsApi, runSiteOsChecks } from "./site-os.js";
 import { windsorAnalyticsApi } from "./windsor-analytics.js";
 import { manualIntegrationApi } from "./manual-integrations.js";
-// Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
-// src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
+// Primary "Planlandı" posts use the native direct OAuth queue. The
+// Metricool scheduler remains only for explicitly selected legacy mode.
 import { processMetricoolQueue, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
 import { processDirectSocialQueue, directSocialApi, queueAutopilotSocial, queueDirectSocialPost } from "./direct-social.js";
 import { bufferSocialApi, queueBufferSocialPost } from "./buffer-social.js";
@@ -1243,7 +1243,7 @@ async function socialApi(request, env, url, ctx){
     const platforms=normalizeSocialPlatforms(b.platforms);
     const platformCheck=socialPlatformCheck(env,platforms);
     if(platformCheck.unknown.length) return json({ok:false,error:'Desteklenmeyen sosyal platformu',platforms:platformCheck.unknown},400);
-    if(status==='planlandi' && platformCheck.disconnected.length) return json({ok:false,error:'Metricool bağlantısı doğrulanmamış ağ: '+platformCheck.disconnected.join(', '),disconnected:platformCheck.disconnected},409);
+    if(status==='planlandi' && platformCheck.disconnected.length) return json({ok:false,error:'Seçilen yayın sağlayıcısında bağlı olmayan ağ: '+platformCheck.disconnected.join(', '),disconnected:platformCheck.disconnected},409);
     if(status==='planlandi' && !platforms.length) return json({ok:false,error:'Planlanan gönderi için en az bir sosyal platform seçilmelidir'},400);
 
     const now=new Date().toISOString();
@@ -1346,7 +1346,7 @@ async function socialApi(request, env, url, ctx){
     const platforms=normalizeSocialPlatforms(JSON.parse(row.platforms||'[]'));
     const platformCheck=socialPlatformCheck(env,platforms);
     if(platformCheck.unknown.length) return json({ok:false,error:'Desteklenmeyen sosyal platformu',platforms:platformCheck.unknown},400);
-    if(platformCheck.disconnected.length) return json({ok:false,error:'Metricool bağlantısı doğrulanmamış ağ: '+platformCheck.disconnected.join(', '),disconnected:platformCheck.disconnected},409);
+    if(platformCheck.disconnected.length) return json({ok:false,error:'Seçilen yayın sağlayıcısında bağlı olmayan ağ: '+platformCheck.disconnected.join(', '),disconnected:platformCheck.disconnected},409);
     if(!platforms.length) return json({ok:false,error:'En az bir sosyal platform seçilmelidir'},400);
     if(!row.media_key && platforms.some(p=>SOCIAL_PLATFORM_NETWORK[p] && ['instagram','tiktok','youtube'].includes(SOCIAL_PLATFORM_NETWORK[p])))
       return json({ok:false,error:'Seçilen platformlar için görsel/video gerekli; medya anahtarı eksik'},400);
@@ -1372,7 +1372,7 @@ async function socialApi(request, env, url, ctx){
     if(!hedef) return json({ok:false,error:'Bulunamadı'},404);
     const hedefPlatformlari=normalizeSocialPlatforms(hedef.platforms?JSON.parse(hedef.platforms||'[]'):[]);
     const platformCheck=socialPlatformCheck(env,hedefPlatformlari);
-    if(status==='planlandi' && platformCheck.disconnected.length) return json({ok:false,error:'Metricool bağlantısı doğrulanmamış ağ: '+platformCheck.disconnected.join(', '),disconnected:platformCheck.disconnected},409);
+    if(status==='planlandi' && platformCheck.disconnected.length) return json({ok:false,error:'Seçilen yayın sağlayıcısında bağlı olmayan ağ: '+platformCheck.disconnected.join(', '),disconnected:platformCheck.disconnected},409);
     if(status==='planlandi' && !hedefPlatformlari.length) return json({ok:false,error:'Planlanan gönderi için en az bir sosyal platform seçilmelidir'},400);
     const now=new Date().toISOString();
     let r;
@@ -1914,15 +1914,15 @@ function routePlan({mime='',width=0,height=0,duration_s=0,has_audio=0}){
 /* Yayindaki yeni haberlerden sosyal gonderi hazirlar.
    Gorsel: haberin 4:5 JPEG sosyal karti (Instagram webp kabul etmez);
    kart yoksa kapak. Metin: baslik + spot + haber adresi + kunye + etiket.
-   Otomatik planlama panelden acilir ve yalniz Metricool anahtari varken
-   ve haber taze ise calisir; aksi halde gonderi "onayda" bekler. */
+   Otomatik planlama panelden acilir. Dogrudan OAuth ile bagli hedef yoksa
+   gonderi "onayda" bekler; Metricool anahtari gerekmez. */
 function sosyalPlatformlariMedyaIleUyumla(platformlar, mediaKey){
   const isVideo=/\.(mp4|mov|m4v|webm)(?:$|\?)/i.test(String(mediaKey||''));
   return [...new Set((Array.isArray(platformlar)?platformlar:[]).map(String).map(p=>{
     if(p==='instagram-post' && isVideo) return 'instagram-reel';
     return p;
   }).filter(p=>{
-    // Metricool YouTube only accepts video uploads; image-only news cards stay on TikTok/other image-capable networks.
+    // TikTok and YouTube require video uploads; image-only news cards stay on image-capable networks.
     if((p==='youtube'||p==='youtube-short') && !isVideo) return false;
     return true;
   }))];
@@ -2057,7 +2057,7 @@ export default { async scheduled(controller, env, ctx){
 
   if(cron==="*/5 * * * *"){
     // Native Direct Social queue runs on every five-minute tick. It does not
-    // require a Metricool API token; each destination must have completed its
+    // require a Metricool API token; every destination must have completed its
     // own official OAuth connection in the admin panel.
     try{
       const delivery=await processDirectSocialQueue(env,10);
