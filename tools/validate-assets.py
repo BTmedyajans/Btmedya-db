@@ -32,7 +32,7 @@ missing = sorted(
     if not (root / path).exists()
     and not (allow_generated_hero and path in generated_hero)
 )
-if require_generated_hero and not allow_generated_hero:
+if require_generated_hero:
     missing.extend(path for path in sorted(generated_hero) if not (root / path).exists())
     missing = sorted(set(missing))
 if missing:
