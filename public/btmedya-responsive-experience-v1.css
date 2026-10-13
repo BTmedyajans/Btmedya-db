@@ -74,6 +74,9 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* MOBILE: thumb-friendly navigation, compact vertical scan and safe-area clearance. */
 @media (max-width:760px){
+  /* The desktop story progress cue becomes a stray floating label in the mobile flow. */
+  .story-scroll,.story-progress{display:none!important}
+
   :root{--bt-exp-gutter:16px}
   html{scroll-padding-top:74px}
   #icerik{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
