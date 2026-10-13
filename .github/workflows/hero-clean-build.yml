@@ -80,8 +80,25 @@ jobs:
             --target "${GITHUB_SHA}"
           echo "Release published: https://github.com/${GITHUB_REPOSITORY}/releases/tag/$TAG"
 
-      - name: Confirm rolling release publication
+      - name: Verify release assets and rolling download URLs
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          echo "New desktop/mobile hero assets are published in an immutable GitHub Release."
-          echo "Homepage URLs use /releases/latest/download/, so the newest release is used without committing binary assets or bypassing branch protections."
+          TAG="btmedya-clean-hero-${GITHUB_SHA:0:7}-run${GITHUB_RUN_ID}-attempt${GITHUB_RUN_ATTEMPT}"
+          EXPECTED=$(printf '%s\n' \
+            giris-filmi-clean-genis.mp4 \
+            giris-filmi-clean-genis-poster.jpg \
+            giris-filmi-clean.mp4 \
+            giris-filmi-clean-poster.jpg | sort)
+          ACTUAL=$(gh release view "$TAG" --json assets --jq '.assets[].name' | sort)
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "::error::Release asset verification failed."
+            printf 'Expected assets:\n%s\nActual assets:\n%s\n' "$EXPECTED" "$ACTUAL"
+            exit 1
+          fi
+          for asset in giris-filmi-clean-genis.mp4 giris-filmi-clean.mp4 giris-filmi-clean-genis-poster.jpg giris-filmi-clean-poster.jpg; do
+            curl --fail --silent --show-error --location --head --max-redirs 5 \
+              "https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/$asset" >/dev/null
+          done
+          echo "Verified all four assets in $TAG and confirmed latest-download URLs resolve."
