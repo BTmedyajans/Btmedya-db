@@ -1,39 +1,55 @@
 # Sosyal yayın zinciri
 
-Panelden yönetilen, haberden sosyal medyaya giden otomatik akış. Kod: `src/sosyal-otomasyon.js`, `src/metricool-scheduler.js`, `autoPrepareSocialDrafts` (`src/worker.js`). Test: `node tools/sosyal-otomasyon-testi.mjs` (PR doğrulamasında çalışır).
+BTMEDYA sosyal yayınları öncelikle kendi OAuth/API bağlantıları, Cloudflare Worker ve D1 kuyruğu üzerinden çalışır. **Metricool aboneliği, tokenı veya Brand ID'si yayın için gerekli değildir.**
 
-## Akış
+Kod: `src/direct-social.js`, `src/social-platforms.js`, `src/sosyal-otomasyon.js`, `autoPrepareSocialDrafts` ve `src/worker.js`. Test: `node tools/sosyal-otomasyon-testi.mjs` ve `node tools/yayin-zinciri-testi.mjs`.
 
-1. Haber panelden yayınlanır.
-2. Cron (5 dakikada bir) yeni haberler için sosyal gönderi hazırlar:
-   - Görsel: `public/assets/sosyal-kart/<slug>.jpg`, 1080×1350 JPEG. Instagram webp kabul etmez.
-   - Metin: başlık, spot, haber adresi, görsel künyesi ve kategoriden türeyen etiketler. 30 günden eski haberde "📌 Arşiv haberi · Ay Yıl" satırı eklenir.
-3. **Otomatik planlama açıksa** ve haber tazeyse (varsayılan 72 saat), gönderi paylaşım saatlerinden ilk boş olana "planlandı" olarak yerleşir. Kapalıysa "onayda" bekler; paneldeki **Onayla ve planla** düğmesi gönderiyi tek tıkla bir sonraki boş saate yerleştirir.
-4. Bir sonraki cron, "planlandı" gönderiyi Metricool'a teslim eder. Panelde "✓ Metricool'a teslim edildi #id" görünür.
-5. Saati geçen teslim edilmiş gönderi panelde "yayınlandı" olur. Yayını Metricool yapar; Metricool tarafındaki sonuç Metricool planlayıcısında görünür.
+## Doğrudan yayın akışı
 
-## Ayarlar (Panel > Sosyal İçerik > Otomatik Yayın Ayarları)
+1. Haber panelde yayınlanır; kalite ve güvenlik kapıları korunur.
+2. Cron (5 dakikada bir) yeni haberler için sosyal taslak hazırlar:
+   - Görsel: `public/assets/sosyal-kart/<slug>.jpg`, 1080×1350 JPEG. Instagram için görsel/video gerekir.
+   - Metin: başlık, spot, haber adresi, görsel künyesi ve kategoriden türeyen etiketler. Eski haberlerde arşiv etiketi eklenir.
+3. Otomatik planlama açıksa ve hedef hesap ilgili platformun resmî OAuth'u ile bağlanmışsa, gönderi boş bir yayın saatine yerleştirilerek D1 içindeki `social_direct_jobs` kuyruğuna girer.
+4. Cloudflare Cron kuyruğu işler ve Facebook Page, Instagram Professional, TikTok Content Posting API, YouTube Data API veya X API'ye doğrudan gönderim yapar.
+5. Gönderi, gerçek sağlayıcı yanıtı ve harici gönderi kimliği doğrulanmadan başarılı kabul edilmez. Başarılı/başarısız iş `social_direct_jobs` tablosunda saklanır; eski sosyal içerik ekranından oluşturulan işler ayrıca `social_posts` durumuyla eşleştirilir.
 
-Ayarlar KV'de tutulur ve dağıtım gerektirmez:
-- Ağlar: yalnız **Metricool'da bağlı** olanları seçin. Bağlı olmayan bir ağ, gönderinin tamamını reddettirir.
-- Paylaşım saatleri: İstanbul saatiyle.
-- Otomatik planlama.
-- Tazelik sınırı.
+## Yönetim ekranları
+
+- Hesap bağlantıları: `/admin/connect/`
+- Doğrudan sosyal yayın, kuyruk ve planlama: `/admin/social-os/`
+- Kontrol merkezi: `/admin/agency-os/`
+
+## OAuth bağlantısı ve gereksinimler
+
+GitHub Actions > **BTMEDYA Sync Worker Secrets** iş akışında `native-social` kapsamı, GitHub Secrets'ta tanımlı resmî uygulama kimliklerini Cloudflare Worker'a aktarır. Değerler kaynak koda veya sohbet alanına yazılmaz.
+
+| Platform | GitHub Secret adları | Koşul |
+|---|---|---|
+| Facebook + Instagram | `BTMEDYA_META_APP_ID`, `BTMEDYA_META_APP_SECRET`, `BTMEDYA_SOCIAL_TOKEN_ENCRYPTION_KEY` | Facebook Page; Instagram Professional/Business/Creator hesabı Meta izinleriyle bağlı |
+| TikTok | `BTMEDYA_TIKTOK_CLIENT_KEY`, `BTMEDYA_TIKTOK_CLIENT_SECRET` | Content Posting API erişimi ve `video.publish` izni |
+| YouTube | `BTMEDYA_YOUTUBE_CLIENT_ID`, `BTMEDYA_YOUTUBE_CLIENT_SECRET` | OAuth onayı, YouTube Data API ve uygun kota |
+| X | `BTMEDYA_X_CLIENT_ID`, `BTMEDYA_X_CLIENT_SECRET` | X Developer uygulaması ve uygun API erişimi |
+
+Bağlantı sırası:
+
+1. Sağlayıcının geliştirici portalında uygulama oluşturun ve kimlik bilgilerini GitHub Secrets'a kaydedin.
+2. Sync Worker Secrets iş akışını `native-social` kapsamıyla çalıştırın.
+3. `/admin/connect/` içinde resmî OAuth ekranını tamamlayın.
+4. `/admin/social-os/` içinde bağlı hesabı kontrol edip düşük riskli bir test gönderisi planlayın.
+5. Platformda oluşan gerçek gönderiyi doğrulayın.
+
+TikTok ve YouTube doğrudan yayınında video gerekir. Facebook kişisel profiline otomatik gönderim desteklenmez; Facebook Page gerekir. Instagram için Professional hesap gerekir. Profil URL'sinin sitede bulunması otomatik yayın yetkisi anlamına gelmez.
 
 ## Görsel kartlar
 
 Görsel kartlar `python3 tools/haber-kapagi.py <slug>` çalıştırıldığında otomatik üretilir. Yalnız kartı yenilemek için: `python3 tools/sosyal-kart.py <slug>`.
 
-Kartın üzerindeki etiket `public/data/haber-kapak-kaynagi.json` dosyasından gelir: GERÇEK ÇEKİM, TEMSİLİ FOTOĞRAF, ARŞİV FOTOĞRAFI, BTMEDYA GRAFİK veya AI ÜRETİMİ. Metricool'a giden AI beyanı (`isAiGenerated` / `isAigc`) da aynı dosyadan okunur.
+Kartın üzerindeki etiket `public/data/haber-kapak-kaynagi.json` dosyasından gelir: GERÇEK ÇEKİM, TEMSİLİ FOTOĞRAF, ARŞİV FOTOĞRAFI, BTMEDYA GRAFİK veya AI ÜRETİMİ. Resmî platformların AI içerik beyanları aynı medya künyesini kullanır.
 
-## Dış teslim
+## Geçiş ve geriye dönük kayıtlar
 
-Metricool'a Worker dışından planlanan gönderi, panel kuyruğuna `metricool_id` ile kaydedilir (`POST /api/admin/social`). Böylece anahtar eklendiğinde kuyruk aynı gönderiyi ikinci kez teslim etmez.
-
-## Gerekenler
-
-- **Worker → Metricool:** GitHub secret `BTMEDYA_METRICOOL_USER_TOKEN`. `sync-worker-secrets` iş akışı bunu Worker'a taşır. Anahtar yokken taslaklar hazırlanır ama teslim edilmez; panel bunu kırmızı uyarıyla gösterir.
-- **Instagram / Facebook:** Metricool > Connections'ta hesap bağlanmalıdır (OAuth, tarayıcıda). Bağlandıktan sonra ağı panel ayarlarından işaretleyin.
+Önceki Metricool yayın kayıtları ve `social_posts` içeriği silinmez. Ancak `wrangler.toml` içinde `BTMEDYA_SOCIAL_PUBLISHER = "direct"` birincil modu seçildiğinden yeni planlı gönderiler doğrudan yayın kuyruğuna alınır. Metricool tokenı yokluğu yayın akışını durdurmaz. Eski teslim kayıtları yalnızca geçmişi inceleme/legacy fallback amacıyla kalabilir.
 
 ## Sabah Masası (her gün 08:00)
 
