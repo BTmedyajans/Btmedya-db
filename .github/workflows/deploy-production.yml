@@ -13,6 +13,14 @@ on:
       - ".github/workflows/deploy-production.yml"
       - ".github/actions/cf-token-sec/**"
       - ".github/workflows/r2-sync.yml"
+      - "tools/repair-cover-fotos.py"
+      - "tools/validate-assets.py"
+      - "tools/sosyal-otomasyon-testi.mjs"
+      - "tools/yayin-zinciri-testi.mjs"
+      - "tools/gerileme-denetimi.mjs"
+      - "tools/link-denetimi.mjs"
+      - "tools/mobile-regression-gate.mjs"
+      - "tools/ux-seo-contract.mjs"
   workflow_dispatch:
 
 permissions:
