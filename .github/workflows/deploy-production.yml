@@ -21,6 +21,7 @@ on:
       - "tools/link-denetimi.mjs"
       - "tools/mobile-regression-gate.mjs"
       - "tools/ux-seo-contract.mjs"
+      - "tools/admin-giris-testi.mjs"
   workflow_dispatch:
 
 permissions:
@@ -91,6 +92,7 @@ jobs:
           # Validate all authored paths, followed by checks for the generated hero deliverables.
           python3 tools/repair-cover-fotos.py
           python3 tools/validate-assets.py
+          node tools/admin-giris-testi.mjs
           for asset in public/assets/media/web/btmedya-hero-mobile.mp4 public/assets/media/web/btmedya-hero-mobile.webm public/assets/media/web/btmedya-hero-mobile-poster.jpg public/assets/media/web/btmedya-hero-web.mp4 public/assets/media/web/btmedya-hero-web.webm public/assets/media/web/btmedya-hero-web-poster.jpg; do test -s "$asset"; done
           node tools/sosyal-otomasyon-testi.mjs
           node tools/yayin-zinciri-testi.mjs
