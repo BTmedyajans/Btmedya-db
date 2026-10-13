@@ -95,6 +95,18 @@ for (const vp of viewports) {
         const kaynakTamam=sourcePath.endsWith(beklenen[0])||(v5&&sourcePath.endsWith('/assets/media/web/btmedya-hero-mobile.webm'));
         if(!kaynakTamam) failures.push('mobile home hero selected unexpected film source '+(sourcePath||'NONE'));
         if(!posterPath.endsWith(beklenen[1])) failures.push('mobile home hero selected unexpected poster '+(posterPath||'NONE'));
+        // Source attributes alone can look correct while the video request is
+        // blocked or decoding fails. Require an actual decoded first frame.
+        await page.waitForFunction(sel => {
+          const v=document.querySelector(sel);
+          return !!(v && ((v.readyState>=2 && v.videoWidth>0 && v.videoHeight>0) || v.error));
+        }, v5?'[data-giris-v5] video':'.bt-clean-hero-video', {timeout:15000}).catch(()=>null);
+        const playback=await heroVideo.evaluate(v=>({
+          readyState:v.readyState, width:v.videoWidth, height:v.videoHeight,
+          errorCode:v.error?.code||0, errorMessage:v.error?.message||''
+        }));
+        if(playback.errorCode || playback.readyState<2 || playback.width<1 || playback.height<1)
+          failures.push('mobile home hero did not decode a frame '+JSON.stringify(playback));
         if(v5){
           const hedefler=new Set(media.alanlar.map(a=>a.href));
           if(media.alanlar.length<3||media.alanlar.some(a=>!a.ad)||!['/haberler/','/sosyal-medya/','/video-produksiyon/'].every(h=>hedefler.has(h)))
