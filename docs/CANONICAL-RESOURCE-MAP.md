@@ -18,7 +18,7 @@ GitHub -> Cloudflare Worker -> D1/R2 -> btmedya.com.tr is the canonical producti
 
 - Current main head: `71bbf648967bb6696344de5416986c59dde547cf`
 - Latest main change: `Update social-feed.json (#142)`
-- Cloudflare Workers Builds remains the canonical production deploy engine.
+- Canonical deploy engine: GitHub Actions `.github/workflows/deploy-production.yml` runs validation, deploys with Wrangler, then smoke-tests `btmedya-db`. Cloudflare Workers Builds is not configured for this Worker.
 - GitHub Actions production verification is a gate and smoke-test layer, not a replacement deploy engine.
 - The deployment watchdog compares `/api/health` -> `surum.yuklendi` with the main commit timestamp and opens an issue if production falls behind.
 - Metricool Brand `6858384` is authenticated through the connected Metricool account. Live Metricool verification on 5 Ekim 2026 returned timezone `Europe/Istanbul`, TikTok `btmedya1010` and YouTube channel `UCGyRifwCyrKJQAbmo4uoO9g`; the verified publishing networks are TikTok and YouTube. Instagram/Facebook are not treated as connected by the Worker until Metricool itself confirms them. There are currently no scheduled posts on this Brand.
