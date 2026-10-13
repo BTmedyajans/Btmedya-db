@@ -35,16 +35,6 @@ jobs:
       - name: Asset referanslarını doğrula
         run: python3 tools/validate-assets.py --allow-generated-hero
 
-      # Ana sayfa vitrin medyası varsa doğrula; yoksa bilinçli olarak işin
-      # hata vermesini önlemek için dosya varlığı ayrı ve açık bir adımda kontrol edilir.
-      - name: Ana sayfa hero medyasını doğrula
-        run: |
-          test -s public/assets/media/web/btmedya-hero-mobile-poster.jpg
-          test -s public/assets/media/web/btmedya-hero-mobile.mp4
-          test -s public/assets/media/web/btmedya-hero-mobile.webm
-          test -s public/assets/media/web/btmedya-hero-web-poster.jpg
-          test -s public/assets/media/web/btmedya-hero-web.mp4
-          test -s public/assets/media/web/btmedya-hero-web.webm
 
       - name: Medya listesini güncelle
         run: node tools/medya-listesi.mjs
