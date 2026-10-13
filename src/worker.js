@@ -1053,7 +1053,7 @@ async function controlCenterApi(request, env, url){
     integrations:{
       izap:{status:'external_connector',assistant:'busetuncay74',note:'WhatsApp/iZap operasyon asistanı yapılandırıldı; Worker doğrudan iZap sırrı tutmaz.'},
       cmsOpenData:{status:'assistant_connector',note:'CMS Open Data resmi veri sorguları Control Center/ChatGPT tarafında kullanılabilir; Worker içine Medicare verisi gömülmez.'},
-      github:{status:'deployment_pipeline',note:'main dalı üzerinden Cloudflare Workers Builds deploy zinciri kullanılır.'}
+      github:{status:'deployment_pipeline',note:'main dalı GitHub Actions deploy-production.yml üzerinden Wrangler ile btmedya-db Worker\'ına dağıtılır.'}
     },
     nextActions:[
       !env.ADMIN_PASSWORD_SECRET?'Cloudflare Worker secret: ADMIN_PASSWORD_SECRET ekle':null,
@@ -1067,10 +1067,9 @@ async function controlCenterApi(request, env, url){
   });
 }
 
-/* Canlidaki Worker surumu. Workers Builds basarisiz olursa eski surum
-   calismaya devam eder ve site "calisiyor" gorunur; tek iz bu zamanin
-   son commit'in gerisinde kalmasidir. Baglama wrangler.toml'da
-   [version_metadata] SURUM. */
+/* Canlı Worker sürümü. GitHub Actions deploy-production.yml dağıtımından sonra
+   SURUM version metadata'sı /api/health üzerinden izlenir. Bağlama wrangler.toml'daki
+   [version_metadata] SURUM tanımıdır. */
 function surumBilgisi(env){
   return {id:env.SURUM?.id||null,yuklendi:env.SURUM?.timestamp||null};
 }
@@ -2032,7 +2031,7 @@ async function hydrateR2FromManifest(env, limit=3){
   return result;
 }
 
-/* production-reconcile: keep GitHub main as the sole Cloudflare Workers Builds source of truth. */
+/* production-reconcile: keep GitHub main as the sole production source; deploy-production.yml + Wrangler deploys it. */
 export default { async scheduled(controller, env, ctx){
   const cron=String(controller?.cron||"");
   const scheduledRaw=Number(controller?.scheduledTime||0);
