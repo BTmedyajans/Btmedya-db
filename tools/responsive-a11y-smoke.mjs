@@ -70,8 +70,8 @@ for (const vp of viewports) {
       // The homepage must select the dedicated mobile entrance film, not the
       // wide desktop encode. This catches source-selection regressions without
       // depending on whether headless Chromium can decode the production codec.
-      // Giriş filmi v5: release tabanlı, değişmez medya varlıkları;
-      // film sonunda bölüm paneli (HABER / SOSYAL MEDYA / PRODÜKSİYON).
+      // Giriş filmi v5 uses first-party assets so browsers never depend on
+      // a GitHub release redirect for the initial full-screen video.
       const v5=await page.locator('[data-giris-v5] video').count();
       const heroVideo=page.locator(v5?'[data-giris-v5] video':'.bt-clean-hero-video');
       if(await heroVideo.count()){
@@ -89,10 +89,10 @@ for (const vp of viewports) {
         }));
         const sourcePath=media.source ? new URL(media.source,BASE).pathname : '';
         const posterPath=media.poster ? new URL(media.poster,BASE).pathname : '';
-        const beklenen=v5?['/BTmedyajans/Btmedya-db/releases/latest/download/giris-filmi-clean.mp4','/BTmedyajans/Btmedya-db/releases/latest/download/giris-filmi-clean-poster.jpg']:['/btmedya-ai-film.mp4','/btmedya-ai-film-poster.jpg'];
-        // H.264 çözemeyen Chromium (CI) aynı mobil kurgunun WebM kopyasını
-        // alır (giris-v5.js); ikisi de doğru seçimdir, geniş kurgu değildir.
-        const kaynakTamam=sourcePath.endsWith(beklenen[0])||(v5&&sourcePath.endsWith(beklenen[0].replace(/\.mp4$/,'.webm')));
+        const beklenen=v5?['/assets/media/web/btmedya-hero-mobile.mp4','/assets/media/web/btmedya-hero-mobile-poster.jpg']:['/btmedya-ai-film.mp4','/btmedya-ai-film-poster.jpg'];
+        // H.264 çözemeyen Chromium (CI) uses the local mobile WebM alternative.
+        // Both must remain first-party mobile assets, never the desktop variant.
+        const kaynakTamam=sourcePath.endsWith(beklenen[0])||(v5&&sourcePath.endsWith('/assets/media/web/btmedya-hero-mobile.webm'));
         if(!kaynakTamam) failures.push('mobile home hero selected unexpected film source '+(sourcePath||'NONE'));
         if(!posterPath.endsWith(beklenen[1])) failures.push('mobile home hero selected unexpected poster '+(posterPath||'NONE'));
         if(v5){
@@ -108,10 +108,10 @@ for (const vp of viewports) {
       }
       const toggle=page.locator('#menuToggle');
       if(await toggle.count()){
-        // The homepage intentionally hides navigation during the intro film.
-        // Exercise the real user flow: wait for the film to finish and the
-        // header to become interactive before testing the hamburger menu.
-        await page.waitForFunction(() => document.body.classList.contains('film-bitti') || !document.body.classList.contains('bt-clean-intro-active'), {timeout:30000});
+        // The intro is ~40 seconds. Exercise the user shortcut rather than
+        // waiting 30 seconds for natural completion in a CI smoke test.
+        await page.keyboard.press('Escape');
+        await page.waitForFunction(() => document.body.classList.contains('film-bitti') || !document.body.classList.contains('bt-clean-intro-active'), {timeout:5000});
         await toggle.waitFor({state:'visible',timeout:5000});
         await toggle.click();
         await page.waitForTimeout(120);
