@@ -12,7 +12,7 @@ const report = [];
 function fail(message) { failures.push(message); console.error("FAIL:", message); }
 function warn(message) { warnings.push(message); console.warn("WARN:", message); }
 function attr(tag, name) {
-  const re = new RegExp("\\b" + name + "\\s*=\\s*([\\x22\\x27])(.*?)\\1", "i");
+  const re = new RegExp("\b" + name + "\\s*=\\s*([\\x22\\x27])(.*?)\\1", "i");
   return (tag.match(re) || [])[2] || "";
 }
 function metaContent(html, key) {
@@ -64,9 +64,9 @@ for (const path of pages) {
       const h1Text = (h1Matches[0]?.[1] || "").replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim().toLocaleLowerCase("tr-TR");
       if (h1Matches.length !== 1 || !h1Text.includes("balıkesir") || !h1Text.includes("medya") || !h1Text.includes("prodüksiyon")) fail(`homepage live H1 missing or mismatched: ${h1Text || "(empty)"}`);
       else console.log("PASS: homepage live H1 matches the local news/media/production intent");
-      const linkedStylesheets = (r.body.match(/<link\\b[^>]*>/gi) || [])
+      const linkedStylesheets = (r.body.match(/<link\b[^>]*>/gi) || [])
         .map(tag => attr(tag, "href"))
-        .filter(href => href && /\\.css(?:\\?|$)/i.test(href));
+        .filter(href => href && /\.css(?:\?|$)/i.test(href));
       const responsiveLinks = linkedStylesheets.filter(href => /responsive|mobile|giris-v5|ana-sade/i.test(href));
       if (!linkedStylesheets.length) fail("homepage has no linked CSS stylesheets");
       else console.log("PASS: homepage links " + linkedStylesheets.length + " CSS stylesheets");
@@ -81,9 +81,9 @@ for (const path of pages) {
 
 try {
   const home = await get("/");
-  const linkedStylesheets = (home.body.match(/<link\\b[^>]*>/gi) || [])
+  const linkedStylesheets = (home.body.match(/<link\b[^>]*>/gi) || [])
     .map(tag => attr(tag, "href"))
-    .filter(href => href && /\\.css(?:\\?|$)/i.test(href));
+    .filter(href => href && /\.css(?:\?|$)/i.test(href));
   const candidates = linkedStylesheets.filter(href => /responsive|mobile|giris-v5|ana-sade/i.test(href));
   if (home.status < 200 || home.status >= 300) throw new Error("Homepage returned HTTP " + home.status);
   if (!candidates.length) throw new Error("No likely responsive CSS found; linked CSS: " + linkedStylesheets.join(", "));
