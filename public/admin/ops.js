@@ -67,20 +67,28 @@
     const box=$('#opsTools');if(!box)return;
     let cc=null;
     try{cc=await json('/api/admin/control-center')}catch(e){}
-    const social=(cc&&cc.social)||{};
+    const [providerData,accountData,automationData]=await Promise.all([
+      json('/api/social/direct/providers').catch(function(){return {providers:[]}}),
+      json('/api/social/direct/accounts?workspace_type=agency&workspace_id=btmedya').catch(function(){return {items:[]}}),
+      json('/api/social/direct/automation?workspace_type=agency&workspace_id=btmedya').catch(function(){return {automation:null}})
+    ]);
+    const providerRows=providerData.providers||[];
+    const directAccounts=accountData.items||[];
     const status=function(name){
-      const s=social[name]||{};
-      if(s.configured)return {txt:'● bağlı + Worker hazır',cls:'ops-ok'};
-      if(s.connected)return {txt:'● hesap bağlı · Worker bekliyor',cls:'ops-warn'};
-      return {txt:'○ bağlantı doğrulanmadı',cls:'ops-warn'};
+      const provider=providerRows.find(function(p){return p.id===name})||{};
+      const linked=directAccounts.some(function(a){return a.provider===name&&a.status==='active'});
+      if(linked)return {txt:'● doğrudan bağlı · yerel yayın hazır',cls:'ops-ok'};
+      if(!provider.ready)return {txt:'○ doğrudan API kurulumu gerekli'+(provider.missing&&provider.missing.length?' · '+provider.missing.join(', '):''),cls:'ops-warn'};
+      return {txt:'○ resmî OAuth ekranından hesap bağlanmalı',cls:'ops-warn'};
     };
-    const metricool=cc&&cc.metricool&&cc.metricool.yapilandirildi
-      ?{txt:'● Worker token hazır',cls:'ops-ok'}
-      :{txt:'○ Worker secret bekliyor',cls:'ops-warn'};
+    const automation=automationData.automation||{};
+    const nativePublisher=automationData.automation
+      ?{txt:'● yerel kuyruk · '+Number(automation.queue||0)+' bekleyen gönderi',cls:'ops-ok'}
+      :{txt:'○ yerel yayın kuyruğu kontrol edilmeli',cls:'ops-warn'};
     const items=[
       ['GitHub','Production repo + Actions','● bağlı','connected','https://github.com/BTmedyajans/Btmedya-db'],
       ['Cloudflare','Worker / D1 / R2 production',cc&&cc.storage&&cc.storage.d1&&cc.storage.r2?'● D1 + R2 hazır':'⚠ altyapı kontrolü gerekli','connected','https://dash.cloudflare.com/'],
-      ['Metricool','Sosyal yayın + analitik',metricool.txt,metricool.cls,'https://app.metricool.com/'],
+      ['Native Social OS','Doğrudan OAuth + Cloudflare yayın kuyruğu',nativePublisher.txt,nativePublisher.cls,'/admin/social-os/'],
       ['TikTok','@btmedya1010',status('tiktok').txt,status('tiktok').cls,'https://www.tiktok.com/@btmedya1010'],
       ['YouTube','@BTmedyaAjans',status('youtube').txt,status('youtube').cls,'https://www.youtube.com/@BTmedyaAjans'],
       ['Instagram','@btmedyajans',status('instagram').txt,status('instagram').cls,'https://www.instagram.com/btmedyajans/'],
