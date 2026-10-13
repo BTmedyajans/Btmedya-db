@@ -1,6 +1,6 @@
 # BTMEDYA Tek Üretim Zinciri
 
-Bu depo BTMEDYA'nın tek kanonik web uygulamasıdır. `btmedya-medya` Cloudflare Dashboard'da 10 Ekim 2026'da oluşturulmuş, GitHub kaynak kodu olmayan `Hello world` Worker'ıdır; üretim zincirinde kullanılmaz. Onu bu repo ile dağıtmak amaçlanmamalıdır.
+Bu depo BTMEDYA'nın tek kanonik web uygulamasıdır. 13 Ekim 2026 denetiminde üretimle bağlantısı olmayan, yalnızca `Hello world` döndüren `btmedya-medya` Worker'ı silindi. Üretim Worker'ı yalnızca `btmedya-db` olarak tutulur.
 
 ## 1. Production kaynak gerçeği
 
@@ -11,7 +11,9 @@ GitHub: BTmedyajans/Btmedya-db
         ↓
 main
         ↓
-Cloudflare Workers Builds
+GitHub Actions: deploy-production.yml
+        ↓
+Wrangler deploy
         ↓
 Worker: btmedya-db
         ├── D1: btmedya-media
@@ -82,7 +84,8 @@ Cloudflare production altyapısıdır:
 - D1: yapılandırılmış site verisi
 - R2: web medya kasası
 - DNS: alan adı
-- Workers Builds: production deploy
+- GitHub Actions `deploy-production.yml` + Wrangler: production deploy
+- Cloudflare Workers Builds: bu Worker için yapılandırılmamış
 - Worker Secrets: gizli uygulama anahtarları
 - Cloudflare Access: admin gibi özel alanları koruma
 
@@ -104,14 +107,15 @@ Bu isimlerin dokümantasyonda geçmesi bağlantı kurulduğu anlamına gelmez.
 
 Gerekli zincir:
 
-- `deploy.yml`: ana production deploy/doğrulama
+- `deploy-production.yml`: tek otomatik production deploy + smoke test
+- `deploy.yml`: yalnızca manuel doğrulama
 - `production-diagnostic.yml`: periyodik ve değişiklik sonrası sağlık kontrolü
 - `cloudflare-control-plane.yml`: Cloudflare DNS/Email Routing denetimi; varsayılan davranış AUDIT
 - `sync-worker-secrets.yml`: Worker secret senkronizasyonu, yalnızca ihtiyaç olduğunda
 - `d1-migrations.yml`: D1 migration, yalnızca migration gerektiğinde
 - `r2-sync.yml`: statik medya arşivi R2 senkronizasyonu
 
-Aynı Worker'ı ikinci kez deploy eden workflow oluşturulmaz. `btmedya-content` Workflow adı hesap genelinde `btmedya-db` Worker'ına kayıtlıdır (`BtmedyaWorkflow`). `btmedya-medya` içine aynı Workflow / Durable Object tanımları eklenmemeli ve ana Worker'dan bağlantısı kaldırılmamalıdır. `btmedya-medya`'nın mevcut panel kaynaklı `Hello world` sürümleri bu repo üzerinden yönetilmez.
+Aynı Worker'ı ikinci kez deploy eden workflow oluşturulmaz. `btmedya-content` Workflow adı hesap genelinde `btmedya-db` Worker'ına kayıtlıdır (`BtmedyaWorkflow`). Silinen `btmedya-medya` Worker'ı tekrar oluşturulmaz. Production dağıtımı yalnızca `deploy-production.yml` üzerinden yürütülür.
 
 ## 7. Güvenlik
 
