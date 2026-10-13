@@ -70,8 +70,7 @@ if (!/<html\\b[^>]*lang=["']tr["']/i.test(index)) fail('homepage html lang must 
 else ok('homepage language is Turkish');
 const alternateLinks = [...index.matchAll(/<link\\b[^>]*rel=["']alternate["'][^>]*>/gi)].map(m => m[0]);
 for (const [lang, href] of [['tr-TR','https://btmedya.com.tr/'],['en','https://btmedya.com.tr/en/'],['x-default','https://btmedya.com.tr/']]) {
-  const found = alternateLinks.some(tag => new RegExp('hreflang=["\\\\']' + lang + '["\\\\']','i').test(tag) && new RegExp('href=["\\\\']' + href.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\
-if (failures.length) process.exit(1);') + '["\\\\']','i').test(tag));
+  const found = alternateLinks.some(tag => tag.includes('hreflang="' + lang + '"') && tag.includes('href="' + href + '"'));
   if (found) ok('hreflang ' + lang + ' is mapped to the canonical language URL');
   else fail('missing/incorrect hreflang ' + lang);
 }
