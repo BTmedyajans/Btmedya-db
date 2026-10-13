@@ -57,6 +57,17 @@ jobs:
           node --check src/tiktok-direct.js
           node --check src/youtube-direct.js
           python3 tools/validate-assets.py
+          # Bundle the supplied portrait/landscape entrance videos and posters into
+          # first-party static assets so the browser never depends on GitHub redirects.
+          mkdir -p public/assets/media/web
+          curl -fsSL --retry 3 "https://d2ol7oe51mr4n9.cloudfront.net/user_3I87Wl91fYo7jAjCVYu9K4bPJ4B/b1902fbf-b7c7-4c73-aa75-27723438d2cb.mp4" -o public/assets/media/web/btmedya-hero-mobile.mp4
+          curl -fsSL --retry 3 "https://d2ol7oe51mr4n9.cloudfront.net/user_3I87Wl91fYo7jAjCVYu9K4bPJ4B/939c6cbe-3fa1-462e-ba56-b6f37231a90c.mp4" -o public/assets/media/web/btmedya-hero-web-source.webm
+          ffmpeg -hide_banner -loglevel error -y -i public/assets/media/web/btmedya-hero-web-source.webm -c:v libx264 -pix_fmt yuv420p -movflags +faststart -an public/assets/media/web/btmedya-hero-web.mp4
+          ffmpeg -hide_banner -loglevel error -y -ss 20 -i public/assets/media/web/btmedya-hero-mobile.mp4 -frames:v 1 -q:v 3 public/assets/media/web/btmedya-hero-mobile-poster.jpg
+          ffmpeg -hide_banner -loglevel error -y -ss 20 -i public/assets/media/web/btmedya-hero-web.mp4 -frames:v 1 -q:v 3 public/assets/media/web/btmedya-hero-web-poster.jpg
+          # Generate WebM alternatives from the same supplied files for clients that need them.
+          ffmpeg -hide_banner -loglevel error -y -i public/assets/media/web/btmedya-hero-mobile.mp4 -c:v libvpx-vp9 -b:v 0 -crf 32 -an public/assets/media/web/btmedya-hero-mobile.webm
+          ffmpeg -hide_banner -loglevel error -y -i public/assets/media/web/btmedya-hero-web.mp4 -c:v libvpx-vp9 -b:v 0 -crf 34 -an public/assets/media/web/btmedya-hero-web.webm
           node tools/sosyal-otomasyon-testi.mjs
           node tools/yayin-zinciri-testi.mjs
           node tools/gerileme-denetimi.mjs
