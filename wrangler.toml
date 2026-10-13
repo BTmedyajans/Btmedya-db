@@ -52,26 +52,13 @@ database_id = "94a980cd-62c5-4c29-b7fc-40f96ab665e4"
 MEDIA_PUBLIC_TTL = "86400"
 # BTMEDYA admin login user. This is a non-secret identifier; the password remains a Worker Secret.
 ADMIN_USERNAME = "busetuncay74@gmail.com"
-# Metricool Brand 6858384'te 29 Eylül 2026 itibarıyla doğrulanan yayın ağları.
-# Bu değişiklik aynı zamanda sync-worker-secrets workflow'unun mevcut GitHub -> Cloudflare secret zincirini yeniden çalıştırır.
-# Yeni bir ağ Metricool Connections'a bağlandığında bu liste güncellenir.
-METRICOOL_CONNECTED_NETWORKS = "tiktok,youtube"
-# Kişisel hesaplar ayrı Metricool Brand olmadan hiçbir zaman otomatik yayın ağı olarak etkinleşmez.
-METRICOOL_PERSONAL_CONNECTED_NETWORKS = ""
-# Metricool kullanıcı numarası kimlik bilgisi değil (API her çağrıda ayrıca
-# METRICOOL_USER_TOKEN ister). Burada durduğu için GitHub'a yalnız anahtar
-# eklemek yeter. Secret adı METRICOOL_USER_ID ile çakışmasın diye farklı ad.
-METRICOOL_KULLANICI_NO = "5278969"
-METRICOOL_USER_ID = "5278969"
-METRICOOL_BRAND_ID = "6858384"
-METRICOOL_CREATOR_EMAIL = "busetuncay74@gmail.com"
-METRICOOL_ACCOUNT_EMAIL = "busetuncay74@gmail.com"
-METRICOOL_TIMEZONE = "Europe/Istanbul"
+# Primary social publisher: BTMEDYA native queue with official platform OAuth.
+# New and approved legacy-panel posts are queued to directly authorized accounts.
+# Metricool credentials/brand settings are not required for this path.
+BTMEDYA_SOCIAL_PUBLISHER = "direct"
 # Güvenli kaynak/doğrulama kapılarını geçen haberlerde otomatik yayın açıktır;
 # hassas, tanıtım, tekrar veya denetimden kalan içerikler yine taslak kalır.
 BTMEDYA_AUTO_PUBLISH = "true"
-# Select Buffer as the outbound publisher for explicitly planned social posts; disabled until API key is configured.
-BTMEDYA_SOCIAL_PUBLISHER = "buffer"
 
 # Secret değerleri GitHub'a veya bu dosyaya yazılmaz.
 # Production security sync: main değişikliği, GitHub secret -> Cloudflare Worker secret senkronizasyonunu da tetikler.
