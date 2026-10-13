@@ -29,7 +29,7 @@ Source / webhook / RSS / scheduler
   -> CMS draft
   -> Admin approval
   -> Web publish
-  -> BTMEDYA native OAuth + Cloudflare social queue; BTMEDYA native Social OS is optional and not required
+  -> BTMEDYA native OAuth + Cloudflare social queue; Metricool is optional and not required
 ```
 
 ## Yetki seviyeleri
