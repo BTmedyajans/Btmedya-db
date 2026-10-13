@@ -8,7 +8,7 @@ on:
 permissions:
   contents: read
 
-# Production deployment is owned by Cloudflare Workers Builds; this workflow is verification-only.
+# Production deployment is owned by deploy-production.yml; this workflow is verification-only.
 
 concurrency:
   group: btmedya-production-verify
