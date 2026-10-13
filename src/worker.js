@@ -19,7 +19,7 @@ import { manualIntegrationApi } from "./manual-integrations.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
-import { processDirectSocialQueue, directSocialApi, queueAutopilotSocial } from "./direct-social.js";
+import { processDirectSocialQueue, directSocialApi, queueAutopilotSocial, queueDirectSocialPost } from "./direct-social.js";
 import { bufferSocialApi, queueBufferSocialPost } from "./buffer-social.js";
 import { tiktokApi } from "./tiktok-direct.js";
 import { youtubeApi } from "./youtube-direct.js";
@@ -1137,20 +1137,27 @@ const SOCIAL_PLATFORM_NETWORK = Object.freeze({
   instagram:'instagram','instagram-post':'instagram','instagram-reel':'instagram','instagram-story':'instagram',
   facebook:'facebook','facebook-post':'facebook','facebook-reel':'facebook','facebook-story':'facebook',
   tiktok:'tiktok',
-  youtube:'youtube','youtube-short':'youtube'
+  youtube:'youtube','youtube-short':'youtube',
+  x:'x','x-post':'x',twitter:'x'
 });
 function normalizeSocialPlatforms(input){
   const raw=Array.isArray(input) ? input : typeof input==='string' ? input.split(',') : [];
   return [...new Set(raw.map(x=>String(x||'').trim().toLowerCase()).filter(Boolean))].slice(0,20);
 }
 function socialPlatformCheck(env,platforms){
-  const bufferMode=String(env.BTMEDYA_SOCIAL_PUBLISHER||"").toLowerCase()==="buffer";
-  // Buffer channel availability is verified against its own API during enqueue;
-  // do not accidentally use Metricool's connected-network list in Buffer mode.
-  const connected=bufferMode ? new Set(["facebook","instagram","tiktok","youtube"]) : metricoolConnectedNetworks(env);
+  const publisher=String(env.BTMEDYA_SOCIAL_PUBLISHER||"direct").toLowerCase();
+  const bufferMode=publisher==="buffer";
+  const directMode=publisher==="direct";
+  // Native mode validates each selected network against actual OAuth connections
+  // when a post is queued. Do not consult Metricool's network list.
+  const connected=bufferMode
+    ? new Set(["facebook","instagram","tiktok","youtube"])
+    : directMode
+      ? new Set(["facebook","instagram","tiktok","youtube","x"])
+      : metricoolConnectedNetworks(env);
   const unknown=platforms.filter(p=>!SOCIAL_PLATFORM_NETWORK[p]);
-  const disconnected=platforms.map(p=>SOCIAL_PLATFORM_NETWORK[p]).filter(Boolean).filter((n,i,a)=>a.indexOf(n)===i&&!connected.has(n));
-  return {ok:!unknown.length&&!disconnected.length,unknown,disconnected,connected,provider:bufferMode?"buffer":"metricool"};
+  const disconnected=directMode ? [] : platforms.map(p=>SOCIAL_PLATFORM_NETWORK[p]).filter(Boolean).filter((n,i,a)=>a.indexOf(n)===i&&!connected.has(n));
+  return {ok:!unknown.length&&!disconnected.length,unknown,disconnected,connected,provider:bufferMode?"buffer":directMode?"direct":"metricool"};
 }
 
 async function socialApi(request, env, url, ctx){
@@ -1202,7 +1209,7 @@ async function socialApi(request, env, url, ctx){
   if(url.pathname==='/api/admin/social/settings'){
     // Örnek gönderi metni sunucuda, gönderiye giden aynı altyazi() ile üretilir.
     const ornek=a=>altyazi({slug:'ornek-haber',title:'Örnek haber başlığı',excerpt:'Haberin spotu burada görünür.',category:'Balıkesir'},'',new Date(),a.sablon,true);
-    if(request.method==='GET'){ const a=await ayarlariOku(env); return json({ok:true,ayarlar:a,ornek:ornek(a),metricool:Boolean(env.METRICOOL_USER_TOKEN),providers:socialProviderStatus(env)}); }
+    if(request.method==='GET'){ const a=await ayarlariOku(env); const publisher=String(env.BTMEDYA_SOCIAL_PUBLISHER||"direct").toLowerCase(); return json({ok:true,ayarlar:a,ornek:ornek(a),publisher,metricool:publisher!=="direct"&&Boolean(env.METRICOOL_USER_TOKEN),providers:socialProviderStatus(env)}); }
     if(request.method==='PUT'){
       const b=await request.json().catch(()=>null);
       if(!b || typeof b!=='object') return json({ok:false,error:'Geçersiz JSON'},400);
@@ -1222,7 +1229,8 @@ async function socialApi(request, env, url, ctx){
     const rows=args.length ? await env.DB.prepare(sql).bind(...args).all() : await env.DB.prepare(sql).all();
     const teslim=await teslimDurumlari(env);
     const items=(rows.results||[]).map(x=>({...x,platforms:JSON.parse(x.platforms||'[]'),teslim:teslim[x.id]||null}));
-    return json({ok:true,items,metricool:Boolean(env.METRICOOL_USER_TOKEN)});
+    const publisher=String(env.BTMEDYA_SOCIAL_PUBLISHER||"direct").toLowerCase();
+    return json({ok:true,items,publisher,metricool:publisher!=="direct"&&Boolean(env.METRICOOL_USER_TOKEN)});
   }
 
   if(url.pathname==='/api/admin/social' && request.method==='POST'){
@@ -1271,8 +1279,22 @@ async function socialApi(request, env, url, ctx){
       throw e;
     }
     const disId=String(b.metricool_id||'').trim();
-    const bufferMode=String(env.BTMEDYA_SOCIAL_PUBLISHER||"").toLowerCase()==="buffer";
-    if(disId && !bufferMode) await disTeslimKaydet(env,id,disId);
+    const publisher=String(env.BTMEDYA_SOCIAL_PUBLISHER||"direct").toLowerCase();
+    const bufferMode=publisher==="buffer";
+    const directMode=publisher==="direct";
+    if(status==='planlandi' && directMode){
+      const result=await queueDirectSocialPost(env,{
+        title,body,mediaKey,platforms:platforms.map(p=>SOCIAL_PLATFORM_NETWORK[p]).filter(Boolean),
+        scheduledAt:scheduledAt||new Date(Date.now()+10*60*1000).toISOString(),
+        sourceSlug:"legacy-social-post:"+id,kind:"legacy-panel"
+      });
+      if(!result.ok){
+        await env.DB.prepare("UPDATE social_posts SET status='onayda',updated_at=? WHERE id=?").bind(new Date().toISOString(),id).run().catch(()=>{});
+        return json({ok:false,error:result.error||"Doğrudan sosyal yayın kuyruğu oluşturulamadı",status:"onayda",direct:result},409);
+      }
+      return json({ok:true,id,status,scheduled_at:scheduledAt,direct:result});
+    }
+    if(disId && !bufferMode && !directMode) await disTeslimKaydet(env,id,disId);
     if(status==='planlandi' && !disId && bufferMode){
       const result=await queueBufferSocialPost(env,{title,body,platforms,media_key:mediaKey,scheduled_at:scheduledAt||new Date(Date.now()+10*60*1000).toISOString(),local_post_id:id,format});
       if(!result.ok && !result.partial){
@@ -1297,6 +1319,18 @@ async function socialApi(request, env, url, ctx){
     const id=decodeURIComponent(retryMatch[1]);
     const row=await env.DB.prepare('SELECT id,title,body,platforms,format,source_slug,media_key,status,scheduled_at FROM social_posts WHERE id=?').bind(id).first().catch(()=>null);
     if(!row) return json({ok:false,error:'Bulunamadı'},404);
+    if(String(env.BTMEDYA_SOCIAL_PUBLISHER||"direct").toLowerCase()==="direct"){
+      const platforms=normalizeSocialPlatforms(JSON.parse(row.platforms||'[]'));
+      const platformCheck=socialPlatformCheck(env,platforms);
+      if(platformCheck.unknown.length) return json({ok:false,error:'Desteklenmeyen sosyal platformu',platforms:platformCheck.unknown},400);
+      if(!platforms.length) return json({ok:false,error:'En az bir sosyal platform seçilmelidir'},400);
+      let scheduledAt=String(row.scheduled_at||'');
+      if(!scheduledAt||new Date(scheduledAt).getTime()<=Date.now()+15000) scheduledAt=await sonrakiYuva(env,await ayarlariOku(env));
+      const result=await queueDirectSocialPost(env,{title:row.title,body:row.body,platforms:platforms.map(p=>SOCIAL_PLATFORM_NETWORK[p]).filter(Boolean),mediaKey:row.media_key,scheduledAt,sourceSlug:"legacy-social-post:"+id,kind:"legacy-retry"});
+      if(!result.ok) return json({ok:false,error:result.error||"Doğrudan yayın yeniden planlanamadı",direct:result},409);
+      await env.DB.prepare("UPDATE social_posts SET status='planlandi',scheduled_at=?,updated_at=? WHERE id=?").bind(scheduledAt,new Date().toISOString(),id).run();
+      return json({ok:true,id,scheduled_at:scheduledAt,retry:true,direct:result});
+    }
     if(String(env.BTMEDYA_SOCIAL_PUBLISHER||"").toLowerCase()==="buffer"){
       const platforms=normalizeSocialPlatforms(JSON.parse(row.platforms||'[]'));
       const platformCheck=socialPlatformCheck(env,platforms);
@@ -1358,6 +1392,17 @@ async function socialApi(request, env, url, ctx){
       r=await env.DB.prepare('UPDATE social_posts SET status=?,updated_at=? WHERE id=?').bind(status,now,id).run();
     }
     if(status==='planlandi' && (r.meta?.changes||0)>0){
+      if(String(env.BTMEDYA_SOCIAL_PUBLISHER||"direct").toLowerCase()==="direct"){
+        const row=await env.DB.prepare('SELECT id,title,body,platforms,format,source_slug,media_key,scheduled_at FROM social_posts WHERE id=?').bind(id).first();
+        const rowPlatforms=normalizeSocialPlatforms(JSON.parse(row?.platforms||'[]'));
+        const scheduledAt=String(row?.scheduled_at||'');
+        const result=await queueDirectSocialPost(env,{title:row?.title,body:row?.body,platforms:rowPlatforms.map(p=>SOCIAL_PLATFORM_NETWORK[p]).filter(Boolean),mediaKey:row?.media_key,scheduledAt,sourceSlug:"legacy-social-post:"+id,kind:"legacy-panel"});
+        if(!result.ok){
+          await env.DB.prepare("UPDATE social_posts SET status='onayda',updated_at=? WHERE id=?").bind(new Date().toISOString(),id).run().catch(()=>{});
+          return json({ok:false,error:result.error||"Doğrudan sosyal yayın kuyruğu oluşturulamadı",status:"onayda",direct:result},409);
+        }
+        return json({ok:true,changed:true,direct:result});
+      }
       if(String(env.BTMEDYA_SOCIAL_PUBLISHER||"").toLowerCase()==="buffer"){
         const row=await env.DB.prepare('SELECT id,title,body,platforms,format,source_slug,media_key,scheduled_at FROM social_posts WHERE id=?').bind(id).first();
         const rowPlatforms=normalizeSocialPlatforms(JSON.parse(row?.platforms||'[]'));
