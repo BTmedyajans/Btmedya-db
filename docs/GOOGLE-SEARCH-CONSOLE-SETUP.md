@@ -62,28 +62,33 @@ GitHub > Actions > BTMEDYA Google Search Console > Run workflow
 
 Search Console API olmadan dışarıdan yalnızca teknik erişilebilirlik ve sınırlı `site:` görünürlüğü kontrol edilebilir; kesin indeks sayısı Search Console'dan alınır.
 
-## 4. Sosyal yayın yetkilendirmesi
+## 4. Sosyal medya hesaplarının doğrudan bağlantısı (Metricool bağımsız)
 
-Üretimde tek yayın geçidi Metricool'dur. Worker içinde ayrı Instagram, Facebook, TikTok veya YouTube access tokenları tutulmaz.
+BTMEDYA'nın birincil yayın yolu, her platformun resmî OAuth/API bağlantısını kullanan yerel Social OS'tur. `wrangler.toml` içindeki `BTMEDYA_SOCIAL_PUBLISHER = "direct"` ayarı, eski sosyal gönderi ekranının da doğrudan yayın kuyruğunu kullanmasını sağlar. Cloudflare Cron, `social_direct_jobs` kuyruğunu beş dakikada bir işler. **Metricool hesabı, aboneliği, tokenı veya Brand ID'si bu yol için gerekli değildir.**
 
-Metricool'da şu ağları bağlayın:
+Bağlantı merkezi: `https://btmedya.com.tr/admin/connect/`  
+Doğrudan yayın ve kuyruk paneli: `https://btmedya.com.tr/admin/social-os/`
 
-- Instagram Business/Creator
-- Facebook Page
-- TikTok Business
-- YouTube Channel
+Resmî sağlayıcı kimlik bilgilerini Cloudflare Dashboard > Workers & Pages > `btmedya-db` > Settings > Variables and Secrets bölümünde tanımlayın. Değerleri sohbete, kaynak koda veya herkese açık GitHub dosyalarına koymayın.
 
-Ardından GitHub secret'larını tanımlayın:
+| Platform | Gerekli Worker değişken/secret'ları | Hesap koşulu |
+|---|---|---|
+| Facebook + Instagram | `META_APP_ID`, `META_APP_SECRET`; token şifrelemek için `MEDIA_SIGNING_SECRET` veya `SOCIAL_TOKEN_ENCRYPTION_KEY` ve OAuth state için KV | Facebook Page; Instagram Professional (Business/Creator) hesabı, ilgili Facebook Page'e bağlı olmalı |
+| TikTok | `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET` | TikTok Content Posting API erişimi ve gereken `video.publish` izni |
+| YouTube | `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET` | Google OAuth uygulaması ve YouTube Data API yükleme izni |
+| X | `X_CLIENT_ID`, `X_CLIENT_SECRET` | X Developer uygulaması ve uygun API erişimi |
 
-```text
-BTMEDYA_METRICOOL_USER_TOKEN
-BTMEDYA_METRICOOL_USER_ID
-BTMEDYA_METRICOOL_BRAND_ID
-```
+Güvenli bağlantı sırası:
 
-`BTMEDYA_METRICOOL_TIMEZONE` kaynak koda yazılmaz; Worker varsayılanı `Europe/Istanbul` kullanır.
+1. BTMEDYA yönetim paneline giriş yapın ve Connect Merkezi'ni açın.
+2. Facebook + Instagram, TikTok ve YouTube için **hesabı bağla** düğmesini kullanın. Kimlik bilgisi eksikse ilgili sağlayıcının geliştirici portalında uygulamayı yapılandırın; mevcut kimlik bilgilerini değiştirmeden önce kapsamı doğrulayın.
+3. Sağlayıcının resmî izin ekranında BTMEDYA için istenen yayın izinlerini onaylayın. Hesap tokenları D1 veritabanında şifrelenmiş biçimde tutulur; kullanıcı parolaları kaydedilmez.
+4. Social OS'ta doğru bağlı hesabı seçin, uygun görsel/video dosyasını belirleyin ve önce ileri tarihli düşük riskli bir test paylaşımı planlayın.
+5. Kuyruk bölümünde `queued`, `published` veya hata durumunu doğrulayın. Yalnızca profil adresinin görünmesi, API yayın izninin verildiği anlamına gelmez.
 
-GitHub Actions > **BTMEDYA Sync Worker Secrets** workflow'unda `metricool` scope'unu çalıştırın. Workflow, secret değerlerini göstermeden Worker'a aktarır ve Brand ID erişimini doğrular.
+Platform sınırlamaları: Facebook kişisel profillerine otomatik gönderim bu uygulamada desteklenmez; Facebook Page gerekir. Instagram'ın sıradan kişisel hesabı yerine Professional/Business/Creator hesabı kullanılmalıdır. TikTok ve YouTube doğrudan yayınında video gerekir. Üretimdeki API izinleri ve platform inceleme/onay koşulları sağlayıcı hesabına göre değişebilir.
+
+Ana sayfadaki sosyal medya profil bağlantıları, yayın API bağlantısından bağımsız olarak doğrudan Instagram/Facebook/YouTube/TikTok profillerine gider. Bir profil bağlantısı çalışsa bile, o hesabın otomatik paylaşım yetkisi ayrıca OAuth ile tamamlanmalıdır.
 
 ## 5. Güvenlik sınırları
 
@@ -100,7 +105,7 @@ GitHub Actions > **BTMEDYA Sync Worker Secrets** workflow'unda `metricool` scope
 - [ ] Servis hesabı mülke eklendi.
 - [ ] `GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON` secret'ı mevcut.
 - [ ] Search Console workflow'unda `Submit sitemaps and inspect URLs` adımı çalıştı.
-- [ ] Metricool'da tüm hedef ağlar bağlı.
-- [ ] Üç Metricool GitHub secret'ı mevcut.
-- [ ] Metricool secret sync workflow'u başarılı.
-- [ ] İlk sosyal gönderi düşük riskli bir taslak/test olarak doğrulandı.
+- [ ] BTMEDYA Social OS'ta doğrudan yayın modu etkin (`BTMEDYA_SOCIAL_PUBLISHER=direct`).
+- [ ] Her hedef platformun resmî OAuth uygulama bilgileri Cloudflare Worker'da tanımlı.
+- [ ] İlgili platform hesabı Connect Merkezi üzerinden doğrudan yetkilendirildi.
+- [ ] İlk sosyal gönderi düşük riskli bir test olarak planlandı ve yerel kuyrukta doğrulandı.
