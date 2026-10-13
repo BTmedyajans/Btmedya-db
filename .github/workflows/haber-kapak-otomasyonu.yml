@@ -35,7 +35,6 @@ jobs:
       - name: Asset referanslarını doğrula
         run: python3 tools/validate-assets.py --allow-generated-hero
 
-
       - name: Medya listesini güncelle
         run: node tools/medya-listesi.mjs
 
