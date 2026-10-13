@@ -277,13 +277,13 @@ async function altyapiDenetimi() {
     hatalar.push(`/api/health saglikli degil (${saglik.status})`);
   }
   // Baglanti zinciri (btmedya-db Worker'i): D1, R2, admin ve e-posta baglari
-  // ile Workers Builds'in yukledigi surum. Biri dusmusse site acilir ama panel
+  // ile GitHub Actions + Wrangler dağıtımının yüklediği sürüm. Biri düşmüşse site açılır ama panel
   // ya da haber akisi sessizce bozulur.
   try {
     const s = JSON.parse(govde);
     const eksik = ['cms', 'r2', 'admin', 'mail'].filter(k => s[k] !== true);
     if (eksik.length) hatalar.push(`btmedya-db baglanti zinciri eksik: ${eksik.join(', ')} (/api/health)`);
-    if (!s.surum || !s.surum.id) hatalar.push('btmedya-db surum bilgisi (version_metadata) yok; Workers Builds dagitimi izlenemiyor');
+    if (!s.surum || !s.surum.id) hatalar.push('btmedya-db sürüm bilgisi (version_metadata) yok; üretim dağıtımı izlenemiyor');
     else notlar.push(`baglanti zinciri: D1 + R2 + admin + e-posta hazir; surum ${String(s.surum.id).slice(0, 8)} (${s.surum.yuklendi || '?'})`);
   } catch { hatalar.push('/api/health JSON degil'); }
 
