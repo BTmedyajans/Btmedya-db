@@ -64,9 +64,11 @@ for (const path of pages) {
       const h1Text = (h1Matches[0]?.[1] || "").replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim().toLocaleLowerCase("tr-TR");
       if (h1Matches.length !== 1 || !h1Text.includes("balıkesir") || !h1Text.includes("medya") || !h1Text.includes("prodüksiyon")) fail(`homepage live H1 missing or mismatched: ${h1Text || "(empty)"}`);
       else console.log("PASS: homepage live H1 matches the local news/media/production intent");
-      const responsiveLink = (r.body.match(/<link\\b[^>]*href=["']([^"']*(?:btmedya-responsive-experience-v1|mobile-home-experience)\\.css(?:\\?[^"']*)?)["'][^>]*>/i) || [])[1] || "";
-      if (!responsiveLink) fail("homepage live HTML is missing a recognized responsive experience stylesheet");
-      else console.log("PASS: responsive experience stylesheet is linked in live HTML: " + responsiveLink);
+      const responsiveLink = ((r.body.match(/<link\\b[^>]*>/gi) || [])
+        .map(tag => attr(tag, "href"))
+        .find(href => href && /(?:responsive|mobile-home-experience|mobile-fixes|mobile-motion)\\.css(?:\\?|$)/i.test(href))) || "";
+      if (!responsiveLink) fail("homepage live HTML is missing a responsive/mobile stylesheet");
+      else console.log("PASS: responsive/mobile stylesheet is linked in live HTML: " + responsiveLink);
     }
     report.push({ path, status: r.status, title: title.slice(0, 90), descriptionLength: description.length, canonical });
     console.log(`PASS: ${path} HTTP ${r.status}; title=${title.length}; description=${description.length}; canonical=${Boolean(canonical)}`);
@@ -75,8 +77,10 @@ for (const path of pages) {
 
 try {
   const home = await get("/");
-  const homeLink = (home.body.match(/<link\\b[^>]*href=["']([^"']*(?:btmedya-responsive-experience-v1|mobile-home-experience)\\.css(?:\\?[^"']*)?)["'][^>]*>/i) || [])[1] || "";
-  if (!homeLink) throw new Error("Homepage does not declare a recognized responsive experience stylesheet");
+  const homeLink = ((home.body.match(/<link\\b[^>]*>/gi) || [])
+    .map(tag => attr(tag, "href"))
+    .find(href => href && /(?:responsive|mobile-home-experience|mobile-fixes|mobile-motion)\\.css(?:\\?|$)/i.test(href))) || "";
+  if (!homeLink) throw new Error("Homepage does not declare a responsive/mobile stylesheet");
   const cssPath = new URL(homeLink, origin).pathname + new URL(homeLink, origin).search;
   const r = await get(cssPath);
   if (r.status !== 200 || !/text\/css/i.test(r.contentType)) fail(`responsive experience stylesheet unavailable: HTTP ${r.status} ${r.contentType}`);
