@@ -43,13 +43,13 @@ Kurulum tamamlandığında workflow şu işlemleri yapar:
 Workflow yolu:
 
 ```text
-.github/workflows/google-search-console.yml
+.github/workflows/seo-search-console-sync.yml
 ```
 
 Manuel çalıştırma:
 
 ```text
-GitHub > Actions > BTMEDYA Google Search Console > Run workflow
+GitHub > Actions > BTMEDYA SEO & Search Console Daily Sync > Run workflow
 ```
 
 ## 3. İndeks durumu yorumlama
