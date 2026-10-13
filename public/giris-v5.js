@@ -63,9 +63,17 @@
       ]
     }
   };
+  const ozelFilm=/btmedya-giris-v6/.test(String(film.dataset.genis||''));
+  // v6 kullanıcı videosunda v5 kurgusunun saniye tabanlı dokunma alanları
+  // kullanılmaz; böylece eski CTA kutuları yeni görüntünün üzerine kaymaz.
+  if(ozelFilm){
+    const dikey={src:film.dataset.dikey,poster:film.dataset.dikeyPoster,en:720,boy:1280,sonKart:Infinity,alanlar:[],vurgular:[]};
+    const genis={src:film.dataset.genis,poster:film.dataset.genisPoster,en:1280,boy:720,sonKart:Infinity,alanlar:[],vurgular:[]};
+    PLAN.dikey=dikey; PLAN.genis=genis;
+  }
   const dikeyMi=()=>innerWidth/innerHeight<0.8;
   let p=dikeyMi()?PLAN.dikey:PLAN.genis;
-  const izlendi=(()=>{try{return sessionStorage.getItem('bt-giris-v5')==='1';}catch(e){return false;}})();
+  const izlendi=(()=>{try{return !ozelFilm&&sessionStorage.getItem('bt-giris-v5')==='1';}catch(e){return false;}})();
   const azHareket=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const katman=document.createElement('div');

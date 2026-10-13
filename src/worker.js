@@ -19,7 +19,7 @@ import { manualIntegrationApi } from "./manual-integrations.js";
 // Panelde "Planlandı" yapilan sosyal gonderileri Metricool'a teslim eder.
 // src/metricool-scheduler.js yazilmis ama hicbir yere baglanmamisti.
 import { processMetricoolQueue, metricoolDurumu, disTeslimKaydet, teslimDurumlari } from "./metricool-scheduler.js";
-import { processDirectSocialQueue, directSocialApi } from "./direct-social.js";
+import { processDirectSocialQueue, directSocialApi, queueAutopilotSocial } from "./direct-social.js";
 import { tiktokApi } from "./tiktok-direct.js";
 import { youtubeApi } from "./youtube-direct.js";
 import { xApi } from "./x-direct.js";
@@ -1882,6 +1882,21 @@ async function autoPrepareSocialDrafts(env, limit=3){
         : cover.startsWith('/assets/') ? 'static/'+cover.slice('/assets/'.length) : '';
       const body=altyazi(n,await kapakKunyesi(env,n.slug),new Date(),ayar.sablon,mediaKey?await statikGorselAiMi(env,mediaKey):null);
       const platformlar=sosyalPlatformlariMedyaIleUyumla(platformSluglari(ayar),mediaKey);
+      // Metricool aboneliği olmadan, bağlı resmi hesaplara doğrudan kuyruğa al.
+      // Bağlı hesap yoksa eski onay/Metricool akışı korunur; böylece panelde
+      // otomasyon sessizce kaybolmaz ve kullanıcı hesap bağlayana dek içerik
+      // taslak olarak görünür kalır.
+      const nativeNetworks=platformlar.map(x=>({
+        'facebook-post':'facebook','instagram-post':'instagram',tiktok:'tiktok',youtube:'youtube'
+      }[x])).filter(Boolean);
+      if(ayar.otomatikPlanla && nativeNetworks.length){
+        const native=await queueAutopilotSocial(env,{title:n.title,body,mediaKey,sourceSlug:n.slug,networks:nativeNetworks});
+        if(native.queued>0 || native.duplicate){
+          made++; result.created++; result.native_queued=(result.native_queued||0)+Number(native.queued||0);
+          result.items.push({slug:n.slug,status:native.duplicate?'native-duplicate':'native-queued',queued:native.queued||0,reason:native.reason||''});
+          continue;
+        }
+      }
       const yas=(Date.now()-new Date(n.published_at||0).getTime())/3600000;
       const otomatik=ayar.otomatikPlanla && Boolean(env.METRICOOL_USER_TOKEN) && platformlar.length>0 && yas>=0 && yas<=ayar.tazelikSaat;
       const yuva=otomatik ? await sonrakiYuva(env,ayar) : null;
