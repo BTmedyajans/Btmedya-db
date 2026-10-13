@@ -1,7 +1,7 @@
 # BTMEDYA Native Agency OS
 
 ## Karar
-Ana işletim katmanı BTMEDYA Worker + D1 + R2 + KV üzerinde kalır. Üçüncü taraflar yardımcı/adaptördür.
+Ana işletim katmanı BTMEDYA Worker + D1 + R2 + KV üzerinde kalır. Sosyal yayın, sağlayıcıların resmî OAuth/API bağlantılarıyla doğrudan yürür; üçüncü taraf adaptörleri zorunlu değildir.
 
 ## Çekirdek
 - Worker: API, OAuth callback, cron/queue, güvenlik
@@ -11,7 +11,7 @@ Ana işletim katmanı BTMEDYA Worker + D1 + R2 + KV üzerinde kalır. Üçüncü
 - GitHub: kaynak kodu + CI/CD
 - Cloudflare: edge/deploy/DNS
 - Supabase: yalnızca gerektiğinde analitik/harici uygulama veri katmanı
-- Metricool: fallback; native yayın ana yolu değil
+- Metricool: sosyal yayın için gerekli değil; eski kayıtlar için isteğe bağlı/legacy adaptör
 
 ## Adaptörler
 - Meta Direct: Facebook Page + Instagram Professional
@@ -24,7 +24,7 @@ Ana işletim katmanı BTMEDYA Worker + D1 + R2 + KV üzerinde kalır. Üçüncü
 - Notion: opsiyonel müşteri bilgi tabanı
 - Slack: opsiyonel ekip bildirim kanalı
 - HubSpot: CRM ihtiyacı olan müşteriler için opsiyonel
-- Windsor/Metricool: harici analitik/yayın adaptörü
+- Windsor.ai: isteğe bağlı analitik; Metricool sosyal yayın akışının dışında tutulur
 - Higgsfield/Magnific: üretim araçları; çekirdek bağımlılık değil
 
 ## İlke
