@@ -177,7 +177,7 @@ jobs:
           admin_code="$(curl -sS -o /tmp/btmedya-admin.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/ || true)"
           test "$admin_code" = "401"
           grep -q '<form id="giris"' /tmp/btmedya-admin.html
-          subroute_code="$(curl -sS -D /tmp/btmedya-admin-headers -o /dev/null -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/agency-os/ || true)"
+          subroute_code="$(curl -sS -H 'Accept: text/html' -D /tmp/btmedya-admin-headers -o /dev/null -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/agency-os/ || true)"
           test "$subroute_code" = "302"
           grep -qiE '^location: https://btmedya.com.tr/admin/\?sonra=' /tmp/btmedya-admin-headers
 
