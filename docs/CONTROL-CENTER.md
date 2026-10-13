@@ -12,7 +12,7 @@ BTMEDYA'nın Cloudflare Worker yönetimi, CMS, medya kasası, sosyal içerik ak�
 - Control Center API: `GET /api/admin/control-center`
 - iZap: mevcut `busetuncay74` WhatsApp asistanı operasyon talimatlarıyla güncellendi.
 - CMS Open Data: ChatGPT tarafında resmi CMS/Medicare veri sorguları için kullanılabilir.
-- GitHub → Cloudflare Workers Builds: production deploy zinciri.
+- GitHub `main` → GitHub Actions `deploy-production.yml` → Wrangler → Cloudflare Worker `btmedya-db`: tek production deploy zinciri. Workers Builds bu Worker için yapılandırılmamış.
 
 ## Güvenlik modeli
 
