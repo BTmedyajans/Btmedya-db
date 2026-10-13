@@ -12,9 +12,14 @@ const report = [];
 function fail(message) { failures.push(message); console.error("FAIL:", message); }
 function warn(message) { warnings.push(message); console.warn("WARN:", message); }
 function attr(tag, name) {
-  const re = new RegExp("\b" + name + "\\s*=\\s*([\\x22\\x27])(.*?)\\1", "i");
-  return (tag.match(re) || [])[2] || "";
+  // Parse quoted or unquoted HTML attribute values without relying on
+  // fragile dynamic-RegExp escaping or a particular attribute order.
+  const escaped = String(name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp("(?:^|\\s)" + escaped + "\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s>]+))", "i");
+  const match = String(tag || "").match(re);
+  return (match && (match[1] ?? match[2] ?? match[3])) || "";
 }
+
 function metaContent(html, key) {
   const tags = html.match(/<meta\b[^>]*>/gi) || [];
   const tag = tags.find(t => attr(t, "name").toLowerCase() === key.toLowerCase());
