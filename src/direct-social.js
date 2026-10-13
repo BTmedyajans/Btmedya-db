@@ -385,12 +385,22 @@ export async function processDirectSocialQueue(env,limit=10){
       const externalId=await publishJob(env,connection,job);
       await env.DB.prepare("UPDATE social_direct_jobs SET status='published',external_id=?,last_error='',updated_at=? WHERE id=?").bind(externalId,new Date().toISOString(),job.id).run();
       await env.DB.prepare("UPDATE social_direct_connections SET last_error='',updated_at=? WHERE id=?").bind(new Date().toISOString(),job.connection_id).run();
+      const legacyPostMatch=String(job.source_slug||"").match(/^legacy-social-post:(.+)$/);
+      if(legacyPostMatch){
+        await env.DB.prepare("UPDATE social_posts SET status='yayinlandi',updated_at=? WHERE id=?")
+          .bind(new Date().toISOString(),legacyPostMatch[1]).run().catch(()=>{});
+      }
       result.published++;result.items.push({id:job.id,status:"published",externalId});
     }catch(e){
       const msg=clean(e?.message||e,1500);
       const terminal=attempts>=5;
       await env.DB.prepare("UPDATE social_direct_jobs SET status=?,last_error=?,updated_at=? WHERE id=?").bind(terminal?"error":"queued",msg,new Date().toISOString(),job.id).run();
       await env.DB.prepare("UPDATE social_direct_connections SET last_error=?,status=?,updated_at=? WHERE id=?").bind(msg,terminal?"error":"active",new Date().toISOString(),job.connection_id).run();
+      const legacyPostMatch=String(job.source_slug||"").match(/^legacy-social-post:(.+)$/);
+      if(terminal&&legacyPostMatch){
+        await env.DB.prepare("UPDATE social_posts SET status='onayda',updated_at=? WHERE id=?")
+          .bind(new Date().toISOString(),legacyPostMatch[1]).run().catch(()=>{});
+      }
       result.failed++;result.items.push({id:job.id,status:terminal?"error":"retry",error:msg,attempts});
     }
   }
