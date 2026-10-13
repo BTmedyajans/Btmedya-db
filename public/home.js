@@ -1125,21 +1125,28 @@ window.btYuvalar = fetch('/api/public/slots', {headers:{accept:'application/json
     requestAnimationFrame(adim);
   };
   async function doldur(){
-    const [haberApi,medyaApi,haberStatik,medyaStatik]=await Promise.all([
-      fetch('/api/news?limit=500',{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():null).catch(()=>null),
-      fetch('/data/medya-listesi.json').then(r=>r.ok?r.json():null).catch(()=>null),
-      fetch('/data/haberler.json').then(r=>r.ok?r.json():null).catch(()=>null),
-      fetch('/data/medya-listesi.json').then(r=>r.ok?r.json():null).catch(()=>null)
-    ]);
-    const haberler=haberApi&&Array.isArray(haberApi.items)?haberApi.items.filter(n=>n.status==='published'):(Array.isArray(haberStatik)?haberStatik.filter(n=>n.status!=='draft'):[]);
-    const medya=Array.isArray(medyaApi)?medyaApi:(Array.isArray(medyaStatik)?medyaStatik:[]);
-    if(haberler.length) yaz('haber',haberler.length);
-    if(medya.length){yaz('medya',medya.length);yaz('video',medya.filter(m=>/\.mp4$/i.test(m.path||'')).length);}
-    /* 6 Ekim: buradaki iki regex literalinde nokta çift ters bölüyle
-       kaçırılmıştı; nokta değil ters bölü arıyordu. Video sayısı hep "—" kaldı, www'li ve
-       www'siz aynı hesap iki kez sayıldığı için kanal sayısı 7 göründü.
-       Adresler küçük harfe çevrilir; Facebook tek sayfa olduğu için (paylaşım
-       ve kimlik bağlantıları farklı yol taşır) tek kanal sayılır. */
+    let live=null;
+    try{
+      const response=await fetch('/api/public/live-data',{headers:{accept:'application/json'}});
+      if(response.ok) live=await response.json();
+    }catch(e){}
+    if(live?.ok && live.counts){
+      yaz('haber',Number(live.counts.news));
+      yaz('medya',Number(live.counts.media));
+      yaz('video',Number(live.counts.videos));
+    }else{
+      const [haberApi,medyaApi,haberStatik,medyaStatik]=await Promise.all([
+        fetch('/api/news?limit=500',{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():null).catch(()=>null),
+        fetch('/data/medya-listesi.json').then(r=>r.ok?r.json():null).catch(()=>null),
+        fetch('/data/haberler.json').then(r=>r.ok?r.json():null).catch(()=>null),
+        fetch('/data/medya-listesi.json').then(r=>r.ok?r.json():null).catch(()=>null)
+      ]);
+      const haberler=haberApi&&Array.isArray(haberApi.items)?haberApi.items.filter(n=>n.status==='published'):(Array.isArray(haberStatik)?haberStatik.filter(n=>n.status!=='draft'):[]);
+      const medya=Array.isArray(medyaApi)?medyaApi:(Array.isArray(medyaStatik)?medyaStatik:[]);
+      if(haberler.length) yaz('haber',haberler.length);
+      if(medya.length){yaz('medya',medya.length);yaz('video',medya.filter(m=>/\.(mp4|webm|mov|m4v)$/i.test(m.path||'')).length);}
+    }
+    /* Kanal sayısı tekilleştirilmiş, www ön eki normalize edilmiş profil URL'lerinden hesaplanır. */
     const kanallar=new Set(['instagram.com/btmedyajans','youtube.com/@btmedyaajans','tiktok.com/@btmedya1010']);
     document.querySelectorAll('a[href*="instagram.com/"],a[href*="youtube.com/@"],a[href*="tiktok.com/@"]').forEach(a=>{try{const u=new URL(a.href);kanallar.add((u.hostname.replace(/^www\./,'')+u.pathname.split('/').slice(0,2).join('/')).toLowerCase());}catch(e){}});
     if(document.querySelector('a[href*="facebook.com/"]')) kanallar.add('facebook.com');
