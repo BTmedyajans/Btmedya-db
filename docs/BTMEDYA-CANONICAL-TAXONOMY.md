@@ -33,7 +33,7 @@ Alt kırılımlar:
 - **DİJİTAL BÜYÜME:** SEO/AEO, AI LAB + Otomasyon, Web + Dijital Deneyim
 
 Otomasyon ailesi:
-`Client Workspace → Media Vault → Native Provider → Metricool Fallback → Queue → Publish → Measure`
+`Client Workspace → Media Vault → Native Provider → D1 Queue → Publish → Measure; Metricool is outside the primary publishing path`
 
 ### 03 · MARKA & PRODÜKSİYON
 
