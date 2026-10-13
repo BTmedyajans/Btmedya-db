@@ -512,7 +512,7 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
     for (const ad of ['data-genis', 'data-dikey', 'data-genis-poster', 'data-dikey-poster']) {
       const yol = (v.match(new RegExp(ad + '="([^"]+)"')) || [])[1];
       if (!yol) { bulgular.push(`Giriş filmi v5 ${ad} taşımıyor.`); continue; }
-      const external = /^https:\/\/github\.com\/BTmedyajans\/Btmedya-db\/releases\/download\/btmedya-clean-hero-[A-Za-z0-9-]+\/(giris-filmi-clean(?:-genis)?(?:-poster)?\.(?:mp4|jpg))$/.test(yol);
+      const external = /^https:\/\/github\.com\/BTmedyajans\/Btmedya-db\/releases\/(?:latest\/download|download\/btmedya-clean-hero-[A-Za-z0-9-]+)\/(giris-filmi-clean(?:-genis)?(?:-poster)?\.(?:mp4|jpg))$/.test(yol);
       if (external) {
         const file = yol.split('/').pop();
         const expected = ad.includes('poster') ? file.endsWith('-poster.jpg') : file.endsWith('.mp4');
