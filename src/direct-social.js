@@ -1,7 +1,7 @@
 import { saveContentTaxonomy } from "./content-taxonomy.js";
-/* BTMEDYA Direct Social OS
- * Official-provider publishing without a mandatory Metricool subscription.
- * v1: Meta Facebook Pages + Instagram Professional accounts.
+/* BTMEDYA Native Social OS
+ * Publishes through each platform's official API/OAuth; Metricool is not required.
+ * Supports Facebook Pages, Instagram Professional, TikTok, YouTube and X.
  */
 const GRAPH_DEFAULT="v26.0";
 const META_SCOPES=[
@@ -15,9 +15,9 @@ const providers=new Set(["facebook","instagram"]);
 const BTMEDYA_SOCIAL_PROVIDERS={
   facebook:{label:"Facebook",mode:"direct",connect:"meta",requirement:"Facebook Page + Meta OAuth",publishing:true},
   instagram:{label:"Instagram",mode:"direct",connect:"meta",requirement:"Instagram Professional + Meta OAuth",publishing:true},
-  tiktok:{label:"TikTok",mode:"oauth",connect:"tiktok",requirement:"TikTok Content Posting API + video.publish onay",publishing:false},
-  youtube:{label:"YouTube",mode:"oauth",connect:"google",requirement:"Google OAuth + youtube.upload",publishing:false},
-  x:{label:"X",mode:"oauth",connect:"x",requirement:"X Developer App + API erişimi",publishing:false},
+  tiktok:{label:"TikTok",mode:"oauth",connect:"tiktok",requirement:"TikTok Content Posting API + video.publish onayı",publishing:true},
+  youtube:{label:"YouTube",mode:"oauth",connect:"google",requirement:"Google OAuth + youtube.upload",publishing:true},
+  x:{label:"X",mode:"oauth",connect:"x",requirement:"X Developer App + API erişimi",publishing:true},
   whatsapp:{label:"WhatsApp",mode:"cloud",connect:"meta-whatsapp",requirement:"Meta Business + WhatsApp Business Account",publishing:false}
 };
 
@@ -47,9 +47,8 @@ async function hmac(secretValue,message){
   const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secretValue),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
   return base64url(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(message)));
 }
-/* TikTok, YouTube ve X "bağla" düğmeleri tarayıcıyla açılır. Geliştirici
-   uygulama kimliği tanımlı değilken ham 503 JSON sayfası yerine Connect
-   Merkezi'ne döner ve eksik kimliği söyler (yayın bu ağlarda Metricool ile). */
+/* TikTok, YouTube ve X için eksik OAuth uygulama kimlikleri varsa kullanıcıyı
+   Connect Merkezi'ne yönlendir; bu ağlarda da yayın doğrudan resmi API ile yapılır. */
 export function kimlikEksikYonlendir(saglayici,eksik){
   const q=new URLSearchParams({saglayici,durum:"kimlik-eksik",eksik:eksik.join(",")});
   return new Response(null,{status:302,headers:{location:"/admin/connect/?"+q.toString(),"cache-control":"no-store"}});
