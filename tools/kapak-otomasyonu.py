@@ -8,7 +8,7 @@ Autopilot otomatik yayınladığında haberin gerçek kapağı üretilemiyor; ka
 genel kategori plakası gösteriyor (kapakSec, src/worker.js). Bu betik canlı
 yayın akışından kapaksız haberleri bulur, her birine plan girişi yazar ve
 kapak üreticisini (haber-kapagi.py) çağırır. GitHub Actions'ta zamanlı çalışır
-ve üretilen kapakları main'e commit eder; Workers Builds dağıtınca kapakSec
+ve üretilen kapakları main'e commit eder; GitHub Actions + Wrangler dağıtınca kapakSec
 otomatik gerçek kapağı servis eder (D1 yazımı gerekmez).
 
 DOĞRULUK
