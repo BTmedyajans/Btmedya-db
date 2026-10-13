@@ -137,7 +137,7 @@ As of 5 October 2026, BTMEDYA runs a bounded autopilot on the canonical Worker/D
 - News autopilot: every hour, maximum 2 new stories per run; categories rotate across the eight editorial areas, with Balıkesir and trend signals prioritized by source scoring.
 - Safe autonomous output may publish without manual approval when the policy switch is enabled. Source, freshness, duplicate-topic, sensitive-content, promotional-content, numeric, proper-name and language-quality checks remain mandatory; sensitive, political, crime, crisis, promotional, duplicate and failed-quality items remain drafts.
 - The 08:00 Europe/Istanbul Sabah Masası remains as the daily full editorial pass.
-- Social autopilot: newly published safe news is converted into platform-fit social posts; with Metricool configured, fresh posts can be placed into future queue slots automatically. Drafts never enter the social delivery queue.
-- Metricool delivery runs every 5 minutes/15 minutes as a retrying handoff and is limited to explicitly verified networks. Current verified company networks are TikTok and YouTube.
-- Agency OS exposes provider status, queue counts, overdue items and Metricool delivery failures.
+- Social autopilot: newly published safe news is converted into platform-fit social posts. If the corresponding native OAuth account is connected, eligible fresh posts enter the Cloudflare D1 direct queue. Without an authorized account, the content remains a draft.
+- Native direct delivery is processed by the Cloudflare Worker cron every 5 minutes. The queue calls official provider APIs directly; Metricool credentials and Brand IDs are not required.
+- Agency OS exposes direct OAuth status, queue counts, overdue items, real provider responses and publication errors.
 - No unverified social network receives an automatic fallback publication.
