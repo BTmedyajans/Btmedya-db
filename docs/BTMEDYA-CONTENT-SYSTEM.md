@@ -145,16 +145,17 @@ Kaynak
 → Sosyal türevler
 → Onay
 → Planlama
-→ Metricool
-→ Yayın
+→ BTMEDYA Native Social OS
+→ Cloudflare D1 queue
+→ Direct official API publish
 → Yayın sonucu
 → Analiz / arşiv
 
-Worker sosyal kuyruğunda yalnızca onaylanmış, gelecekte tarihli kayıtlar Metricool'a teslim edilir.
+Worker sosyal kuyruğunda yalnızca onaylanmış, gelecekte tarihli kayıtlar Native Social OS'a teslim edilir.
 
-## 7. Metricool durumu
+## 7. Native Social OS durumu
 
-2026-09-29 denetiminde BTMEDYA'nın doğrulanmış Metricool Brand'i:
+2026-09-29 denetiminde BTMEDYA'nın doğrulanmış Native Social OS Brand'i:
 - Brand: busetuncayy10
 - Brand ID: 6858384
 - User ID: 5278969
@@ -164,7 +165,7 @@ API üzerinden doğrulanan ağlar:
 - TikTok: btmedya1010
 - YouTube: UCGyRifwCyrKJQAbmo4uoO9g
 
-Instagram ve Facebook'un aynı Metricool Brand'e bağlı olduğu henüz API tarafında doğrulanmış değildir. Bu nedenle uygulama bunları bağlı olarak göstermemelidir.
+Instagram ve Facebook'un aynı Native Social OS Brand'e bağlı olduğu henüz API tarafında doğrulanmış değildir. Bu nedenle uygulama bunları bağlı olarak göstermemelidir.
 
 ## 8. Admin Control Center
 
@@ -173,7 +174,7 @@ Admin panelindeki sosyal ağ kontrolleri canlı Worker durumuna göre davranır:
 - bağlantısı görülen ancak Worker listesinde olmayan ağ: uyarı
 - doğrulanmayan ağ: pasif
 
-Control Center; site, Worker, D1, R2, admin secrets, Metricool ve sosyal ağ matrisini birlikte gösterir.
+Control Center; site, Worker, D1, R2, admin secrets, Native Social OS ve sosyal ağ matrisini birlikte gösterir.
 
 ## 9. Mobil tasarım
 
@@ -200,7 +201,7 @@ Yayın zinciri kullanıcıya ait hesaplarda geri döndürülemez veya herkese a�
 
 ## 12. Sonraki evre
 
-Instagram + Facebook Metricool Brand bağlantısı API ile doğrulandığında:
+Instagram + Facebook Native Social OS Brand bağlantısı API ile doğrulandığında:
 - ağlar Worker konfigürasyonuna eklenir
 - admin seçimleri aktifleşir
 - sosyal otomasyon şablonları dört platforma genişletilir
