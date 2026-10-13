@@ -300,6 +300,20 @@ if (!/x-robots-tag/.test(worker) || !/max-image-preview:large/.test(worker)) {
   bulgular.push('src/worker.js X-Robots-Tag / max-image-preview:large basligini vermiyor; Discover buyuk kart gostermez.');
 }
 
+/* Clean cover integrity: card templates derive a "-foto.webp" sibling for every planned headline cover.
+   Keep this regression gate in source validation so a missing sibling is repaired before deployment. */
+{
+  const dizin = 'public/assets/haber-kapak';
+  const plan = JSON.parse(readFileSync('public/data/haber-kapak-plani.json', 'utf8'));
+  const eksik = (Array.isArray(plan) ? plan : [])
+    .filter(item => item && typeof item.slug === 'string')
+    .filter(item => existsSync(join(dizin, item.slug + '.webp')))
+    .filter(item => !existsSync(join(dizin, item.slug + '-foto.webp')))
+    .map(item => item.slug);
+  if (eksik.length) bulgular.push(`${dizin}: ${eksik.length} planli kapagın temiz "-foto" esi eksik: ` +
+    eksik.slice(0, 5).join(', ') + '. Duzeltme: python3 tools/repair-cover-fotos.py.');
+}
+
 /* 9c) Site haritasindaki her statik sayfa yapisal veri tasimali. */
 {
   const harita = readFileSync('public/sitemap.xml', 'utf8');
