@@ -1,5 +1,6 @@
 const BASE=(process.env.BASE_URL||"https://btmedya.com.tr").replace(/\/$/,"");
 const pages=["/","/haberler/","/hakkimizda/","/hizmetler/"];
+const indexNowKey="57fb863171638cffa9cdfb3913627b57";
 let failed=false;
 function fail(message){console.error("SEO_GATE_FAIL",message);failed=true;}
 function warn(message){console.warn("SEO_GATE_WARN",message);}
@@ -13,7 +14,7 @@ for(const path of pages){
   if(!/<link[^>]+rel=["']canonical["']/i.test(text)) warn(`${path} missing canonical`);
   if(!/prefers-reduced-motion/i.test(text) && !/mobile-fixes\.css/i.test(text)) warn(`${path} missing reduced-motion evidence`);
 }
-for(const path of ["/robots.txt","/sitemap.xml","/news-sitemap.xml","/rss.xml"]){
+for(const path of ["/robots.txt","/sitemap.xml","/news-sitemap.xml","/rss.xml",`/${indexNowKey}.txt`]){
   const {response,text}=await get(path);
   if(!response.ok){fail(`${path} HTTP ${response.status}`);continue;}
   if(path==="/robots.txt"){
@@ -22,6 +23,7 @@ for(const path of ["/robots.txt","/sitemap.xml","/news-sitemap.xml","/rss.xml"])
   }
   if(path==="/sitemap.xml"&&!/<urlset[\s\S]*<url>/i.test(text)) fail("sitemap has no URLs");
   if(path==="/news-sitemap.xml"&&!/<urlset/i.test(text)) fail("news sitemap XML shell missing");
+  if(path===`/${indexNowKey}.txt`&&text.trim()!==indexNowKey) fail("IndexNow key endpoint content mismatch");
 }
 try{
   const listing=await get("/api/news?limit=1");
