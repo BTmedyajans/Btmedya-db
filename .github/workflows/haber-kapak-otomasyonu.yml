@@ -46,7 +46,7 @@ jobs:
         run: python3 tools/kapak-otomasyonu.py
 
       - name: Asset referanslarını doğrula
-        run: python3 tools/validate-assets.py
+        run: python3 tools/validate-assets.py --allow-generated-hero
 
       # Yeni kapak dosyaları medya listesine girmezse PR doğrulaması
       # ("medya-listesi.json guncel degil") otomasyon PR'ını kırar.
