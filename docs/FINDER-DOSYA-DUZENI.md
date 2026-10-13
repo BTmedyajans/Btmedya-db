@@ -100,7 +100,7 @@ Denetim araçları üretim kodundan ayrı tutulur:
 3. **D1 migration** eklemeden önce `migrations/` içindeki son numarayı kontrol et.
 4. **Görsel/video** eklerken doğru `public/assets/` alt klasörünü ve AI/gerçek çekim etiketini koru.
 5. Değişiklikten sonra sözdizimi, yerel denetimler, mobil/a11y ve canlı smoke test sırasını izle.
-6. `main` dalına giden doğrulanmış değişiklik Cloudflare Workers Builds üzerinden production'a ulaşır; ayrı bir backend veya yayın klasörü oluşturma.
+6. `main` dalına giden doğrulanmış değişiklik `.github/workflows/deploy-production.yml` ve Wrangler üzerinden `btmedya-db` Worker'ına ulaşır; ayrı backend veya ikinci yayın klasörü oluşturma.
 
 ## Kısa arama rehberi
 
