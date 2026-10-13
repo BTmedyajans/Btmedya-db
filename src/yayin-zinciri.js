@@ -1,13 +1,7 @@
-/* BTMEDYA günlük yayın zinciri durumu (11 Ekim, kullanıcı isteği: "her gün
-   trendlerden içerik üretecek otomasyonu admin panelinde planladığım gibi
-   hazırla; admin panelinde hiçbir yapı boşluğa düşmemeli").
-
-   Zincirin halkaları ayrı yerlerde çalışır: Sabah Masası Worker cron'unda,
-   kapak üretimi GitHub Actions'ta, sosyal taslak ve Metricool teslimi yine
-   Worker'da. Biri durduğunda diğerleri çalışmaya devam ettiği için kopukluk
-   ancak sonuçtan (kapaksız haber, onayda bekleyen gönderi) fark ediliyordu.
-   Bu modül her halkanın son çıktısına bakar ve tek satırda durumunu verir;
-   panel her halkanın yanında düzeltileceği yeri gösterir. Yalnız okur. */
+/* BTMEDYA günlük yayın zinciri durumu.
+   Sabah Masası, kapak üretimi ve doğrudan sosyal yayın birbirinden bağımsız
+   zincirlerdir. Social OS, bağlı platformların resmî OAuth/API izinlerini ve
+   Cloudflare D1 kuyruk durumunu raporlar. Bu modül yalnızca okur. */
 import { sabahAyarlari, sabahRaporu, KATEGORILER, gununKategorileri } from './sabah-masasi.js';
 import { ayarlariOku as sosyalAyarlari } from './sosyal-otomasyon.js';
 
@@ -81,28 +75,42 @@ export async function zincirDurumu(env, simdi = Date.now()) {
     duzelt: 'https://github.com/BTmedyajans/Btmedya-db/actions/workflows/haber-kapak-otomasyonu.yml'
   });
 
-  // 4) Sosyal taslak + 5) Metricool teslimi.
-  let say = {};
+  // 4) Sosyal kart ve marka şablonu + 5) doğrudan yayın kuyruğu.
+  let say = {}, directAccountRows = [], directJobRows = [];
   if (env.DB) {
-    const r = await env.DB.prepare(
+    const since = new Date(simdi - 72 * SAAT).toISOString();
+    const postRows = await env.DB.prepare(
       "SELECT status,COUNT(*) n FROM social_posts WHERE updated_at>=? GROUP BY status"
-    ).bind(new Date(simdi - 72 * SAAT).toISOString()).all().catch(() => ({ results: [] }));
-    for (const x of r.results || []) say[x.status] = Number(x.n || 0);
+    ).bind(since).all().catch(() => ({ results: [] }));
+    for (const x of postRows.results || []) say[x.status] = Number(x.n || 0);
+    const accountRows = await env.DB.prepare(
+      "SELECT provider,COUNT(*) n FROM social_direct_connections WHERE workspace_type='agency' AND workspace_id='btmedya' AND status='active' GROUP BY provider"
+    ).all().catch(() => ({ results: [] }));
+    directAccountRows = accountRows.results || [];
+    const jobRows = await env.DB.prepare(
+      "SELECT status,COUNT(*) n FROM social_direct_jobs WHERE updated_at>=? GROUP BY status"
+    ).bind(since).all().catch(() => ({ results: [] }));
+    directJobRows = jobRows.results || [];
   }
-  const metricool = Boolean(env.METRICOOL_USER_TOKEN);
+  const nativePublisher = String(env.BTMEDYA_SOCIAL_PUBLISHER || "direct").toLowerCase() === "direct";
+  const activeAccounts = directAccountRows.reduce((sum, row) => sum + Number(row.n || 0), 0);
+  const jobs = Object.fromEntries(directJobRows.map(row => [row.status, Number(row.n || 0)]));
   halkalar.push({
     anahtar: 'sosyal', ad: 'Sosyal kart ve marka şablonu', saat: 'Her yayından sonra',
     durum: !sosyal.aglar.length ? 'eksik' : (say.onayda || 0) > 0 && sosyal.otomatikPlanla ? 'uyari' : 'tamam',
     ozet: `Son 72 saat: ${say.planlandi || 0} planlandı · ${say.yayinlandi || 0} yayınlandı · ${say.onayda || 0} onayda` +
-      ` · ağlar: ${sosyal.aglar.join(', ') || 'yok'}`,
-    duzelt: '/admin/yayin/#settings'
+      ` · hedefler: ${sosyal.aglar.join(', ') || 'yok'}`,
+    duzelt: '/admin/social-os/'
   });
   halkalar.push({
-    anahtar: 'metricool', ad: 'Metricool teslimi', saat: sosyal.saatler.join(' · ') + ' TSİ',
-    durum: !metricool ? 'eksik' : !sosyal.otomatikPlanla ? 'uyari' : 'tamam',
-    ozet: !metricool ? 'METRICOOL_USER_TOKEN tanımlı değil; gönderiler takvime girmez.'
-      : sosyal.otomatikPlanla ? `Otomatik planlama açık · tazelik ${sosyal.tazelikSaat} saat` : 'Otomatik planlama kapalı; gönderiler onayda bekler.',
-    duzelt: '/admin/yayin/#settings'
+    anahtar: 'dogrudan-yayin', ad: 'BTMEDYA doğrudan sosyal yayın', saat: '5 dakikada bir',
+    durum: !nativePublisher ? 'uyari' : activeAccounts === 0 ? 'eksik' : Number(jobs.error || 0) > 0 ? 'uyari' : 'tamam',
+    ozet: !nativePublisher
+      ? 'Yayın motoru doğrudan moda alınmalı; bu zincirin Metricool bağımlılığı yoktur.'
+      : activeAccounts === 0
+        ? 'Doğrudan OAuth ile bağlı hesap yok. Connect Merkezi üzerinden Facebook Page / Instagram Professional ve diğer hedefleri bağlayın.'
+        : `${activeAccounts} doğrudan bağlı hesap · ${Number(jobs.queued || 0)} kuyrukta · ${Number(jobs.publishing || 0)} yayınlanıyor · ${Number(jobs.published || 0)} yayınlandı · ${Number(jobs.error || 0)} hata`,
+    duzelt: '/admin/social-os/'
   });
 
   return {
