@@ -11,8 +11,8 @@
    - Zamanlar ve konumlar filmin kendisinden ölçüldü (8 kare/sn parlaklık
      taraması); kare yüzdesiyle tutulur ve object-fit hesabıyla ekrana
      eşlenir, böylece her en-boy oranında etiketin tam üstüne düşer.
-   - Film sessizdir (11 Ekim, kullanıcı: "videoyu ses olmadan yerleştir").
-     Dosyalarda ses izi yoktur; oynatma her tarayıcıda sessiz otomatik başlar.
+   - Film otomatik oynatmada sessiz başlar; kullanıcı ilk dokunuşta veya ses
+     düğmesinde seslendirmeyi açabilir. Böylece mobil autoplay kuralları korunur.
    - Film son karta girince alttan bölüm paneli açılır: HABER, SOSYAL MEDYA,
      PRODÜKSİYON ve her birinin alt kategori sayfaları (index.html'de
      statik bağlantılar; arama motoru da görür). Panel açılınca filmin
@@ -63,8 +63,8 @@
       ]
     }
   };
-  const ozelFilm=/btmedya-giris-v6/.test(String(film.dataset.genis||''));
-  // v6 kullanıcı videosunda v5 kurgusunun saniye tabanlı dokunma alanları
+  const ozelFilm=/btmedya-giris-v(?:6|7)/.test(String(film.dataset.genis||''));
+  // Kullanıcı videosunda v5 kurgusunun saniye tabanlı dokunma alanları
   // kullanılmaz; böylece eski CTA kutuları yeni görüntünün üzerine kaymaz.
   if(ozelFilm){
     const dikey={src:film.dataset.dikey,poster:film.dataset.dikeyPoster,en:720,boy:1280,sonKart:Infinity,alanlar:[],vurgular:[]};
@@ -159,6 +159,33 @@
   };
 
   let bitti=false;
+  let sesAcik=false;
+  const sesBtn=document.createElement('button');
+  sesBtn.type='button';
+  sesBtn.className='giris-v5-ses';
+  sesBtn.setAttribute('aria-label','Seslendirmeyi aç');
+  sesBtn.setAttribute('aria-pressed','false');
+  sesBtn.textContent='SESİ AÇ';
+  kok.appendChild(sesBtn);
+  const sesArayuzu=()=>{
+    sesBtn.textContent=sesAcik?'SESİ KAPAT':'SESİ AÇ';
+    sesBtn.setAttribute('aria-label',sesAcik?'Seslendirmeyi kapat':'Seslendirmeyi aç');
+    sesBtn.setAttribute('aria-pressed',String(sesAcik));
+    sesBtn.classList.toggle('is-acik',sesAcik);
+  };
+  const sesiAc=()=>{
+    if(bitti)return;
+    sesAcik=true;
+    film.muted=false;
+    sesArayuzu();
+    const play=film.play();
+    if(play&&play.catch)play.catch(()=>{sesAcik=false;film.muted=true;sesArayuzu();});
+  };
+  const sesiKapat=()=>{sesAcik=false;film.muted=true;sesArayuzu();};
+  sesBtn.addEventListener('click',e=>{e.stopPropagation();sesAcik?sesiKapat():sesiAc();});
+  kok.addEventListener('pointerdown',e=>{
+    if(!sesAcik&&!e.target.closest('a,button'))sesiAc();
+  },{passive:true});
   const zaman=()=>{
     const t=film.currentTime||0;
     if(t>=p.sonKart)panelAc();
@@ -185,6 +212,7 @@
     govde.classList.remove('bt-clean-intro-active');
     govde.classList.add('film-bitti');
     panelAc();
+    sesBtn.hidden=true;
     zaman();
   };
   // Son karta atla: kaydırma/kaydırma hareketi, Esc ya da aynı oturumda dönüş.
@@ -201,7 +229,7 @@
     film.load();
   };
   const oynat=()=>{
-    film.muted=true;
+    film.muted=!sesAcik;
     const s=film.play();
     if(s&&s.catch)s.catch(sonaAtla);
   };
@@ -211,7 +239,7 @@
   // olduğundan özel filmde dokunma alanları kapanır; film bitince sayfa açılır.
   // Emekli filmler (panelde eski atama olarak kalan) yok sayılır; 11 Ekim'de
   // yuvada hero-story.mp4 duruyordu ve yeni filmi ezerdi.
-  const EMEKLI=/\/(hero-story(-mobile)?|giris-ai(-genis)?|giris-filmi(-genis)?|btmedya-ai-film(-genis)?|saha-gece)\.(mp4|webm)$/;
+  const EMEKLI=/\/(hero-story(-mobile)?|giris-ai(-genis)?|giris-filmi(-genis)?|btmedya-ai-film(-genis)?|btmedya-hero-web|btmedya-giris-v6-(genis|dikey)|saha-gece)\.(mp4|webm)$/;
   const panelFilmi=y=>{
     const a=y&&y['hero-video'];
     const url=a&&String(a.url||'');

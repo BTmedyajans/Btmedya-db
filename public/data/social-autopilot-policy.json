@@ -1,0 +1,67 @@
+{
+  "version": "1.0.0",
+  "status": "policy-ready",
+  "accountScope": "company",
+  "brandId": "6858384",
+  "brandLabel": "busetuncayy10",
+  "timezone": "Europe/Istanbul",
+  "networks": {
+    "tiktok": {
+      "enabled": true,
+      "account": "btmedya1010",
+      "autoPublish": true,
+      "maxPostsPerDay": 1,
+      "allowedFormats": ["video"],
+      "requires": ["verified_source", "verified_media_rights", "web_ready_video", "editorial_pass", "no_duplicate_24h"],
+      "aiDisclosure": true
+    },
+    "youtube": {
+      "enabled": true,
+      "channelId": "UCGyRifwCyrKJQAbmo4uoO9g",
+      "autoPublish": true,
+      "maxPostsPerDay": 1,
+      "allowedFormats": ["short", "video"],
+      "requires": ["verified_source", "verified_media_rights", "web_ready_video", "editorial_pass", "youtube_title", "no_duplicate_24h"],
+      "privacyDefault": "public",
+      "aiDisclosure": true
+    },
+    "instagram": {
+      "enabled": false,
+      "reason": "Metricool brand connection not verified"
+    },
+    "facebook": {
+      "enabled": false,
+      "reason": "Metricool brand connection not verified"
+    }
+  },
+  "selection": {
+    "sources": ["site", "r2", "dropbox"],
+    "dropboxRightsStatusAllowed": ["verified"],
+    "archiveDefault": "review-required",
+    "preferOriginalReporting": true,
+    "excludeAiLabUnlessLabeled": true,
+    "maxCandidateAgeDays": 30,
+    "duplicateWindowHours": 24
+  },
+  "publishing": {
+    "mode": "limited-auto-publish",
+    "metricoolReview": false,
+    "manualOverride": true,
+    "requireHumanApprovalFor": ["advertising", "politics", "medical", "legal", "financial", "rights_uncertain", "new_client_scope"],
+    "quietHours": {"start": "22:00", "end": "08:00"},
+    "retry": {"maxAttempts": 2, "backoffMinutes": 15},
+    "neverAutoPublish": ["rights-required", "missing-source", "unverified-account", "missing-media", "duplicate-risk"]
+  },
+  "trend": {
+    "useMetricoolBestTimes": true,
+    "useRecentPerformance": true,
+    "fallbackWindows": ["10:00-12:00", "16:00-20:00"],
+    "scheduleOnlyFutureDates": true
+  },
+  "advertising": {
+    "enabled": false,
+    "requiresSeparateBudgetApproval": true,
+    "requiresAudienceApproval": true,
+    "requiresCreativeApproval": true
+  }
+}

@@ -14,6 +14,10 @@ body.bt-clean-intro-active main#icerik{transform:none!important;animation:none!i
 .giris-v5{position:relative;width:100%;height:100svh;min-height:100svh;background:#000;overflow:hidden;isolation:isolate}
 .giris-v5 video{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;background:#000}
 .giris-v5 video::-webkit-media-controls{display:none!important}
+.giris-v5-ses{position:absolute;z-index:5;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));min-height:36px;padding:0 12px;border:1px solid rgba(255,255,255,.55);border-radius:999px;background:rgba(0,0,0,.58);color:#fff;font:800 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.08em;cursor:pointer;backdrop-filter:blur(8px);-webkit-tap-highlight-color:transparent;transition:background .2s,border-color .2s,transform .2s}
+.giris-v5-ses:hover,.giris-v5-ses:focus-visible{background:rgba(242,193,78,.2);border-color:#f2c14e;outline:2px solid rgba(242,193,78,.45);outline-offset:3px}
+.giris-v5-ses.is-acik{border-color:#f2c14e;color:#f2c14e}
+.giris-v5-ses[hidden]{display:none}
 .giris-v5-katman{position:absolute;inset:0;z-index:2;pointer-events:none}
 
 /* Dokunma alanı: kapalıyken tamamen görünmez ve tıklanamaz. Açılınca ince
