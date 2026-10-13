@@ -66,9 +66,9 @@ if (css.includes("min-height:44px")) ok("desktop CTA meets minimum touch target"
 else fail("primary CTA minimum touch target missing");
 
 /* International SEO and AEO contracts: validate semantics at source, not just tag presence. */
-if (!/<html\\b[^>]*lang=["']tr["']/i.test(index)) fail('homepage html lang must be tr');
-else ok('homepage language is Turkish');
-const alternateLinks = [...index.matchAll(/<link\\b[^>]*rel=["']alternate["'][^>]*>/gi)].map(m => m[0]);
+if (index.includes('<html lang="tr">')) ok('homepage language is Turkish');
+else fail('homepage html lang must be tr');
+const alternateLinks = [...index.matchAll(/<link[^>]*rel=["']alternate["'][^>]*>/gi)].map(m => m[0]);
 for (const [lang, href] of [['tr-TR','https://btmedya.com.tr/'],['en','https://btmedya.com.tr/en/'],['x-default','https://btmedya.com.tr/']]) {
   const found = alternateLinks.some(tag => tag.includes('hreflang="' + lang + '"') && tag.includes('href="' + href + '"'));
   if (found) ok('hreflang ' + lang + ' is mapped to the canonical language URL');
@@ -106,7 +106,7 @@ if (serviceTypes.includes('ProfessionalService') || serviceTypes.includes('Local
 else fail('BT STUDIO is missing LocalBusiness/ProfessionalService JSON-LD');
 if (serviceTypes.filter(type => type === 'Product').length >= 3) ok('three service packages have Product structured data');
 else fail('BT STUDIO requires Product schema for the three named packages');
-if (/"@type"\\s*:\\s*"NewsArticle"/.test(newsPageSource)) ok('dynamic news pages use NewsArticle JSON-LD');
+if (newsPageSource.includes('"@type":"NewsArticle"')) ok('dynamic news pages use NewsArticle JSON-LD');
 else fail('dynamic news rendering is missing NewsArticle JSON-LD');
 if (workerSource.includes("url.pathname==='/api/public/live-data'") && homeSource.includes("fetch('/api/public/live-data'")) ok('homepage counters use the D1/static-fallback live-data API');
 else fail('live-data API and homepage counter are not connected');
