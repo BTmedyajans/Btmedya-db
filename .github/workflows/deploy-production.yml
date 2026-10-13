@@ -174,7 +174,7 @@ jobs:
           test "$www_code" = "301"
 
           # Exercise the real deployed login route, not only the mocked source test.
-          admin_code="$(curl -sS -o /tmp/btmedya-admin.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/ || true)"
+          admin_code="$(curl -sS -H 'Accept: text/html' -o /tmp/btmedya-admin.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/ || true)"
           test "$admin_code" = "401"
           grep -q '<form id="giris"' /tmp/btmedya-admin.html
           subroute_code="$(curl -sS -H 'Accept: text/html' -D /tmp/btmedya-admin-headers -o /dev/null -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/agency-os/ || true)"
