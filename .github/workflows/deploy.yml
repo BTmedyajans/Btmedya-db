@@ -228,7 +228,7 @@ jobs:
             return 1
           }
 
-          # Cloudflare Workers Builds publishes the same main push asynchronously.
+          # Production deploy is handled by deploy-production.yml; this workflow only performs explicit verification.
           # Wait before the first live probe so the verification job does not race the production build.
           sleep 90
 
