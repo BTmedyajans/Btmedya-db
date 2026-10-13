@@ -113,7 +113,7 @@ No automatic upgrade or paid API activation.
 ## Current known gaps
 
 1. Google Drive is not directly wired into the Worker.
-2. Live social account publishing remains connector-dependent and only verified Metricool networks are treated as connected.
+2. Social account publishing uses native OAuth/API via BTMEDYA Worker and Cloudflare D1 queue; every platform account must be authorized directly before publishing.
 3. SEO has production smoke tests, but no unified visual audit dashboard.
 4. The existing admin panel should become the single control center without replacing its working media/news APIs.
 
