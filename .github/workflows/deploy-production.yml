@@ -56,7 +56,6 @@ jobs:
           node --check src/buffer-social.js
           node --check src/tiktok-direct.js
           node --check src/youtube-direct.js
-          python3 tools/validate-assets.py
           # Bundle the supplied portrait/landscape entrance videos and posters into
           # first-party static assets so the browser never depends on GitHub redirects.
           mkdir -p public/assets/media/web
@@ -68,6 +67,9 @@ jobs:
           # Generate WebM alternatives from the same supplied files for clients that need them.
           ffmpeg -hide_banner -loglevel error -y -i public/assets/media/web/btmedya-hero-mobile.mp4 -c:v libvpx-vp9 -b:v 0 -crf 32 -an public/assets/media/web/btmedya-hero-mobile.webm
           ffmpeg -hide_banner -loglevel error -y -i public/assets/media/web/btmedya-hero-web.mp4 -c:v libvpx-vp9 -b:v 0 -crf 34 -an public/assets/media/web/btmedya-hero-web.webm
+          # Validate all authored paths, followed by checks for the generated hero deliverables.
+          python3 tools/validate-assets.py
+          for asset in public/assets/media/web/btmedya-hero-mobile.mp4 public/assets/media/web/btmedya-hero-mobile.webm public/assets/media/web/btmedya-hero-mobile-poster.jpg public/assets/media/web/btmedya-hero-web.mp4 public/assets/media/web/btmedya-hero-web.webm public/assets/media/web/btmedya-hero-web-poster.jpg; do test -s "$asset"; done
           node tools/sosyal-otomasyon-testi.mjs
           node tools/yayin-zinciri-testi.mjs
           node tools/gerileme-denetimi.mjs
