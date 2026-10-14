@@ -89,10 +89,10 @@ for (const vp of viewports) {
         }));
         const sourcePath=media.source ? new URL(media.source,BASE).pathname : '';
         const posterPath=media.poster ? new URL(media.poster,BASE).pathname : '';
-        const beklenen=v5?['/assets/media/web/btmedya-hero-mobile.mp4','/assets/media/web/btmedya-hero-mobile-poster.jpg']:['/btmedya-ai-film.mp4','/btmedya-ai-film-poster.jpg'];
-        // H.264 çözemeyen Chromium (CI) uses the local mobile WebM alternative.
+        const beklenen=v5?['/assets/media/web/btmedya-tanitim-v5-dikey.mp4','/assets/media/web/btmedya-tanitim-v5-dikey-poster.jpg']:['/btmedya-ai-film.mp4','/btmedya-ai-film-poster.jpg'];
+        // H.264 çözemeyen Chromium (CI) uses the local first-party mobile WebM alternative.
         // Both must remain first-party mobile assets, never the desktop variant.
-        const kaynakTamam=sourcePath.endsWith(beklenen[0])||(v5&&sourcePath.endsWith('/assets/media/web/btmedya-hero-mobile.webm'));
+        const kaynakTamam=sourcePath.endsWith(beklenen[0])||(v5&&sourcePath.endsWith('/assets/media/web/btmedya-tanitim-v5-dikey.webm'));
         if(!kaynakTamam) failures.push('mobile home hero selected unexpected film source '+(sourcePath||'NONE'));
         if(!posterPath.endsWith(beklenen[1])) failures.push('mobile home hero selected unexpected poster '+(posterPath||'NONE'));
         // Source attributes alone can look correct while the video request is
