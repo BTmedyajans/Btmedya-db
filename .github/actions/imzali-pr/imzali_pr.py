@@ -31,9 +31,9 @@ YOLLAR = shlex.split(os.environ["YOLLAR"])
 MESAJ = os.environ.get("MESAJ", "chore: otomasyon çıktısı")
 PR_BASLIK = os.environ.get("PR_BASLIK", MESAJ)
 PR_GOVDE = os.environ.get("PR_GOVDE", "")
-# GraphQL istek gövdesi base64 ile ~%33 büyür; tek commit'i 20 MB ham veride
-# tutmak isteği güvenli sınırın altında bırakır. Fazlası ardışık commit olur.
-PARCA_BAYT = 20 * 1024 * 1024
+# GraphQL isteği base64 ile ~%33 büyür ve büyük istekler 504 verebilir.
+# Dosyaları küçük, imzalı commit paketlerine böl; ana dal korunur.
+PARCA_BAYT = 3 * 1024 * 1024
 
 
 def istek(yontem: str, url: str, govde: dict | None = None) -> tuple[int, dict]:
