@@ -1,8 +1,29 @@
 name: BTMEDYA Production Deploy
+# Canonical production release owner: GitHub Actions + Wrangler.
+# Cloudflare Workers Builds is intentionally not enabled for this Worker.
 
 on:
   push:
     branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "migrations/**"
+      - "wrangler.toml"
+      - "package.json"
+      - ".github/workflows/deploy-production.yml"
+      - ".github/actions/cf-token-sec/**"
+      - ".github/workflows/r2-sync.yml"
+      - "tools/repair-cover-fotos.py"
+      - "tools/validate-assets.py"
+      - "tools/sosyal-otomasyon-testi.mjs"
+      - "tools/yayin-zinciri-testi.mjs"
+      - "tools/gerileme-denetimi.mjs"
+      - "tools/link-denetimi.mjs"
+      - "tools/mobile-regression-gate.mjs"
+      - "tools/ux-seo-contract.mjs"
+      - "tools/admin-giris-testi.mjs"
+      - "docs/production-deploy-chain-recovery.md"
   workflow_dispatch:
 
 permissions:
@@ -26,24 +47,60 @@ jobs:
         with:
           node-version: 22
 
-      - name: Source and asset preflight
+      - name: Set up Python for cover integrity repair
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Pillow for cover repair
+        run: python -m pip install --quiet "Pillow>=10,<12"
+
+      - name: Install FFmpeg for first-party hero media
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Validate source and assets
         shell: bash
         run: |
           set -euo pipefail
           test -s src/worker.js
-          test -s wrangler.toml
+          test -s src/autopilot.js
+          test -s src/direct-social.js
           test -s public/index.html
-          test -s public/home.js
-          test -s package.json
+          test -s public/robots.txt
+          test -s public/sitemap.xml
           node --check src/worker.js
-          node --check public/home.js
+          node --check src/autopilot.js
+          node --check src/direct-social.js
+          node --check src/social-platforms.js
+          node --check src/sosyal-otomasyon.js
+          node --check src/yayin-zinciri.js
+          node --check src/x-direct.js
+          node --check src/buffer-social.js
+          node --check src/tiktok-direct.js
+          node --check src/youtube-direct.js
+          # Generate first-party hero deliverables from approved source media.
+          mkdir -p public/assets/media/web
+          curl -fsSL --retry 3 "https://d2ol7oe51mr4n9.cloudfront.net/user_3I87Wl91fYo7jAjCVYu9K4bPJ4B/b1902fbf-b7c7-4c73-aa75-27723438d2cb.mp4" -o public/assets/media/web/btmedya-hero-mobile.mp4
+          curl -fsSL --retry 3 "https://d2ol7oe51mr4n9.cloudfront.net/user_3I87Wl91fYo7jAjCVYu9K4bPJ4B/939c6cbe-3fa1-462e-ba56-b6f37231a90c.mp4" -o public/assets/media/web/btmedya-hero-web-source.webm
+          ffmpeg -hide_banner -loglevel error -y -i public/assets/media/web/btmedya-hero-web-source.webm -c:v libx264 -pix_fmt yuv420p -movflags +faststart -an public/assets/media/web/btmedya-hero-web.mp4
+          ffmpeg -hide_banner -loglevel error -y -ss 20 -i public/assets/media/web/btmedya-hero-mobile.mp4 -frames:v 1 -q:v 3 public/assets/media/web/btmedya-hero-mobile-poster.jpg
+          ffmpeg -hide_banner -loglevel error -y -ss 20 -i public/assets/media/web/btmedya-hero-web.mp4 -frames:v 1 -q:v 3 public/assets/media/web/btmedya-hero-web-poster.jpg
+          ffmpeg -hide_banner -loglevel error -y -i public/assets/media/web/btmedya-hero-mobile.mp4 -c:v libvpx-vp9 -b:v 0 -crf 32 -an public/assets/media/web/btmedya-hero-mobile.webm
+          ffmpeg -hide_banner -loglevel error -y -i public/assets/media/web/btmedya-hero-web.mp4 -c:v libvpx-vp9 -b:v 0 -crf 34 -an public/assets/media/web/btmedya-hero-web.webm
+          python3 tools/repair-cover-fotos.py
           python3 tools/validate-assets.py
-          node tools/a11y-denetimi.mjs
+          node tools/admin-giris-testi.mjs
+          for asset in public/assets/media/web/btmedya-hero-mobile.mp4 public/assets/media/web/btmedya-hero-mobile.webm public/assets/media/web/btmedya-hero-mobile-poster.jpg public/assets/media/web/btmedya-hero-web.mp4 public/assets/media/web/btmedya-hero-web.webm public/assets/media/web/btmedya-hero-web-poster.jpg; do test -s "$asset"; done
+          node tools/sosyal-otomasyon-testi.mjs
+          node tools/yayin-zinciri-testi.mjs
           node tools/gerileme-denetimi.mjs
           node tools/link-denetimi.mjs
           node tools/mobile-regression-gate.mjs
+          node tools/ux-seo-contract.mjs
 
-      - name: Validate Cloudflare deploy token
+      - name: Validate the single production deploy token
         shell: bash
         env:
           CF_DEPLOY_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN }}
@@ -51,7 +108,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${CF_DEPLOY_TOKEN:-}" ]; then
-            echo "::error::Missing required GitHub Actions secret CLOUDFLARE_DEPLOY_TOKEN."
+            echo "::error::Missing GitHub Actions secret CLOUDFLARE_DEPLOY_TOKEN. Add a dedicated Cloudflare API token with Workers Editor for btmedya-db and Workers Routes Write for the btmedya.com.tr zone."
             exit 1
           fi
           echo "::add-mask::$CF_DEPLOY_TOKEN"
@@ -62,19 +119,19 @@ jobs:
             state="$(jq -r '.result.status // empty' <<<"$verify" 2>/dev/null || true)"
           fi
           if [ "$state" != "active" ]; then
-            echo "::error::Cloudflare token is missing, inactive, or not accepted by the verification API."
+            echo "::error::CLOUDFLARE_DEPLOY_TOKEN failed token verification."
             exit 1
           fi
-          account_file="$(mktemp)"
-          http_code="$(curl -sS --connect-timeout 10 --max-time 20 -o "$account_file" -w "%{http_code}" -H "Authorization: Bearer $CF_DEPLOY_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/scripts")"
-          if [ "$http_code" != "200" ] || ! jq -e --arg worker "btmedya-db" '.success == true and any(.result[]?; .id == $worker)' "$account_file" >/dev/null 2>&1; then
-            rm -f "$account_file"
-            echo "::error::Token cannot read Worker btmedya-db in the configured Cloudflare account."
+          access_file="$(mktemp)"
+          http_code="$(curl -sS --connect-timeout 10 --max-time 20 -o "$access_file" -w "%{http_code}" -H "Authorization: Bearer $CF_DEPLOY_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/scripts")"
+          if [ "$http_code" != "200" ] || ! jq -e --arg worker "btmedya-db" '.success == true and any(.result[]?; .id == $worker)' "$access_file" >/dev/null 2>&1; then
+            rm -f "$access_file"
+            echo "::error::Token lacks access to Worker btmedya-db in the target account."
             exit 1
           fi
-          rm -f "$account_file"
+          rm -f "$access_file"
           echo "CLOUDFLARE_API_TOKEN=$CF_DEPLOY_TOKEN" >> "$GITHUB_ENV"
-          echo "Cloudflare token verified; secret value remains masked."
+          echo "Cloudflare token is active and target Worker is accessible."
 
       - name: Install pinned Wrangler
         run: npm install --no-save --no-package-lock wrangler@4.142.0
@@ -85,35 +142,44 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx wrangler deploy --config wrangler.toml
+          if ! npx wrangler deploy --config wrangler.toml; then
+            echo "::error::Cloudflare rejected deployment; check Workers Editor and Workers Routes Write permissions for CLOUDFLARE_DEPLOY_TOKEN."
+            exit 1
+          fi
 
-      - name: Verify deployed health and public routes
+      - name: Verify live site and API
         shell: bash
         run: |
           set -euo pipefail
-          healthy=0
+          ok=0
           for attempt in $(seq 1 12); do
-            code="$(curl -sS --max-time 20 -o /tmp/btmedya-health.json -w "%{http_code}" https://btmedya.com.tr/api/health || true)"
+            code="$(curl -sS -o /tmp/btmedya-health.json -w "%{http_code}" --max-time 20 https://btmedya.com.tr/api/health || true)"
             if [ "$code" = "200" ] && grep -q '"ok":true' /tmp/btmedya-health.json; then
-              healthy=1
+              ok=1
               break
             fi
             echo "Health check attempt $attempt returned HTTP $code; retrying."
             sleep 5
           done
-          test "$healthy" = "1"
+          test "$ok" = "1"
           cat /tmp/btmedya-health.json
-
-          home_code="$(curl -sS --max-time 20 -o /tmp/btmedya-home.html -w "%{http_code}" https://btmedya.com.tr/)"
-          test "$home_code" = "200"
-          grep -q 'BTMEDYA' /tmp/btmedya-home.html
-
-          www_code="$(curl -sS --max-time 20 -o /dev/null -w "%{http_code}" https://www.btmedya.com.tr/)"
-          test "$www_code" = "301"
-
+          home_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 -o /tmp/btmedya-home.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/)"
+          if [ "$home_code" != "200" ] || ! grep -q 'BTMEDYA' /tmp/btmedya-home.html; then
+            echo "::error::Homepage smoke test failed: HTTP $home_code or expected BTMEDYA marker missing."
+            head -c 500 /tmp/btmedya-home.html || true
+            exit 1
+          fi
+          www_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 -o /dev/null -w "%{http_code}" --max-time 20 https://www.btmedya.com.tr/)"
+          if [ "$www_code" != "301" ]; then
+            echo "::error::Canonical www redirect failed: expected HTTP 301, got $www_code."
+            exit 1
+          fi
           for path in robots.txt sitemap.xml news-sitemap.xml rss.xml; do
-            code="$(curl -sS --max-time 20 -o /dev/null -w "%{http_code}" "https://btmedya.com.tr/$path")"
-            test "$code" = "200"
-            echo "SEO endpoint OK: $path HTTP $code"
+            endpoint_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 -o "/tmp/btmedya-$path" -w "%{http_code}" --max-time 20 "https://btmedya.com.tr/$path")"
+            if [ "$endpoint_code" != "200" ]; then
+              echo "::error::SEO endpoint failed: $path HTTP $endpoint_code"
+              exit 1
+            fi
+            echo "SEO endpoint OK: $path HTTP $endpoint_code"
           done
-          echo "Production smoke test passed."
+          echo "Production smoke test passed: home=$home_code, www=$www_code, health=200, sitemap endpoints=200."
