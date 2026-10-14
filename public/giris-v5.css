@@ -151,3 +151,23 @@ body.bt-clean-intro-active #hero .giris-v5-vurgular { position:absolute!importan
   body.bt-clean-intro-active #hero video { object-position:center center!important; }
   body.bt-clean-intro-active #hero .giris-v5-kat { width:100vw!important; }
 }
+
+
+/* Mobile AI intro soundtrack control: icon-only and safe-area aware. */
+.giris-v5-ses{display:none}
+@media (max-width:720px),(max-aspect-ratio:4/5){
+  .giris-v5-ses{
+    position:absolute;top:calc(14px + env(safe-area-inset-top,0px));
+    right:calc(14px + env(safe-area-inset-right,0px));z-index:5;
+    display:grid;place-items:center;width:44px;height:44px;padding:0;
+    border:1px solid rgba(255,255,255,.36);border-radius:50%;
+    color:#fff;background:rgba(3,8,18,.68);backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);box-shadow:0 4px 24px rgba(0,0,0,.26);
+    cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  }
+  .giris-v5-ses span{font-size:22px;line-height:1}
+  .giris-v5-ses svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .giris-v5-ses[aria-pressed="true"]{border-color:#2ad1d9;box-shadow:0 0 18px rgba(42,209,217,.3)}
+  .giris-v5.is-bitti .giris-v5-ses{display:none}
+  .giris-v5-ses:focus-visible{outline:2px solid #2ad1d9;outline-offset:3px}
+}
