@@ -16,7 +16,7 @@ on:
   # Canli denetim production verify tamamlandiktan sonra calisir; böylece
   # yeni deploy henüz yayına inmeden yanlış "canlı geride" alarmı üretmez.
   workflow_run:
-    workflows: ["BTMEDYA Production Verify"]
+    workflows: ["BTMEDYA Production Deploy"]
     types: [completed]
   schedule:
     # Saat basi degil 17. dakika: GitHub zamanlanmis isleri saat basinda
