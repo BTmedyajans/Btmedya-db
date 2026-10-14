@@ -89,4 +89,12 @@ assert.match(kabuk, /location\.replace\('\/admin\/agency-os\//);
 const merkezStil = readFileSync('public/admin/agency-os/agency-os.css', 'utf8');
 for (const parca of [':root{', '--lime:', 'body{', '.top{']) assert.ok(merkezStil.includes(parca), `agency-os.css taban kuralı eksik: ${parca}`);
 
+// 9) Native social OAuth butonları yalnız geçerli workspace türünü kullanmalı.
+const socialConnectPage = readFileSync('public/admin/connect/index.html', 'utf8');
+for (const provider of ['tiktok', 'youtube', 'x']) {
+  const route = new RegExp(`/api/social/direct/${provider}/start\\?workspace_type=agency&workspace_id=btmedya`);
+  assert.match(socialConnectPage, route, `${provider} OAuth bağlantısı agency/btmedya çalışma alanını kullanmalı`);
+}
+assert.doesNotMatch(socialConnectPage, /workspace_type=company/, 'geçersiz company workspace değeri OAuth bağlantılarında kalmamalı');
+
 console.log('ADMIN GIRIS TESTI GECTI');
