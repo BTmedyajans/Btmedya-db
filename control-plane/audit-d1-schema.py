@@ -164,11 +164,105 @@ def main() -> int:
                 "GET", f"/accounts/{account_id}/workers/scripts/{worker_name}/secrets"
             )
             secret_names = {item.get("name") for item in (secret_response.get("result") or [])}
-            for secret_name in ("METRICOOL_USER_TOKEN", "WINDSOR_API_KEY"):
-                mark(secret_name in secret_names, f"Worker secret is configured: {secret_name}", warning=True)
+
+            settings_response = request_json(
+                "GET", f"/accounts/{account_id}/workers/scripts/{worker_name}/settings"
+            )
+            bindings = ((settings_response.get("result") or {}).get("bindings") or [])
+            plain_vars = {
+                item.get("name"): item.get("text", "")
+                for item in bindings if item.get("type") == "plain_text"
+            }
+            publisher = str(plain_vars.get("BTMEDYA_SOCIAL_PUBLISHER") or "direct").strip().lower()
+            print("INFO: Social publisher mode: " + publisher)
+
+            if publisher == "direct":
+                # The first-party OAuth/API publisher needs platform app credentials.
+                # Values are never queried, logged, or copied into artifacts.
+                for secret_name in (
+                    "META_APP_ID", "META_APP_SECRET",
+                    "TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET",
+                    "YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET",
+                    "X_CLIENT_ID",
+                ):
+                    mark(
+                        secret_name in secret_names,
+                        f"Native social OAuth credential is configured: {secret_name}",
+                        warning=True,
+                    )
+                mark(
+                    "SOCIAL_TOKEN_ENCRYPTION_KEY" in secret_names or "MEDIA_SIGNING_SECRET" in secret_names,
+                    "native social token-encryption key binding is available",
+                    warning=True,
+                )
+
+                if "social_direct_connections" in tables:
+                    connection_rows = d1_query(
+                        account_id, database_id,
+                        "SELECT provider, status, COUNT(*) AS total "
+                        "FROM social_direct_connections "
+                        "WHERE workspace_type='agency' AND workspace_id='btmedya' "
+                        "GROUP BY provider, status ORDER BY provider, status",
+                    )
+                    active_by_provider = {
+                        str(row.get("provider") or "unknown"): int(row.get("total") or 0)
+                        for row in connection_rows if row.get("status") == "active"
+                    }
+                    active_total = sum(active_by_provider.values())
+                    print("INFO: Active native social account counts by provider: " + (
+                        ", ".join(f"{provider}={count}" for provider, count in sorted(active_by_provider.items()))
+                        if active_by_provider else "none"
+                    ))
+                    mark(
+                        active_total > 0,
+                        "at least one native social OAuth account is active"
+                        if active_total else "no active native social OAuth accounts are connected yet",
+                        warning=True,
+                    )
+                else:
+                    mark(False, "native social connection table exists", warning=True)
+
+                if "social_direct_jobs" in tables:
+                    job_rows = d1_query(
+                        account_id, database_id,
+                        "SELECT status, COUNT(*) AS total FROM social_direct_jobs "
+                        "GROUP BY status ORDER BY status",
+                    )
+                    jobs_by_status = {
+                        str(row.get("status") or "unknown"): int(row.get("total") or 0)
+                        for row in job_rows
+                    }
+                    print("INFO: Native social job counts by status: " + (
+                        ", ".join(f"{status}={count}" for status, count in sorted(jobs_by_status.items()))
+                        if jobs_by_status else "none"
+                    ))
+                    error_jobs = jobs_by_status.get("error", 0)
+                    mark(
+                        error_jobs == 0,
+                        "no failed native social jobs" if error_jobs == 0
+                        else f"native social jobs in error state: {error_jobs}",
+                        warning=True,
+                    )
+                else:
+                    mark(False, "native social job queue table exists", warning=True)
+
+                # Metricool is legacy-only while the Worker is in direct mode.
+                # Do not treat an unused Metricool token as a production blocker.
+            else:
+                mark(
+                    "METRICOOL_USER_TOKEN" in secret_names,
+                    "Worker secret is configured: METRICOOL_USER_TOKEN",
+                    warning=True,
+                )
+
+            mark(
+                "WINDSOR_API_KEY" in secret_names,
+                "Worker secret is configured: WINDSOR_API_KEY",
+                warning=True,
+            )
         except Exception as exc:
-            WARNINGS.append("Worker secret metadata could not be checked: " + str(exc))
-            print("WARN: Worker secret metadata could not be checked: " + str(exc))
+            WARNINGS.append("Worker integration metadata could not be checked: " + str(exc))
+            print("WARN: Worker integration metadata could not be checked: " + str(exc))
 
     except Exception as exc:
         detail = str(exc)
