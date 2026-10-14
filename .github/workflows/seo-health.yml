@@ -3,7 +3,7 @@ name: BTMEDYA Live SEO Health
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 5 * * *"
+    - cron: "35 * * * *"
   push:
     branches: [main]
     paths:
