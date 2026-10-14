@@ -158,6 +158,93 @@ def main() -> int:
         else:
             mark(False, "news and content_taxonomy tables are available for backfill verification")
 
+        # News automation: report recent autopilot outcomes and candidate backlog without titles/URLs.
+        if "autopilot_runs" in tables:
+            run_rows = d1_query(
+                account_id, database_id,
+                "SELECT id, started_at, finished_at, scanned, candidates, created_news, "
+                "published_news, social_created, social_scheduled, blocked, error_count "
+                "FROM autopilot_runs ORDER BY id DESC LIMIT 3",
+            )
+            if run_rows:
+                latest_run = run_rows[0]
+                recent_summary = [{
+                    key: row.get(key) for key in (
+                        "id", "started_at", "finished_at", "scanned", "candidates",
+                        "created_news", "published_news", "social_created",
+                        "social_scheduled", "blocked", "error_count",
+                    )
+                } for row in run_rows]
+                print("INFO: Recent autopilot run metrics: " + json.dumps(recent_summary, ensure_ascii=False))
+                latest_errors = int(latest_run.get("error_count") or 0)
+                latest_published = int(latest_run.get("published_news") or 0)
+                mark(
+                    latest_errors == 0,
+                    "latest autopilot run has no errors" if latest_errors == 0
+                    else f"latest autopilot run error_count={latest_errors}",
+                    warning=True,
+                )
+                mark(
+                    latest_published > 0,
+                    f"latest autopilot run published {latest_published} news item(s)"
+                    if latest_published > 0
+                    else "latest autopilot run published no news; review policy, quality gates, and eligible candidates",
+                    warning=True,
+                )
+            else:
+                mark(False, "autopilot run history contains recent records", warning=True)
+        else:
+            mark(False, "autopilot run history table exists", warning=True)
+
+        if "news_intelligence" in tables:
+            intelligence_rows = d1_query(
+                account_id, database_id,
+                "SELECT status, COUNT(*) AS total, MAX(updated_at) AS last_updated, "
+                "MAX(score) AS max_score FROM news_intelligence GROUP BY status ORDER BY status",
+            )
+            by_status = {
+                str(row.get("status") or "unknown"): int(row.get("total") or 0)
+                for row in intelligence_rows
+            }
+            print("INFO: News intelligence candidate counts by status: " + (
+                ", ".join(f"{status}={count}" for status, count in sorted(by_status.items()))
+                if by_status else "none"
+            ))
+            newest = max(
+                (str(row.get("last_updated") or "") for row in intelligence_rows),
+                default="",
+            )
+            top_score = max(
+                (int(row.get("max_score") or 0) for row in intelligence_rows),
+                default=0,
+            )
+            print(f"INFO: News intelligence latest update={newest or 'none'}; max score={top_score}")
+            new_candidates = by_status.get("new", 0)
+            mark(
+                new_candidates > 0,
+                f"news intelligence has {new_candidates} new candidate(s)"
+                if new_candidates > 0 else "news intelligence has no new candidates awaiting review",
+                warning=True,
+            )
+        else:
+            mark(False, "news intelligence table exists", warning=True)
+
+        if "news" in tables:
+            news_rows = d1_query(
+                account_id, database_id,
+                "SELECT status, COUNT(*) AS total FROM news GROUP BY status ORDER BY status",
+            )
+            news_by_status = {
+                str(row.get("status") or "unknown"): int(row.get("total") or 0)
+                for row in news_rows
+            }
+            print("INFO: CMS news counts by status: " + (
+                ", ".join(f"{status}={count}" for status, count in sorted(news_by_status.items()))
+                if news_by_status else "none"
+            ))
+        else:
+            mark(False, "CMS news table exists", warning=True)
+
         # Secret metadata contains names/types only; no secret values are requested or printed.
         try:
             secret_response = request_json(
@@ -185,14 +272,19 @@ def main() -> int:
                     "YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET",
                     "X_CLIENT_ID",
                 ):
+                    present = secret_name in secret_names
                     mark(
-                        secret_name in secret_names,
-                        f"Native social OAuth credential is configured: {secret_name}",
+                        present,
+                        f"Native social OAuth credential binding {'present' if present else 'missing'}: {secret_name}",
                         warning=True,
                     )
+                encryption_available = (
+                    "SOCIAL_TOKEN_ENCRYPTION_KEY" in secret_names or "MEDIA_SIGNING_SECRET" in secret_names
+                )
                 mark(
-                    "SOCIAL_TOKEN_ENCRYPTION_KEY" in secret_names or "MEDIA_SIGNING_SECRET" in secret_names,
-                    "native social token-encryption key binding is available",
+                    encryption_available,
+                    "native social token-encryption key binding "
+                    + ("available" if encryption_available else "missing"),
                     warning=True,
                 )
 
@@ -249,15 +341,21 @@ def main() -> int:
                 # Metricool is legacy-only while the Worker is in direct mode.
                 # Do not treat an unused Metricool token as a production blocker.
             else:
+                metricool_configured = "METRICOOL_USER_TOKEN" in secret_names
                 mark(
-                    "METRICOOL_USER_TOKEN" in secret_names,
-                    "Worker secret is configured: METRICOOL_USER_TOKEN",
+                    metricool_configured,
+                    "Worker secret binding "
+                    + ("present" if metricool_configured else "missing")
+                    + ": METRICOOL_USER_TOKEN",
                     warning=True,
                 )
 
+            windsor_configured = "WINDSOR_API_KEY" in secret_names
             mark(
-                "WINDSOR_API_KEY" in secret_names,
-                "Worker secret is configured: WINDSOR_API_KEY",
+                windsor_configured,
+                "Worker secret binding "
+                + ("present" if windsor_configured else "missing")
+                + ": WINDSOR_API_KEY",
                 warning=True,
             )
         except Exception as exc:
