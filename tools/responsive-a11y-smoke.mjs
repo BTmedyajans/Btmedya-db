@@ -89,10 +89,9 @@ for (const vp of viewports) {
         }));
         const sourcePath=media.source ? new URL(media.source,BASE).pathname : '';
         const posterPath=media.poster ? new URL(media.poster,BASE).pathname : '';
-        const beklenen=v5?['/assets/media/web/btmedya-tanitim-v5-dikey.mp4','/assets/media/web/btmedya-tanitim-v5-dikey-poster.jpg']:['/btmedya-ai-film.mp4','/btmedya-ai-film-poster.jpg'];
-        // H.264 çözemeyen Chromium (CI) uses the local first-party mobile WebM alternative.
-        // Both must remain first-party mobile assets, never the desktop variant.
-        const kaynakTamam=sourcePath.endsWith(beklenen[0])||(v5&&sourcePath.endsWith('/assets/media/web/btmedya-tanitim-v5-dikey.webm'));
+        const beklenen=v5?['/assets/media/web/btmedya-ai-film.mp4','/assets/media/web/btmedya-ai-film-poster.jpg']:['/btmedya-ai-film.mp4','/btmedya-ai-film-poster.jpg'];
+        // Mobile uses the first-party 9:16 AI film and matching WebM soundtrack fallback.
+        const kaynakTamam=sourcePath.endsWith(beklenen[0])||(v5&&sourcePath.endsWith('/assets/media/web/btmedya-ai-film.webm'));
         if(!kaynakTamam) failures.push('mobile home hero selected unexpected film source '+(sourcePath||'NONE'));
         if(!posterPath.endsWith(beklenen[1])) failures.push('mobile home hero selected unexpected poster '+(posterPath||'NONE'));
         // Source attributes alone can look correct while the video request is
@@ -108,12 +107,31 @@ for (const vp of viewports) {
         if(playback.errorCode || playback.readyState<2 || playback.width<1 || playback.height<1)
           failures.push('mobile home hero did not decode a frame '+JSON.stringify(playback));
         if(v5){
+          const isAiPortrait=sourcePath.endsWith('/assets/media/web/btmedya-ai-film.mp4')||sourcePath.endsWith('/assets/media/web/btmedya-ai-film.webm');
           const hedefler=new Set(media.alanlar.map(a=>a.href));
-          if(media.alanlar.length<3||media.alanlar.some(a=>!a.ad)||!['/haberler/','/sosyal-medya/','/video-produksiyon/'].every(h=>hedefler.has(h)))
-            failures.push('mobile home intro v5 options missing or unnamed '+JSON.stringify(media.alanlar));
-          if(!['/haberler/','/sosyal-medya/','/video-produksiyon/'].every(h=>media.panel.includes(h)))
-            failures.push('mobile home intro v5 end-of-film section panel missing '+JSON.stringify(media.panel));
-          if(!media.sessiz) failures.push('mobile home intro v5 film is not muted');
+          if(isAiPortrait){
+            if(media.alanlar.length) failures.push('mobile AI portrait should not use old V5 timed hotspots');
+            if(!['/haberler/','/sosyal-medya/','/video-produksiyon/'].every(h=>media.panel.includes(h)))
+              failures.push('mobile AI intro end-of-film category panel missing '+JSON.stringify(media.panel));
+            const soundButton=page.locator('[data-giris-v5-ses]');
+            if(await soundButton.count()!==1) failures.push('mobile AI intro soundtrack control missing');
+            else {
+              await soundButton.click();
+              const soundOn=await heroVideo.evaluate(v=>!v.muted);
+              if(!soundOn||await soundButton.getAttribute('aria-pressed')!=='true')
+                failures.push('mobile AI intro soundtrack did not unmute after explicit tap');
+              await soundButton.click();
+              const soundOff=await heroVideo.evaluate(v=>v.muted);
+              if(!soundOff||await soundButton.getAttribute('aria-pressed')!=='false')
+                failures.push('mobile AI intro soundtrack did not mute on second tap');
+            }
+          }else{
+            if(media.alanlar.length<3||media.alanlar.some(a=>!a.ad)||!['/haberler/','/sosyal-medya/','/video-produksiyon/'].every(h=>hedefler.has(h)))
+              failures.push('mobile home intro options missing or unnamed '+JSON.stringify(media.alanlar));
+            if(!['/haberler/','/sosyal-medya/','/video-produksiyon/'].every(h=>media.panel.includes(h)))
+              failures.push('mobile home intro end-of-film section panel missing '+JSON.stringify(media.panel));
+          }
+          if(!media.sessiz) failures.push('mobile home intro autoplay must start muted');
         }else if(!media.hasFallbackPanel) failures.push('mobile home hero has no static finish/fallback panel');
       }else{
         failures.push('mobile home hero video element is missing');
