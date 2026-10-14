@@ -79,16 +79,27 @@ def degisenler() -> tuple[list[str], list[str]]:
     return eklenen, silinen
 
 
-def dal_hazirla(taban: str) -> None:
-    # Dal her turda main'in o anki ucundan yeniden başlar (eski `--force` push
-    # davranışı); açık PR aynı dala bağlı kalır.
-    kod, yanit = istek("PATCH", f"{API}/repos/{REPO}/git/refs/heads/{DAL}", {"sha": taban, "force": True})
+def dal_hazirla(taban: str) -> str:
+    # Never force-reset an existing ref: branch rulesets can reject ref updates
+    # made by GITHUB_TOKEN even when the resulting tree is signed. Reuse the
+    # current head and append a signed createCommitOnBranch commit instead.
+    kod, yanit = istek("GET", f"{API}/repos/{REPO}/git/ref/heads/{DAL}")
     if kod == 200:
-        return
+        oid = (yanit.get("object") or {}).get("sha")
+        if oid:
+            print(f"Var olan otomasyon dalı korunuyor: {DAL} @ {oid[:12]}")
+            return oid
     kod, yanit = istek("POST", f"{API}/repos/{REPO}/git/refs", {"ref": f"refs/heads/{DAL}", "sha": taban})
-    if kod != 201:
-        sys.exit(f"::error::{DAL} dalı hazırlanamadı (HTTP {kod}): {yanit.get('message', '')}. "
-                 "Depo kural seti dal oluşturmayı engelliyorsa automation/** dallarını oluşturma kuralından hariç tutun.")
+    if kod == 201:
+        return taban
+    # A concurrent run may have created the reference after our GET.
+    if kod == 422 and "already exists" in str(yanit.get("message", "")).lower():
+        kod, tekrar = istek("GET", f"{API}/repos/{REPO}/git/ref/heads/{DAL}")
+        oid = (tekrar.get("object") or {}).get("sha")
+        if kod == 200 and oid:
+            return oid
+    sys.exit(f"::error::{DAL} dalı kullanılamadı (HTTP {kod}): {yanit.get('message', '')}. "
+             "Mevcut dalı force-reset etmek yerine imzalı commit ile güncelleyin.")
 
 
 def commit_at(onceki: str, eklenen: list[str], silinen: list[str], baslik: str) -> str:
@@ -133,7 +144,7 @@ def main() -> None:
         print("Yazılacak değişiklik yok; akış güncel.")
         return
     taban = subprocess.run(["git", "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
-    dal_hazirla(taban)
+    ucu = dal_hazirla(taban)
     parcalar, parca, boyut = [], [], 0
     for yol in eklenen:
         b = os.path.getsize(yol)
@@ -143,7 +154,6 @@ def main() -> None:
         parca.append(yol)
         boyut += b
     parcalar.append(parca)
-    ucu = taban
     for no, p in enumerate(parcalar, 1):
         baslik = MESAJ if len(parcalar) == 1 else f"{MESAJ} ({no}/{len(parcalar)})"
         ucu = commit_at(ucu, p, silinen if no == 1 else [], baslik)
