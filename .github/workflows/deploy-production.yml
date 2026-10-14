@@ -212,12 +212,45 @@ jobs:
             exit 1
           fi
 
-          # Search discovery endpoints must be reachable after each production deploy.
+          # Search discovery endpoints must be reachable and machine-readable after each production deploy.
           for path in robots.txt sitemap.xml news-sitemap.xml rss.xml; do
-            endpoint_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 -o /tmp/btmedya-endpoint.txt -w "%{http_code}" --max-time 20 "https://btmedya.com.tr/$path")"
-            test "$endpoint_code" = "200"
+            endpoint_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 -o "/tmp/btmedya-$path" -w "%{http_code}" --max-time 20 "https://btmedya.com.tr/$path")"
+            if [ "$endpoint_code" != "200" ]; then
+              echo "::error::SEO endpoint failed: $path HTTP $endpoint_code"
+              exit 1
+            fi
             echo "SEO endpoint OK: $path HTTP $endpoint_code"
           done
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          from urllib.parse import urlparse
+
+          ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+          checks = [
+              ("sitemap.xml", "sitemap"),
+              ("news-sitemap.xml", "news-sitemap"),
+              ("rss.xml", "rss"),
+          ]
+          for filename, kind in checks:
+              path = Path("/tmp/btmedya-" + filename)
+              root = ET.parse(path).getroot()
+              if kind == "sitemap":
+                  urls = [node.text or "" for node in root.findall("sm:url/sm:loc", ns)]
+                  if not urls:
+                      raise SystemExit("sitemap.xml has no discoverable URLs")
+              elif kind == "news-sitemap":
+                  urls = [node.text or "" for node in root.findall("sm:url/sm:loc", ns)]
+              else:
+                  urls = [node.text or "" for node in root.findall("./channel/item/link")]
+                  if not urls:
+                      raise SystemExit("rss.xml has no feed items")
+              for value in urls:
+                  parsed = urlparse(value)
+                  if parsed.scheme != "https" or parsed.netloc != "btmedya.com.tr":
+                      raise SystemExit(f"{filename} contains a non-canonical URL: {value}")
+              print(f"SEO XML valid: {filename}; URL/item count={len(urls)}")
+          PY
           indexnow_key="57fb863171638cffa9cdfb3913627b57"
           indexnow_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 -o /tmp/btmedya-indexnow-key.txt -w "%{http_code}" --max-time 20 "https://btmedya.com.tr/$indexnow_key.txt")"
           test "$indexnow_code" = "200"
