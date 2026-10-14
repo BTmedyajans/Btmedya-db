@@ -136,7 +136,7 @@ for (const path of ["/robots.txt", "/sitemap.xml", "/news-sitemap.xml", "/rss.xm
     } else if (path === "/news-sitemap.xml") {
       if (!/urlset/i.test(r.body)) fail("news-sitemap.xml is not a URL set");
       const count = (r.body.match(/<news:news>/gi) || []).length;
-      if (!count) warn("news-sitemap.xml has no recent news entries; check that published news is updated within Google's news-sitemap window");
+      if (!count) fail("news-sitemap.xml has no recent news entries; the live news discovery/publication chain may be stale");
       console.log(`PASS: /news-sitemap.xml HTTP 200; recent news entries=${count}`);
     } else {
       if (!/<rss\b/i.test(r.body) || !/<channel>/i.test(r.body)) fail("rss.xml is not a valid RSS feed");
