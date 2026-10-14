@@ -1,4 +1,6 @@
 name: BTMEDYA Production Deploy
+# Canonical production deploy owner: GitHub Actions + Wrangler.
+# Cloudflare Workers Builds is intentionally not enabled for this Worker to avoid competing deploy owners.
 # Token validation trigger: 2026-10-12 — verify the repository's single CLOUDFLARE_DEPLOY_TOKEN.
 
 on:
