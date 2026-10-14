@@ -185,14 +185,19 @@ def main() -> int:
                     "YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET",
                     "X_CLIENT_ID",
                 ):
+                    present = secret_name in secret_names
                     mark(
-                        secret_name in secret_names,
-                        f"Native social OAuth credential is configured: {secret_name}",
+                        present,
+                        f"Native social OAuth credential binding {'present' if present else 'missing'}: {secret_name}",
                         warning=True,
                     )
+                encryption_available = (
+                    "SOCIAL_TOKEN_ENCRYPTION_KEY" in secret_names or "MEDIA_SIGNING_SECRET" in secret_names
+                )
                 mark(
-                    "SOCIAL_TOKEN_ENCRYPTION_KEY" in secret_names or "MEDIA_SIGNING_SECRET" in secret_names,
-                    "native social token-encryption key binding is available",
+                    encryption_available,
+                    "native social token-encryption key binding "
+                    + ("available" if encryption_available else "missing"),
                     warning=True,
                 )
 
@@ -249,15 +254,21 @@ def main() -> int:
                 # Metricool is legacy-only while the Worker is in direct mode.
                 # Do not treat an unused Metricool token as a production blocker.
             else:
+                metricool_configured = "METRICOOL_USER_TOKEN" in secret_names
                 mark(
-                    "METRICOOL_USER_TOKEN" in secret_names,
-                    "Worker secret is configured: METRICOOL_USER_TOKEN",
+                    metricool_configured,
+                    "Worker secret binding "
+                    + ("present" if metricool_configured else "missing")
+                    + ": METRICOOL_USER_TOKEN",
                     warning=True,
                 )
 
+            windsor_configured = "WINDSOR_API_KEY" in secret_names
             mark(
-                "WINDSOR_API_KEY" in secret_names,
-                "Worker secret is configured: WINDSOR_API_KEY",
+                windsor_configured,
+                "Worker secret binding "
+                + ("present" if windsor_configured else "missing")
+                + ": WINDSOR_API_KEY",
                 warning=True,
             )
         except Exception as exc:
