@@ -8,6 +8,7 @@ on:
       - "migrations/**"
       - "tools/site-os-migration-test.py"
       - "tools/admin-giris-testi.mjs"
+      - "control-plane/audit-d1-schema.py"
       - "public/admin/agency-os/**"
       - "public/home.js"
       - "public/kategori-menu.js"
@@ -43,6 +44,8 @@ jobs:
         run: node tools/admin-giris-testi.mjs
       - name: Site OS migration and taxonomy regression
         run: python3 tools/site-os-migration-test.py
+      - name: Validate read-only production audit syntax
+        run: python3 -m py_compile control-plane/audit-d1-schema.py
       - name: Core wiring
         run: |
           grep -q 'btmedya-core' src/worker.js
