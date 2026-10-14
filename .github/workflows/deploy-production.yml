@@ -13,6 +13,7 @@ on:
       - "wrangler.toml"
       - "package.json"
       - ".github/workflows/deploy-production.yml"
+      - ".github/workflows/site-denetimi.yml"
       - ".github/actions/cf-token-sec/**"
       - ".github/workflows/r2-sync.yml"
       - "tools/repair-cover-fotos.py"
