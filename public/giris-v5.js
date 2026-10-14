@@ -38,12 +38,11 @@
   const kaynak=(mp4,webm)=>h264||!webm?mp4:webm;
   const PLAN={
     dikey:{
-      src:kaynak(film.dataset.dikey,film.dataset.dikeyWebm), poster:film.dataset.dikeyPoster, en:720, boy:1560, sonKart:15.4,
-      alanlar:[
-        {t0:4.2, t1:5.9, x:25, y:51.5, w:50, h:7.5, href:'/haberler/', ad:'Haber'},
-        {t0:9.2, t1:10.9, x:25, y:51.5, w:50, h:7.5, href:'/sosyal-medya/', ad:'Medya: sosyal ve dijital'},
-        {t0:14.2, t1:14.9, x:20, y:51.5, w:60, h:7.5, href:'/video-produksiyon/', ad:'Prodüksiyon'}
-      ]
+      src:kaynak(film.dataset.dikey,film.dataset.dikeyWebm), poster:film.dataset.dikeyPoster, en:1080, boy:1920, sonKart:15,
+      // Use the soundtrack-bearing 9:16 AI film. Its frame timing differs from V5,
+      // so mobile hotspots stay off; the category navigation opens when the film ends.
+      alanlar:[],
+      vurgular:[]
     },
     genis:{
       src:kaynak(film.dataset.genis,film.dataset.genisWebm), poster:film.dataset.genisPoster, en:1280, boy:720, sonKart:36.0,
@@ -71,6 +70,30 @@
   // session flag and caused later visits to skip straight to the category panel.
   const izlendi=false;
   const azHareket=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const sesDugmesi=kok.querySelector('[data-giris-v5-ses]');
+  const sesGuncelle=()=>{
+    if(!sesDugmesi)return;
+    const acik=!film.muted;
+    sesDugmesi.setAttribute('aria-pressed',String(acik));
+    sesDugmesi.setAttribute('aria-label',acik?'Müziği kapat':'Müziği aç');
+    sesDugmesi.innerHTML=acik
+      ? '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l8 4V5z"/><path d="M16 8a5 5 0 0 1 0 8"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>'
+      : '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l8 4V5z"/><path d="m17 9 5 6m0-6-5 6"/></svg>';
+  };
+  if(sesDugmesi){
+    sesDugmesi.addEventListener('click',async e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      film.muted=!film.muted;
+      if(!film.muted){
+        try{await film.play();}catch(err){film.muted=true;}
+      }
+      sesGuncelle();
+    });
+    sesDugmesi.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
+  }
+  film.addEventListener('volumechange',sesGuncelle);
+  sesGuncelle();
 
   const katman=document.createElement('div');
   katman.className='giris-v5-katman';
@@ -197,7 +220,9 @@
     film.load();
   };
   const oynat=()=>{
+    // Browser autoplay rules require a visitor gesture before audible playback.
     film.muted=true;
+    sesGuncelle();
     const s=film.play();
     // A transient network/codec failure must not replace the full-screen hero
     // with the category panel. Leave the poster visible and allow the browser retry.
