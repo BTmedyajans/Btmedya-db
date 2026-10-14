@@ -167,14 +167,14 @@ jobs:
           done
           test "$ok" = "1"
           cat /tmp/btmedya-health.json
-          home_code="$(curl -sS -o /tmp/btmedya-home.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/)"
+          home_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 -o /tmp/btmedya-home.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/)"
           echo "Smoke diagnostic: homepage HTTP $home_code"
           if [ "$home_code" != "200" ] || ! grep -q 'BTMEDYA' /tmp/btmedya-home.html; then
             echo "::error::Homepage smoke test failed: HTTP $home_code or expected BTMEDYA marker missing."
             head -c 500 /tmp/btmedya-home.html || true
             exit 1
           fi
-          www_code="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 https://www.btmedya.com.tr/)"
+          www_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 -o /dev/null -w "%{http_code}" --max-time 20 https://www.btmedya.com.tr/)"
           echo "Smoke diagnostic: www HTTP $www_code (expected 301)"
           if [ "$www_code" != "301" ]; then
             echo "::error::Canonical www redirect failed: expected HTTP 301, got $www_code."
@@ -189,7 +189,7 @@ jobs:
             grep -qiE '^location:[[:space:]]*https?://[^[:space:]]*(cloudflareaccess\.com|/cdn-cgi/access/login)' "$1" \
               || grep -qiE '^location:[[:space:]]*/cdn-cgi/access/login' "$1"
           }
-          admin_code="$(curl -sS -D /tmp/btmedya-admin-headers -H 'Accept: text/html' -o /tmp/btmedya-admin.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/ || true)"
+          admin_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 -D /tmp/btmedya-admin-headers -H 'Accept: text/html' -o /tmp/btmedya-admin.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/ || true)"
           echo "Smoke diagnostic: admin HTTP $admin_code"
           if [ "$admin_code" = "401" ] && grep -q '<form id="giris"' /tmp/btmedya-admin.html; then
             echo "Worker login form verified."
@@ -200,7 +200,7 @@ jobs:
             cat /tmp/btmedya-admin-headers || true
             exit 1
           fi
-          subroute_code="$(curl -sS -H 'Accept: text/html' -D /tmp/btmedya-subroute-headers -o /dev/null -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/agency-os/ || true)"
+          subroute_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 -H 'Accept: text/html' -D /tmp/btmedya-subroute-headers -o /dev/null -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/agency-os/ || true)"
           echo "Smoke diagnostic: admin/agency-os HTTP $subroute_code"
           if [ "$subroute_code" = "302" ] && is_access_login_redirect /tmp/btmedya-subroute-headers; then
             echo "Cloudflare Access gate verified for admin subroute."
@@ -214,12 +214,12 @@ jobs:
 
           # Search discovery endpoints must be reachable after each production deploy.
           for path in robots.txt sitemap.xml news-sitemap.xml rss.xml; do
-            endpoint_code="$(curl -sS -o /tmp/btmedya-endpoint.txt -w "%{http_code}" --max-time 20 "https://btmedya.com.tr/$path")"
+            endpoint_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 -o /tmp/btmedya-endpoint.txt -w "%{http_code}" --max-time 20 "https://btmedya.com.tr/$path")"
             test "$endpoint_code" = "200"
             echo "SEO endpoint OK: $path HTTP $endpoint_code"
           done
           indexnow_key="57fb863171638cffa9cdfb3913627b57"
-          indexnow_code="$(curl -sS -o /tmp/btmedya-indexnow-key.txt -w "%{http_code}" --max-time 20 "https://btmedya.com.tr/$indexnow_key.txt")"
+          indexnow_code="$(curl -sS --retry 3 --retry-all-errors --retry-delay 2 -o /tmp/btmedya-indexnow-key.txt -w "%{http_code}" --max-time 20 "https://btmedya.com.tr/$indexnow_key.txt")"
           test "$indexnow_code" = "200"
           grep -Fxq "$indexnow_key" /tmp/btmedya-indexnow-key.txt
 
