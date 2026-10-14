@@ -1,14 +1,15 @@
 name: BTMedya haber kapak otomasyonu
 
-# Kapaksız haberleri bulur, kapak üretir ve otomasyon PR'ı açar.
-# Workflow/validator değişikliklerinde de kontrollü test sağlar; üretilen medya yolları push filtresinde değildir.
+# Kapaksız haberleri tarar, doğrulanmış şablon kapakları üretir ve kontrollü PR açar.
 on:
   push:
+    branches: [main]
     paths:
       - ".github/workflows/haber-kapak-otomasyonu.yml"
+      - ".github/actions/imzali-pr/**"
       - "tools/validate-assets.py"
   schedule:
-    - cron: "40 5,11,17,23 * * *"
+    - cron: "10 * * * *"
   workflow_dispatch:
 
 permissions:
