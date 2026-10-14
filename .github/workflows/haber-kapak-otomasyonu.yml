@@ -3,7 +3,6 @@ name: BTMedya haber kapak otomasyonu
 # Kapaksız haberleri tarar, doğrulanmış şablon kapakları üretir ve kontrollü PR açar.
 on:
   push:
-    branches: [main]
     paths:
       - ".github/workflows/haber-kapak-otomasyonu.yml"
       - ".github/actions/imzali-pr/**"
