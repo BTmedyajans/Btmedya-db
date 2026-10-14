@@ -181,18 +181,34 @@ jobs:
             exit 1
           fi
 
-          # Exercise the real deployed login route, not only the mocked source test.
-          admin_code="$(curl -sS -H 'Accept: text/html' -o /tmp/btmedya-admin.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/ || true)"
-          echo "Smoke diagnostic: admin HTTP $admin_code (expected 401)"
-          if [ "$admin_code" != "401" ] || ! grep -q '<form id="giris"' /tmp/btmedya-admin.html; then
-            echo "::error::Admin login guard smoke test failed: HTTP $admin_code or login form marker missing."
+          # Cloudflare Access protects the entire /admin path before the Worker runs.
+          # Accept the expected Access login redirect at the public edge, while still
+          # allowing the direct Worker-level 401 + login form response in environments
+          # where Access is not enabled. Do not weaken or bypass Access in CI.
+          is_access_login_redirect() {
+            grep -qiE '^location:[[:space:]]*https?://[^[:space:]]*(cloudflareaccess\.com|/cdn-cgi/access/login)' "$1" \
+              || grep -qiE '^location:[[:space:]]*/cdn-cgi/access/login' "$1"
+          }
+          admin_code="$(curl -sS -D /tmp/btmedya-admin-headers -H 'Accept: text/html' -o /tmp/btmedya-admin.html -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/ || true)"
+          echo "Smoke diagnostic: admin HTTP $admin_code"
+          if [ "$admin_code" = "401" ] && grep -q '<form id="giris"' /tmp/btmedya-admin.html; then
+            echo "Worker login form verified."
+          elif [ "$admin_code" = "302" ] && is_access_login_redirect /tmp/btmedya-admin-headers; then
+            echo "Cloudflare Access gate verified for /admin/."
+          else
+            echo "::error::Admin protection smoke test failed: expected a Worker login form or Cloudflare Access login redirect; got HTTP $admin_code."
+            cat /tmp/btmedya-admin-headers || true
             exit 1
           fi
-          subroute_code="$(curl -sS -H 'Accept: text/html' -D /tmp/btmedya-admin-headers -o /dev/null -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/agency-os/ || true)"
-          echo "Smoke diagnostic: admin/agency-os HTTP $subroute_code (expected 302)"
-          if [ "$subroute_code" != "302" ] || ! grep -qiE '^location: https://btmedya.com.tr/admin/\?sonra=' /tmp/btmedya-admin-headers; then
-            echo "::error::Admin subroute redirect failed: HTTP $subroute_code or expected Location missing."
-            cat /tmp/btmedya-admin-headers || true
+          subroute_code="$(curl -sS -H 'Accept: text/html' -D /tmp/btmedya-subroute-headers -o /dev/null -w "%{http_code}" --max-time 20 https://btmedya.com.tr/admin/agency-os/ || true)"
+          echo "Smoke diagnostic: admin/agency-os HTTP $subroute_code"
+          if [ "$subroute_code" = "302" ] && is_access_login_redirect /tmp/btmedya-subroute-headers; then
+            echo "Cloudflare Access gate verified for admin subroute."
+          elif [ "$subroute_code" = "302" ] && grep -qiE '^location: https://btmedya.com.tr/admin/\?sonra=' /tmp/btmedya-subroute-headers; then
+            echo "Worker admin-session redirect verified for admin subroute."
+          else
+            echo "::error::Admin subroute protection failed: expected Cloudflare Access or Worker login redirect; got HTTP $subroute_code."
+            cat /tmp/btmedya-subroute-headers || true
             exit 1
           fi
 
