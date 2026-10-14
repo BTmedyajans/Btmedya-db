@@ -91,6 +91,7 @@ for (const parca of [':root{', '--lime:', 'body{', '.top{']) assert.ok(merkezSti
 
 // 9) Native social OAuth butonları yalnız geçerli workspace türünü kullanmalı.
 const socialConnectPage = readFileSync('public/admin/connect/index.html', 'utf8');
+assert.match(socialConnectPage, /\/api\/social\/direct\/meta\/start\?workspace_type=agency&workspace_id=btmedya/, 'Meta OAuth bağlantısı da agency/btmedya çalışma alanını kullanmalı');
 for (const provider of ['tiktok', 'youtube', 'x']) {
   const route = new RegExp(`/api/social/direct/${provider}/start\\?workspace_type=agency&workspace_id=btmedya`);
   assert.match(socialConnectPage, route, `${provider} OAuth bağlantısı agency/btmedya çalışma alanını kullanmalı`);
