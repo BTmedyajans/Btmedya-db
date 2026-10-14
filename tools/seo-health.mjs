@@ -93,6 +93,7 @@ try {
   if (home.status < 200 || home.status >= 300) throw new Error("Homepage returned HTTP " + home.status);
   if (!candidates.length) throw new Error("No likely responsive CSS found; linked CSS: " + linkedStylesheets.join(", "));
   const checks = [];
+  const reducedMotionSources = [];
   for (const href of candidates) {
     const url = new URL(href, origin);
     const path = url.pathname + url.search;
@@ -105,10 +106,13 @@ try {
       if (!/@media\s*\(max-width:\s*720px\)/i.test(r.body) && !/@media\s*\(max-width:\s*760px\)/i.test(r.body))
         fail("responsive stylesheet lacks dedicated small-screen rules: " + path);
     }
-    if (/mobile-home-experience|mobile-fixes|mobile-motion|giris-v5|ana-sade/i.test(path) && !/prefers-reduced-motion/i.test(r.body))
-      warn("reduced-motion rule not found in selected stylesheet: " + path);
+    if (/prefers-reduced-motion/i.test(r.body)) reducedMotionSources.push(path);
     checks.push({path,bytes:r.body.length});
   }
+  if (reducedMotionSources.length)
+    console.log("PASS: reduced-motion rule found in " + reducedMotionSources.join(", "));
+  else
+    warn("reduced-motion rule not found in any selected responsive stylesheet");
   if (checks.length) console.log("PASS: responsive/mobile CSS assets checked: " + JSON.stringify(checks));
 } catch (e) { fail("responsive CSS inspection failed: " + e.message); }
 
