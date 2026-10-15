@@ -35,6 +35,14 @@ Ardından GitHub Actions > **BTMEDYA Sync Worker Secrets** > **Run workflow** > 
 
 İlgili adresi her sağlayıcının geliştirici konsoluna tam eşleşecek şekilde ekleyin. X uygulaması için OAuth akışında belirtilen dönüş adresini kaynak kodla eşleştirin.
 
+## Ücretsiz yayın mimarisi ve müşteri hesapları
+
+- Birincil yol `BTMEDYA_SOCIAL_PUBLISHER=direct` olarak kalır; Metricool API tokenı veya Windsor.ai aboneliği gönderi yayınlamak için gerekmez.
+- `/admin/social-os/` içinde önce BTMEDYA veya müşteri çalışma alanı seçilir, sonra platform OAuth bağlantısı yapılır. Bağlantı ve kuyruk kayıtları `workspace_type` / `workspace_id` ile ayrılır.
+- Meta, TikTok ve YouTube OAuth akışları hesabı seçili çalışma alanına kaydeder. API anahtarları uygulama kurulumu için gerekir; müşteri hesap sahipleri kendi hesaplarında sağlayıcının resmî izin ekranını onaylamalıdır.
+- İsteğe bağlı Buffer Free bağlantısı ayrı bir alternatif olabilir; ücretsiz planda en fazla 3 kanal ve 1 API anahtarı bulunduğundan çok müşterili sınırsız yayın çözümü değildir. TikTok'ta denetlenmemiş uygulamalar gönderileri özel görünürlükle sınırlayabilir.
+- Windsor.ai analiz içindir, sosyal gönderi yayınlayıcı değildir. Ücretsiz planın hesap sınırı dolduğunda gerçek metrik üretmez; bu durumda sıfır değerleri gerçek veri gibi kullanmayın.
+
 ## Hesapları yetkilendirme ve test
 
 1. `https://btmedya.com.tr/admin/connect/` sayfasına giriş yapın.
