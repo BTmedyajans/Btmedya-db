@@ -80,7 +80,7 @@ function renderPlatformMatrix(items=[]){
 renderPlatformMatrix([]);
 async function connectProvider(provider){
  const v=$('#workspace').value.split(':');
- if(provider==='tiktok'||provider==='youtube'){ location.href='/api/social/direct/'+provider+'/start'; return; }
+ if(provider==='tiktok'||provider==='youtube'){ const q='?workspace_type='+encodeURIComponent(v[0])+'&workspace_id='+encodeURIComponent(v.slice(1).join(':')); location.href='/api/social/direct/'+provider+'/start'+q; return; }
  if(provider==='facebook'||provider==='instagram'){
    location.href='/api/social/direct/meta/start?workspace_type='+encodeURIComponent(v[0])+'&workspace_id='+encodeURIComponent(v.slice(1).join(':'))+'&return_to='+encodeURIComponent('/admin/social-os/');
    return;
