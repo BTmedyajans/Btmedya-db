@@ -26,9 +26,9 @@ const DEFAULT_POLICY = {
   maxItemsPerRun: 3,
   minScore: 60,
   autoPublish: true,
-  autoPublishMinScore: 84,
+  autoPublishMinScore: 80,
   autoPublishSourceTiers: ["publisher"],
-  approvalRequiredCategories: ["Gündem","Sağlık","Ulaşım","Asayiş","Yerel"],
+  approvalRequiredCategories: ["Gündem","Sağlık","Ulaşım","Asayiş"],
   autoPublishCategories: ["Yerel","Eğitim","Ekonomi","Kültür","Spor","Yapay Zekâ","Teknoloji","Medya","Prodüksiyon"],
   neverAutoPublishSensitive: true,
   mediaMode: "archive-first",
@@ -60,7 +60,7 @@ function trimPolicy(p){
   const out={...DEFAULT_POLICY,...(p||{})};
   out.maxItemsPerRun=Math.max(1,Math.min(10,Number(out.maxItemsPerRun)||3));
   out.minScore=Math.max(0,Math.min(100,Number(out.minScore)||72));
-  out.autoPublishMinScore=Math.max(out.minScore,Math.min(100,Number(out.autoPublishMinScore)||84));
+  out.autoPublishMinScore=Math.max(out.minScore,Math.min(100,Number(out.autoPublishMinScore)||80));
   out.maxSocialPerRun=Math.max(0,Math.min(10,Number(out.maxSocialPerRun)||2));
   out.discoveryEveryMinutes=Math.max(5,Math.min(60,Number(out.discoveryEveryMinutes)||15));
   out.autoPublish=out.autoPublish===true;
@@ -223,6 +223,39 @@ async function chooseMedia(env,category,policy){
     social_key:video?.key||image?.key||"",
     social_url:video?"/pub/"+encodeURIComponent(video.key):(image?"/pub/"+encodeURIComponent(image.key):""),
     social_mime:video?.mime||image?.mime||""
+  };
+}
+
+async function makeNewsCover(env,candidate,draft,category,media){
+  const fallback={...(media||{}),news_cover_generated:false};
+  // Keep image generation inside the existing Workers AI allowance. Eight
+  // story-specific covers/day is a conservative free-tier budget guard.
+  if(!env.AI || !env.MEDIA || !env.KV) return fallback;
+  const day=new Date().toISOString().slice(0,10);
+  const budgetKey="autopilot:news-cover-budget:"+day;
+  const count=Number(await env.KV.get(budgetKey).catch(()=>0))||0;
+  if(count>=8) return fallback;
+  const title=String(draft?.title||candidate?.title||"BTMEDYA haber").slice(0,200);
+  const prompt=[
+    "Create a distinctive editorial news illustration for a Turkish local and national newsroom.",
+    "No text, no letters, no watermark, no fake logos, no fabricated documents, no invented statistics.",
+    "Do not depict identifiable real people. Use a truthful symbolic scene, polished editorial photography style, high contrast and clear focal point.",
+    "Compose for a 16:9 news cover that also crops well to mobile social cards.",
+    "BTMEDYA editorial visual: clean, credible, modern, restrained, not sensationalist.",
+    "Headline context: "+title,
+    "Verified source summary only: "+String(draft?.excerpt||candidate?.excerpt||"").slice(0,900),
+    "Category: "+String(category||"Gündem").slice(0,80)
+  ].join("\\n");
+  const image=await generateAutopilotImage(env,{prompt,category,title:"BTMEDYA Haber - "+title}).catch(()=>({ok:false}));
+  if(!image?.ok || !image.key || !image.public_url) return fallback;
+  await env.KV.put(budgetKey,String(count+1),{expirationTtl:172800}).catch(()=>{});
+  return {
+    ...(media||{}),
+    id:image.id,key:image.key,mime:"image/jpeg",title:image.title||title,
+    ai_generated:true,alt_text:"BTMEDYA için yapay zekâ ile üretilmiş haber kapağı",
+    public_url:image.public_url,cover_key:image.key,cover_url:image.public_url,
+    social_key:image.key,social_url:image.public_url,social_mime:"image/jpeg",
+    news_cover_generated:true
   };
 }
 
@@ -470,7 +503,7 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
       !sensitive;
     if(policy.neverAutoPublishSensitive && sensitive) auto=false;
 
-    const needsApproval=sensitive || policy.approvalRequiredCategories.includes(category) || !auto;
+    let needsApproval=sensitive || policy.approvalRequiredCategories.includes(category) || !auto;
     if(policy.neverAutoPublishSensitive && sensitive) {
       result.blocked++;
       await log(env,runId,"candidate",candidate.source_url,"blocked","hassas içerik otomatik yayın dışı",{
@@ -479,10 +512,17 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
     }
 
     const draft=await aiDraft(env,candidate);
-    const media=await chooseMedia(env,category,policy);
+    let media=await chooseMedia(env,category,policy);
+    media=await makeNewsCover(env,candidate,draft,category,media);
+    if(auto && !media?.news_cover_generated){
+      auto=false;
+      needsApproval=true;
+      await log(env,runId,"candidate",candidate.source_url,"blocked","otomatik yayın için özgün haber kapağı üretilemedi veya günlük ücretsiz görsel bütçesi doldu",{category});
+    }
     if(auto && !media){
       auto=false;
-      await log(env,runId,"candidate",candidate.source_url,"blocked","otomatik yayın için uygun arşiv medyası bulunamadı",{category});
+      needsApproval=true;
+      await log(env,runId,"candidate",candidate.source_url,"blocked","otomatik yayın için uygun medya bulunamadı",{category});
     }
     const news=await createOrUpdateNews(env,candidate,draft,auto,media);
     if(!news) continue;
