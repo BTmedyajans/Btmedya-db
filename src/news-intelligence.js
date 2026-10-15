@@ -14,6 +14,8 @@ const FEEDS = [
   {id:'google-balikesir-belediye', name:'Google News / Balıkesir belediye', url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir%20belediye&hl=tr&gl=TR&ceid=TR:tr', category:'Yerel', tier:'discovery'},
   {id:'google-balikesir-spor', name:'Google News / Balıkesir spor', url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir%20spor&hl=tr&gl=TR&ceid=TR:tr', category:'Spor', tier:'discovery'},
   {id:'google-balikesir-teknoloji', name:'Google News / Balıkesir teknoloji', url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir%20teknoloji&hl=tr&gl=TR&ceid=TR:tr', category:'Yapay Zekâ', tier:'discovery'},
+  {id:'google-balikesir-resmi', name:'Google News / Balıkesir resmî duyurular', url:'https://news.google.com/rss/search?q=site%3Abalikesir.gov.tr%20OR%20site%3Abalikesir.bel.tr%20Bal%C4%B1kesir&hl=tr&gl=TR&ceid=TR:tr', category:'Yerel', tier:'publisher'},
+  {id:'google-turkiye-ekonomi-resmi', name:'Google News / Türkiye resmî ekonomi duyuruları', url:'https://news.google.com/rss/search?q=site%3Agov.tr%20ekonomi%20destek%20basvuru&hl=tr&gl=TR&ceid=TR:tr', category:'Ekonomi', tier:'publisher'},
   {id:'google-turkiye', name:'Google News / Türkiye', url:'https://news.google.com/rss/search?q=T%C3%BCrkiye&hl=tr&gl=TR&ceid=TR:tr', category:'Gündem', tier:'discovery'},
   {id:'google-ai', name:'Google News / Yapay Zekâ', url:'https://news.google.com/rss/search?q=yapay%20zeka%20AI&hl=tr&gl=TR&ceid=TR:tr', category:'Yapay Zekâ', tier:'discovery'},
   {id:'google-merhaba', name:'Google News / Gazete Merhaba', url:'https://news.google.com/rss/search?q=site%3Agazetemerhaba.com%20Bal%C4%B1kesir&hl=tr&gl=TR&ceid=TR:tr', category:'Yerel', tier:'competitor'},
