@@ -1,0 +1,206 @@
+/* BTMEDYA mobile refresh · 2026-10-15
+   Small-screen polish layered over existing design; no route, CMS, or API changes.
+   Keep the mobile hero video and existing category destinations intact. */
+
+@media (max-width: 720px) {
+  :root {
+    --bt-mobile-gutter: clamp(16px, 5vw, 22px);
+    --bt-mobile-line: rgba(255,255,255,.13);
+    --bt-mobile-panel: rgba(13,16,21,.82);
+  }
+
+  html { scroll-padding-top: 78px; }
+  body.ana-sade { padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
+
+  /* Compact, predictable header: no clipped logo or tiny controls. */
+  body.ana-sade .topbar {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) var(--bt-mobile-gutter) 8px;
+  }
+  body.ana-sade .topbar .brand {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 52vw;
+  }
+  body.ana-sade .topbar .brand-logo,
+  body.ana-sade .topbar .brand img {
+    display: block;
+    width: clamp(132px, 39vw, 176px);
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+  body.ana-sade .topbar .top-meta { display: none; }
+  body.ana-sade .topbar-right {
+    flex: 0 0 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+  }
+  body.ana-sade .language-switch { font-size: 11px; white-space: nowrap; }
+  body.ana-sade .topbar .top-cta { display: none; }
+  body.ana-sade .topbar .hamburger,
+  body.ana-sade .topbar .menu-toggle {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 13px;
+    background: rgba(16,18,22,.88);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
+
+  /* Reduce duplicate status-bar density; preserve all destination links. */
+  body.ana-sade .vitrine-status-inner {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+    gap: 10px;
+    padding: 14px var(--bt-mobile-gutter);
+  }
+  body.ana-sade .vitrine-status-brand { grid-column: 1 / -1; min-width: 0; }
+  body.ana-sade .vitrine-status-item { min-width: 0; padding: 9px 10px; border: 1px solid var(--bt-mobile-line); border-radius: 12px; }
+  body.ana-sade .vitrine-status-item span { font-size: 9px; letter-spacing: .12em; }
+  body.ana-sade .vitrine-status-item b { font-size: 10px; line-height: 1.35; overflow-wrap: anywhere; }
+  body.ana-sade .vitrine-status-links {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 6px;
+    min-width: 0;
+  }
+  body.ana-sade .vitrine-status-links a {
+    min-width: 0;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 5px;
+    border: 1px solid var(--bt-mobile-line);
+    border-radius: 10px;
+    font-size: 9px;
+    line-height: 1.25;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  body.ana-sade .bt-breaking-inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 11px var(--bt-mobile-gutter);
+  }
+  body.ana-sade .bt-breaking-inner b { font-size: 9px; letter-spacing: .14em; }
+  body.ana-sade .bt-breaking-inner a { font-size: 12px; line-height: 1.5; }
+
+  /* More legible editorial rhythm and edge-to-edge media cards. */
+  body.ana-sade .hero-paths-static,
+  body.ana-sade .section,
+  body.ana-sade .archive-section,
+  body.ana-sade .source-section,
+  body.ana-sade .service-section,
+  body.ana-sade .social-section {
+    padding-left: var(--bt-mobile-gutter);
+    padding-right: var(--bt-mobile-gutter);
+  }
+  body.ana-sade .hero-paths-head h1 {
+    font-size: clamp(34px, 10.5vw, 48px);
+    line-height: .98;
+    letter-spacing: -.045em;
+    overflow-wrap: anywhere;
+  }
+  body.ana-sade .hero-paths-head > p:not(.kicker) {
+    max-width: 38ch;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  body.ana-sade .hero-paths-grid { grid-template-columns: minmax(0,1fr); gap: 9px; }
+  body.ana-sade .hero-paths-grid > a {
+    position: relative;
+    min-width: 0;
+    min-height: 112px;
+    padding: 18px 42px 18px 16px;
+    border-radius: 16px;
+  }
+  body.ana-sade .hero-paths-grid > a b { font-size: clamp(17px, 5vw, 22px); line-height: 1.2; }
+  body.ana-sade .hero-paths-grid > a small { display: block; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+  body.ana-sade .hero-paths-grid > a i { position: absolute; right: 15px; top: 17px; }
+  body.ana-sade .section-head { gap: 12px; margin-bottom: 20px; }
+  body.ana-sade .section-head h2,
+  body.ana-sade .section-title { font-size: clamp(28px, 8vw, 38px); line-height: 1.04; letter-spacing: -.035em; }
+  body.ana-sade .news-grid,
+  body.ana-sade .service-grid,
+  body.ana-sade .source-grid,
+  body.ana-sade .portfoy-grid { grid-template-columns: minmax(0,1fr); gap: 12px; }
+  body.ana-sade .news-card,
+  body.ana-sade .service-grid article,
+  body.ana-sade .source-grid a {
+    min-width: 0;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  body.ana-sade .news-card h3 { font-size: clamp(20px, 6vw, 26px); line-height: 1.18; overflow-wrap: anywhere; }
+  body.ana-sade p,
+  body.ana-sade li { overflow-wrap: break-word; }
+
+  /* Four actual destinations, four equal thumb targets. */
+  body.ana-sade .mobile-quick-nav {
+    left: 10px;
+    right: 10px;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    gap: 4px;
+    padding: 5px;
+    border-color: rgba(255,255,255,.16);
+    border-radius: 17px;
+    background: rgba(8,10,13,.94);
+  }
+  body.ana-sade .mobile-quick-nav a {
+    min-width: 0;
+    min-height: 52px;
+    padding: 6px 2px;
+    gap: 4px;
+    border-radius: 11px;
+  }
+  body.ana-sade .mobile-quick-nav a span { font-size: 17px; }
+  body.ana-sade .mobile-quick-nav a small { font-size: clamp(8px, 2.5vw, 10px); letter-spacing: .04em; }
+  body.ana-sade .mobile-quick-nav .mobile-quick-cta { border: 1px solid rgba(255,255,255,.12); }
+  body.ana-sade.menu-open .mobile-quick-nav,
+  body.ana-sade.menu-open .site-menu { pointer-events: none; }
+
+  body.ana-sade footer {
+    display: grid;
+    grid-template-columns: minmax(0,1fr);
+    gap: 18px;
+    padding: 28px var(--bt-mobile-gutter) calc(104px + env(safe-area-inset-bottom,0px));
+  }
+  body.ana-sade footer nav { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+  body.ana-sade footer nav a { min-height: 40px; display: inline-flex; align-items: center; }
+
+  /* Honour devices with notches and users who disable motion. */
+  .floating-whatsapp { bottom: calc(82px + env(safe-area-inset-bottom,0px)); }
+}
+
+@media (max-width: 390px) {
+  body.ana-sade .language-switch { font-size: 10px; }
+  body.ana-sade .topbar .brand { max-width: 48vw; }
+  body.ana-sade .topbar .brand img { width: clamp(122px, 36vw, 148px); }
+  body.ana-sade .vitrine-status-links { grid-template-columns: minmax(0,1fr); }
+  body.ana-sade .vitrine-status-links a { justify-content: flex-start; text-align: left; padding-left: 12px; }
+  body.ana-sade .mobile-quick-nav a small { font-size: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.ana-sade .mobile-quick-nav *,
+  body.ana-sade .hero-paths-grid > a { animation: none !important; transition: none !important; }
+}
