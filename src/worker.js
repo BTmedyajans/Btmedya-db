@@ -8,6 +8,7 @@ import { runNewsIntelligence, newsIntelligenceStatus } from "./news-intelligence
 import { merakRadariCalistir, merakRadariDurumu, ozelHaberPaketiUret } from "./merak-radari.js";
 import { recoveryPasswordValid } from "./auth-recovery.js";
 import { runAutopilot, autopilotPolicy, setAutopilotPolicy, autopilotStatus, connectionMatrix, referenceDraft, generateAutopilotImage } from "./autopilot.js";
+import { runClientTrendEngine } from "./client-trend-engine.js";
 import { salesApi, satisOzeti } from "./sales-router.js";
 import { aramaMotoruBildir } from "./arama-motoru.js";
 import { KATEGORILER as SITE_KATEGORILERI, BALIKESIR_ILCELERI, kategoriCoz, kategoridenMi, kategoriAlanlari, kategoriNormal } from "./kategori-sistemi.js";
@@ -2108,25 +2109,22 @@ export default { async scheduled(controller, env, ctx){
       if(delivery.processed||delivery.failed) console.log("[btmedya] Direct Social queue",JSON.stringify({enabled:delivery.enabled,processed:delivery.processed,published:delivery.published,failed:delivery.failed}));
     }catch(e){console.error("[btmedya] Direct Social queue:",e?.message||e);}
 
-    // Rotate non-delivery maintenance so publishing checks never wait for a
-    // thirty-minute slot. Only one additional maintenance lane runs per tick.
-    const slot=Math.floor(minute/5)%6;
+    // News discovery has its own ten-minute cron. Rotate the remaining five
+    // maintenance lanes every 25 minutes to keep editorial and social work responsive.
+    const slot=Math.floor(minute/5)%5;
     try{
       if(slot===0){
         const h=await recordAutomationHeartbeat(env);
         console.log("[btmedya] Cloudflare D1 autonomy heartbeat",h.heartbeatAt,"queued",h.queued,"overdue",h.overdue);
       }else if(slot===1){
-        const x=await runNewsIntelligence(env,{limit:8});
-        console.log("[btmedya] haber istihbarati",JSON.stringify({scanned:x.scanned,added:x.added,hot:x.hot,errors:x.errors?.length||0}));
-      }else if(slot===2){
         const x=await runAutopilot(env,{force:false,limit:2,skipRecentIntelligence:true});
         console.log("[btmedya] autopilot",JSON.stringify({ok:x.ok,scanned:x.scanned,candidates:x.candidates,news:x.created_news,published:x.published_news,social:x.social_created,blocked:x.blocked,errors:x.error_count}));
         const apSluglar=(x.items||[]).filter(it=>it.status==="published"&&it.slug).map(it=>it.slug);
         if(apSluglar.length){ aramaMotoruBildir(ctx,"https://btmedya.com.tr",apSluglar); console.log("[btmedya] indexnow autopilot",apSluglar.length,"adres"); }
-      }else if(slot===3){
+      }else if(slot===2){
         const x=await autoPrepareSocialDrafts(env,3);
         if(x?.created) console.log("[btmedya] social drafts",x.created,"hazırlandı");
-      }else if(slot===4){
+      }else if(slot===3){
         const settings=await ayarlariOku(env).catch(()=>({aglar:[],otomatikPlanla:false}));
         const x=await gecikenleriKaydir(env,settings,5);
         if(x) console.log("[btmedya] geciken sosyal planlar kaydirildi",x);
@@ -2135,6 +2133,22 @@ export default { async scheduled(controller, env, ctx){
         if(x) console.log("[btmedya] sosyal yayın durumu",x);
       }
     }catch(e){console.error("[btmedya] scheduled maintenance lane:",e?.message||e);}
+    return;
+  }
+
+  if(cron==="*/10 * * * *"){
+    try{
+      const x=await runNewsIntelligence(env,{limit:8});
+      console.log("[btmedya] haber istihbarati",JSON.stringify({scanned:x.scanned,added:x.added,hot:x.hot,errors:x.errors?.length||0}));
+    }catch(e){console.error("[btmedya] haber istihbarati cron:",e?.message||e);}
+    return;
+  }
+
+  if(cron==="*/30 * * * *"){
+    try{
+      const x=await runClientTrendEngine(env,{limit:5});
+      console.log("[btmedya] müşteri trend radarı",JSON.stringify({clients:x.clients,drafts:x.drafts,images:x.images,queued:x.queued,skipped:x.skipped,errors:x.errors?.length||0}));
+    }catch(e){console.error("[btmedya] müşteri trend radarı cron:",e?.message||e);}
     return;
   }
 
