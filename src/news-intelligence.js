@@ -118,12 +118,11 @@ export async function runNewsIntelligence(env,{limit=8}={}){
   const trendItems=rssItems(trendXml);
   const trendMap=trendWords(trendItems);
   /* Ücretsiz Workers planında dış istek bütçesini korumak için her çağrıda
-     yalnızca altı RSS kaynağı taranır. 15 dakikalık zaman dilimi kaynak grubunu
-     döndürür; böylece tüm katalog üç turda kapsanır ve tek çağrı 50 dış isteğe
-     yaklaşmaz. */
+     yalnızca altı RSS kaynağı taranır. On dakikalık zaman dilimi kaynak grubunu
+     döndürür; tüm katalog üç turda kapsanır ve tek çağrı 50 dış isteğe yaklaşmaz. */
   const feedBatchSize=6;
   const feedBatchCount=Math.ceil(FEEDS.length/feedBatchSize);
-  const feedBatch=Math.floor(Date.now()/900000)%feedBatchCount;
+  const feedBatch=Math.floor(Date.now()/600000)%feedBatchCount;
   const activeFeeds=FEEDS.slice(feedBatch*feedBatchSize,feedBatch*feedBatchSize+feedBatchSize);
   /* Feed kataloğu Kaynak Masası'nda da kalıcı tutulur. */
   for(const feed of activeFeeds){
@@ -217,7 +216,7 @@ export async function newsIntelligenceStatus(env){
   const revenue=env.KV?await env.KV.get('news-intelligence:revenue-opportunities').catch(()=>null):null;
   return {
     enabled:true,
-    heartbeat:{alive:true,lastScan:lastObj?.at||null,nextScan:lastObj?.at?new Date(new Date(lastObj.at).getTime()+15*60000).toISOString():null},
+    heartbeat:{alive:true,lastScan:lastObj?.at||null,nextScan:lastObj?.at?new Date(new Date(lastObj.at).getTime()+10*60000).toISOString():null},
     last:lastObj,
     items:rows,
     alerts,
