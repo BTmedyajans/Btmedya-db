@@ -4,6 +4,7 @@ name: BTMedya haber kapak otomasyonu
 # Workflow/validator değişikliklerinde de kontrollü test sağlar; üretilen medya yolları push filtresinde değildir.
 on:
   push:
+    branches: [main]
     paths:
       - ".github/workflows/haber-kapak-otomasyonu.yml"
       - "tools/validate-assets.py"
@@ -46,7 +47,7 @@ jobs:
       - name: Üretilen kapakları PR olarak yayınla
         uses: ./.github/actions/imzali-pr
         with:
-          dal: fix/auto-news-cover-publish
+          dal: fix/auto-generated-news-covers
           yollar: public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json public/data/medya-listesi.json tools/temsili-kaynak
           mesaj: "chore: otomatik haber kapakları üretildi"
           pr_baslik: "chore: otomatik haber kapakları"
