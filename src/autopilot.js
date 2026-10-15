@@ -245,7 +245,7 @@ async function makeNewsCover(env,candidate,draft,category,media){
     "Headline context: "+title,
     "Verified source summary only: "+String(draft?.excerpt||candidate?.excerpt||"").slice(0,900),
     "Category: "+String(category||"Gündem").slice(0,80)
-  ].join("\\n");
+  ].join("\n");
   const image=await generateAutopilotImage(env,{prompt,category,title:"BTMEDYA Haber - "+title}).catch(()=>({ok:false}));
   if(!image?.ok || !image.key || !image.public_url) return fallback;
   await env.KV.put(budgetKey,String(count+1),{expirationTtl:172800}).catch(()=>{});
