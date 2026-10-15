@@ -29,7 +29,7 @@ const DEFAULT_POLICY = {
   autoPublishMinScore: 84,
   autoPublishSourceTiers: ["publisher"],
   approvalRequiredCategories: ["Gündem","Sağlık","Ulaşım","Asayiş","Yerel"],
-  autoPublishCategories: ["Yerel","Eğitim","Ekonomi","Kültür","Spor","Yapay Zekâ","Teknoloji","Medya","Prodüksiyon"],
+  autoPublishCategories: ["Eğitim","Ekonomi","Kültür","Spor","Yapay Zekâ","Teknoloji","Medya","Prodüksiyon"],
   neverAutoPublishSensitive: true,
   mediaMode: "archive-first",
   allowAiMedia: true,
@@ -201,8 +201,8 @@ async function chooseMedia(env,category,policy){
   if(!env.DB) return null;
   const wantsAi=(policy.mediaMode==="ai-first" || /yapay|ai|teknoloji/i.test(String(category||""))) && policy.allowAiMedia;
   const rows=(await env.DB.prepare(
-    "SELECT id,key,mime,title,category,ai_generated,published,alt_text FROM media WHERE published=1 AND (mime LIKE 'image/%' OR mime LIKE 'video/%') ORDER BY CASE WHEN category=? THEN 0 ELSE 1 END, CASE WHEN ai_generated=? THEN 0 ELSE 1 END, created_at DESC LIMIT 40"
-  ).bind(category,wantsAi?1:0).all().catch(()=>({results:[]}))).results||[];
+    "SELECT id,key,mime,title,category,ai_generated,published,alt_text FROM media WHERE published=1 AND (mime LIKE 'image/%' OR mime LIKE 'video/%') AND (category=? OR lower(category) IN ('haber','news')) ORDER BY CASE WHEN category=? THEN 0 ELSE 1 END, CASE WHEN ai_generated=? THEN 0 ELSE 1 END, created_at DESC LIMIT 40"
+  ).bind(category,category,wantsAi?1:0).all().catch(()=>({results:[]}))).results||[];
   if(!rows.length) return null;
   const clean=rows.filter(x=>!SENSITIVE.test(String(x.title||"")));
   const pool=clean.length?clean:rows;
@@ -510,11 +510,11 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
   if(env.DB){
     // Rakip kaynakları kamuya açık RSS üzerinden yalnızca başlık sıklığı için izlenir.
     const hosts=policy.competitorHosts;
-    const rows=[];
-    for(const host of hosts){
+    const rows=await Promise.all(hosts.map(async host=>{
       const url="https://news.google.com/rss/search?q=site%3A"+encodeURIComponent(host)+"&hl=tr&gl=TR&ceid=TR:tr";
       try{
-        const r=await fetch(url,{headers:{accept:"application/rss+xml, text/xml","user-agent":"BTMEDYA-CompetitorRadar/1.0"},signal:AbortSignal.timeout(8000)});
+        const r=await fetch(url,{headers:{accept:"application/rss+xml, text/xml","user-agent":"BTMEDYA-CompetitorRadar/1.0"},signal:AbortSignal.timeout(5000)});
+        if(!r.ok) throw new Error("HTTP "+r.status);
         const xml=await r.text();
         const items=[...xml.matchAll(/<item>[\s\S]*?<\/item>/gi)].slice(0,12).map(m=>m[0])
           .map(b=>({
@@ -526,9 +526,9 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
           VALUES(?,?,?,?,?,?,?) ON CONFLICT(host) DO UPDATE SET
           last_url=excluded.last_url,last_title=excluded.last_title,headlines_seen=excluded.headlines_seen,last_seen_at=excluded.last_seen_at,updated_at=excluded.updated_at`)
           .bind(host,host,top?.link||"",top?.title||"",items.length,top?nowIso():null,nowIso()).run().catch(()=>{});
-        rows.push({host,count:items.length,latest:top?.title||"",url:top?.link||""});
-      }catch(e){ rows.push({host,count:0,error:String(e?.message||e).slice(0,120)}); }
-    }
+        return {host,count:items.length,latest:top?.title||"",url:top?.link||""};
+      }catch(e){ return {host,count:0,error:String(e?.message||e).slice(0,120)}; }
+    }));
     result.competitors=rows;
     // Sosyal teslim Cloudflare'ın yerel kuyruğunda yürür; Metricool çağrısı yapılmaz.
   }
