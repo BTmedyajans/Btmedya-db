@@ -14,6 +14,8 @@ const FEEDS = [
   {id:'google-balikesir-belediye', name:'Google News / Balıkesir belediye', url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir%20belediye&hl=tr&gl=TR&ceid=TR:tr', category:'Yerel', tier:'discovery'},
   {id:'google-balikesir-spor', name:'Google News / Balıkesir spor', url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir%20spor&hl=tr&gl=TR&ceid=TR:tr', category:'Spor', tier:'discovery'},
   {id:'google-balikesir-teknoloji', name:'Google News / Balıkesir teknoloji', url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir%20teknoloji&hl=tr&gl=TR&ceid=TR:tr', category:'Yapay Zekâ', tier:'discovery'},
+  {id:'google-balikesir-resmi', name:'Google News / Balıkesir resmî duyurular', url:'https://news.google.com/rss/search?q=site%3Abalikesir.gov.tr%20OR%20site%3Abalikesir.bel.tr%20Bal%C4%B1kesir&hl=tr&gl=TR&ceid=TR:tr', category:'Yerel', tier:'publisher'},
+  {id:'google-turkiye-ekonomi-resmi', name:'Google News / Türkiye resmî ekonomi duyuruları', url:'https://news.google.com/rss/search?q=site%3Agov.tr%20ekonomi%20destek%20basvuru&hl=tr&gl=TR&ceid=TR:tr', category:'Ekonomi', tier:'publisher'},
   {id:'google-turkiye', name:'Google News / Türkiye', url:'https://news.google.com/rss/search?q=T%C3%BCrkiye&hl=tr&gl=TR&ceid=TR:tr', category:'Gündem', tier:'discovery'},
   {id:'google-ai', name:'Google News / Yapay Zekâ', url:'https://news.google.com/rss/search?q=yapay%20zeka%20AI&hl=tr&gl=TR&ceid=TR:tr', category:'Yapay Zekâ', tier:'discovery'},
   {id:'google-merhaba', name:'Google News / Gazete Merhaba', url:'https://news.google.com/rss/search?q=site%3Agazetemerhaba.com%20Bal%C4%B1kesir&hl=tr&gl=TR&ceid=TR:tr', category:'Yerel', tier:'competitor'},
@@ -118,12 +120,12 @@ export async function runNewsIntelligence(env,{limit=8}={}){
   const trendItems=rssItems(trendXml);
   const trendMap=trendWords(trendItems);
   /* Ücretsiz Workers planında dış istek bütçesini korumak için her çağrıda
-     yalnızca altı RSS kaynağı taranır. 15 dakikalık zaman dilimi kaynak grubunu
+     yalnızca altı RSS kaynağı taranır. 10 dakikalık zaman dilimi kaynak grubunu
      döndürür; böylece tüm katalog üç turda kapsanır ve tek çağrı 50 dış isteğe
      yaklaşmaz. */
   const feedBatchSize=6;
   const feedBatchCount=Math.ceil(FEEDS.length/feedBatchSize);
-  const feedBatch=Math.floor(Date.now()/900000)%feedBatchCount;
+  const feedBatch=Math.floor(Date.now()/600000)%feedBatchCount;
   const activeFeeds=FEEDS.slice(feedBatch*feedBatchSize,feedBatch*feedBatchSize+feedBatchSize);
   /* Feed kataloğu Kaynak Masası'nda da kalıcı tutulur. */
   for(const feed of activeFeeds){
@@ -217,7 +219,7 @@ export async function newsIntelligenceStatus(env){
   const revenue=env.KV?await env.KV.get('news-intelligence:revenue-opportunities').catch(()=>null):null;
   return {
     enabled:true,
-    heartbeat:{alive:true,lastScan:lastObj?.at||null,nextScan:lastObj?.at?new Date(new Date(lastObj.at).getTime()+15*60000).toISOString():null},
+    heartbeat:{alive:true,lastScan:lastObj?.at||null,nextScan:lastObj?.at?new Date(new Date(lastObj.at).getTime()+10*60000).toISOString():null},
     last:lastObj,
     items:rows,
     alerts,
