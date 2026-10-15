@@ -29,8 +29,8 @@ GitHub > Settings > Secrets and variables > Actions alanında aşağıdaki GitHu
 ### GitHub → Cloudflare aktarımı
 
 1. Önce resmî geliştirici portallarında ilgili uygulamaları oluşturun ve kimlik bilgilerini GitHub Secrets'a kaydedin.
-2. GitHub > Actions > **BTMEDYA Sync Worker Secrets** > **Run workflow** bölümünde `native-social` kapsamını seçin.
-3. İş akışı değerleri göstermeden tanımlı secret'ları `btmedya-db` Worker'ına aktarır. Tanımlı olmayan isteğe bağlı secret'lar atlanır; otomatik olarak uydurulmaz.
+2. GitHub > Actions > **BTMEDYA Sync Worker Secrets** > **Run workflow** bölümünde kullandığınız sağlayıcı kapsamını seçin: `meta`, `tiktok` veya `youtube`. Yalnız bu sağlayıcının iki secret'ını zorunlu tutar. Üç sağlayıcının da kimlik bilgileri varsa `native-social` kullanılabilir; X ise ayrı `x` kapsamındadır.
+3. İş akışı değerleri göstermeden secret'ları `btmedya-db` Worker'ına aktarır. Eksik sağlayıcı kimlikleri otomatik uydurulmaz.
 4. Bağlantı merkezi `https://btmedya.com.tr/admin/connect/` üzerinden hedef platformun **resmî OAuth** akışını tamamlayın.
 
 Meta OAuth dönüş adresi:
