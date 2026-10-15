@@ -7,9 +7,10 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/haber-kapak-otomasyonu.yml"
+      - ".github/actions/imzali-pr/**
       - "tools/validate-assets.py"
   schedule:
-    - cron: "40 5,11,17,23 * * *"
+    - cron: "10 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -47,7 +48,7 @@ jobs:
       - name: Üretilen kapakları PR olarak yayınla
         uses: ./.github/actions/imzali-pr
         with:
-          dal: automation/haber-kapaklari
+          dal: automation/haber-kapaklari-${{ github.sha }}
           yollar: public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json public/data/medya-listesi.json tools/temsili-kaynak
           mesaj: "chore: otomatik haber kapakları üretildi"
           pr_baslik: "chore: otomatik haber kapakları"

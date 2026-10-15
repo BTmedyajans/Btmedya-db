@@ -31,9 +31,8 @@ YOLLAR = shlex.split(os.environ["YOLLAR"])
 MESAJ = os.environ.get("MESAJ", "chore: otomasyon çıktısı")
 PR_BASLIK = os.environ.get("PR_BASLIK", MESAJ)
 PR_GOVDE = os.environ.get("PR_GOVDE", "")
-# GraphQL istek gövdesi base64 ile ~%33 büyür; tek commit'i 20 MB ham veride
-# tutmak isteği güvenli sınırın altında bırakır. Fazlası ardışık commit olur.
-PARCA_BAYT = 20 * 1024 * 1024
+# GraphQL gövdesi base64 ile büyür; küçük paketler timeout/504 riskini düşürür.
+PARCA_BAYT = 3 * 1024 * 1024
 
 
 def istek(yontem: str, url: str, govde: dict | None = None) -> tuple[int, dict]:
@@ -80,40 +79,35 @@ def degisenler() -> tuple[list[str], list[str]]:
 
 
 def dal_hazirla(taban: str) -> str:
-    # Otomasyon çıktısı her zaman bu çalıştırmanın checkout ettiği main ucundan
-    # üretilir. Var olan PR dalını aynı main ucuna sıfırla; eski bir çıktı dalı
-    # main'deki yeni dosyaları yanlışlıkla silmesin/geri almasın. Bunun için
-    # automation/** dallarının depo kural setinde güncellenebilir olması gerekir.
+    # Each workflow run uses a branch named for its source commit. Reuse that
+    # branch's current head; never force-reset an existing automation branch.
     ref_url = f"{API}/repos/{REPO}/git/ref/heads/{DAL}"
     kod, yanit = istek("GET", ref_url)
     if kod == 200:
-        kod, yanit = istek("PATCH", ref_url, {"sha": taban, "force": True})
-        if kod == 200:
-            return taban
-        sys.exit(f"::error::{DAL} mevcut otomasyon dalı main ucuna sıfırlanamadı (HTTP {kod}): "
-                 f"{yanit.get('message', '')}. GitHub 'Bağlantılar' kural setinde automation/** "
-                 "dalları için update izni/istisnası gerekir; main korumasını değiştirmeyin.")
+        oid = (yanit.get("object") or {}).get("sha")
+        if oid:
+            print(f"Var olan otomasyon dalı korunuyor: {DAL} @ {oid[:12]}")
+            return oid
+        sys.exit(f"::error::{DAL} dalı bulundu ancak commit SHA alınamadı.")
 
     if kod != 404:
         sys.exit(f"::error::{DAL} dalı okunamadı (HTTP {kod}): {yanit.get('message', '')}")
 
-    # Dal henüz yoksa main ucundan oluştur. Kural seti branch creation'i
-    # engelliyorsa bunu yeniden adlandırma denemeleriyle gizleme; izin eksikliği
-    # açıkça raporlanmalı ve main üzerinde doğrudan yazma yapılmamalıdır.
-    kod, yanit = istek("POST", f"{API}/repos/{REPO}/git/refs", {"ref": f"refs/heads/{DAL}", "sha": taban})
+    kod, yanit = istek("POST", f"{API}/repos/{REPO}/git/refs",
+                       {"ref": f"refs/heads/{DAL}", "sha": taban})
     if kod == 201:
         return taban
+
+    # Handle two scheduled runs racing to create the same source-scoped branch.
     if kod == 422:
-        kod, yanit = istek("GET", ref_url)
-        sha = ((yanit.get("object") or {}).get("sha") or "") if kod == 200 else ""
-        if sha:
-            kod, yanit = istek("PATCH", ref_url, {"sha": taban, "force": True})
-            if kod == 200:
-                return taban
+        kod, tekrar = istek("GET", ref_url)
+        oid = ((tekrar.get("object") or {}).get("sha") or "") if kod == 200 else ""
+        if oid:
+            print(f"Eşzamanlı çalıştırmanın oluşturduğu dal kullanılıyor: {DAL} @ {oid[:12]}")
+            return oid
+
     sys.exit(f"::error::{DAL} dalı hazırlanamadı (HTTP {kod}): {yanit.get('message', '')}. "
-             "GitHub 'Bağlantılar' kural setinde automation/** dalları için creation/update izni gerekir.")
-
-
+             "Ana dalı veya var olan otomasyon dallarını force-reset etmeyin.")
 
 
 def commit_at(onceki: str, eklenen: list[str], silinen: list[str], baslik: str) -> str:
