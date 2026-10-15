@@ -46,7 +46,7 @@ jobs:
       - name: Üretilen kapakları PR olarak yayınla
         uses: ./.github/actions/imzali-pr
         with:
-          dal: automation/haber-kapaklari
+          dal: fix/auto-news-cover-publish
           yollar: public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json public/data/medya-listesi.json tools/temsili-kaynak
           mesaj: "chore: otomatik haber kapakları üretildi"
           pr_baslik: "chore: otomatik haber kapakları"
