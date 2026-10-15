@@ -54,6 +54,8 @@ jobs:
           grep -q 'skipRecentIntelligence' src/autopilot.js
           grep -q 'makeNewsCover' src/autopilot.js
           grep -q 'runClientTrendEngine' src/worker.js
+          grep -Fq 'if(cron==="*/10 * * * *")' src/worker.js
+          grep -Fq 'if(cron==="*/30 * * * *")' src/worker.js
           grep -q 'cron==="\*/5 \* \* \* \*"' src/worker.js
           grep -q 'cron==="\*/15 \* \* \* \*"' src/worker.js
           grep -q 'cron==="0 5 \* \* \*"' src/worker.js
