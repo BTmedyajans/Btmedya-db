@@ -52,6 +52,12 @@ database_id = "94a980cd-62c5-4c29-b7fc-40f96ab665e4"
 MEDIA_PUBLIC_TTL = "86400"
 # BTMEDYA admin login user. This is a non-secret identifier; the password remains a Worker Secret.
 ADMIN_USERNAME = "busetuncay74@gmail.com"
+# Non-secret metadata read from the connected Metricool BTMEDYA brand.
+# This does not change the primary publisher; the native direct OAuth route remains active.
+METRICOOL_USER_ID = "5278969"
+METRICOOL_BRAND_ID = "6858384"
+METRICOOL_TIMEZONE = "Europe/Istanbul"
+METRICOOL_CONNECTED_NETWORKS = "tiktok,youtube"
 # Primary social publisher: BTMEDYA native queue with official platform OAuth.
 # New and approved legacy-panel posts are queued to directly authorized accounts.
 # Metricool credentials/brand settings are not required for this path.
