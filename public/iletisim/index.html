@@ -67,6 +67,10 @@
   <p class="eyebrow">BTMEDYA / İLETİŞİM</p>
   <h1>Bize <span>ulaşın.</span></h1>
   <p class="contact-intro">Proje teklifi, iş birliği, haber bildirimi veya herhangi bir sorunuz için aşağıdaki formu kullanabilir ya da doğrudan bize ulaşabilirsiniz.</p>
+  <div class="contact-quick-actions" aria-label="Hızlı iletişim seçenekleri">
+    <a class="contact-quick-primary" href="https://wa.me/905416401029?text=Merhaba%20BTMEDYA%2C%20projem%20i%C3%A7in%20k%C4%B1sa%20bir%20g%C3%B6r%C3%BC%C5%9Fme%20istiyorum." target="_blank" rel="noopener">WhatsApp’tan yazın ↗</a>
+    <a class="contact-quick-secondary" href="#contactForm">Forma geç ↓</a>
+  </div>
   <section class="contact-context" aria-labelledby="contactContextTitle" style="margin:18px 0 28px;max-width:920px">
     <h2 id="contactContextTitle">BTMEDYA ile hangi konularda çalışabilirsiniz?</h2>
     <p>BTMEDYA; Balıkesir ve çevresinde haber, röportaj, video prodüksiyon ve dijital medya üretimini aynı çalışma akışında buluşturur. Markanız, kurumunuz veya projeniz için tanıtım filmi, sosyal medya içerikleri, kısa video serileri, röportaj, etkinlik çekimi ve kurumsal medya paketleri planlayabiliriz.</p>
@@ -91,7 +95,7 @@
   </section>
 
   <div class="contact-grid">
-    <form class="contact-form" id="contactForm">
+    <form class="contact-form" id="contactForm" action="/api/contact" method="post" accept-charset="UTF-8">
       <div>
         <label for="cf-name">AD SOYAD *</label>
         <input type="text" id="cf-name" name="name" required autocomplete="name" placeholder="Adınız ve soyadınız">
@@ -126,7 +130,7 @@
         <span><a href="/gizlilik/" target="_blank" rel="noopener">Gizlilik ve KVKK bilgilendirmesini</a> okudum, iletişim talebimin yanıtlanması için bilgilerimin işlenmesini kabul ediyorum.</span>
       </label>
       <button type="submit" id="cf-submit">MESAJ GÖNDER</button>
-      <div class="form-msg" id="cf-msg"></div>
+      <div class="form-msg" id="cf-msg" role="status" aria-live="polite" aria-atomic="true"></div>
     </form>
 
     <div class="contact-info">

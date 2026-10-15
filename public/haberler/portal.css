@@ -412,21 +412,20 @@
 
 /* Yükleme sırasında yer ayır (11 Ekim, ölçüm: mobilde CLS 0.519). Şerit boşken
    2 px'ti, dolunca 44 px oluyordu; manşet kutuları "yükleniyor" yazısıyla 92 px
-   başlayıp 600-780 px'e çıkıyordu ve altındaki her şeyi itiyordu. Yükseklikler
-   canlı sayfada 360-1440 px genişlikte ölçülen son hallerdir; yalnız yedek yazı
-   dururken uygulanır, içerik gelince kalkar. */
+  başlayıp 600-780 px'e çıkıyordu ve altındaki her şeyi itiyordu. Dinamik içerik
+  beklenirken ölçülü bir yer ayrılır; içerik gelmezse sayfa boş görünmez. */
 .hm-serit:empty{box-sizing:border-box;min-height:44px}
-.hm-manset-bolum-balik .hm-manset-desk:has(>.hm-yedek){min-height:calc(40px + 172vw)}
-.hm-manset-turkiye .hm-manset-desk:has(>.hm-yedek){min-height:calc(300px + 78vw)}
+.hm-manset-bolum-balik .hm-manset-desk:has(>.hm-yedek){min-height:180px}
+.hm-manset-turkiye .hm-manset-desk:has(>.hm-yedek){min-height:180px}
 @media (min-width:481px){
-  .hm-manset-bolum-balik .hm-manset-desk:has(>.hm-yedek){min-height:715px}
-  .hm-manset-turkiye .hm-manset-desk:has(>.hm-yedek){min-height:455px}
+  .hm-manset-bolum-balik .hm-manset-desk:has(>.hm-yedek){min-height:220px}
+  .hm-manset-turkiye .hm-manset-desk:has(>.hm-yedek){min-height:220px}
 }
 @media (min-width:900px){
-  .hm-manset-bolum-balik .hm-manset-desk:has(>.hm-yedek){min-height:447px}
-  .hm-manset-turkiye .hm-manset-desk:has(>.hm-yedek){min-height:501px}
+  .hm-manset-bolum-balik .hm-manset-desk:has(>.hm-yedek){min-height:260px}
+  .hm-manset-turkiye .hm-manset-desk:has(>.hm-yedek){min-height:260px}
 }
 @media (min-width:1200px){
-  .hm-manset-bolum-balik .hm-manset-desk:has(>.hm-yedek){min-height:597px}
-  .hm-manset-turkiye .hm-manset-desk:has(>.hm-yedek){min-height:649px}
+  .hm-manset-bolum-balik .hm-manset-desk:has(>.hm-yedek){min-height:300px}
+  .hm-manset-turkiye .hm-manset-desk:has(>.hm-yedek){min-height:300px}
 }
