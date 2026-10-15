@@ -25,7 +25,7 @@ GitHub > Settings > Secrets and variables > Actions bölümünde yalnızca kulla
 - YouTube: `BTMEDYA_YOUTUBE_CLIENT_ID`, `BTMEDYA_YOUTUBE_CLIENT_SECRET`
 - X (isteğe bağlı): `BTMEDYA_X_CLIENT_ID`, `BTMEDYA_X_CLIENT_SECRET`
 
-Ardından GitHub Actions > **BTMEDYA Sync Worker Secrets** > **Run workflow** > scope `native-social` seçin. Gizli değerleri issue, sohbet veya kaynak dosyalarına kopyalamayın.
+Ardından GitHub Actions > **BTMEDYA Sync Worker Secrets** > **Run workflow** bölümünde kullandığınız sağlayıcıya göre kapsam seçin: `meta` yalnız Meta anahtarlarını, `tiktok` yalnız TikTok'u, `youtube` yalnız YouTube'u aktarır. Üçünün de uygulama anahtarını eklediyseniz `native-social` kapsamını kullanabilirsiniz. X isteğe bağlıdır ve ayrı `x` kapsamıyla aktarılır. Gizli değerleri issue, sohbet veya kaynak dosyalarına kopyalamayın.
 
 ## OAuth yönlendirme adresleri
 
