@@ -44,6 +44,7 @@ jobs:
           grep -q 'Every run is finalized' src/autopilot.js
           grep -q 'AbortSignal.timeout(5000)' src/autopilot.js
           grep -q 'Promise.all(hosts.map' src/autopilot.js
+          grep -Fq 'if(!r.ok) throw new Error("HTTP "+r.status)' src/autopilot.js
           grep -q 'feedBatchSize=6' src/news-intelligence.js
           grep -q 'Promise.all(activeFeeds.map' src/news-intelligence.js
           grep -q 'processCandidates=candidates.slice(0,12)' src/news-intelligence.js
