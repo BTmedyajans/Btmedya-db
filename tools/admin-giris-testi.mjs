@@ -94,4 +94,13 @@ assert.match(kabuk, /location\.replace\('\/admin\/agency-os\//);
 const merkezStil = readFileSync('public/admin/agency-os/agency-os.css', 'utf8');
 for (const parca of [':root{', '--lime:', 'body{', '.top{']) assert.ok(merkezStil.includes(parca), `agency-os.css taban kuralı eksik: ${parca}`);
 
+// Native social OAuth buttons must use the valid agency workspace.
+const socialConnectPage = readFileSync('public/admin/connect/index.html', 'utf8');
+assert.match(socialConnectPage, /\/api\/social\/direct\/meta\/start\?workspace_type=agency&workspace_id=btmedya/, 'Meta OAuth must use agency/btmedya');
+for (const provider of ['tiktok', 'youtube', 'x']) {
+  const route = new RegExp(`/api/social/direct/${provider}/start\\?workspace_type=agency&workspace_id=btmedya`);
+  assert.match(socialConnectPage, route, `${provider} OAuth must use agency/btmedya`);
+}
+assert.doesNotMatch(socialConnectPage, /workspace_type=company/, 'invalid company workspace must not remain in the OAuth UI');
+
 console.log('ADMIN GIRIS TESTI GECTI');
