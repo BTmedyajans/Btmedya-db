@@ -509,26 +509,31 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
 
   if(env.DB){
     // Rakip kaynakları kamuya açık RSS üzerinden yalnızca başlık sıklığı için izlenir.
+// Üç ayrı Google News isteğini seri beklemek, iki kaynak zaman aşımına uğradığında
+// her autopilot çalıştırmasını 16-24 saniye uzatıyordu. Bağımsız kaynakları paralel
+// sorgula; bir kaynağın hatası diğer kaynakların sonucunu düşürmesin.
     const hosts=policy.competitorHosts;
-    const rows=[];
-    for(const host of hosts){
+    const rows=await Promise.all(hosts.map(async host=>{
       const url="https://news.google.com/rss/search?q=site%3A"+encodeURIComponent(host)+"&hl=tr&gl=TR&ceid=TR:tr";
       try{
         const r=await fetch(url,{headers:{accept:"application/rss+xml, text/xml","user-agent":"BTMEDYA-CompetitorRadar/1.0"},signal:AbortSignal.timeout(8000)});
+        if(!r.ok) throw new Error("HTTP "+r.status);
         const xml=await r.text();
-        const items=[...xml.matchAll(/<item>[\s\S]*?<\/item>/gi)].slice(0,12).map(m=>m[0])
+        const items=[...xml.matchAll(/<item>[\\s\\S]*?<\\/item>/gi)].slice(0,12).map(m=>m[0])
           .map(b=>({
-            title:String((b.match(/<title>([\s\S]*?)<\/title>/i)||[])[1]||"").replace(/<[^>]+>/g,"").replace(/<!\[CDATA\[|\]\]>/g,"").trim(),
-            link:String((b.match(/<link>([\s\S]*?)<\/link>/i)||[])[1]||"").trim()
+            title:String((b.match(/<title>([\\s\\S]*?)<\\/title>/i)||[])[1]||"").replace(/<[^>]+>/g,"").replace(/<!\\[CDATA\\[|\\]\\]>/g,"").trim(),
+            link:String((b.match(/<link>([\\s\\S]*?)<\\/link>/i)||[])[1]||"").trim()
           })).filter(x=>x.title);
-        const top=items[0];
+        const top=items[0], now=nowIso();
         await env.DB.prepare(`INSERT INTO autopilot_competitors(host,label,last_url,last_title,headlines_seen,last_seen_at,updated_at)
           VALUES(?,?,?,?,?,?,?) ON CONFLICT(host) DO UPDATE SET
           last_url=excluded.last_url,last_title=excluded.last_title,headlines_seen=excluded.headlines_seen,last_seen_at=excluded.last_seen_at,updated_at=excluded.updated_at`)
-          .bind(host,host,top?.link||"",top?.title||"",items.length,top?nowIso():null,nowIso()).run().catch(()=>{});
-        rows.push({host,count:items.length,latest:top?.title||"",url:top?.link||""});
-      }catch(e){ rows.push({host,count:0,error:String(e?.message||e).slice(0,120)}); }
-    }
+          .bind(host,host,top?.link||"",top?.title||"",items.length,top?now:null,now).run().catch(()=>{});
+        return {host,count:items.length,latest:top?.title||"",url:top?.link||""};
+      }catch(e){
+        return {host,count:0,error:String(e?.message||e).slice(0,120)};
+      }
+    }));
     result.competitors=rows;
     // Sosyal teslim Cloudflare'ın yerel kuyruğunda yürür; Metricool çağrısı yapılmaz.
   }
