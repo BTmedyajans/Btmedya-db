@@ -79,16 +79,41 @@ def degisenler() -> tuple[list[str], list[str]]:
     return eklenen, silinen
 
 
-def dal_hazirla(taban: str) -> None:
-    # Dal her turda main'in o anki ucundan yeniden başlar (eski `--force` push
-    # davranışı); açık PR aynı dala bağlı kalır.
-    kod, yanit = istek("PATCH", f"{API}/repos/{REPO}/git/refs/heads/{DAL}", {"sha": taban, "force": True})
+def dal_hazirla(taban: str) -> str:
+    # Otomasyon çıktısı her zaman bu çalıştırmanın checkout ettiği main ucundan
+    # üretilir. Var olan PR dalını aynı main ucuna sıfırla; eski bir çıktı dalı
+    # main'deki yeni dosyaları yanlışlıkla silmesin/geri almasın. Bunun için
+    # automation/** dallarının depo kural setinde güncellenebilir olması gerekir.
+    ref_url = f"{API}/repos/{REPO}/git/ref/heads/{DAL}"
+    kod, yanit = istek("GET", ref_url)
     if kod == 200:
-        return
+        kod, yanit = istek("PATCH", ref_url, {"sha": taban, "force": True})
+        if kod == 200:
+            return taban
+        sys.exit(f"::error::{DAL} mevcut otomasyon dalı main ucuna sıfırlanamadı (HTTP {kod}): "
+                 f"{yanit.get('message', '')}. GitHub 'Bağlantılar' kural setinde automation/** "
+                 "dalları için update izni/istisnası gerekir; main korumasını değiştirmeyin.")
+
+    if kod != 404:
+        sys.exit(f"::error::{DAL} dalı okunamadı (HTTP {kod}): {yanit.get('message', '')}")
+
+    # Dal henüz yoksa main ucundan oluştur. Kural seti branch creation'i
+    # engelliyorsa bunu yeniden adlandırma denemeleriyle gizleme; izin eksikliği
+    # açıkça raporlanmalı ve main üzerinde doğrudan yazma yapılmamalıdır.
     kod, yanit = istek("POST", f"{API}/repos/{REPO}/git/refs", {"ref": f"refs/heads/{DAL}", "sha": taban})
-    if kod != 201:
-        sys.exit(f"::error::{DAL} dalı hazırlanamadı (HTTP {kod}): {yanit.get('message', '')}. "
-                 "Depo kural seti dal oluşturmayı engelliyorsa automation/** dallarını oluşturma kuralından hariç tutun.")
+    if kod == 201:
+        return taban
+    if kod == 422:
+        kod, yanit = istek("GET", ref_url)
+        sha = ((yanit.get("object") or {}).get("sha") or "") if kod == 200 else ""
+        if sha:
+            kod, yanit = istek("PATCH", ref_url, {"sha": taban, "force": True})
+            if kod == 200:
+                return taban
+    sys.exit(f"::error::{DAL} dalı hazırlanamadı (HTTP {kod}): {yanit.get('message', '')}. "
+             "GitHub 'Bağlantılar' kural setinde automation/** dalları için creation/update izni gerekir.")
+
+
 
 
 def commit_at(onceki: str, eklenen: list[str], silinen: list[str], baslik: str) -> str:
@@ -133,7 +158,7 @@ def main() -> None:
         print("Yazılacak değişiklik yok; akış güncel.")
         return
     taban = subprocess.run(["git", "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
-    dal_hazirla(taban)
+    ucu = dal_hazirla(taban)
     parcalar, parca, boyut = [], [], 0
     for yol in eklenen:
         b = os.path.getsize(yol)
@@ -143,7 +168,6 @@ def main() -> None:
         parca.append(yol)
         boyut += b
     parcalar.append(parca)
-    ucu = taban
     for no, p in enumerate(parcalar, 1):
         baslik = MESAJ if len(parcalar) == 1 else f"{MESAJ} ({no}/{len(parcalar)})"
         ucu = commit_at(ucu, p, silinen if no == 1 else [], baslik)

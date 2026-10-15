@@ -4,6 +4,7 @@ name: BTMedya haber kapak otomasyonu
 # Workflow/validator değişikliklerinde de kontrollü test sağlar; üretilen medya yolları push filtresinde değildir.
 on:
   push:
+    branches: [main]
     paths:
       - ".github/workflows/haber-kapak-otomasyonu.yml"
       - "tools/validate-assets.py"
