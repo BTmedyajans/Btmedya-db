@@ -79,16 +79,34 @@ def degisenler() -> tuple[list[str], list[str]]:
     return eklenen, silinen
 
 
-def dal_hazirla(taban: str) -> None:
-    # Dal her turda main'in o anki ucundan yeniden başlar (eski `--force` push
-    # davranışı); açık PR aynı dala bağlı kalır.
-    kod, yanit = istek("PATCH", f"{API}/repos/{REPO}/git/refs/heads/{DAL}", {"sha": taban, "force": True})
+def dal_hazirla(taban: str) -> str:
+    # Mevcut otomasyon dalını main'e force-reset etme: depo kural setleri bunu
+    # reddedebilir ve imzalı commit zincirini koparabilir. Dal varsa HEAD'ini
+    # koru; yeni çıktı commit'i GraphQL ile imzalanıp bu HEAD üzerine eklenir.
+    ref_url = f"{API}/repos/{REPO}/git/ref/heads/{DAL}"
+    kod, yanit = istek("GET", ref_url)
     if kod == 200:
-        return
+        sha = ((yanit.get("object") or {}).get("sha") or "")
+        if sha:
+            return sha
+        sys.exit(f"::error::{DAL} dalı bulundu ama HEAD SHA alınamadı.")
+
+    if kod != 404:
+        sys.exit(f"::error::{DAL} dalı okunamadı (HTTP {kod}): {yanit.get('message', '')}")
+
+    # Dal henüz yoksa main ucundan oluştur. Eşzamanlı koşu dalı oluşturmuşsa
+    # 422 sonrası bir kez yeniden oku ve mevcut HEAD üzerinden devam et.
     kod, yanit = istek("POST", f"{API}/repos/{REPO}/git/refs", {"ref": f"refs/heads/{DAL}", "sha": taban})
-    if kod != 201:
-        sys.exit(f"::error::{DAL} dalı hazırlanamadı (HTTP {kod}): {yanit.get('message', '')}. "
-                 "Depo kural seti dal oluşturmayı engelliyorsa automation/** dallarını oluşturma kuralından hariç tutun.")
+    if kod == 201:
+        return taban
+    if kod == 422:
+        kod, yanit = istek("GET", ref_url)
+        sha = ((yanit.get("object") or {}).get("sha") or "") if kod == 200 else ""
+        if sha:
+            return sha
+    sys.exit(f"::error::{DAL} dalı hazırlanamadı (HTTP {kod}): {yanit.get('message', '')}")
+
+
 
 
 def commit_at(onceki: str, eklenen: list[str], silinen: list[str], baslik: str) -> str:
@@ -133,7 +151,7 @@ def main() -> None:
         print("Yazılacak değişiklik yok; akış güncel.")
         return
     taban = subprocess.run(["git", "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
-    dal_hazirla(taban)
+    ucu = dal_hazirla(taban)
     parcalar, parca, boyut = [], [], 0
     for yol in eklenen:
         b = os.path.getsize(yol)
@@ -143,7 +161,6 @@ def main() -> None:
         parca.append(yol)
         boyut += b
     parcalar.append(parca)
-    ucu = taban
     for no, p in enumerate(parcalar, 1):
         baslik = MESAJ if len(parcalar) == 1 else f"{MESAJ} ({no}/{len(parcalar)})"
         ucu = commit_at(ucu, p, silinen if no == 1 else [], baslik)
