@@ -4794,5 +4794,233 @@
    "ana": "Doğada Gençlik Aktivitesi",
    "vurgu": "Konyaaltı Sahili’nde yapıldı"
   }
+ },
+ {
+  "slug": "nato-bulgaristan-ve-romanya-liderleri-karadeniz-de-ticari-gemilere-yonelik-saldirilari-gor",
+  "baslik": "NATO, Bulgaristan ve Romanya liderleri Karadeniz'de ticari gemilere yönelik saldırıları görüştü",
+  "kategori": "Dünya",
+  "altbilgi": "BTMEDYA · 16 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ"
+ },
+ {
+  "slug": "hafta-sonu-turkiye-yi-gok-gurultulu-saganak-ve-40-60-km-saat-ruzgar-bekliyor",
+  "baslik": "Hafta sonu Türkiye'yi gök gürültülü sağanak ve 40-60 km/saat rüzgar bekliyor",
+  "kategori": "Gündem",
+  "altbilgi": "BTMEDYA · 16 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "60 km",
+   "etiket": ""
+  },
+  "kapak_metni": {
+   "ust": "Meteoroloji hafta sonu tahmini",
+   "kanca": "40-60 km/saat rüzgar",
+   "ana": "Türkiye'de sağanak ve rüzgar",
+   "vurgu": "Sağanak ve 40-60 km/saat rüzgar"
+  }
+ },
+ {
+  "slug": "t3-vakfi-ve-huawei-turkiye-3-ekim-de-sanliurfa-da-yapay-zeka-is-birligi-imzaladi",
+  "baslik": "T3 Vakfı ve Huawei Türkiye, 3 Ekim'de Şanlıurfa'da yapay zeka iş birliği imzaladı",
+  "kategori": "Teknoloji",
+  "altbilgi": "BTMEDYA · 16 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "kapak_metni": {
+   "ust": "TEKNOFEST Güneydoğu'nda iş birliği",
+   "kanca": "3 Ekim",
+   "ana": "T3 Vakfı ve Huawei Türkiye",
+   "vurgu": "yapay zeka iş birliği imzaladı"
+  }
+ },
+ {
+  "slug": "tarim-ve-orman-bakanligi-hayvancilik-isletmelerinin-a-e-siniflarina-siniflandirilmasini-on",
+  "baslik": "Tarım ve Orman Bakanlığı hayvancılık işletmelerinin A-E sınıflarına sınıflandırılmasını öngörüyor",
+  "kategori": "Ekonomi",
+  "altbilgi": "BTMEDYA · 15 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "kapak_metni": {
+   "ust": "Tarım ve Orman Bakanlığı duyurdu",
+   "kanca": "A-E sınıfları",
+   "ana": "Hayvancılık işletmeleri",
+   "vurgu": "Sınıflandırma yönetmeliği yayımlandı"
+  }
+ },
+ {
+  "slug": "istanbul-da-15-ekim-persembe-gunu-universiteler-yuz-yuze-egitime-ara-verdi",
+  "baslik": "İstanbul’da 15 Ekim Perşembe günü üniversiteler yüz yüze eğitime ara verdi",
+  "kategori": "Yaşam",
+  "altbilgi": "BTMEDYA · 15 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "15 Ekim",
+   "etiket": ""
+  },
+  "kapak_metni": {
+   "ust": "Valilik kararı sonrası",
+   "kanca": "15 Ekim",
+   "ana": "İstanbul'da üniversiteler",
+   "vurgu": "yüz yüze eğitime ara verdi"
+  }
+ },
+ {
+  "slug": "ankara-samsun-hizli-demir-yolu-projesinde-delice-corum-kesimi-40-i-asti",
+  "baslik": "Ankara-Samsun hızlı demir yolu projesinde Delice-Çorum kesimi %40’ı aştı",
+  "kategori": "Türkiye",
+  "altbilgi": "BTMEDYA · 15 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "%40",
+   "etiket": ""
+  },
+  "kapak_metni": {
+   "ust": "Uraloğlu, demir yolu projesini açıkladı",
+   "kanca": "12 milyon yolcu",
+   "ana": "Ankara-Samsun hızlı tren",
+   "vurgu": "Delice-Çorum’da %40’ı aştı"
+  }
+ },
+ {
+  "slug": "louvre-muzesi-muduru-onarim-olmazsa-muzenin-halka-kapatilacagini-uyardi",
+  "baslik": "Louvre Müzesi Müdürü, onarım olmazsa müzenin halka kapatılacağını uyardı",
+  "kategori": "Dünya",
+  "altbilgi": "BTMEDYA · 15 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "kapak_metni": {
+   "ust": "Louvre Müdürü: Onarım Olmazsa Kapanacak",
+   "kanca": "15 yıla kadar",
+   "ana": "Louvre Müzesi",
+   "vurgu": "Kapanma riskiyle karşı karşıya"
+  }
+ },
+ {
+  "slug": "almanya-da-eylulde-enflasyon-yuzde-3-3-e-yukseldi-enerji-fiyatlari-rekor-artis-gosterdi",
+  "baslik": "Almanya'da eylülde enflasyon yüzde 3,3'e yükseldi, enerji fiyatları rekor artış gösterdi",
+  "kategori": "Ekonomi",
+  "altbilgi": "BTMEDYA · 14 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "yüzde 3,3",
+   "etiket": ""
+  },
+  "kapak_metni": {
+   "ust": "Destatis verileri",
+   "kanca": "yüzde 3,3",
+   "ana": "Almanya enflasyonu",
+   "vurgu": "Son 3 yılın en yüksek seviyesi"
+  }
+ },
+ {
+  "slug": "fransa-ve-hollanda-marketlerinde-dondurucu-sicakliklari-degistirildi-binlerce-urun-bozuldu",
+  "baslik": "Fransa ve Hollanda marketlerinde dondurucu sıcaklıkları değiştirildi, binlerce ürün bozuldu",
+  "kategori": "Türkiye",
+  "altbilgi": "BTMEDYA · 14 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "kapak_metni": {
+   "ust": "Avrupa'da marketlerde siber saldırı",
+   "kanca": "binlerce ürün bozuldu",
+   "ana": "Fransa ve Hollanda marketleri",
+   "vurgu": "Dondurucu sıcaklıkları değiştirildi"
+  }
+ },
+ {
+  "slug": "osman-askin-bak-2026-2027-burs-ve-kredi-basvurularinin-basladigini-duyurdu",
+  "baslik": "Osman Aşkın Bak, 2026-2027 burs ve kredi başvurularının başladığını duyurdu",
+  "kategori": "Eğitim",
+  "altbilgi": "BTMEDYA · 14 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "2026-2027",
+   "etiket": ""
+  },
+  "kapak_metni": {
+   "ust": "Gençlik ve Spor Bakanı Aşkın Bak duyurdu",
+   "kanca": "16 Ekim 23.59",
+   "ana": "Burs ve kredi başvuruları",
+   "vurgu": "e-Devlet üzerinden alınıyor"
+  }
+ },
+ {
+  "slug": "kocaeli-de-motosiklet-scooter-ve-motokuryeler-iki-gun-trafige-cikamaz",
+  "baslik": "Kocaeli'de motosiklet, scooter ve motokuryeler iki gün trafiğe çıkamaz",
+  "kategori": "Gündem",
+  "altbilgi": "BTMEDYA · 14 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "14-15",
+   "etiket": ""
+  }
+ },
+ {
+  "slug": "prof-dr-sevilay-oguz-kilic-sonbaharda-cilt-kuruluguna-karsi-onerileri-paylasti",
+  "baslik": "Prof. Dr. Sevilay Oğuz Kılıç, sonbaharda cilt kuruluğuna karşı önerileri paylaştı",
+  "kategori": "Sağlık",
+  "altbilgi": "BTMEDYA · 14 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "kapak_metni": {
+   "ust": "Prof. Dr. Sevilay Oğuz Kılıç",
+   "kanca": "kuruluk ve kaşıntı",
+   "ana": "Sonbahar cilt bakımı",
+   "vurgu": "cilt kuruluğu ve kaşıntıya çözüm"
+  }
+ },
+ {
+  "slug": "klaros-kutsal-alani-nda-iki-alanda-kazilar-suruyor-7-roma-donemi-mekan-kesfedildi",
+  "baslik": "Klaros Kutsal Alanı'nda iki alanda kazılar sürüyor, 7 Roma dönemi mekan keşfedildi",
+  "kategori": "Kültür",
+  "altbilgi": "BTMEDYA · 13 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "7 mekan",
+   "etiket": ""
+  },
+  "kapak_metni": {
+   "ust": "Ege Üniversitesi kazısı",
+   "kanca": "7 mekan",
+   "ana": "Klaros Kutsal Alanı",
+   "vurgu": "Roma dönemi mekanlar keşfedildi"
+  }
+ },
+ {
+  "slug": "qantas-roma-perth-ucusunu-tahtakurusu-tespiti-sonrasi-iptal-etti",
+  "baslik": "Qantas, Roma-Perth uçuşunu tahtakurusu tespiti sonrası iptal etti",
+  "kategori": "Dünya",
+  "altbilgi": "BTMEDYA · 13 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "vurgu": {
+   "deger": "İptal",
+   "etiket": ""
+  },
+  "kapak_metni": {
+   "ust": "Qantas'tan açıklama",
+   "kanca": "tahtakurusu tespiti",
+   "ana": "Roma-Perth uçuşu",
+   "vurgu": "Tahtakurusu tespiti sonrası"
+  }
+ },
+ {
+  "slug": "ayvalik-belediye-baskani-mesut-ergin-vural-sinemasi-ni-kultur-ve-sanat-yasamina-kazandiriy",
+  "baslik": "Ayvalık Belediye Başkanı Mesut Ergin, Vural Sineması’nı kültür ve sanat yaşamına kazandırıyor",
+  "kategori": "Yerel",
+  "altbilgi": "BTMEDYA · 13 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "kapak_metni": {
+   "ust": "Ayvalık Belediyesi duyurdu",
+   "kanca": "kültür ve sanat sahası",
+   "ana": "Vural Sineması",
+   "vurgu": "kültür ve sanat yaşamına getirildi"
+  }
+ },
+ {
+  "slug": "galatasaray-teknik-direktoru-okan-buruk-barcelona-karsisinda-galibiyet-hedefini-vurguladi",
+  "baslik": "Galatasaray teknik direktörü Okan Buruk, Barcelona karşısında galibiyet hedefini vurguladı",
+  "kategori": "Spor",
+  "altbilgi": "BTMEDYA · 13 Ekim 2026",
+  "imza": "BTMEDYA HABER MERKEZİ",
+  "kapak_metni": {
+   "ust": "Galatasaray Barcelona karşısına çıkıyor",
+   "kanca": "Barcelona 9 galibiyet",
+   "ana": "Galatasaray Teknik Direktörü",
+   "vurgu": "Barcelona'da galibiyet hedefi"
+  }
  }
 ]
