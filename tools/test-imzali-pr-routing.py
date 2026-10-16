@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Focused routing tests for the signed automation PR helper; no GitHub network calls."""
+"""Focused tests for the signed automation PR helper; no GitHub network calls."""
 import importlib.util
 import os
 import unittest
@@ -69,6 +69,45 @@ class AutomationRoutingTests(unittest.TestCase):
         self.assertEqual(payload["head"], "busetuncay1029-ai:automation/haber-kapaklari-123")
         self.assertEqual(payload["head_repo"], "busetuncay1029-ai/Btmedya-db")
         self.assertEqual(payload["base"], "main")
+
+    def test_existing_branch_not_silently_reset(self):
+        helper.RUN_ID = "123456"
+        def request(method, url, body=None):
+            if url.endswith("/repos/busetuncay1029-ai/Btmedya-db"):
+                return 200, {
+                    "full_name": "busetuncay1029-ai/Btmedya-db",
+                    "fork": True,
+                    "parent": {"full_name": "BTmedyajans/Btmedya-db"},
+                    "permissions": {"push": True},
+                }
+            if "/repos/BTmedyajans/Btmedya-db/commits/" in url:
+                sha = url.rsplit("/", 1)[1]
+                return 200, {"sha": sha}
+            if "/repos/busetuncay1029-ai/Btmedya-db/commits/" in url:
+                sha = url.rsplit("/", 1)[1]
+                return 200, {"sha": sha}
+            if "/pulls?" in url:
+                return 200, []
+            if "/git/ref/heads/" in url:
+                return 200, {"object": {"sha": "existing-oid"}}
+            raise AssertionError(f"Unexpected request: {method} {url}")
+        with patch.object(helper, "istek", side_effect=request):
+            with self.assertRaises(SystemExit):
+                helper.dal_hazirla("c" * 40)
+
+    def test_fork_must_be_writable(self):
+        def request(method, url, body=None):
+            if url.endswith("/repos/busetuncay1029-ai/Btmedya-db"):
+                return 200, {
+                    "full_name": "busetuncay1029-ai/Btmedya-db",
+                    "fork": True,
+                    "parent": {"full_name": "BTmedyajans/Btmedya-db"},
+                    "permissions": {"push": False},
+                }
+            raise AssertionError(f"Unexpected request: {method} {url}")
+        with patch.object(helper, "istek", side_effect=request):
+            with self.assertRaises(SystemExit):
+                helper.dal_hazirla("c" * 40)
 
 
 if __name__ == "__main__":
