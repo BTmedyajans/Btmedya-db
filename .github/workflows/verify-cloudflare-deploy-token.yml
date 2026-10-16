@@ -1,0 +1,79 @@
+name: Verify Cloudflare Deploy Token (Read-only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-deploy-token-readonly-check
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Check token status and btmedya-db read access
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify the exact production deploy token without deploying
+        shell: bash
+        env:
+          CF_DEPLOY_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN }}
+          CF_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
+          WORKER_NAME: btmedya-db
+        run: |
+          set -euo pipefail
+          API="https://api.cloudflare.com/client/v4"
+
+          if [ -z "${CF_DEPLOY_TOKEN:-}" ]; then
+            echo "::error::GitHub Actions secret CLOUDFLARE_DEPLOY_TOKEN is missing or empty."
+            exit 1
+          fi
+          echo "::add-mask::$CF_DEPLOY_TOKEN"
+
+          # Support both user-scoped and account-scoped Cloudflare API tokens.
+          verify="$(curl -sS --connect-timeout 10 --max-time 20 \
+            -H "Authorization: Bearer $CF_DEPLOY_TOKEN" \
+            "$API/user/tokens/verify" || true)"
+          state="$(jq -r '.result.status // empty' <<<"$verify" 2>/dev/null || true)"
+
+          if [ "$state" != "active" ]; then
+            verify="$(curl -sS --connect-timeout 10 --max-time 20 \
+              -H "Authorization: Bearer $CF_DEPLOY_TOKEN" \
+              "$API/accounts/$CF_ACCOUNT_ID/tokens/verify" || true)"
+            state="$(jq -r '.result.status // empty' <<<"$verify" 2>/dev/null || true)"
+          fi
+
+          if [ "$state" != "active" ]; then
+            echo "::error::CLOUDFLARE_DEPLOY_TOKEN did not pass user-scoped or account-scoped token verification. Re-save the complete secret and confirm the Cloudflare token is active."
+            exit 1
+          fi
+          echo "PASS: Cloudflare token status is active."
+
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+          http_code="$(curl -sS --connect-timeout 10 --max-time 20 \
+            -o "$response_file" -w "%{http_code}" \
+            -H "Authorization: Bearer $CF_DEPLOY_TOKEN" \
+            -H "Accept: application/json" \
+            "$API/accounts/$CF_ACCOUNT_ID/workers/scripts")"
+
+          if [ "$http_code" != "200" ] || ! jq -e --arg worker "$WORKER_NAME" \
+            '.success == true and any(.result[]?; .id == $worker)' \
+            "$response_file" >/dev/null 2>&1; then
+            echo "::error::The active token cannot list Worker $WORKER_NAME in the target Cloudflare account. Check the account scope and Workers read permissions."
+            jq -c '{success,errors,messages}' "$response_file" 2>/dev/null || true
+            exit 1
+          fi
+
+          echo "PASS: token can read target Worker $WORKER_NAME."
+          {
+            echo "### Cloudflare deploy token preflight (read-only)"
+            echo "- Token status: active"
+            echo "- Target Worker `$WORKER_NAME`: read access confirmed"
+            echo "- Worker Editor / deploy write access: not tested"
+            echo "- Workers Routes Write: not tested"
+            echo "- Production deployment or configuration changes: none"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice::Read-only verification passed. This workflow never invokes Wrangler and does not change Cloudflare resources."
