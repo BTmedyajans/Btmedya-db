@@ -157,3 +157,58 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
   html{scroll-behavior:auto}
   .hero-paths-grid>a,.city-radar-card,.topbar .top-cta{transition:none!important;transform:none!important}
 }
+
+
+/* BTMEDYA mobile newsroom correction · 2026-10-14
+   Keep the lead article readable on narrow screens. An earlier max-980 rule
+   assigns cards to half the 12-column grid; at phone widths that produced
+   side-by-side cover tiles and cramped headlines. Desktop/tablet grid remains.
+*/
+@media (max-width:720px){
+  #newsGrid.news-grid{
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:12px!important;
+  }
+  #newsGrid > .news-card,
+  #newsGrid > .news-card.featured{
+    grid-column:1/-1!important;
+    grid-row:auto!important;
+    min-height:0!important;
+  }
+  #newsGrid .news-media,
+  #newsGrid .news-card.featured .news-media{
+    height:clamp(172px,56vw,235px)!important;
+    min-height:0!important;
+    flex:none!important;
+  }
+  #newsGrid .news-media.news-no-cover{
+    height:106px!important;
+    min-height:106px!important;
+    display:grid;
+    place-items:center;
+    background:
+      radial-gradient(85% 150% at 10% 100%,rgba(217,255,63,.13),transparent 60%),
+      linear-gradient(120deg,#0b1018,#101a24 58%,#081017)!important;
+    border-bottom:1px solid rgba(217,255,63,.28);
+  }
+  #newsGrid .news-archive-mark{max-width:100%;padding:10px 16px;text-align:left}
+  #newsGrid .news-archive-mark span{font-size:8px;letter-spacing:.13em}
+  #newsGrid .news-archive-mark b{
+    margin-top:5px;
+    font-size:clamp(16px,4.8vw,22px);
+    line-height:1.08;
+    letter-spacing:-.025em;
+    text-wrap:balance;
+  }
+  #newsGrid .news-body{padding:14px 15px 15px!important}
+  #newsGrid .news-body h3{
+    margin:8px 0;
+    font-size:clamp(20px,5.7vw,25px)!important;
+    line-height:1.12!important;
+    letter-spacing:-.025em;
+    text-wrap:balance;
+    overflow-wrap:anywhere;
+  }
+  #newsGrid .news-body p{font-size:12px;line-height:1.55}
+  #newsGrid .news-meta{flex-wrap:wrap;gap:7px 10px;padding-top:12px}
+}
