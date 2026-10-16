@@ -159,33 +159,6 @@
   };
 
   let bitti=false;
-  let sesAcik=false;
-  const sesBtn=document.createElement('button');
-  sesBtn.type='button';
-  sesBtn.className='giris-v5-ses';
-  sesBtn.setAttribute('aria-label','Seslendirmeyi aç');
-  sesBtn.setAttribute('aria-pressed','false');
-  sesBtn.textContent='SESİ AÇ';
-  kok.appendChild(sesBtn);
-  const sesArayuzu=()=>{
-    sesBtn.textContent=sesAcik?'SESİ KAPAT':'SESİ AÇ';
-    sesBtn.setAttribute('aria-label',sesAcik?'Seslendirmeyi kapat':'Seslendirmeyi aç');
-    sesBtn.setAttribute('aria-pressed',String(sesAcik));
-    sesBtn.classList.toggle('is-acik',sesAcik);
-  };
-  const sesiAc=()=>{
-    if(bitti)return;
-    sesAcik=true;
-    film.muted=false;
-    sesArayuzu();
-    const play=film.play();
-    if(play&&play.catch)play.catch(()=>{sesAcik=false;film.muted=true;sesArayuzu();});
-  };
-  const sesiKapat=()=>{sesAcik=false;film.muted=true;sesArayuzu();};
-  sesBtn.addEventListener('click',e=>{e.stopPropagation();sesAcik?sesiKapat():sesiAc();});
-  kok.addEventListener('pointerdown',e=>{
-    if(!sesAcik&&!e.target.closest('a,button'))sesiAc();
-  },{passive:true});
   const zaman=()=>{
     const t=film.currentTime||0;
     if(t>=p.sonKart)panelAc();
@@ -212,7 +185,6 @@
     govde.classList.remove('bt-clean-intro-active');
     govde.classList.add('film-bitti');
     panelAc();
-    sesBtn.hidden=true;
     zaman();
   };
   // Son karta atla: kaydırma/kaydırma hareketi, Esc ya da aynı oturumda dönüş.
@@ -229,7 +201,10 @@
     film.load();
   };
   const oynat=()=>{
-    film.muted=!sesAcik;
+    // Giriş filmi tüm kaynaklarda ses kanalından arındırılmıştır. muted yine
+    // zorunlu tutulur; böylece eski bir panel yuvası sesli medya döndürse bile
+    // mobil otomatik oynatma ve "ekranda yalnız film" sözleşmesi bozulmaz.
+    film.muted=true;
     const s=film.play();
     if(s&&s.catch)s.catch(sonaAtla);
   };
