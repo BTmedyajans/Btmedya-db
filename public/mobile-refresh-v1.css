@@ -175,8 +175,8 @@
   body.ana-sade .mobile-quick-nav a span { font-size: 17px; }
   body.ana-sade .mobile-quick-nav a small { font-size: clamp(8px, 2.5vw, 10px); letter-spacing: .04em; }
   body.ana-sade .mobile-quick-nav .mobile-quick-cta { border: 1px solid rgba(255,255,255,.12); }
-  body.ana-sade.menu-open .mobile-quick-nav,
-  body.ana-sade.menu-open .site-menu { pointer-events: none; }
+  /* Hide only the bottom shortcuts while the menu is open; keep menu links clickable. */
+  body.ana-sade.menu-open .mobile-quick-nav { pointer-events: none; }
 
   body.ana-sade footer {
     display: grid;
