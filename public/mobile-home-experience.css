@@ -84,3 +84,84 @@
   body.ana-sade #hero .giris-v5-kat-k {animation:none!important;transition:none!important;transform:none!important}
   body.ana-sade #hero .giris-v5-kat.is-acik .giris-v5-kat-k {opacity:1}
 }
+
+/* Mobile UX refinement 2026-10-15.
+   Additive only: preserve editorial content/routes while improving reading,
+   touch targets, safe-area spacing and layout stability on narrow screens. */
+@media (max-width: 720px) {
+  :root { color-scheme: dark; }
+  html { scroll-padding-top: 76px; -webkit-text-size-adjust: 100%; }
+  body { max-width: 100%; overflow-x: clip; }
+  body.ana-sade main#icerik { min-width: 0; width: 100%; }
+  body.ana-sade .topbar {
+    min-height: calc(58px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    padding-left: max(14px, env(safe-area-inset-left));
+    padding-right: max(14px, env(safe-area-inset-right));
+    gap: 10px;
+  }
+  body.ana-sade .topbar .brand { min-width: 0; flex: 0 1 auto; }
+  body.ana-sade .topbar .brand img { display:block; max-width:100%; height:auto; }
+  body.ana-sade .topbar .top-meta { display:none; }
+  body.ana-sade .topbar-right { min-width:0; gap:8px; margin-left:auto; }
+  body.ana-sade .topbar .language-switch { gap:5px; font-size:11px; }
+  body.ana-sade .topbar .hamburger,
+  body.ana-sade .topbar .top-cta {
+    min-height:44px; display:inline-flex; align-items:center; justify-content:center;
+    border-radius:12px; white-space:nowrap; font-size:11px;
+  }
+  body.ana-sade .topbar .top-cta { padding:0 10px; }
+  body.ana-sade .vitrine-status-inner { gap:10px; padding:12px 16px; }
+  body.ana-sade .vitrine-status-item { min-width:0; }
+  body.ana-sade .vitrine-status-links {
+    display:flex; width:100%; gap:8px; overflow-x:auto; padding:2px 0 5px;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  }
+  body.ana-sade .vitrine-status-links::-webkit-scrollbar { display:none; }
+  body.ana-sade .vitrine-status-links a { flex:0 0 auto; min-height:38px; display:inline-flex; align-items:center; }
+  body.ana-sade .bt-breaking-inner { align-items:flex-start; gap:8px; padding:10px 16px; }
+  body.ana-sade .bt-breaking-inner a { min-width:0; overflow-wrap:anywhere; line-height:1.45; }
+  body.ana-sade .hero-paths-static,
+  body.ana-sade main#icerik > section:not(#hero) { min-width:0; }
+  body.ana-sade .hero-paths-head { padding-left:20px; padding-right:20px; }
+  body.ana-sade .hero-paths-head h1 {
+    font-size:clamp(30px, 9.2vw, 42px); line-height:.98;
+    letter-spacing:-.035em; overflow-wrap:anywhere;
+  }
+  body.ana-sade .hero-paths-head p { max-width:38ch; font-size:14px; line-height:1.6; }
+  body.ana-sade .hero-paths-grid { grid-template-columns:minmax(0,1fr); gap:10px; }
+  body.ana-sade .hero-paths-grid > a {
+    min-width:0; min-height:100px; padding:18px; border-radius:16px;
+    display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:8px 12px;
+  }
+  body.ana-sade .hero-paths-grid > a b { min-width:0; overflow-wrap:anywhere; }
+  body.ana-sade .hero-paths-grid > a small { grid-column:2; line-height:1.45; }
+  body.ana-sade .hero-paths-grid > a i { grid-column:3; grid-row:1 / span 2; align-self:center; }
+  body.ana-sade .giris-v5-kat { overscroll-behavior:contain; }
+  body.ana-sade .giris-v5-kat-ana,
+  body.ana-sade .giris-v5-kat ul a { -webkit-tap-highlight-color:transparent; }
+  body.ana-sade a, body.ana-sade button { touch-action:manipulation; }
+  body.ana-sade img, body.ana-sade video { max-width:100%; }
+  body.ana-sade .news-card-body,
+  body.ana-sade .archive-card-body { padding:16px; }
+  body.ana-sade .news-card-body h2,
+  body.ana-sade .news-card-body h3,
+  body.ana-sade .archive-card-body h2,
+  body.ana-sade .archive-card-body h3 { font-size:clamp(18px,5vw,22px); line-height:1.25; }
+  body.ana-sade .contact-page { padding-left:18px; padding-right:18px; }
+  body.ana-sade .contact-form input,
+  body.ana-sade .contact-form textarea,
+  body.ana-sade .contact-form select { font-size:16px; border-radius:10px; }
+  body.ana-sade .contact-form button { min-height:48px; border-radius:12px; }
+  body.ana-sade :focus-visible { outline-offset:3px; }
+}
+@media (max-width: 390px) {
+  body.ana-sade .topbar .brand img { width:clamp(118px, 35vw, 145px); }
+  body.ana-sade .topbar .language-switch { display:none; }
+  body.ana-sade .topbar .top-cta { display:none; }
+  body.ana-sade .hero-paths-head { padding-left:16px; padding-right:16px; }
+  body.ana-sade .hero-paths-grid > a { padding:15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.ana-sade .vitrine-status-links { scroll-behavior:auto; }
+}
