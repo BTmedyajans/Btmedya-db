@@ -84,3 +84,39 @@
   body.ana-sade #hero .giris-v5-kat-k {animation:none!important;transition:none!important;transform:none!important}
   body.ana-sade #hero .giris-v5-kat.is-acik .giris-v5-kat-k {opacity:1}
 }
+
+/* BTMEDYA mobile category disclosure · 2026-10-16.
+   Native details/summary keeps secondary navigation keyboard accessible. */
+body.ana-sade #hero .giris-v5-altlar { margin-top: 8px; padding-bottom: max(0px, env(safe-area-inset-bottom, 0px)); }
+body.ana-sade #hero .giris-v5-altlar > summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 999px;
+  color: rgba(244, 241, 234, .85);
+  font-size: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+body.ana-sade #hero .giris-v5-altlar > summary::-webkit-details-marker { display: none; }
+body.ana-sade #hero .giris-v5-altlar > summary::after { content: "+"; font-size: 18px; }
+body.ana-sade #hero .giris-v5-altlar[open] > summary::after { content: "−"; }
+body.ana-sade #hero .giris-v5-altlar:not([open]) > ul { display: none !important; }
+body.ana-sade #hero .giris-v5-altlar[open] > ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+@media (prefers-reduced-motion: reduce) {
+  body.ana-sade #hero .giris-v5-altlar,
+  body.ana-sade #hero .giris-v5-altlar > summary {
+    scroll-behavior: auto;
+    transition: none;
+  }
+}
