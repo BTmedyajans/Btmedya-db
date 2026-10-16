@@ -79,8 +79,8 @@ def degisenler() -> tuple[list[str], list[str]]:
 
 
 def dal_hazirla(taban: str) -> str:
-    # Each workflow run uses a branch named for its source commit. Reuse that
-    # branch's current head; never force-reset an existing automation branch.
+    # Her iş akışı çalıştırması kaynak commit için ayrı bir dal kullanır.
+    # Var olan otomasyon dalının mevcut ucu korunur; dal zorla sıfırlanmaz.
     ref_url = f"{API}/repos/{REPO}/git/ref/heads/{DAL}"
     kod, yanit = istek("GET", ref_url)
     if kod == 200:
@@ -102,8 +102,6 @@ def dal_hazirla(taban: str) -> str:
     # Yeniden denemeden önce taban SHA'nın erişilebilir ve hedef dalın hâlâ yok olduğu doğrulanır.
     # Var olan bir dal zorla değiştirilmez ve main dalına dokunulmaz.
     if kod in (404, 422):
-        ilk_kod = kod
-        ilk_yanit = yanit
         kod, tekrar = istek("GET", ref_url)
         oid = ((tekrar.get("object") or {}).get("sha") or "") if kod == 200 else ""
         if oid:
