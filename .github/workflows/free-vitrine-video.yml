@@ -49,6 +49,8 @@ jobs:
         uses: ./.github/actions/imzali-pr
         with:
           dal: automation/free-vitrine-video
+          publish_repo: busetuncay1029-ai/Btmedya-db
+          token: ${{ secrets.BTMEDYA_AUTOMATION_TOKEN }}
           yollar: "public/assets/generated/*"
           mesaj: "chore: refresh free BTMEDYA vitrine videos"
           pr_baslik: "chore: refresh free BTMEDYA vitrine videos"
