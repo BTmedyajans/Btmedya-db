@@ -82,7 +82,7 @@ def degisenler() -> tuple[list[str], list[str]]:
 def dal_hazirla(taban: str) -> str:
     # Each workflow run uses a branch named for its source commit. Reuse that
     # branch's current head; never force-reset an existing automation branch.
-    ref_url = f"{API}/repos/{REPO}/git/ref/heads/{quote(DAL, safe="")}"
+    ref_url = f"{API}/repos/{REPO}/git/ref/heads/{quote(DAL, safe='')}"
     kod, yanit = istek("GET", ref_url)
     if kod == 200:
         oid = (yanit.get("object") or {}).get("sha")
@@ -99,16 +99,37 @@ def dal_hazirla(taban: str) -> str:
     if kod == 201:
         return taban
 
-    # Handle two scheduled runs racing to create the same source-scoped branch.
-    if kod == 422:
+    # Handle a transient ref-creation 404 or a concurrent 422 without overwriting branches.
+    if kod in (404, 422):
         kod, tekrar = istek("GET", ref_url)
         oid = ((tekrar.get("object") or {}).get("sha") or "") if kod == 200 else ""
         if oid:
             print(f"Eşzamanlı çalıştırmanın oluşturduğu dal kullanılıyor: {DAL} @ {oid[:12]}")
             return oid
+        if kod != 404:
+            sys.exit(f"::error::{DAL} dalı yeniden kontrol edilemedi: HTTP {kod}.")
+
+        # Verify the exact base commit is still available before one bounded retry.
+        kod, taban_yanit = istek("GET", f"{API}/repos/{REPO}/commits/{taban}")
+        if kod != 200 or (taban_yanit.get("sha") or "") != taban:
+            sys.exit(f"::error::Dal tabanı doğrulanamadı (HTTP {kod}); güvenli biçimde durduruldu.")
+
+        yeniden_kod, yeniden_yanit = istek(
+            "POST", f"{API}/repos/{REPO}/git/refs",
+            {"ref": f"refs/heads/{DAL}", "sha": taban},
+        )
+        if yeniden_kod == 201:
+            return taban
+        if yeniden_kod in (404, 422):
+            kontrol_kod, tekrar = istek("GET", ref_url)
+            oid = ((tekrar.get("object") or {}).get("sha") or "") if kontrol_kod == 200 else ""
+            if oid:
+                print(f"Eşzamanlı çalıştırmanın oluşturduğu dal kullanılıyor: {DAL} @ {oid[:12]}")
+                return oid
+        kod, yanit = yeniden_kod, yeniden_yanit
 
     sys.exit(f"::error::{DAL} dalı hazırlanamadı (HTTP {kod}): {yanit.get('message', '')}. "
-             "Ana dalı veya var olan otomasyon dallarını force-reset etmeyin.")
+             "Ana dal veya var olan otomasyon dalları değiştirilmedi.")
 
 
 def commit_at(onceki: str, eklenen: list[str], silinen: list[str], baslik: str) -> str:
