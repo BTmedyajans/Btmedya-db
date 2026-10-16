@@ -41,17 +41,14 @@ class AutomationRoutingTests(unittest.TestCase):
             "automation/haber-kapaklari-123456",
         )
 
-    def test_reuses_existing_fork_pr_branch(self):
-        with patch.object(helper, "istek", return_value=(200, [{
-            "number": 99,
-            "head": {
-                "ref": "automation/haber-kapaklari-123",
-                "repo": {"full_name": "busetuncay1029-ai/Btmedya-db"},
-            },
-            "base": {"ref": "main"},
-        }])):
-            branch = helper.find_existing_cross_pr("automation/haber-kapaklari")
-        self.assertEqual(branch, "automation/haber-kapaklari-123")
+    def test_distinct_runs_get_distinct_automation_branches(self):
+        helper.RUN_ID = "123456"
+        first = helper.unique_branch("automation/haber-kapaklari", "b" * 40)
+        helper.RUN_ID = "654321"
+        second = helper.unique_branch("automation/haber-kapaklari", "b" * 40)
+        self.assertNotEqual(first, second)
+        self.assertEqual(first, "automation/haber-kapaklari-123456")
+        self.assertEqual(second, "automation/haber-kapaklari-654321")
 
     def test_cross_fork_pr_targets_canonical_main(self):
         calls = []
