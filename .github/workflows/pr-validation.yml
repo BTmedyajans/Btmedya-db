@@ -82,6 +82,8 @@ jobs:
           node --check public/hero-three-choice.js
           # Hero media is generated during production deployment; source-only PR checks must allow those six deferred assets.
           python3 tools/repair-cover-fotos.py
+          python3 -m py_compile .github/actions/imzali-pr/imzali_pr.py tools/test-imzali-pr-routing.py
+          python3 tools/test-imzali-pr-routing.py
           python3 tools/validate-assets.py --allow-generated-hero
           node tools/a11y-denetimi.mjs
           node tools/gerileme-denetimi.mjs
