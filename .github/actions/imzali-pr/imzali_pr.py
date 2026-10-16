@@ -95,24 +95,6 @@ def repo_bilgisi(repository: str) -> dict:
     return payload
 
 
-def find_existing_cross_pr(prefix: str) -> str | None:
-    """Reuse only a cross-fork branch whose open PR targets this canonical main."""
-    params = urlencode({"state": "open", "base": "main", "per_page": 100})
-    code, items = istek("GET", f"{API}/repos/{REPO}/pulls?{params}")
-    if code != 200 or not isinstance(items, list):
-        sys.exit(f"::error::Açık PR'lar doğrulanamadı (HTTP {code}); yeni dal oluşturulmadı.")
-    for item in items:
-        head = item.get("head") or {}
-        repo = head.get("repo") or {}
-        branch = head.get("ref") or ""
-        if repo.get("full_name", "").lower() == PUBLISH_REPO.lower() and (
-            branch == prefix or branch.startswith(prefix + "-")
-        ):
-            print(f"Açık otomasyon PR'ı #{item.get('number')} yeniden kullanılacak: {branch}")
-            return branch
-    return None
-
-
 def unique_branch(prefix: str, sha: str) -> str:
     # A fresh suffix avoids writing into stale/diverged fork automation branches.
     suffix = RUN_ID or RUN_SHA[:12] or sha[:12]
@@ -172,18 +154,12 @@ def dal_hazirla(taban: str) -> tuple[str, str]:
         print(f"::notice::Kanonik SHA {taban[:12]} fork'ta doğrudan çözümlenemedi; yeni dal tabanı API ile denenecek.")
         base_for_branch = taban
 
-    existing = find_existing_cross_pr(DAL)
-    branch = existing or unique_branch(DAL, taban)
+    # Never append to an existing automation PR branch: its tree may be stale
+    # or diverged from the exact canonical checkout that generated these files.
+    # A run-scoped branch keeps each proposal isolated and reviewable.
+    branch = unique_branch(DAL, taban)
     ref_url = f"{API}/repos/{PUBLISH_REPO}/git/ref/heads/{quote(branch, safe='')}"
     check, current = istek("GET", ref_url)
-    if existing:
-        if check != 200:
-            sys.exit(f"::error::Mevcut PR dalı okunamadı ({branch}, HTTP {check}).")
-        oid = (current.get("object") or {}).get("sha")
-        if not oid:
-            sys.exit(f"::error::Mevcut PR dalında commit SHA yok ({branch}).")
-        return branch, oid
-
     if check == 200:
         sys.exit(f"::error::Benzersiz otomasyon dalı zaten var: {branch}. "
                  "Mevcut dalı sıfırlamadım; sonraki çalıştırmada yeni GITHUB_RUN_ID kullanın.")
