@@ -158,10 +158,13 @@ def dal_hazirla(taban: str) -> tuple[str, str]:
         sys.exit(f"::error::{PUBLISH_REPO} için tokenın push izni yok. "
                  "BTMEDYA_AUTOMATION_TOKEN yetkisini kontrol edin; gizli değeri loglamayın.")
 
-    check, commit = istek("GET", f"{API}/repos/{PUBLISH_REPO}/commits/{taban}")
-    if check != 200 or commit.get("sha") != taban:
-        sys.exit(f"::error::Kaynak commit {taban} yayın fork'unda doğrulanamadı; "
-                 "eski fork geçmişine dayalı otomatik yayın yapılmadı.")
+    code, source_commit = istek("GET", f"{API}/repos/{REPO}/commits/{taban}")
+    if code != 200 or source_commit.get("sha") != taban:
+        sys.exit(f"::error::Kanonik kaynak commit {taban} doğrulanamadı (HTTP {code}).")
+    fork_code, fork_commit = istek("GET", f"{API}/repos/{PUBLISH_REPO}/commits/{taban}")
+    if fork_code != 200 or fork_commit.get("sha") != taban:
+        sys.exit(f"::error::Kanonik commit {taban} fork içinde görünmüyor (HTTP {fork_code}). "
+                 "Fork sahibi/izinleri veya senkronizasyonu doğrulayın; eski fork tabanından otomatik yayın engellendi.")
 
     existing = find_existing_cross_pr(DAL)
     branch = existing or unique_branch(DAL, taban)
