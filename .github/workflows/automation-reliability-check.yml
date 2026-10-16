@@ -2,7 +2,7 @@ name: BTMEDYA Automation Reliability Checks
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "src/worker.js"
       - "src/autopilot.js"
