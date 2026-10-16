@@ -4,6 +4,9 @@ import fs from "node:fs";
 
 const index = fs.readFileSync("public/index.html", "utf8");
 const css = fs.readFileSync("public/btmedya-responsive-experience-v1.css", "utf8");
+const mobileHome = fs.readFileSync("public/mobile-home-experience.css", "utf8");
+const offerForm = fs.readFileSync("public/teklif-al/index.html", "utf8");
+const offerScript = fs.readFileSync("public/teklif-al.js", "utf8");
 const failures = [];
 const ok = (message) => console.log("UX_SEO_OK:", message);
 const fail = (message) => { failures.push(message); console.error("UX_SEO_FAIL:", message); };
@@ -139,6 +142,48 @@ for (const mobile of [
     ok(mobile.label + " does not disable clicks on the open site menu");
   }
 }
+
+
+// Offer form accessibility and attribution contracts.
+for (const field of ["name", "email", "phone", "company", "service", "message"]) {
+  const labelPattern = new RegExp(`<label\\b[^>]*\\bfor=["']${field}["'][^>]*>`, "i");
+  const controlPattern = new RegExp(`<(?:input|select|textarea)\\b[^>]*\\bid=["']${field}["'][^>]*\\bname=["']${field}["'][^>]*>`, "i");
+  if (labelPattern.test(offerForm) && controlPattern.test(offerForm)) ok(`offer form label and control are associated: ${field}`);
+  else fail(`offer form label must target a control with matching id/name: ${field}`);
+}
+
+if (/<select\b[^>]*\bname=["']budget["']/i.test(offerForm)) fail("optional budget selector should be removed from the offer form");
+else ok("offer form does not require or display the optional budget selector");
+
+if (/q\.get\(['"]kaynak['"]\)/.test(offerScript) && /veri\.sayfa\s*=\s*sayfa/.test(offerScript)) {
+  ok("offer form forwards the homepage source attribution to the lead API");
+} else {
+  fail("offer form must forward the ?kaynak= attribution to the lead API");
+}
+
+ // Homepage navigation and conversion contracts.
+const topCta = index.match(/<a class="top-cta" href="([^"]+)"/);
+if (topCta?.[1].startsWith("/teklif-al/")) ok("top CTA leads to unified offer flow");
+else fail("top CTA must lead to /teklif-al/");
+
+const portfolioPos = index.indexOf('id="portfoy"');
+const newsPos = index.indexOf('id="news"');
+if (portfolioPos >= 0 && newsPos >= 0 && portfolioPos < newsPos) ok("portfolio precedes news on homepage");
+else fail("portfolio should precede the main news feed");
+
+const homepageChoices = ["HABER OKU", "SOSYAL MEDYA HİZMETİ AL", "PRODÜKSİYON İNCELE"];
+const homepageUpper = index.toLocaleUpperCase("tr-TR");
+for (const choice of homepageChoices) {
+  if (homepageUpper.includes(choice)) ok("homepage primary choice: " + choice);
+  else fail("missing homepage primary choice: " + choice);
+}
+
+const categoryDisclosureCount = (index.match(/<details class="giris-v5-altlar">/g) || []).length;
+if (categoryDisclosureCount === 3) ok("three collapsible category groups present");
+else fail("homepage should have exactly three collapsible category groups");
+
+if (/giris-v5-altlar:not\(\[open\]\)\s*>\s*ul\s*\{\s*display:\s*none\s*!important/i.test(mobileHome)) ok("collapsed category links are hidden");
+else fail("collapsed category links must be hidden in mobile CSS");
 
 if (failures.length) process.exit(1);
 console.log("UX_SEO_CONTRACT_PASS");
