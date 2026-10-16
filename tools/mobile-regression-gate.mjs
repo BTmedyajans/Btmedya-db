@@ -102,6 +102,17 @@ if (index.includes("data-giris-v5")) {
   if (!/\.giris-v5\{[^}]*height:100svh/.test(read("public/giris-v5.css")))
     fail("intro v5 viewport sizing contract missing");
   else ok("intro v5 uses full viewport sizing");
+  const intro = read("public/giris-v5.js");
+  const introCss = read("public/giris-v5.css");
+  if (!index.includes('data-dikey="/assets/media/web/btmedya-ai-film.mp4?v=') ||
+      !index.includes('data-dikey-webm="/assets/media/web/btmedya-ai-film.webm?v=') ||
+      !index.includes('data-dikey-poster="/assets/media/web/btmedya-ai-film-poster.jpg?v='))
+    fail("mobile intro is not wired to the selected 9:16 AI film and matching fallback/poster");
+  else ok("mobile intro uses the selected 9:16 AI film and matching fallback/poster");
+  if (!index.includes("data-giris-v5-ses") || !intro.includes("film.muted=!film.muted") ||
+      !intro.includes("aria-pressed") || !introCss.includes(".giris-v5-ses{display:none}"))
+    fail("mobile AI intro music control or accessible sound state is missing");
+  else ok("mobile AI intro has a user-activated, accessible music control");
 } else if (index.includes("data-bt-clean-hero")) {
   const vids = [...index.matchAll(/<video\b[^>]*>/g)].map(m => m[0]);
   if (vids.length !== 1 || !/bt-clean-hero-video/.test(vids[0] || '') ||
