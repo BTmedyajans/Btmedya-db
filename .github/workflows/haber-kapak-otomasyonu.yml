@@ -59,9 +59,9 @@ jobs:
       - name: Üretilen kapakları PR olarak yayınla
         uses: ./.github/actions/imzali-pr
         with:
-          # Repository ruleset'i yeni branch oluşturmayı yasaklıyor. Önceden
-          # oluşturulan bu dal, GraphQL imzalı commit'lerle güvenli biçimde
-          # güncellenir; action mevcut dalı force-reset etmez.
+          # Korumalı kanonik dallara doğrudan yazma. Çıktı doğrulanmış
+          # yazılabilir fork üzerinde çalışmaya özel bir dala gider ve main'e PR açar.
+          # Mevcut dallar force-reset edilmez veya yeniden tabanlandırılmaz.
           dal: "automation/haber-kapaklari"
           publish_repo: "busetuncay1029-ai/Btmedya-db"
           token: ${{ secrets.BTMEDYA_AUTOMATION_TOKEN }}
