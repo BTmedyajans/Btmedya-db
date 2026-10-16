@@ -2,7 +2,7 @@ name: BTMEDYA Native Social Safety Checks
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "src/autopilot.js"
       - "src/direct-social.js"
