@@ -98,35 +98,39 @@ def dal_hazirla(taban: str) -> str:
     if kod == 201:
         return taban
 
-    # GitHub can return 404 for a ref creation when a source commit is no
-    # longer reachable by the API's ref-creation path (for example, a scheduled
-    # run uses a commit whose ref has just moved). Retry only after verifying
-    # the exact base SHA still exists and that the requested branch is absent.
-    # Never force-update an existing branch or touch main.
+    # Kaynak commit'in referansı taşındığında GitHub dal oluşturma isteğine 404 döndürebilir.
+    # Yeniden denemeden önce taban SHA'nın erişilebilir ve hedef dalın hâlâ yok olduğu doğrulanır.
+    # Var olan bir dal zorla değiştirilmez ve main dalına dokunulmaz.
     if kod in (404, 422):
+        ilk_kod = kod
+        ilk_yanit = yanit
         kod, tekrar = istek("GET", ref_url)
         oid = ((tekrar.get("object") or {}).get("sha") or "") if kod == 200 else ""
         if oid:
             print(f"Eşzamanlı çalıştırmanın oluşturduğu dal kullanılıyor: {DAL} @ {oid[:12]}")
             return oid
-        if kod not in (404,):
+        if kod != 404:
             sys.exit(f"::error::{DAL} dalı yeniden kontrol edilemedi: HTTP {kod}.")
 
-        # Verify base commit is still accessible before making one bounded retry.
+        # Sınırlı bir yeniden denemeden önce taban commit'in erişilebilirliği doğrulanır.
         kod, taban_yanit = istek("GET", f"{API}/repos/{REPO}/commits/{taban}")
         if kod != 200 or not (taban_yanit.get("sha") or "") == taban:
             sys.exit(f"::error::Dal tabanı doğrulanamadı (HTTP {kod}); güvenli biçimde durduruldu.")
 
-        kod, yanit = istek("POST", f"{API}/repos/{REPO}/git/refs",
-                           {"ref": f"refs/heads/{DAL}", "sha": taban})
-        if kod == 201:
+        yeniden_kod, yeniden_yanit = istek(
+            "POST", f"{API}/repos/{REPO}/git/refs",
+            {"ref": f"refs/heads/{DAL}", "sha": taban},
+        )
+        if yeniden_kod == 201:
             return taban
-        if kod in (404, 422):
-            kod, tekrar = istek("GET", ref_url)
-            oid = ((tekrar.get("object") or {}).get("sha") or "") if kod == 200 else ""
+        if yeniden_kod in (404, 422):
+            kontrol_kod, tekrar = istek("GET", ref_url)
+            oid = ((tekrar.get("object") or {}).get("sha") or "") if kontrol_kod == 200 else ""
             if oid:
                 print(f"Eşzamanlı çalıştırmanın oluşturduğu dal kullanılıyor: {DAL} @ {oid[:12]}")
                 return oid
+        # Yeniden kontrolün 404 yanıtı, dal oluşturma POST'unun gerçek hatasını ezmemelidir.
+        kod, yanit = yeniden_kod, yeniden_yanit
 
     sys.exit(f"::error::{DAL} dalı hazırlanamadı (HTTP {kod}): {yanit.get('message', '')}. "
              "Ana dal veya var olan otomasyon dalları değiştirilmedi.")
