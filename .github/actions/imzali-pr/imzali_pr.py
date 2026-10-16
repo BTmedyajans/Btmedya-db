@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
-"""Otomasyon çıktısını imzalı commit ile bir dala yazar ve PR açar.
+"""Publish generated files as signed commits on a controlled automation branch.
 
-Neden: depo kural seti her dalda imzalı commit istiyor. Actions koşucusunda
-`git commit` + `git push` imzasız commit üretir ve push reddedilir (11 Ekim:
-haber kapak otomasyonu, Hero Video Quality). GitHub GraphQL
-`createCommitOnBranch` ile yazılan commit'i GitHub kendisi imzalar, yani
-kural setine bypass eklemeden ya da kuralı gevşetmeden aynı akış çalışır.
+By default, writes to the canonical repository's configured automation branch.
+For cross-repository publishing, set PUBLISH_REPO to a fork that is writable by
+the configured token. The fork branch is based on the exact checked-out commit
+and a PR is opened back into the canonical repository. No protected canonical
+branch is force-updated.
 
-Ortam: GH_TOKEN, GITHUB_REPOSITORY, GITHUB_API_URL, GITHUB_GRAPHQL_URL,
-DAL, YOLLAR (boşlukla ayrılmış), MESAJ, PR_BASLIK, PR_GOVDE.
-Yalnız stdlib; token değeri hiçbir çıktıya yazılmaz.
+Only Python standard-library modules are required. Never print token values.
 """
 from __future__ import annotations
 
@@ -21,18 +19,20 @@ import subprocess
 import sys
 import urllib.error
 import urllib.request
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 API = os.environ.get("GITHUB_API_URL", "https://api.github.com")
 GRAPHQL = os.environ.get("GITHUB_GRAPHQL_URL", "https://api.github.com/graphql")
 REPO = os.environ["GITHUB_REPOSITORY"]
 TOKEN = os.environ["GH_TOKEN"]
-DAL = os.environ["DAL"]
+DAL = os.environ["DAL"].strip("/")
+PUBLISH_REPO = os.environ.get("PUBLISH_REPO", REPO).strip()
 YOLLAR = shlex.split(os.environ["YOLLAR"])
 MESAJ = os.environ.get("MESAJ", "chore: otomasyon çıktısı")
 PR_BASLIK = os.environ.get("PR_BASLIK", MESAJ)
 PR_GOVDE = os.environ.get("PR_GOVDE", "")
-# GraphQL gövdesi base64 ile büyür; küçük paketler timeout/504 riskini düşürür.
+RUN_ID = os.environ.get("GITHUB_RUN_ID", "").strip()
+RUN_SHA = os.environ.get("GITHUB_SHA", "").strip()
 PARCA_BAYT = 3 * 1024 * 1024
 
 
@@ -49,7 +49,7 @@ def istek(yontem: str, url: str, govde: dict | None = None) -> tuple[int, dict]:
             ham = yanit.read()
             return yanit.status, json.loads(ham) if ham else {}
     except urllib.error.HTTPError as hata:
-        ham = hata.read().decode("utf-8", "replace")[:800]
+        ham = hata.read().decode("utf-8", "replace")[:1200]
         try:
             return hata.code, json.loads(ham)
         except ValueError:
@@ -79,115 +79,193 @@ def degisenler() -> tuple[list[str], list[str]]:
     return eklenen, silinen
 
 
-def dal_hazirla(taban: str) -> str:
-    # Each workflow run uses a branch named for its source commit. Reuse that
-    # branch's current head; never force-reset an existing automation branch.
-    ref_url = f"{API}/repos/{REPO}/git/ref/heads/{quote(DAL, safe='')}"
-    kod, yanit = istek("GET", ref_url)
-    if kod == 200:
-        oid = (yanit.get("object") or {}).get("sha")
-        if oid:
-            print(f"Var olan otomasyon dalı korunuyor: {DAL} @ {oid[:12]}")
-            return oid
-        sys.exit(f"::error::{DAL} dalı bulundu ancak commit SHA alınamadı.")
+def current_sha() -> str:
+    sha = subprocess.run(
+        ["git", "rev-parse", "HEAD"], check=True, capture_output=True, text=True
+    ).stdout.strip()
+    if not sha:
+        sys.exit("::error::Mevcut kaynak commit'i belirlenemedi; yayın durduruldu.")
+    return sha
 
-    if kod != 404:
-        sys.exit(f"::error::{DAL} dalı okunamadı (HTTP {kod}): {yanit.get('message', '')}")
 
-    kod, yanit = istek("POST", f"{API}/repos/{REPO}/git/refs",
-                       {"ref": f"refs/heads/{DAL}", "sha": taban})
-    if kod == 201:
-        return taban
+def repo_bilgisi(repository: str) -> dict:
+    code, payload = istek("GET", f"{API}/repos/{repository}")
+    if code != 200 or payload.get("full_name", "").lower() != repository.lower():
+        sys.exit(f"::error::Yayın deposu doğrulanamadı ({repository}, HTTP {code}).")
+    return payload
 
-    # Handle a transient ref-creation 404 or a concurrent 422 without overwriting branches.
-    if kod in (404, 422):
-        kod, tekrar = istek("GET", ref_url)
-        oid = ((tekrar.get("object") or {}).get("sha") or "") if kod == 200 else ""
-        if oid:
-            print(f"Eşzamanlı çalıştırmanın oluşturduğu dal kullanılıyor: {DAL} @ {oid[:12]}")
-            return oid
-        if kod != 404:
-            sys.exit(f"::error::{DAL} dalı yeniden kontrol edilemedi: HTTP {kod}.")
 
-        # Verify the exact base commit is still available before one bounded retry.
-        kod, taban_yanit = istek("GET", f"{API}/repos/{REPO}/commits/{taban}")
-        if kod != 200 or (taban_yanit.get("sha") or "") != taban:
-            sys.exit(f"::error::Dal tabanı doğrulanamadı (HTTP {kod}); güvenli biçimde durduruldu.")
+def find_existing_cross_pr(prefix: str) -> str | None:
+    """Reuse only a cross-fork branch whose open PR targets this canonical main."""
+    params = urlencode({"state": "open", "base": "main", "per_page": 100})
+    code, items = istek("GET", f"{API}/repos/{REPO}/pulls?{params}")
+    if code != 200 or not isinstance(items, list):
+        sys.exit(f"::error::Açık PR'lar doğrulanamadı (HTTP {code}); yeni dal oluşturulmadı.")
+    for item in items:
+        head = item.get("head") or {}
+        repo = head.get("repo") or {}
+        branch = head.get("ref") or ""
+        if repo.get("full_name", "").lower() == PUBLISH_REPO.lower() and (
+            branch == prefix or branch.startswith(prefix + "-")
+        ):
+            print(f"Açık otomasyon PR'ı #{item.get('number')} yeniden kullanılacak: {branch}")
+            return branch
+    return None
 
-        yeniden_kod, yeniden_yanit = istek(
-            "POST", f"{API}/repos/{REPO}/git/refs",
-            {"ref": f"refs/heads/{DAL}", "sha": taban},
-        )
-        if yeniden_kod == 201:
-            return taban
-        if yeniden_kod in (404, 422):
-            kontrol_kod, tekrar = istek("GET", ref_url)
-            oid = ((tekrar.get("object") or {}).get("sha") or "") if kontrol_kod == 200 else ""
+
+def unique_branch(prefix: str, sha: str) -> str:
+    # A fresh suffix avoids writing into stale/diverged fork automation branches.
+    suffix = RUN_ID or RUN_SHA[:12] or sha[:12]
+    suffix = "".join(ch for ch in suffix if ch.isalnum() or ch in "-_")
+    return f"{prefix}-{suffix}"
+
+
+def dal_hazirla(taban: str) -> tuple[str, str]:
+    """Return (branch_name, expected_head_oid), never force-reset a branch."""
+    if PUBLISH_REPO == REPO:
+        ref_url = f"{API}/repos/{REPO}/git/ref/heads/{quote(DAL, safe='')}"
+        code, payload = istek("GET", ref_url)
+        if code == 200:
+            oid = (payload.get("object") or {}).get("sha")
             if oid:
-                print(f"Eşzamanlı çalıştırmanın oluşturduğu dal kullanılıyor: {DAL} @ {oid[:12]}")
-                return oid
-        kod, yanit = yeniden_kod, yeniden_yanit
+                print(f"Var olan otomasyon dalı korunuyor: {DAL} @ {oid[:12]}")
+                return DAL, oid
+            sys.exit(f"::error::{DAL} dalı bulundu ancak commit SHA alınamadı.")
+        if code != 404:
+            sys.exit(f"::error::{DAL} dalı okunamadı (HTTP {code}): {payload.get('message', '')}")
 
-    sys.exit(f"::error::{DAL} dalı hazırlanamadı (HTTP {kod}): {yanit.get('message', '')}. "
-             "Ana dal veya var olan otomasyon dalları değiştirilmedi.")
+        code, payload = istek("POST", f"{API}/repos/{REPO}/git/refs",
+                              {"ref": f"refs/heads/{DAL}", "sha": taban})
+        if code == 201:
+            print(f"Otomasyon dalı oluşturuldu: {DAL} @ {taban[:12]}")
+            return DAL, taban
+        if code in (404, 422):
+            check, existing = istek("GET", ref_url)
+            oid = ((existing.get("object") or {}).get("sha") or "") if check == 200 else ""
+            if oid:
+                print(f"Eşzamanlı çalıştırmanın dalı kullanılıyor: {DAL} @ {oid[:12]}")
+                return DAL, oid
+        sys.exit(f"::error::{DAL} dalı hazırlanamadı (HTTP {code}): "
+                 f"{payload.get('message', '')}. Mevcut dallar değiştirilmedi.")
+
+    # Fork publication needs a write-capable token and a repository that is an
+    # actual fork of the canonical repository. Fail closed; no silent fallback.
+    target = repo_bilgisi(PUBLISH_REPO)
+    if not target.get("fork") or (target.get("parent") or {}).get("full_name", "").lower() != REPO.lower():
+        sys.exit(f"::error::{PUBLISH_REPO} kanonik deponun doğrulanmış fork'u değil.")
+    permissions = target.get("permissions") or {}
+    if permissions.get("push") is not True:
+        sys.exit(f"::error::{PUBLISH_REPO} için tokenın push izni yok. "
+                 "BTMEDYA_AUTOMATION_TOKEN yetkisini kontrol edin; gizli değeri loglamayın.")
+
+    check, commit = istek("GET", f"{API}/repos/{PUBLISH_REPO}/commits/{taban}")
+    if check != 200 or commit.get("sha") != taban:
+        sys.exit(f"::error::Kaynak commit {taban} yayın fork'unda doğrulanamadı; "
+                 "eski fork geçmişine dayalı otomatik yayın yapılmadı.")
+
+    existing = find_existing_cross_pr(DAL)
+    branch = existing or unique_branch(DAL, taban)
+    ref_url = f"{API}/repos/{PUBLISH_REPO}/git/ref/heads/{quote(branch, safe='')}"
+    check, current = istek("GET", ref_url)
+    if existing:
+        if check != 200:
+            sys.exit(f"::error::Mevcut PR dalı okunamadı ({branch}, HTTP {check}).")
+        oid = (current.get("object") or {}).get("sha")
+        if not oid:
+            sys.exit(f"::error::Mevcut PR dalında commit SHA yok ({branch}).")
+        return branch, oid
+
+    if check == 200:
+        sys.exit(f"::error::Benzersiz otomasyon dalı zaten var: {branch}. "
+                 "Mevcut dalı sıfırlamadım; sonraki çalıştırmada yeni GITHUB_RUN_ID kullanın.")
+    if check != 404:
+        sys.exit(f"::error::Fork dalı kontrol edilemedi (HTTP {check}).")
+
+    code, payload = istek(
+        "POST", f"{API}/repos/{PUBLISH_REPO}/git/refs",
+        {"ref": f"refs/heads/{branch}", "sha": taban},
+    )
+    if code != 201:
+        sys.exit(f"::error::Fork otomasyon dalı oluşturulamadı (HTTP {code}): "
+                 f"{payload.get('message', '')}. Kanonik repo ve mevcut dallar değiştirilmedi.")
+    print(f"Fork otomasyon dalı oluşturuldu: {PUBLISH_REPO}:{branch} @ {taban[:12]}")
+    return branch, taban
 
 
-def commit_at(onceki: str, eklenen: list[str], silinen: list[str], baslik: str) -> str:
+def commit_at(onceki: str, branch: str, eklenen: list[str], silinen: list[str], baslik: str) -> str:
     sorgu = """mutation($girdi: CreateCommitOnBranchInput!) {
       createCommitOnBranch(input: $girdi) { commit { oid url } } }"""
     girdi = {
-        "branch": {"repositoryNameWithOwner": REPO, "branchName": DAL},
+        "branch": {"repositoryNameWithOwner": PUBLISH_REPO, "branchName": branch},
         "message": {"headline": baslik},
         "expectedHeadOid": onceki,
         "fileChanges": {
-            "additions": [{"path": y, "contents": base64.b64encode(open(y, "rb").read()).decode()} for y in eklenen],
-            "deletions": [{"path": y} for y in silinen],
+            "additions": [
+                {"path": yol, "contents": base64.b64encode(open(yol, "rb").read()).decode()}
+                for yol in eklenen
+            ],
+            "deletions": [{"path": yol} for yol in silinen],
         },
     }
-    kod, yanit = istek("POST", GRAPHQL, {"query": sorgu, "variables": {"girdi": girdi}})
-    commit = ((yanit.get("data") or {}).get("createCommitOnBranch") or {}).get("commit")
-    if kod != 200 or not commit:
-        hatalar = "; ".join(h.get("message", "") for h in yanit.get("errors", [])) or yanit.get("message", "")
-        sys.exit(f"::error::İmzalı commit yazılamadı (HTTP {kod}): {hatalar}")
+    code, payload = istek("POST", GRAPHQL, {"query": sorgu, "variables": {"girdi": girdi}})
+    commit = ((payload.get("data") or {}).get("createCommitOnBranch") or {}).get("commit")
+    if code != 200 or not commit:
+        errors = "; ".join(item.get("message", "") for item in payload.get("errors", [])) or payload.get("message", "")
+        sys.exit(f"::error::İmzalı commit yazılamadı (HTTP {code}): {errors}")
     print(f"İmzalı commit: {commit['oid'][:12]} ({len(eklenen)} dosya, {len(silinen)} silme)")
     return commit["oid"]
 
 
-def pr_ac() -> None:
-    sahip = REPO.split("/")[0]
-    kod, acik = istek("GET", f"{API}/repos/{REPO}/pulls?state=open&base=main&head={sahip}:{DAL}")
-    if kod == 200 and acik:
-        print(f"Açık PR #{acik[0]['number']} güncellendi.")
-        return
-    kod, yanit = istek("POST", f"{API}/repos/{REPO}/pulls",
-                       {"title": PR_BASLIK, "head": DAL, "base": "main", "body": PR_GOVDE})
-    if kod == 201:
-        print(f"PR açıldı: #{yanit['number']}")
+def pr_ac(branch: str) -> None:
+    owner = PUBLISH_REPO.split("/")[0]
+    params = urlencode({"state": "open", "base": "main", "per_page": 100})
+    code, open_prs = istek("GET", f"{API}/repos/{REPO}/pulls?{params}")
+    if code != 200 or not isinstance(open_prs, list):
+        sys.exit(f"::error::Kanonik depodaki açık PR'lar doğrulanamadı (HTTP {code}).")
+    for item in open_prs:
+        head = item.get("head") or {}
+        repo = head.get("repo") or {}
+        if (repo.get("full_name", "").lower() == PUBLISH_REPO.lower()
+                and head.get("ref") == branch and (item.get("base") or {}).get("ref") == "main"):
+            print(f"Açık kanonik PR #{item.get('number')} mevcut: {item.get('html_url')}")
+            return
+
+    head_value = f"{owner}:{branch}" if PUBLISH_REPO != REPO else branch
+    request = {"title": PR_BASLIK, "head": head_value, "base": "main", "body": PR_GOVDE}
+    if PUBLISH_REPO != REPO:
+        request["head_repo"] = PUBLISH_REPO
+    code, payload = istek("POST", f"{API}/repos/{REPO}/pulls", request)
+    if code == 201:
+        print(f"Kanonik PR açıldı: #{payload['number']} {payload.get('html_url', '')}")
     else:
-        print(f"::warning::PR açılamadı (HTTP {kod}: {yanit.get('message', '')}); "
-              f"Actions'ın PR açma izni kapalı olabilir. Çıktı {DAL} dalında hazır.")
+        print(f"::error::Kanonik PR açılamadı (HTTP {code}: {payload.get('message', '')}). "
+              f"İmzalı çıktı {PUBLISH_REPO}:{branch} dalında kaldı; main değiştirilmedi.")
+        sys.exit(1)
 
 
 def main() -> None:
-    eklenen, silinen = degisenler()
-    if not eklenen and not silinen:
+    added, deleted = degisenler()
+    if not added and not deleted:
         print("Yazılacak değişiklik yok; akış güncel.")
         return
-    taban = subprocess.run(["git", "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
-    ucu = dal_hazirla(taban)
-    parcalar, parca, boyut = [], [], 0
-    for yol in eklenen:
-        b = os.path.getsize(yol)
-        if parca and boyut + b > PARCA_BAYT:
-            parcalar.append(parca)
-            parca, boyut = [], 0
-        parca.append(yol)
-        boyut += b
-    parcalar.append(parca)
-    for no, p in enumerate(parcalar, 1):
-        baslik = MESAJ if len(parcalar) == 1 else f"{MESAJ} ({no}/{len(parcalar)})"
-        ucu = commit_at(ucu, p, silinen if no == 1 else [], baslik)
-    pr_ac()
+    source_sha = current_sha()
+    branch, head_oid = dal_hazirla(source_sha)
+    chunks, chunk, size = [], [], 0
+    for path in added:
+        size_now = os.path.getsize(path)
+        if chunk and size + size_now > PARCA_BAYT:
+            chunks.append(chunk)
+            chunk, size = [], 0
+        chunk.append(path)
+        size += size_now
+    if chunk:
+        chunks.append(chunk)
+    if not chunks:
+        chunks = [[]]
+    for number, paths in enumerate(chunks, 1):
+        headline = MESAJ if len(chunks) == 1 else f"{MESAJ} ({number}/{len(chunks)})"
+        head_oid = commit_at(head_oid, branch, paths, deleted if number == 1 else [], headline)
+    pr_ac(branch)
 
 
 if __name__ == "__main__":
