@@ -2,7 +2,7 @@ name: BTMEDYA Core Efficiency Check
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "src/worker.js"
       - "src/btmedya-core.js"
