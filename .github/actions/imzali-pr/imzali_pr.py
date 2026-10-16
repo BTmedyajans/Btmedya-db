@@ -21,6 +21,7 @@ import subprocess
 import sys
 import urllib.error
 import urllib.request
+from urllib.parse import quote
 
 API = os.environ.get("GITHUB_API_URL", "https://api.github.com")
 GRAPHQL = os.environ.get("GITHUB_GRAPHQL_URL", "https://api.github.com/graphql")
@@ -81,7 +82,7 @@ def degisenler() -> tuple[list[str], list[str]]:
 def dal_hazirla(taban: str) -> str:
     # Each workflow run uses a branch named for its source commit. Reuse that
     # branch's current head; never force-reset an existing automation branch.
-    ref_url = f"{API}/repos/{REPO}/git/ref/heads/{DAL}"
+    ref_url = f"{API}/repos/{REPO}/git/ref/heads/{quote(DAL, safe="")}"
     kod, yanit = istek("GET", ref_url)
     if kod == 200:
         oid = (yanit.get("object") or {}).get("sha")
