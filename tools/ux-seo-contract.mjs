@@ -152,10 +152,10 @@ for (const field of ["name", "email", "phone", "company", "service", "message"])
   else fail(`offer form label must target a control with matching id/name: ${field}`);
 }
 
-if (/<select\\b[^>]*\\bname=["']budget["']/i.test(offerForm)) fail("optional budget selector should be removed from the offer form");
+if (/<select\b[^>]*\bname=["']budget["']/i.test(offerForm)) fail("optional budget selector should be removed from the offer form");
 else ok("offer form does not require or display the optional budget selector");
 
-if (/q\\.get\\(['"]kaynak['"]\\)/.test(offerScript) && /veri\\.sayfa\\s*=\\s*sayfa/.test(offerScript)) {
+if (/q\.get\(['"]kaynak['"]\)/.test(offerScript) && /veri\.sayfa\s*=\s*sayfa/.test(offerScript)) {
   ok("offer form forwards the homepage source attribution to the lead API");
 } else {
   fail("offer form must forward the ?kaynak= attribution to the lead API");
