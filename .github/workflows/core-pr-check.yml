@@ -2,7 +2,7 @@ name: BTMEDYA Core PR Check
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "src/**"
       - "migrations/**"
