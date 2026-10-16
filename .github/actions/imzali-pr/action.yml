@@ -25,12 +25,19 @@ inputs:
     description: contents:write ve pull-requests:write yetkili token
     required: false
     default: ${{ github.token }}
+  publish_repo:
+    description: >
+      Optional writable fork repository used as the PR head. Must be a fork of
+      the canonical repository and the token must have push access.
+    required: false
+    default: ${{ github.repository }}
 runs:
   using: composite
   steps:
     - shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
+        PUBLISH_REPO: ${{ inputs.publish_repo }}
         DAL: ${{ inputs.dal }}
         YOLLAR: ${{ inputs.yollar }}
         MESAJ: ${{ inputs.mesaj }}
