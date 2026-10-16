@@ -5,6 +5,8 @@ on:
     paths:
       - "public/index.html"
       - "public/btmedya-responsive-experience-v1.css"
+      - "public/mobile-home-experience.css"
+      - "public/mobile-refresh-v1.css"
       - "tools/ux-seo-contract.mjs"
       - ".github/workflows/ux-seo-check.yml"
   push:
@@ -12,6 +14,8 @@ on:
     paths:
       - "public/index.html"
       - "public/btmedya-responsive-experience-v1.css"
+      - "public/mobile-home-experience.css"
+      - "public/mobile-refresh-v1.css"
       - "tools/ux-seo-contract.mjs"
       - ".github/workflows/ux-seo-check.yml"
   workflow_dispatch:
