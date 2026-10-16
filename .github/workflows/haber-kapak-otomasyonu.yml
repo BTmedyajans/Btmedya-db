@@ -45,10 +45,25 @@ jobs:
       - name: Medya listesini güncelle
         run: node tools/medya-listesi.mjs
 
+      - name: GitHub otomasyon tokenını doğrula
+        env:
+          GH_TOKEN: ${{ secrets.BTMEDYA_AUTOMATION_TOKEN || github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          test -n "$GH_TOKEN"
+          repo_json="$(gh api "repos/$GH_REPO")"
+          test "$(jq -r '.full_name' <<<"$repo_json")" = "$GH_REPO"
+          echo "GitHub API erişimi doğrulandı; otomasyon tokenı değeri loglanmadı."
+
       - name: Üretilen kapakları PR olarak yayınla
         uses: ./.github/actions/imzali-pr
         with:
-          dal: "automation/haber-kapaklari-${{ github.sha }}"
+          # Repository ruleset'i yeni branch oluşturmayı yasaklıyor. Önceden
+          # oluşturulan bu dal, GraphQL imzalı commit'lerle güvenli biçimde
+          # güncellenir; action mevcut dalı force-reset etmez.
+          dal: "automation/haber-kapaklari"
+          token: ${{ secrets.BTMEDYA_AUTOMATION_TOKEN || github.token }}
           yollar: public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json public/data/medya-listesi.json tools/temsili-kaynak
           mesaj: "chore: otomatik haber kapakları üretildi"
           pr_baslik: "chore: otomatik haber kapakları"
