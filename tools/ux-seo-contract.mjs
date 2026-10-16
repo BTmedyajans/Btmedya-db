@@ -113,5 +113,32 @@ else fail('live-data API and homepage counter are not connected');
 if (css.includes('.story-scroll,.story-progress{display:none!important}')) ok('desktop story scroll cue is removed from compact mobile layout');
 else fail('mobile story scroll/progress cue fallback missing');
 
+/* Validate mobile stylesheets when the homepage links them. This stays optional
+   on older branches where the refresh layer has not been introduced yet. */
+for (const mobile of [
+  { path: "public/mobile-home-experience.css", href: "/mobile-home-experience.css", label: "mobile home experience" },
+  { path: "public/mobile-refresh-v1.css", href: "/mobile-refresh-v1.css", label: "mobile refresh" },
+]) {
+  if (!index.includes(mobile.href)) continue;
+  if (!fs.existsSync(mobile.path)) {
+    fail(mobile.label + " stylesheet is linked but the file is missing");
+    continue;
+  }
+  const mobileCss = fs.readFileSync(mobile.path, "utf8");
+  if (/@media\s*\(\s*max-width\s*:\s*\d+px\s*\)/i.test(mobileCss)) ok(mobile.label + " has a narrow-screen breakpoint");
+  else fail(mobile.label + " is linked but has no max-width responsive breakpoint");
+  if (/prefers-reduced-motion\s*:\s*reduce/i.test(mobileCss)) ok(mobile.label + " respects reduced-motion preferences");
+  else fail(mobile.label + " must respect prefers-reduced-motion");
+  if (/env\(\s*safe-area-inset-(?:top|bottom)/i.test(mobileCss)) ok(mobile.label + " accounts for device safe areas");
+  else fail(mobile.label + " must account for device safe areas");
+  if (/min-height\s*:\s*44px/i.test(mobileCss)) ok(mobile.label + " includes 44px touch targets");
+  else fail(mobile.label + " must include a minimum 44px touch target");
+  if (/body\.ana-sade\.menu-open\s+\.site-menu[^{}]*\{[^}]*pointer-events\s*:\s*none/i.test(mobileCss)) {
+    fail(mobile.label + " disables pointer events on the open site menu");
+  } else {
+    ok(mobile.label + " does not disable clicks on the open site menu");
+  }
+}
+
 if (failures.length) process.exit(1);
 console.log("UX_SEO_CONTRACT_PASS");
