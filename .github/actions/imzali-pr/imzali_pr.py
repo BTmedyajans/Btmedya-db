@@ -144,15 +144,11 @@ def dal_hazirla(taban: str) -> tuple[str, str]:
     if code != 200 or source_commit.get("sha") != taban:
         sys.exit(f"::error::Kanonik kaynak commit {taban} doğrulanamadı (HTTP {code}).")
     fork_code, fork_commit = istek("GET", f"{API}/repos/{PUBLISH_REPO}/commits/{taban}")
-    base_for_branch = taban
     if fork_code != 200 or fork_commit.get("sha") != taban:
-        # A fork may be many commits behind but still share Git history. If a
-        # new branch can be created directly at the canonical tip SHA, use that
-        # exact object; never merge/rebase/overwrite the fork's default branch.
-        # GitHub's create-ref API is the final availability check for shared
-        # commit objects; failure aborts before touching an existing branch.
-        print(f"::notice::Kanonik SHA {taban[:12]} fork'ta doğrudan çözümlenemedi; yeni dal tabanı API ile denenecek.")
-        base_for_branch = taban
+        # A fork can be behind canonical main. Attempt to create a new ref at
+        # the exact canonical source SHA, which is the definitive shared-object
+        # check. If GitHub rejects it, fail closed without touching old refs.
+        print(f"::notice::Kanonik SHA {taban[:12]} fork uç noktasında görünmüyor; yeni dalın oluşturulması bunu doğrulayacak.")
 
     # Never append to an existing automation PR branch: its tree may be stale
     # or diverged from the exact canonical checkout that generated these files.
