@@ -98,16 +98,38 @@ def dal_hazirla(taban: str) -> str:
     if kod == 201:
         return taban
 
-    # Handle two scheduled runs racing to create the same source-scoped branch.
-    if kod == 422:
+    # GitHub can return 404 for a ref creation when a source commit is no
+    # longer reachable by the API's ref-creation path (for example, a scheduled
+    # run uses a commit whose ref has just moved). Retry only after verifying
+    # the exact base SHA still exists and that the requested branch is absent.
+    # Never force-update an existing branch or touch main.
+    if kod in (404, 422):
         kod, tekrar = istek("GET", ref_url)
         oid = ((tekrar.get("object") or {}).get("sha") or "") if kod == 200 else ""
         if oid:
             print(f"Eşzamanlı çalıştırmanın oluşturduğu dal kullanılıyor: {DAL} @ {oid[:12]}")
             return oid
+        if kod not in (404,):
+            sys.exit(f"::error::{DAL} dalı yeniden kontrol edilemedi: HTTP {kod}.")
+
+        # Verify base commit is still accessible before making one bounded retry.
+        kod, taban_yanit = istek("GET", f"{API}/repos/{REPO}/commits/{taban}")
+        if kod != 200 or not (taban_yanit.get("sha") or "") == taban:
+            sys.exit(f"::error::Dal tabanı doğrulanamadı (HTTP {kod}); güvenli biçimde durduruldu.")
+
+        kod, yanit = istek("POST", f"{API}/repos/{REPO}/git/refs",
+                           {"ref": f"refs/heads/{DAL}", "sha": taban})
+        if kod == 201:
+            return taban
+        if kod in (404, 422):
+            kod, tekrar = istek("GET", ref_url)
+            oid = ((tekrar.get("object") or {}).get("sha") or "") if kod == 200 else ""
+            if oid:
+                print(f"Eşzamanlı çalıştırmanın oluşturduğu dal kullanılıyor: {DAL} @ {oid[:12]}")
+                return oid
 
     sys.exit(f"::error::{DAL} dalı hazırlanamadı (HTTP {kod}): {yanit.get('message', '')}. "
-             "Ana dalı veya var olan otomasyon dallarını force-reset etmeyin.")
+             "Ana dal veya var olan otomasyon dalları değiştirilmedi.")
 
 
 def commit_at(onceki: str, eklenen: list[str], silinen: list[str], baslik: str) -> str:
