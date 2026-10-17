@@ -1124,7 +1124,19 @@ function surumBilgisi(env){
 async function contactApi(request, env, url, ctx){
   if(url.pathname==='/api/contact' && request.method==='POST'){
     if(!env.DB) return json({ok:false,error:'Veritabanı yapılandırılmadı'},503);
-    const b=await request.json().catch(()=>({}));
+    const contentLength=Number(request.headers.get('content-length')||0);
+    if(contentLength>20000) return json({ok:false,error:'İstek çok büyük'},413);
+    const contentType=(request.headers.get('content-type')||'').toLowerCase();
+    let b={};
+    if(contentType.includes('application/json')){
+      b=await request.json().catch(()=>({}));
+    }else if(contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')){
+      const form=await request.formData().catch(()=>null);
+      if(form){
+        b=Object.fromEntries(form.entries());
+        b.consent=b.consent===true || b.consent==='true' || b.consent==='on';
+      }
+    }
     if(!b.name||!b.email||!b.message) return json({ok:false,error:'Ad, e-posta ve mesaj zorunludur'},400);
     if(b.consent!==true) return json({ok:false,error:'Gizlilik ve KVKK onayı zorunludur'},400);
     if(String(b.message).length>5000) return json({ok:false,error:'Mesaj çok uzun'},400);
@@ -1536,6 +1548,11 @@ async function mediaApi(request, env){
   if(path==='/api/public/media' && request.method==='GET') {
     const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'Content-Type, Authorization'};
     const q=(u.searchParams.get('q')||'').toLowerCase(); const cat=u.searchParams.get('category')||'';
+    // Public vitrines request a small window (the homepage asks for 40). The
+    // old handler accepted `limit` but ignored it, returning the whole R2
+    // catalog and making mobile archive hydration unnecessarily expensive.
+    const requestedLimit=Number.parseInt(u.searchParams.get('limit')||'60',10);
+    const limit=Number.isFinite(requestedLimit)?Math.min(200,Math.max(1,requestedLimit)):60;
     const staticItems=(await medyaListesi(env,u.origin))
       .filter(x=>!cat || x.category===cat)
       .filter(x=>!q || x.path.toLowerCase().includes(q))
@@ -1570,7 +1587,7 @@ async function mediaApi(request, env){
       }
     }
     const seen=new Set(r2Items.map(x=>x.url));
-    const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url))];
+    const items=[...r2Items,...staticItems.filter(x=>!seen.has(x.url))].slice(0,limit);
     return json({
       brand:'BTMedya',
       generated_at:new Date().toISOString(),
@@ -1578,7 +1595,7 @@ async function mediaApi(request, env){
       items,
       degraded:Boolean(d1MediaError),
       ...(d1MediaError?{warning:'D1 medya metadata katmanı okunamadı; statik/R2 yayın katmanı kullanıldı.'}:{})
-    },200,cors);
+    },200,{...cors,'cache-control':'public, max-age=30, stale-while-revalidate=120'});
   }
 
   const aiToken=env.AI_READ_TOKEN;
@@ -2536,7 +2553,10 @@ export default { async scheduled(controller, env, ctx){
   /* HABER SAYFASI — once statik dosya, yoksa D1'den uretim.
      Depodaki 27 haber oldugu gibi kalir; panelden girilen yeni haberler
      dosya olusturmadan kendi adresinde yayina girer. */
-  if(url.pathname.startsWith('/haberler/') && url.pathname !== '/haberler/'){
+  // Haber altındaki CSS/JS/görselleri dinamik haber slug'ı sanma; önce Static
+  // Assets katmanına bırak. Aksi halde /haberler/portal.css gibi dosyalar D1
+  // sorgusuna girip 500 dönebiliyor ve sayfa biçimsiz kalıyordu.
+  if(url.pathname.startsWith('/haberler/') && url.pathname !== '/haberler/' && !/\.[a-z0-9]+$/i.test(url.pathname)){
     // Once veritabani, sonra statik dosya. Boylece panelden yapilan duzenleme
     // ve video kutuphanesi anahtari 27 eski haberde de gecerli olur; D1'e
     // ulasilamazsa depodaki statik surum yedek olarak devreye girer.

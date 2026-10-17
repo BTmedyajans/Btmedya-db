@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     btn.disabled=true;
     btn.textContent='GÖNDERİLİYOR...';
     msg.className='form-msg';
+    msg.setAttribute('role','status');
     msg.textContent='';
     const data={
       name:form.name.value.trim(),
@@ -25,14 +26,17 @@ document.addEventListener('DOMContentLoaded',()=>{
       const j=await r.json();
       if(j.ok){
         msg.className='form-msg ok';
+        msg.setAttribute('role','status');
         msg.textContent='Mesajınız başarıyla gönderildi. En kısa sürede dönüş yapacağız!';
         form.reset();
       }else{
         msg.className='form-msg err';
+        msg.setAttribute('role','alert');
         msg.textContent=j.error||'Bir hata oluştu.';
       }
     }catch(err){
       msg.className='form-msg err';
+      msg.setAttribute('role','alert');
       msg.textContent='Bağlantı hatası. Lütfen tekrar deneyin.';
     }
     btn.disabled=false;
