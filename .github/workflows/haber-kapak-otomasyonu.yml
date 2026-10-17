@@ -1,14 +1,16 @@
 name: BTMedya haber kapak otomasyonu
 
-# Kapaksız haberleri bulur, kapak üretir ve otomasyon PR'ı açar.
-# Workflow/validator değişikliklerinde de kontrollü test sağlar; üretilen medya yolları push filtresinde değildir.
+# Kapaksız haberleri bulur, kapak üretir ve otomatik PR açar/günceller.
+# PR açıldıktan sonra merge veya review beklemez; workflow başarıyla tamamlanır.
 on:
   push:
     branches: [main]
     paths:
       - ".github/workflows/haber-kapak-otomasyonu.yml"
-      - ".github/actions/imzali-pr/**"
+      - "tools/kapak-otomasyonu.py"
       - "tools/validate-assets.py"
+      - "tools/medya-listesi.mjs"
+      - "public/data/**"
   schedule:
     - cron: "10 * * * *"
   workflow_dispatch:
@@ -21,19 +23,28 @@ concurrency:
   group: btmedya-haber-kapak-otomasyonu
   cancel-in-progress: false
 
+env:
+  AUTOMATION_BRANCH: automation/haber-kapaklari
+  AUTOMATION_TOKEN: ${{ secrets.BTMEDYA_AUTOMATION_TOKEN || github.token }}
+
 jobs:
   kapak:
+    name: Kapakları üret ve PR aç
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
-      - name: Setup Python
+      - name: Python kurulumu
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Pillow kur
+      - name: Pillow kurulumu
         run: python -m pip install --quiet "Pillow>=10,<12"
 
       - name: Kapaksız haberlere kapak üret
@@ -45,26 +56,44 @@ jobs:
       - name: Medya listesini güncelle
         run: node tools/medya-listesi.mjs
 
-      - name: GitHub otomasyon tokenını doğrula
+      - name: GitHub token erişimini doğrula
         env:
-          GH_TOKEN: ${{ secrets.BTMEDYA_AUTOMATION_TOKEN || github.token }}
+          GH_TOKEN: ${{ env.AUTOMATION_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           test -n "$GH_TOKEN"
           repo_json="$(gh api "repos/$GH_REPO")"
           test "$(jq -r '.full_name' <<<"$repo_json")" = "$GH_REPO"
-          echo "GitHub API erişimi doğrulandı; otomasyon tokenı değeri loglanmadı."
+          echo "GitHub API erişimi doğrulandı; token değeri loglanmadı."
 
-      - name: Üretilen kapakları PR olarak yayınla
-        uses: ./.github/actions/imzali-pr
+      - name: Otomatik PR oluştur veya güncelle
+        id: pr
+        uses: peter-evans/create-pull-request@v7
         with:
-          # Repository ruleset'i yeni branch oluşturmayı yasaklıyor. Önceden
-          # oluşturulan bu dal, GraphQL imzalı commit'lerle güvenli biçimde
-          # güncellenir; action mevcut dalı force-reset etmez.
-          dal: "automation/haber-kapaklari"
-          token: ${{ secrets.BTMEDYA_AUTOMATION_TOKEN || github.token }}
-          yollar: public/assets/haber-kapak public/assets/sosyal-kart public/data/haber-kapak-plani.json public/data/haber-kapak-kaynagi.json public/data/kapak-foto-kaynaklari.json public/data/medya-listesi.json tools/temsili-kaynak
-          mesaj: "chore: otomatik haber kapakları üretildi"
-          pr_baslik: "chore: otomatik haber kapakları"
-          pr_govde: "BTMEDYA haber kapak otomasyonu, kapaksız yayımlanan haberler için kapak üretti."
+          token: ${{ env.AUTOMATION_TOKEN }}
+          branch: ${{ env.AUTOMATION_BRANCH }}
+          base: main
+          delete-branch: false
+          draft: false
+          title: "chore: otomatik haber kapakları"
+          commit-message: "chore: otomatik haber kapakları üretildi"
+          body: |
+            BTMEDYA haber kapak otomasyonu tarafından oluşturuldu.
+
+            Bu workflow PR'ı oluşturur veya mevcut PR'ı günceller; merge ya da review beklemez.
+          add-paths: |
+            public/assets/haber-kapak/**
+            public/assets/sosyal-kart/**
+            public/data/haber-kapak-plani.json
+            public/data/haber-kapak-kaynagi.json
+            public/data/kapak-foto-kaynaklari.json
+            public/data/medya-listesi.json
+            tools/temsili-kaynak/**
+
+      - name: PR sonucunu bildir
+        if: steps.pr.outputs.pull-request-number != ''
+        run: |
+          echo "PR #${{ steps.pr.outputs.pull-request-number }} hazır."
+          echo "URL: ${{ steps.pr.outputs.pull-request-url }}"
+          echo "Merge beklenmeden workflow tamamlandı."
