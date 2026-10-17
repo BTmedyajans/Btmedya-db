@@ -1141,10 +1141,3 @@ button,a{touch-action:manipulation}
 @media (max-width:760px){.brand .brand-logo{height:30px;max-width:58vw}}
 .footer-brand img.footer-logo{width:auto;height:52px;max-width:100%}
 .footer-brand:has(.footer-logo){flex-direction:column;align-items:flex-start;gap:6px}
-
-/* İletişim sayfasında formu açıklama akışından önce görünür kıl; WhatsApp hızlı yolunu koru. */
-.contact-quick-actions{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 30px}
-.contact-quick-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.08em;text-decoration:none}
-.contact-quick-primary{background:var(--cyan);color:#001017}
-.contact-quick-secondary{border:1px solid rgba(255,255,255,.2);color:#fff}
-@media(max-width:620px){.contact-quick-actions{margin-bottom:24px}.contact-quick-actions a{flex:1 1 180px}}
