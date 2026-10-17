@@ -47,6 +47,13 @@ Backend dosyaları `public/` dışında tutulur; bu yüzden `wrangler.toml`, `sr
 
 ## Cloudflare durumu
 
+### Kanonik üretim kaynağı
+
+`btmedya.com.tr` için kanonik üretim kaynağı bu repository'dir: `BTmedyajans/Btmedya-db`.
+Canlı alan adı `btmedya-db` Worker'ına bağlıdır. `busetuncay1029-ai/btmedya-ajans-v10`
+ayrı bir Pages prototipi/alternatif istemci olarak tutulur; bu repository ile aynı canlı
+domaini deploy eden ikinci bir üretim sahibi olarak kullanılmamalıdır.
+
 | Worker | Rol |
 |---|---|
 | `btmedya-db` | **Bu depo buraya deploy eder** — site + API burada çalışıyor |
